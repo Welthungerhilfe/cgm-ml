@@ -13,11 +13,12 @@ class QR:
         self.timestamps = []
 
     def add_timestamp(self, ts, jpg_paths, pcd_paths):
-        self.timestamps.append({
-            'timestamp': ts,
-            'jpg_paths': jpg_paths,
-            'pcd_paths': pcd_paths
-        })
+        if len(pcd_paths) > 0:
+            self.timestamps.append({
+                'timestamp': ts,
+                'jpg_paths': jpg_paths,
+                'pcd_paths': pcd_paths
+            })
 
     def get_matching_measurements(self,
                                   timestamp,
