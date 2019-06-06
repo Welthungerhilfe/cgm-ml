@@ -1,6 +1,6 @@
 -- This removes everything. You better be careful.
-DROP SCHEMA public CASCADE;
-CREATE SCHEMA public;
+-- DROP SCHEMA public CASCADE;
+-- CREATE SCHEMA public;
 
 -- Creates a table for measurements.
 CREATE TABLE IF NOT EXISTS measurements (
@@ -65,3 +65,13 @@ CREATE TABLE IF NOT EXISTS pointcloud_data (
 
     measurement_id INTEGER REFERENCES measurements(id)
 );
+
+-- Creates a table for artifacts quality.
+CREATE TABLE IF NOT EXISTS artifact_quality (
+    PRIMARY KEY(artifact_id, type, key),
+    type TEXT NOT NULL,
+    key TEXT NOT NULL,
+    value REAL NOT NULL,
+    misc TEXT,
+    artifact_id INTEGER REFERENCES pointcloud_data(id)
+)

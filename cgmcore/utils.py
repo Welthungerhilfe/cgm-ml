@@ -9,12 +9,13 @@ import os
 try:
     import vtk
 except Exception as e:
-    print("WARNING! VTK not available. This might limit the functionality.") 
+    pass
+    #print("WARNING! VTK not available. This might limit the functionality.") 
 from pyntcloud import PyntCloud
 import pickle
 import random
 from tensorflow.python.client import device_lib
-
+import multiprocessing
     
 def load_pcd_as_ndarray(pcd_path):
     """
@@ -23,6 +24,16 @@ def load_pcd_as_ndarray(pcd_path):
         
     return PyntCloud.from_file(pcd_path).points.values
 
+def subsample_pointcloud(pointcloud, target_size):
+    """
+    Yields a subsampled pointcloud.
+    """
+    
+    # Currently only random subsampling.
+    indices = np.arange(0, pointcloud.shape[0])
+    indices = np.random.choice(indices, target_size)
+    pointcloud = pointcloud[indices,0:3]
+    return pointcloud
     
 def load_vtk(vtk_path):
     """
@@ -400,3 +411,51 @@ def create_training_tasks(qrcodes, subset_sizes, random_seed=666):
 def get_available_gpus():
     local_device_protos = device_lib.list_local_devices()
     return [x.name for x in local_device_protos if x.device_type == 'GPU']
+
+
+def multiprocess(entries, process_method, number_of_workers=None, process_individial_entries=True, progressbar=False):
+    # Get number of workers.
+    if number_of_workers == None:
+        number_of_workers = multiprocessing.cpu_count()
+    print("Using {} workers...".format(number_of_workers))
+
+    # Split into list.
+    entry_sublists = np.array_split(entries, number_of_workers)
+    assert len(entry_sublists) == number_of_workers
+    assert np.sum([len(entry_sublist) for entry_sublist in entry_sublists] ) == len(entries)
+
+    # Define an output queue
+    output = multiprocessing.Queue()
+
+    def process_entries(entry_sublist):
+        # Process individually.
+        if process_individial_entries:
+            if progressbar == True:
+                bar = progressbar.ProgressBar(max_value=len(entry_sublist))
+            for entry_index, entry in enumerate(entry_sublist):
+                if progressbar == True:
+                    bar.update(entry_index)
+                process_method(entry)
+            if progressbar == True:
+                bar.finish()
+        # Process all.
+        else:
+            process_method(entry_sublist)
+        output.put("Processed {}".format(len(entry_sublist)))
+
+    # Setup a list of processes that we want to run
+    processes = [multiprocessing.Process(target=process_entries, args=(entry_sublist,)) for entry_sublist in entry_sublists]
+
+    # Run processes
+    for process in processes:
+        process.start()
+
+    # Exit the completed processes
+    for process in processes:
+        process.join()
+
+    # Get process results from the output queue
+    results = [output.get() for process in processes]
+
+    print(results)  
+      

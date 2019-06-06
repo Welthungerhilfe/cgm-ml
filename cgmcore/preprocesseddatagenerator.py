@@ -271,14 +271,6 @@ class PreprocessedDataGenerator(object):
             #self.pointcloud_cache[pcd_path] = pointcloud
     #    return pointcloud
 
-    def _subsample_pointcloud(self, pointcloud):
-        # Currently only random subsampling.
-        indices = np.arange(0, pointcloud.shape[0])
-        indices = np.random.choice(indices, self.pointcloud_target_size)
-        pointcloud = pointcloud[indices,0:3]
-        return pointcloud
-    
-
     def _create_voxelgrid_from_pointcloud(self, pointcloud, augmentation=True):
         if self.voxelgrid_random_rotation == True and augmentation == True:
             pointcloud = self._rotate_point_cloud(pointcloud)
@@ -470,7 +462,7 @@ def get_input(class_self, pointcloud):
  
     # Get a random pointcloud.
     elif class_self.input_type == "pointcloud":
-        pointcloud = class_self._subsample_pointcloud(pointcloud)
+        pointcloud = utils.subsample_pointcloud(pointcloud)
         x_input = pointcloud
   
     # Get a random pointcloud.

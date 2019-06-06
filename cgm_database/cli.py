@@ -19,7 +19,6 @@ import pprint
 import pickle
 import dbutils
 import pandas as pd
-import multiprocessing
 
 # Database constants.
 MEASUREMENTS_TABLE = "measurements"
@@ -668,7 +667,7 @@ def execute_command_preprocess(preprocess_pcds=True, preprocess_jpgs=False):
             pickle.dump((pointcloud, targets), open(pickle_output_path, "wb"))
         
         # Start multiprocessing.
-        multiprocess(entries, process_pcd_entry)
+        utils.multiprocess(entries, process_pcd_entry)
     
     # Process the filtered JPGs.
     if preprocess_jpgs == True:
@@ -693,46 +692,8 @@ def execute_command_preprocess(preprocess_pcds=True, preprocess_jpgs=False):
             pickle.dump((image, targets), open(pickle_output_path, "wb"))
         
         # Start multiprocessing.
-        multiprocess(entries, process_pcd_entry)
-    
-    
-def multiprocess(entries, process_entry_method):
-    # Get number of workers.
-    number_of_workers = multiprocessing.cpu_count()
-    print("Using {} workers...".format(number_of_workers))
+        utils.multiprocess(entries, process_pcd_entry)
 
-    # Split into list.
-    entry_sublists = np.array_split(entries, number_of_workers)
-    assert len(entry_sublists) == number_of_workers
-    assert np.sum([len(entry_sublist) for entry_sublist in entry_sublists] ) == len(entries)
-
-    # Define an output queue
-    output = multiprocessing.Queue()
-
-    def multiprocess_target(entry_sublist):
-        bar = progressbar.ProgressBar(max_value=len(entry_sublist))
-        for entry_index, entry in enumerate(entry_sublist):
-            bar.update(entry_index)
-            process_entry_method(entry)
-        bar.finish()
-        output.put("Processed {}".format(len(entry_sublist)))
-
-    # Setup a list of processes that we want to run
-    processes = [multiprocessing.Process(target=multiprocess_target, args=(entry_sublist,)) for entry_sublist in entry_sublists]
-
-    # Run processes
-    for process in processes:
-        process.start()
-
-    # Exit the completed processes
-    for process in processes:
-        process.join()
-
-    # Get process results from the output queue
-    results = [output.get() for process in processes]
-
-    print(results)  
-      
         
 if __name__ == "__main__":
     main()

@@ -131,7 +131,7 @@ for qrcodes_task in qrcodes_tasks:
             callbacks=[tensorboard_callback]
             )
 
-        histories["rgbnet"] = history
-        modelutils.save_model_and_history(output_path, datetime_string, model, history, training_details, "rgbnet")
+        histories["pointnet"] = history
+        modelutils.save_model_and_history(output_path, datetime_string, model, history, training_details, "pointnet")
 
     train_pointclouds()
