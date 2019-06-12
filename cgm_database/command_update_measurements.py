@@ -1,8 +1,11 @@
+import warnings
+warnings.filterwarnings("ignore")
 import dbutils
 import glob2 as glob
 import os
 import progressbar
 import pandas as pd
+import sys
 
 
 whhdata_path = "/whhdata"

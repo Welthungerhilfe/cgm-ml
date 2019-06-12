@@ -1,3 +1,5 @@
+import warnings
+warnings.filterwarnings("ignore")
 import dbutils
 
 def execute_command_init():
