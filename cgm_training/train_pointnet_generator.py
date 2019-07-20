@@ -27,7 +27,7 @@ output_root_path = "/whhdata/models"
 steps_per_epoch = 100
 validation_steps = 10
 epochs = 100
-batch_size = 64
+batch_size = 16
 random_seed = 667
 
 if len(utils.get_available_gpus()) == 0:
@@ -45,7 +45,7 @@ image_size = 128
 # For creating pointclouds.
 dataset_parameters = {}
 dataset_parameters["input_type"] = "pointcloud"
-dataset_parameters["output_targets"] = ["height"]
+dataset_parameters["output_targets"] = ["weight"]
 dataset_parameters["random_seed"] = random_seed
 dataset_parameters["pointcloud_target_size"] = 10000
 dataset_parameters["pointcloud_random_rotation"] = False
@@ -108,7 +108,7 @@ for qrcodes_task in qrcodes_tasks:
 
         input_shape = (dataset_parameters["pointcloud_target_size"], 3)
         output_size = 1
-        model = modelutils.create_point_net(input_shape, output_size, hidden_sizes = [512, 256, 128])
+        model = modelutils.create_point_net(input_shape, output_size, hidden_sizes = [1024, 512, 256, 128, 32])
         model.summary()
 
         # Compile the model.

@@ -39,12 +39,19 @@ def main():
     # Query the database for artifacts.
     print("Getting all artifacts...")
     sql_statement = ""
+
+    sql_statement = ""
+    sql_statement += "SELECT artifact_id, artifact_path, weight, qr_code FROM artifacts_with_targets"
+    sql_statement += " WHERE type=\'pcd\'"
+    sql_statement += ";"
     # Select all artifacts.
-    sql_statement += "SELECT pointcloud_data.id, pointcloud_data.path, measurements.height_cms, pointcloud_data.qrcode FROM pointcloud_data"
-    # Join them with measurements.
-    sql_statement += " INNER JOIN measurements ON pointcloud_data.measurement_id=measurements.id"
-    # Only take into account manual measurements.
-    sql_statement += " WHERE measurements.type=\'manual\'"
+    # sql_statement += "SELECT pointcloud_data.id, pointcloud_data.path, measurements.weight_kgs, pointcloud_data.qrcode FROM pointcloud_data"
+    # # Join them with measurements.
+    # sql_statement += " INNER JOIN measurements ON pointcloud_data.measurement_id=measurement.id"
+    # # Only take into account manual measurements.
+    # sql_statement += " WHERE measurements.type=\'manual\'"
+
+
     artifacts = db_connector.execute(sql_statement, fetch_all=True)
     print("Found {} artifacts.".format(len(artifacts)))
 
@@ -98,7 +105,7 @@ def load_model(model_path):
 
     input_shape = (10000, 3)
     output_size = 1
-    model = modelutils.create_point_net(input_shape, output_size, hidden_sizes = [512, 256, 128])
+    model = modelutils.create_point_net(input_shape, output_size, hidden_sizes = [1024, 512, 256, 128, 32])#hidden_sizes = [512, 256, 128])
     model.load_weights(model_path)
     model.compile(
         optimizer="rmsprop",

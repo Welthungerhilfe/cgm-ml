@@ -328,7 +328,7 @@ def create_datagenerator_from_parameters(dataset_path, dataset_parameters):
     return datagenerator
 
 
-def get_dataset_path(root_path="/whhdata/preprocessed"):
+def get_dataset_path(root_path="/localssd/preprocessed"):
     if os.path.exists("etldatasetpath.txt"):
         with open("etldatasetpath.txt", "r") as file:
             dataset_path = file.read().replace("\n", "")
@@ -462,7 +462,7 @@ def get_input(class_self, pointcloud):
  
     # Get a random pointcloud.
     elif class_self.input_type == "pointcloud":
-        pointcloud = utils.subsample_pointcloud(pointcloud)
+        pointcloud = utils.subsample_pointcloud(pointcloud, 10000)
         x_input = pointcloud
   
     # Get a random pointcloud.
