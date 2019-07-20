@@ -18,14 +18,17 @@ from cgmcore.utils import create_training_tasks
 import multiprocessing
 
 # Get the dataset path.
-dataset_path = get_dataset_path()
+if len(sys.argv) == 1:
+    dataset_path = get_dataset_path()
+else:
+    dataset_path = sys.argv[1]
 print("Using dataset path", dataset_path)
 
 output_root_path = "/whhdata/models"
 
 # Hyperparameters.
-steps_per_epoch = 100
-validation_steps = 10
+steps_per_epoch = 400
+validation_steps = 40
 epochs = 100
 batch_size = 16
 random_seed = 667
@@ -61,8 +64,8 @@ qrcodes_tasks = create_training_tasks(qrcodes, subset_sizes)
 for qrcodes_task in qrcodes_tasks:
     
     qrcodes_train, qrcodes_validate = qrcodes_task
-    print("QR-codes for training:\n", "\t".join(qrcodes_train))
-    print("QR-codes for validation:\n", "\t".join(qrcodes_validate))
+    print("Using {} QR-codes for training.".format(len(qrcodes_train)))
+    print("Using {} QR-codes for validation.".format(len(qrcodes_validate)))
 
     # Create python generators.
     generator_train = datagenerator_instance.generate(size=batch_size, qrcodes_to_use=qrcodes_train)
@@ -112,7 +115,7 @@ for qrcodes_task in qrcodes_tasks:
         model.summary()
 
         # Compile the model.
-        optimizer = "rmsprop"
+        optimizer = optimizers.RMSprop(lr=0.0001)
         model.compile(
                 optimizer=optimizer,
                 loss="mse",

@@ -1,3 +1,21 @@
+#
+# Child Growth Monitor - Free Software for Zero Hunger
+# Copyright (c) 2019 Tristan Behrens <tristan@ai-guru.de> for Welthungerhilfe
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
@@ -16,13 +34,18 @@ import pickle
 import random
 from tensorflow.python.client import device_lib
 import multiprocessing
+import uuid
+from tqdm import tqdm
+import traceback
+
     
 def load_pcd_as_ndarray(pcd_path):
     """
     Loads a PCD-file. Yields a numpy-array.
     """
-        
-    return PyntCloud.from_file(pcd_path).points.values
+    pointcloud = PyntCloud.from_file(pcd_path)
+    values = pointcloud.points.values
+    return values
 
 def subsample_pointcloud(pointcloud, target_size):
     """
@@ -413,11 +436,21 @@ def get_available_gpus():
     return [x.name for x in local_device_protos if x.device_type == 'GPU']
 
 
-def multiprocess(entries, process_method, number_of_workers=None, process_individial_entries=True, progressbar=False):
+def multiprocess(
+    entries, 
+    process_method, 
+    number_of_workers=None, 
+    process_individial_entries=True, 
+    pass_process_index=False, 
+    progressbar=False,
+    disable_gpu=False
+):
     # Get number of workers.
     if number_of_workers == None:
         number_of_workers = multiprocessing.cpu_count()
-    print("Using {} workers...".format(number_of_workers))
+    print("Using {} workers.".format(number_of_workers))
+    if disable_gpu == True:
+        print("GPU is disabled.")
 
     # Split into list.
     entry_sublists = np.array_split(entries, number_of_workers)
@@ -427,35 +460,80 @@ def multiprocess(entries, process_method, number_of_workers=None, process_indivi
     # Define an output queue
     output = multiprocessing.Queue()
 
-    def process_entries(entry_sublist):
-        # Process individually.
-        if process_individial_entries:
-            if progressbar == True:
-                bar = progressbar.ProgressBar(max_value=len(entry_sublist))
-            for entry_index, entry in enumerate(entry_sublist):
-                if progressbar == True:
-                    bar.update(entry_index)
-                process_method(entry)
-            if progressbar == True:
-                bar.finish()
-        # Process all.
-        else:
-            process_method(entry_sublist)
-        output.put("Processed {}".format(len(entry_sublist)))
+    # This method is starting point for multiprocessing
+    def process_entries(entry_sublist, process_index):
+        
+        if disable_gpu == True:
+            os.environ["CUDA_VISIBLE_DEVICES"]="-1"  
+        
+        try:
+            # Process individually.
+            if process_individial_entries:
+                for entry_index, entry in enumerate(tqdm(entry_sublist, position=process_index)):
+                    if pass_process_index == False:
+                        result = process_method(entry)
+                    else:
+                        result = process_method(entry, process_index)
+
+            # Process all.
+            else:
+                if pass_process_index == False:
+                    result = process_method(entry_sublist)
+                else:
+                    result = process_method(entry_sublist, process_index)
+
+            # No results returned. Just provide status string.
+            if result == None:
+                output.put("Processed {}".format(len(entry_sublist)))
+
+            # Results found. Playing it safe. Use pickle.
+            else:
+                pickle_path = str(uuid.uuid4()) + ".pickletemp"
+                pickle.dump(result, open(pickle_path, "wb"))
+                output.put(pickle_path)
+        
+        # Handle keyboard interrupt.
+        except KeyboardInterrupt:
+            output.put("Keyboard interrupt.")
+            
+        # TODO remove later
+        except Exception as e:
+            print("\n\n\n\n\n\n\n\n\n\n\n")
+            print(e)
+            traceback.print_exc()
+            
+            
 
     # Setup a list of processes that we want to run
-    processes = [multiprocessing.Process(target=process_entries, args=(entry_sublist,)) for entry_sublist in entry_sublists]
-
+    processes = [multiprocessing.Process(target=process_entries, args=(entry_sublist, process_index)) for process_index, entry_sublist in enumerate(entry_sublists)]
+    
     # Run processes
     for process in processes:
         process.start()
 
     # Exit the completed processes
-    for process in processes:
-        process.join()
+    try:
+        for process in processes:
+            process.join()
+    except KeyboardInterrupt:
+        print("Keyboard interrupt. Gracefully terminating multi-processing...")
+        for process in processes:
+            process.terminate()
+            process.join()
+        return
 
-    # Get process results from the output queue
-    results = [output.get() for process in processes]
-
-    print(results)  
+    # Get process results from the output queue.
+    results = []
+    for _ in processes:
+        result = output.get()
+        
+        # Results are in a pickle file.
+        if result.endswith(".pickletemp"):
+            results.append(pickle.load(open(result, "rb")))
+            os.remove(result)
+        
+        # Just plain results.
+        else:
+            results.append(result)
+    return results  
       

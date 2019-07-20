@@ -1,6 +1,6 @@
 -- This removes everything. You better be careful.
--- DROP SCHEMA public CASCADE;
--- CREATE SCHEMA public;
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
 
 -- Creates a table for person
 CREATE TABLE IF NOT EXISTS person (
@@ -27,10 +27,10 @@ CREATE TABLE IF NOT EXISTS measure (
     date BIGINT NOT NULL,
     type TEXT NOT NULL,
     age BIGINT NOT NULL,
-    height DOUBLE NOT NULL,
-    weight DOUBLE NOT NULL,
-    muac DOUBLE NOT NULL,
-    head_circumference DOUBLE NOT NULL,
+    height REAL NOT NULL,
+    weight REAL NOT NULL,
+    muac REAL NOT NULL,
+    head_circumference REAL NOT NULL,
     artifact TEXT NOT NULL,
     visible BOOLEAN NOT NULL,
     oedema BOOLEAN NOT NULL,
@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS measure (
 -- Creates a table for artifact
 CREATE TABLE IF NOT EXISTS artifact (
     id VARCHAR(255) PRIMARY KEY,
+    measure_id TEXT REFERENCES measure(id),
     type TEXT NOT NULL,
     path TEXT NOT NULL,
     hash_value TEXT NOT NULL,
@@ -61,74 +62,101 @@ CREATE TABLE IF NOT EXISTS artifact_quality (
     type TEXT NOT NULL,
     key TEXT NOT NULL,
     value REAL NOT NULL,
+    confidence_value REAL,
     misc TEXT,
     artifact_id VARCHAR(255) REFERENCES artifact(id)
-)
-
-
--- TODO to be removed and (if necessary) replaced with VIEW of person and measure
--- Creates a table for measurements.
-CREATE TABLE IF NOT EXISTS measurements (
-    id SERIAL PRIMARY KEY,
-    measurement_id TEXT NOT NULL,
-    person_id TEXT NOT NULL,
-    qrcode TEXT NOT NULL,
-    sex TEXT NOT NULL,
-    type TEXT NOT NULL,
-    age_days INTEGER NOT NULL,
-    height_cms REAL NOT NULL,
-    weight_kgs REAL NOT NULL,
-    muac_cms REAL NOT NULL,
-    head_circumference_cms REAL NOT NULL,
-    oedema BOOLEAN NOT NULL,
-    latitude REAL NOT NULL,
-    longitude REAL NOT NULL,
-    address TEXT NOT NULL,
-    timestamp DECIMAL NOT NULL,
-    deleted BOOLEAN NOT NULL,
-    deleted_by TEXT NOT NULL,
-    visible BOOLEAN NOT NULL,
-    created_by TEXT NOT NULL
 );
 
--- TODO to be removed and (if necessary) replaced with VIEW of artifact and artifact_quality
--- Creates a table for image data.
-CREATE TABLE IF NOT EXISTS image_data (
-    id SERIAL PRIMARY KEY,
-    path TEXT NOT NULL,
-    qrcode TEXT NOT NULL,
-    last_updated REAL NOT NULL,
-    rejected_by_expert BOOLEAN NOT NULL,
-    had_error BOOLEAN NOT NULL,
-    error_message TEXT,
-    width_px INTEGER NOT NULL,
-    height_px INTEGER NOT NULL,
-    blur_variance REAL NOT NULL,
-    has_face BOOLEAN NOT NULL,
-    measurement_id INTEGER REFERENCES measurements(id)
-);
 
--- TODO to be removed and (if necessary) replaced with VIEW of artifact and artifact_quality
--- Creates a table for pointcloud data.
-CREATE TABLE IF NOT EXISTS pointcloud_data (
-    id SERIAL PRIMARY KEY,
-    path TEXT NOT NULL,
-    qrcode TEXT NOT NULL,
-    last_updated REAL NOT NULL,
-    rejected_by_expert BOOLEAN NOT NULL,
-    had_error BOOLEAN NOT NULL,
-    error_message TEXT,
-    number_of_points INTEGER NOT NULL,  
-    confidence_min REAL NOT NULL,
-    confidence_avg REAL NOT NULL,
-    confidence_std REAL NOT NULL,
-    confidence_max REAL NOT NULL,
-    centroid_x REAL NOT NULL, 
-    centroid_y REAL NOT NULL, 
-    centroid_z REAL NOT NULL, 
-    stdev_x REAL NOT NULL,
-    stdev_y REAL NOT NULL,
-    stdev_z REAL NOT NULL,
+-- Creates a view for image data.
+DROP VIEW IF EXISTS image_data;
+CREATE VIEW image_data AS 
+SELECT 
+    id AS id
+    , path AS path
+    , qr_code AS qrcode
+    , 0 AS last_updated
+    , false AS rejected_by_expert
+    , false AS had_error
+    , null AS error_message
+    --, width_px INTEGER NOT NULL,
+    --, height_px INTEGER NOT NULL,
+    , aq1.value AS blur_variance
+    --, has_face BOOLEAN NOT NULL,
+    --, measurement_id INTEGER REFERENCES measurements(id)
+    
+    FROM artifact
+    INNER JOIN artifact_quality aq1 ON aq1.artifact_id=id
 
-    measurement_id INTEGER REFERENCES measurements(id)
-);
+    WHERE artifact.type='jpg'
+    AND aq1.key='bluriness'
+    ;
+
+-- Creates a view for pointcloud data.
+DROP VIEW IF EXISTS pointcloud_data;
+CREATE VIEW pointcloud_data AS
+SELECT 
+    id AS id
+    , path AS path
+    , qr_code AS qrcode
+    , 0 AS last_updated
+    , false AS rejected_by_expert
+    , false AS had_error
+    , null AS error_message
+    , aq1.value AS number_of_points
+    , aq2.value AS confidence_min
+    , aq3.value AS confidence_avg
+    , aq4.value AS confidence_std
+    , aq5.value AS confidence_max
+    , aq6.value AS centroid_x
+    , aq7.value AS centroid_y
+    , aq8.value AS centroid_z
+    , aq9.value AS stdev_x
+    , aq10.value AS stdev_y
+    , aq11.value AS stdev_z
+    --, measurement_id INTEGER REFERENCES measurements(id)
+    
+    FROM artifact
+    INNER JOIN artifact_quality aq1 ON aq1.artifact_id=id
+    INNER JOIN artifact_quality aq2 ON aq2.artifact_id=id
+    INNER JOIN artifact_quality aq3 ON aq3.artifact_id=id
+    INNER JOIN artifact_quality aq4 ON aq4.artifact_id=id
+    INNER JOIN artifact_quality aq5 ON aq5.artifact_id=id
+    INNER JOIN artifact_quality aq6 ON aq6.artifact_id=id
+    INNER JOIN artifact_quality aq7 ON aq7.artifact_id=id
+    INNER JOIN artifact_quality aq8 ON aq8.artifact_id=id
+    INNER JOIN artifact_quality aq9 ON aq9.artifact_id=id
+    INNER JOIN artifact_quality aq10 ON aq10.artifact_id=id
+    INNER JOIN artifact_quality aq11 ON aq11.artifact_id=id
+
+    WHERE artifact.type='pcd'
+    AND aq1.key='number_of_points'
+    AND aq2.key='confidence_min'
+    AND aq3.key='confidence_avg'
+    AND aq4.key='confidence_std'
+    AND aq5.key='confidence_max'
+    AND aq6.key='centroid_x'
+    AND aq7.key='centroid_y'
+    AND aq8.key='centroid_z'
+    AND aq9.key='stdev_x'
+    AND aq10.key='stdev_y'
+    AND aq11.key='stdev_z'
+    ;
+
+-- Creates a view for ML training.
+DROP VIEW IF EXISTS artifacts_with_targets;
+CREATE VIEW artifacts_with_targets AS 
+SELECT
+    person.qr_code AS qr_code,
+    artifact.id AS artifact_id,
+    artifact.path AS artifact_path,
+    artifact.type AS type,
+    measure.age AS age,
+    measure.height AS height,
+    measure.weight AS weight,
+    measure.muac AS muac,
+    measure.head_circumference AS head_circumference
+    FROM artifact
+    INNER JOIN measure ON artifact.measure_id=measure.id
+    INNER JOIN person ON measure.person_id=person.id
+    ;

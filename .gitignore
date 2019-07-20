@@ -2,6 +2,7 @@
 *.png
 __pycache__/
 
+cgm_database/dbconnection.json
 
 
 # Byte-compiled / optimized / DLL files
@@ -126,3 +127,6 @@ venv.bak/
 
 # logs
 *.log
+
+
+*.ply

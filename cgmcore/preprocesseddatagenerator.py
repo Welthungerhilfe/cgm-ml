@@ -462,7 +462,7 @@ def get_input(class_self, pointcloud):
  
     # Get a random pointcloud.
     elif class_self.input_type == "pointcloud":
-        pointcloud = utils.subsample_pointcloud(pointcloud, 10000)
+        pointcloud = utils.subsample_pointcloud(pointcloud, class_self.pointcloud_target_size)
         x_input = pointcloud
   
     # Get a random pointcloud.
