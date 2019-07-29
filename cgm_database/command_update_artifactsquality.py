@@ -279,7 +279,6 @@ def update_artifactsquality_with_model():
     print("Getting all artifacts...")
     db_connector = dbutils.connect_to_main_database()
     sql_statement = ""
-<<<<<<< HEAD
 
     sql_statement = ""
     sql_statement += "SELECT artifact_id, artifact_path, weight, qr_code FROM artifacts_with_targets"
@@ -293,11 +292,6 @@ def update_artifactsquality_with_model():
     # sql_statement += " WHERE measurements.type=\'manual\'"
 
 
-=======
-    sql_statement += "SELECT artifact_id, artifact_path, height, qr_code FROM artifacts_with_targets"
-    sql_statement += " WHERE type=\'pcd\'"
-    sql_statement += ";"
->>>>>>> b50edcaa197984904b693c3ed7af5a88849fe565
     artifacts = db_connector.execute(sql_statement, fetch_all=True)
     print("Found {} artifacts.".format(len(artifacts)))
 
@@ -381,7 +375,7 @@ def load_model(model_path):
 
     input_shape = (10000, 3)
     output_size = 1
-    model = modelutils.create_point_net(input_shape, output_size, hidden_sizes = [1024, 512, 256, 128, 32])#hidden_sizes = [512, 256, 128])
+    model = modelutils.create_point_net(input_shape, output_size, hidden_sizes = [4024, 1024, 512, 256, 128, 64, 32, 16]) #hidden_sizes = [1024, 512, 256, 128, 32])#hidden_sizes = [512, 256, 128])
     model.load_weights(model_path)
     model.compile(
         optimizer="rmsprop",
