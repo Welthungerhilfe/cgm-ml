@@ -177,9 +177,11 @@ def create_update_statement(table, keys, values, id_value, convert_values_to_str
     if use_quotes_for_values == True:
         values = ["'" + value + "'" for value in values]
         
+    Pkey = [value for key, value in zip(keys, values) if key == id_value]    
+    
     sql_statement = "UPDATE {}".format(table) + " SET"
     sql_statement += ", ".join([" {} = {}".format(key, value) for key, value in zip(keys, values) if key != id_value])
-    sql_statement += " WHERE id = {}".format(id_value)
+    sql_statement += " WHERE id = {}".format(Pkey[0])
     sql_statement += ";" + "\n"
 
     return sql_statement
