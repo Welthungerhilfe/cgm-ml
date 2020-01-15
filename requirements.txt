@@ -396,7 +396,7 @@ twine==1.13.0
 typing==3.6.4
 typing-extensions==3.7.2
 unicodecsv==0.14.1
-urllib3==1.22
+urllib3==1.24.2
 vcrpy==2.0.1
 wcwidth==0.1.7
 webencodings==0.5.1
