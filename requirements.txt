@@ -333,7 +333,7 @@ python-oauth2==1.1.0
 pytools==2019.1
 pytz==2018.4
 PyWavelets==0.5.2
-PyYAML==3.12
+PyYAML==5.1
 pyzmq==17.0.0
 QtAwesome==0.4.4
 qtconsole==4.3.1
