@@ -1,9 +1,5 @@
-.ipynb_checkpoints
-*.png
-__pycache__/
-
 cgm_database/dbconnection.json
-
+*.ply
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -127,6 +123,3 @@ venv.bak/
 
 # logs
 *.log
-
-
-*.ply
