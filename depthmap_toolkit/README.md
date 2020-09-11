@@ -1,3 +1,5 @@
+# Depthmap toolkit
+
 Depthmap toolkit is an utility to convert and visualise the data captured by cgm-scanner.
 
 ## Overview
@@ -10,9 +12,9 @@ In the future we plan to not support PCD files anymore (due to their big size).
 
 ### Converting PCD data into depthmap
 
-* The convertor uses camera_calibration.txt file which is the calibration from Lenovo Phab 2 Pro. Converting could be done by following command:
+* The convertor uses `camera_calibration.txt` file which is the calibration from Lenovo Phab 2 Pro. Converting could be done by following command:
 
-python convertpcd2depth.py input
+`python convertpcd2depth.py input`
 
 * The input folder could contain more PCD files.
 * The output will be stored in folder output.
