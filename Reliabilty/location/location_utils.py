@@ -15,6 +15,9 @@ REPO_DIR = Path(__file__).parents[2]
 LATITUDE_MIN, LATITUDE_MAX = 5, 37
 LONGITUDE_MIN, LONGITUDE_MAX = 67, 90
 
+LONGITUDE_SPLIT1 = 75
+LONGITUDE_SPLIT2 = 79
+
 
 def make_polygon(latitude_min: float, latitude_max: float, longitude_min: float, longitude_max: float) -> Polygon:
     return Polygon([
@@ -57,7 +60,7 @@ def draw_distributions(series: List[pd.Series], labels: List[str], caption: str=
 
 
 def split_by_location(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    df_left   = df[df["longitude"] < 75]
-    df_middle = df[(75 <= df["longitude"]) & (df["longitude"] <= 79)]
-    df_right  = df[df["longitude"] > 79]
+    df_left   = df[df["longitude"] < LONGITUDE_SPLIT1]
+    df_middle = df[(LONGITUDE_SPLIT1 <= df["longitude"]) & (df["longitude"] <= LONGITUDE_SPLIT2)]
+    df_right  = df[df["longitude"] > LONGITUDE_SPLIT2]
     return df_left, df_middle, df_right
