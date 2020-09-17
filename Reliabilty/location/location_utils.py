@@ -1,22 +1,63 @@
+import os
+from pathlib import Path
+from typing import List, Tuple
 
-"""
-SELECT
-m1.type, m2.type,
-mr.model_id,
-m1.longitude,
-m1.latitude,
-m1.height AS manual_measure_height,
-mr.float_value,
-mr.key
-FROM measure AS m1
-INNER JOIN measure AS m2 ON m1.person_id=m2.person_id AND m1.type='manual' AND m2.type!='manual'
-INNER JOIN measure_result as mr ON m2.id=mr.measure_id
-WHERE mr.model_id LIKE '%height%'
-AND m1.longitude IS NOT NULL
-AND m2.latitude IS NOT NULL
-AND mr.model_id = 'GAPNet_height_s1'
--- 26917
-"""
-# WHERE person_id = '90c909daf9c50584_person_1575358107344_rbsD5MSPHZuV2NDM'
-# idea: GROUP BY key
-# measures_with_results view
+import numpy as np
+import pandas as pd
+import geopandas
+import matplotlib.pyplot as plt
+from matplotlib import axes
+from shapely.geometry import Point, Polygon
+
+REPO_DIR = Path(__file__).parents[2]
+
+# Define latitude and longitude of India
+LATITUDE_MIN, LATITUDE_MAX = 5, 37
+LONGITUDE_MIN, LONGITUDE_MAX = 67, 90
+
+
+def make_polygon(latitude_min: float, latitude_max: float, longitude_min: float, longitude_max: float) -> Polygon:
+    return Polygon([
+        (longitude_min, latitude_min), (longitude_min, latitude_max), (longitude_max, latitude_max),
+        (longitude_max, latitude_min), (longitude_min, latitude_min)])
+
+
+def draw_map(df: pd.DataFrame) -> axes._base._AxesBase:
+    world = geopandas.read_file(geopandas.datasets.get_path('naturalearth_lowres'))
+    polygon = Polygon([
+        (LONGITUDE_MIN, LATITUDE_MIN), (LONGITUDE_MIN, LATITUDE_MAX), (LONGITUDE_MAX, LATITUDE_MAX),
+        (LONGITUDE_MAX, LATITUDE_MIN), (LONGITUDE_MIN, LATITUDE_MIN)])
+    world = geopandas.clip(world, polygon)
+
+    # Create world shape
+    ax = world.plot(figsize=(15, 10))
+
+    # Place points on the map
+    geometry = [Point(xy) for xy in zip(df['longitude'], df['latitude'])]
+    gdf = geopandas.GeoDataFrame(df, geometry=geometry)
+    gdf.plot(ax=ax, marker='o', color='red', markersize=15)
+    return ax
+
+
+def draw_polygon(ax: axes._base._AxesBase, polygon: Polygon):
+    poly_gdf = geopandas.GeoDataFrame([1], geometry=[polygon])
+    poly_gdf.boundary.plot(ax=ax, color="red")
+
+
+def draw_distributions(series: List[pd.Series], labels: List[str], caption: str=""):
+    plt.figure(figsize=(20,7))
+    bins = np.linspace(0, 20, 50)
+    for s, label in zip(series, labels):
+        plt.hist(s, bins, alpha=0.5, label=label)
+    plt.legend(loc='upper right')
+    plt.title('Distribution of error for 2 different locations. ' + caption)
+    plt.xlabel('error')
+    plt.ylabel('occurance count')
+    plt.show()
+
+
+def split_by_location(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    df_left   = df[df["longitude"] < 75]
+    df_middle = df[(75 <= df["longitude"]) & (df["longitude"] <= 79)]
+    df_right  = df[df["longitude"] > 79]
+    return df_left, df_middle, df_right

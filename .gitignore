@@ -1,5 +1,6 @@
 cgm_database/dbconnection.json
 *.ply
+data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
