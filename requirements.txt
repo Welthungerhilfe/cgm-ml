@@ -1,5 +1,5 @@
 numpy==1.19.1
-tensorflow==2.3.0
+tensorflow==2.3.1
 azureml-sdk[notebooks,automl]==1.13.0
 glob2==0.7
 open3d==0.8.0.0
