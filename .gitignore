@@ -1,6 +1,12 @@
-cgm_database/dbconnection.json
+# Custom
+old/cgm_database/dbconnection.json
 *.ply
+*.png
 data/
+vandelay-py.js
+logs/
+logs_*/
+tmp_train/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
