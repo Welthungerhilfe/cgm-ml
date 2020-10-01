@@ -1,0 +1,8 @@
+{
+    "dbname": "cgm",
+    "user": "azure_ml@ml-postgresql-sql-prod",
+    "host": "ml-postgresql-sql-prod.postgres.database.azure.com",
+    "password": "armumfang",
+    "port": 5432,
+    "sslmode": "require"
+}

@@ -1,0 +1,6 @@
+Color camera intrinsic:
+0.90448576 1.61007471 0.50224591 0.5026263
+Depth camera intrinsic:
+0.97780357 1.27341860 0.50243750 0.4776889
+Depth camera position:
+0.0 0.0 0.0
