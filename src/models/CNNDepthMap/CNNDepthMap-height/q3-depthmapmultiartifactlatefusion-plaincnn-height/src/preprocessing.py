@@ -130,10 +130,11 @@ def py_load_pickle(path, max_value):
         path_as_str = path_.decode("utf-8")
         print(f"path_as_str: {path_as_str}")
 
-        for i in range(2, 7):
+        for i in range(2, 8):
             base_path_list = path_as_str.split('/')[:i]
             base_path_str = "/".join(base_path_list)
             print(base_path_str, os.path.exists(base_path_str))
+        print("os.listdir(base_path_str): ", str(os.listdir(base_path_str)))
 
         raise e
     depthmap = preprocess_depthmap(depthmap)
