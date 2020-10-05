@@ -1,0 +1,40 @@
+# Python package
+# Create and test a Python package on multiple Python versions.
+# Add steps that analyze code, save the dist with the build record, publish to a PyPI-compatible index, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/python
+
+trigger:
+  paths:
+    include:
+    - src/commmon/zscore/*
+
+pool:
+  vmImage: 'ubuntu-latest'
+strategy:
+  matrix:
+    Python36:
+      python.version: '3.6'
+    Python37:
+      python.version: '3.7'
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(python.version)'
+  displayName: 'Use Python $(python.version)'
+
+- script: |
+    python -m pip install --upgrade pip
+    pip install numpy==1.19.1 tensorflow==2.3.0 azureml-sdk[notebooks,automl]==1.13.0 glob2==0.7 imgaug==0.4.0 flake8==3.8.4 pytest pytest-azurepipelines
+  displayName: 'Install dependencies'
+
+- script: |
+    cd src/common/zscore
+    python setup.py sdist bdist_wheel
+  displayName: 'Create Package'
+
+- script: |
+    cd src/common/zscore
+    pip install twine
+    python -m twine upload --skip-existing --verbose -p $(Pypi Token) -u __token__ --repository cgmzscore --repository-url https://upload.pypi.org/legacy/ dist/*.whl
+  displayName: 'Upload package'
