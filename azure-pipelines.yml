@@ -15,23 +15,29 @@ strategy:
     Python37:
       python.version: '3.7'
 
+variables:
+  PIP_CACHE_DIR: $(Pipeline.Workspace)/.pip
+
 steps:
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '$(python.version)'
   displayName: 'Use Python $(python.version)'
-
+- task: Cache@2
+  inputs:
+    key: 'python | "$(Agent.OS)" | requirements.txt'
+    restoreKeys: |
+      python | "$(Agent.OS)"
+      python
+    path: $(PIP_CACHE_DIR)
+  displayName: Cache pip packages
 - script: |
     python -m pip install --upgrade pip
-    pip install numpy==1.19.1 tensorflow==2.3.0 azureml-sdk[notebooks,automl]==1.13.0 glob2==0.7 imgaug==0.4.0
+    pip install numpy==1.19.1 tensorflow==2.3.0 azureml-sdk[notebooks,automl]==1.13.0 glob2==0.7 imgaug==0.4.0 flake8==3.8.4 pytest pytest-azurepipelines
   displayName: 'Install dependencies'
-
 - script: |
-    pip install flake8==3.8.4
     flake8
   displayName: 'flake8'
-
 - script: |
-    pip install pytest pytest-azurepipelines
     pytest
   displayName: 'pytest'
