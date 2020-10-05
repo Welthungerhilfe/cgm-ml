@@ -27,7 +27,7 @@ def convertAllPCDs(event):
             input + '/../camera_calibration.txt',
             input + '/' + pcd[i],
             'output/depth/' + pcd[i] + '.depth')
-    print 'Data exported into folder output'
+    print('Data exported into folder output')
 
 
 def exportOBJ(event):

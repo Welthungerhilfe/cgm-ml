@@ -130,8 +130,8 @@ def exportPCD(filename):
                 if depth:
                     res = convert2Dto3D(calibration[1], x, y, depth)
                     if res:
-                        file.write(str(-res[0]) + ' ' + str(res[1]) + ' ' +
-                                   str(res[2]) + ' ' + str(parseConfidence(x, y)) + '\n')
+                        file.write(str(-res[0]) + ' ' + str(res[1]) + ' '
+                                   + str(res[2]) + ' ' + str(parseConfidence(x, y)) + '\n')
         print('Pointcloud exported into ' + filename)
 
 #get valid points in depthmaps

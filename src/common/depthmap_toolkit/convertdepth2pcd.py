@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 from os import walk
-from shutil import copyfile
 import depthmap
 import shutil
 import os
@@ -25,4 +24,4 @@ for i in range(len(depth)):
     depthmap.process(plt, input, depth[i], 0)
     depthmap.export('pcd', 'output' + depth[i] + '.pcd')
 
-print 'Data exported into folder export'
+print('Data exported into folder export')

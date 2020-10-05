@@ -24,4 +24,4 @@ os.mkdir('output/depth')
 copyfile(input + '/../camera_calibration.txt', 'output/camera_calibration.txt')
 for i in range(len(pcd)):
     pcd2depth.process(input + '/../camera_calibration.txt', input + '/' + pcd[i], 'output/depth/' + pcd[i] + '.depth')
-print 'Data exported into folder output'
+print('Data exported into folder output')
