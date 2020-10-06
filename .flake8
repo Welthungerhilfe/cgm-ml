@@ -14,3 +14,14 @@ ignore =
 max_line_length = 120
 import_order_style = appnexus
 application_package_names = src
+exclude =
+    .git,
+    __pycache__,
+    .ipynb_checkpoints,
+    src/models/GAPNet/GAPNet-height,
+    src/models/pointnet/pointnet-height,
+    src/models/PersonLab/PersonLabV1,
+    src/models/CNNDepthMap/CNNDepthMap-height/q2milestone-cnndepthmap-height,
+    src/models/CNNDepthMap/CNNDepthMap-height/s5-cnndepthmap-height,
+    src/models/CNNDepthMap/CNNDepthMap-height/s4-cnndepthmap-height,
+    src/models/CNNDepthMap/CNNDepthMap-height/q2s1-cnndepthmap-height
