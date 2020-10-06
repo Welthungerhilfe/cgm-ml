@@ -1,8 +1,6 @@
 import datetime
 from pathlib import Path
-import json
 import glob2 as glob
-import math
 import os
 import re
 import pickle
@@ -10,8 +8,6 @@ import random
 
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from PIL import Image
-import numpy as np
 
 
 REPO_DIR = Path(os.getcwd()).parent
@@ -45,6 +41,7 @@ def py_load_pickle(path, max_value=7.5):
     targets = preprocess_targets(targets, TARGET_INDEXES)
     return depthmap, targets
 
+
 def path_to_ndarray(pickle_file_path):
     depthmap, _targets = py_load_pickle(pickle_file_path)
     depthmap = tf.reshape(depthmap, (IMAGE_TARGET_HEIGHT, IMAGE_TARGET_WIDTH))
@@ -62,6 +59,7 @@ def _get_epoch(fpath: str) -> str:
     fname = os.path.basename(fpath)
     match_result = REGEX_PICKLE.search(fname)
     return match_result.group("unixepoch")
+
 
 def get_datetime(fpath: str):
     epoch = _get_epoch(fpath)

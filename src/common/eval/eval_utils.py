@@ -19,6 +19,7 @@ CODE_TO_SCANTYPE = {
     '202': '_lyingback',
 }
 
+
 class dotdict(dict):
     """dot.notation access to dictionary attributes"""
     __getattr__ = dict.get
