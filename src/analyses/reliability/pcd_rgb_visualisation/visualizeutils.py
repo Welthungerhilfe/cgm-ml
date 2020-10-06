@@ -35,6 +35,5 @@ def pcdrgb(df, index):
     image = Image.open(df.at[index, 'rgb_file'])
     image = image.resize((300, 160), Image.ANTIALIAS)
     image = image.transpose(Image.ROTATE_270)
-    display(image)  # display the image
     output = PyntCloud.from_file(df.at[index, 'pcd_file'])
     output.plot()
