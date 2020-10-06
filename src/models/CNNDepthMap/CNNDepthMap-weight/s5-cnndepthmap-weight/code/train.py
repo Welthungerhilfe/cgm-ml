@@ -1,12 +1,10 @@
-import azureml
 from azureml.core import Workspace
 from azureml.core import Experiment
 from azureml.core.run import Run
 import os
 import glob2 as glob
 import tensorflow as tf
-from tensorflow.keras import models, layers, callbacks, optimizers
-import numpy as np
+from tensorflow.keras import models, layers, callbacks
 import pickle
 import random
 from preprocessing import preprocess_depthmap, preprocess_targets
@@ -26,7 +24,7 @@ if(run.id.startswith("OfflineRun")):
 
     # Get dataset.
     print("Accessing dataset...")
-    if os.path.exists("premiumfileshare") == False:
+    if not os.path.exists("premiumfileshare"):
         assert False, "Requires small size dataset"
         dataset_name = "cgmmldevpremium-SampleDataset-Example"
         dataset = workspace.datasets[dataset_name]

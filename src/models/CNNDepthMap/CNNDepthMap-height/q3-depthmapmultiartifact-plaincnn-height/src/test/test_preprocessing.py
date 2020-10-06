@@ -1,6 +1,5 @@
 from config import DATA_AUGMENTATION_SAME_PER_CHANNEL, DATA_AUGMENTATION_DIFFERENT_EACH_CHANNEL, DATA_AUGMENTATION_NO
 import numpy as np
-import os
 from pathlib import Path
 import pytest
 import sys
@@ -9,7 +8,6 @@ import tensorflow as tf
 sys.path.append(str(Path(__file__).parents[1]))
 
 from preprocessing import augmentation, tf_augment_sample, sample_systematic_from_artifacts, sample_windows_from_artifacts, REGEX_PICKLE  # noqa: E402
-from constants import REPO_DIR  # noqa: E402
 
 
 def test_tf_augment_sample():

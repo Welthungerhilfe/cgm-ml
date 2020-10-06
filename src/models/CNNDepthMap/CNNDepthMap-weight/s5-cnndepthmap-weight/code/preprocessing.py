@@ -1,6 +1,3 @@
-import numpy as np
-
-
 def preprocess_depthmap(depthmap):
     # TODO here be more code.
     return depthmap.astype("float32")

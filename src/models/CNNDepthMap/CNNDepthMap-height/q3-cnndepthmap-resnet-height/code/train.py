@@ -3,7 +3,6 @@ import os
 import pickle
 import random
 
-import azureml
 import cv2
 import glob2 as glob
 import numpy as np
@@ -11,7 +10,7 @@ import tensorflow as tf
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 from matplotlib import pyplot as plt
-from tensorflow.keras import callbacks, layers, models, optimizers
+from tensorflow.keras import callbacks
 
 from model import create_res_net
 from preprocessing import preprocess_depthmap, preprocess_targets
@@ -89,7 +88,7 @@ if(run.id.startswith("OfflineRun")):
 
     # Get dataset.
     print("Accessing dataset...")
-    if os.path.exists("dataset") == False:
+    if not os.path.exists("dataset"):
         dataset_name = "anon-depthmap-mini"
         dataset = workspace.datasets[dataset_name]
         dataset.download(target_path='dataset', overwrite=False)
@@ -245,8 +244,6 @@ class GRADCamLogger(tf.keras.callbacks.Callback):
         self.save_dir = save_dir
 
     def on_epoch_end(self, epoch, logs):
-        images = []
-        grad_cam = []
         # Initialize GRADCam Class
         cam = GradCAM(self.model, self.layer_name)
         count = 0
@@ -267,7 +264,7 @@ class GRADCamLogger(tf.keras.callbacks.Callback):
 
         # Overlay heatmap on original image
             heatmap = cv2.resize(heatmap, (image.shape[1], image.shape[0]))
-            implot = plt.imshow(np.squeeze(image))
+            plt.imshow(np.squeeze(image))
             plt.imshow(heatmap, alpha=.6, cmap='inferno')
             plt.axis('off')
             plt.savefig(self.save_dir + '/epoch{}/out{}.png'.format(epoch, count),
