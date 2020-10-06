@@ -18,13 +18,13 @@ run = Run.get_context()
 # Offline run. Download the sample dataset and run locally. Still push results to Azure.
 if(run.id.startswith("OfflineRun")):
     print("Running in offline mode...")
-    
+
     # Access workspace.
     print("Accessing workspace...")
     workspace = Workspace.from_config()
     experiment = Experiment(workspace, "gapnet-offline")
     run = experiment.start_logging(outputs=None, snapshot_directory=".")
-    
+
     # Get dataset.
     print("Accessing dataset...")
     if os.path.exists("premiumfileshare") == False:
@@ -39,7 +39,7 @@ else:
     experiment = run.experiment
     workspace = experiment.workspace
     dataset_path = run.input_datasets["dataset"]
-    
+
 # Get the QR-code paths.
 print("Dataset path:", dataset_path)
 print("Getting QR-code paths...")
@@ -58,12 +58,14 @@ print("\t" + "\n\t".join(qrcode_paths_training))
 print("Paths for validation:")
 print("\t" + "\n\t".join(qrcode_paths_validate))
 
+
 def get_pickle_files(paths):
     pickle_paths = []
     for path in paths:
         pickle_paths.extend(glob.glob(os.path.join(path, "**", "*.p")))
     return pickle_paths
-    
+
+
 # Get the pointclouds.
 print("Getting pointcloud paths...")
 paths_training = get_pickle_files(qrcode_paths_training)
@@ -74,9 +76,11 @@ print("Using {} files for training.".format(len(paths_training)))
 print("Using {} files for validation.".format(len(paths_validate)))
 
 # Function for loading and subsampling pointclouds.
+
+
 def tf_load_pickle(path, subsample_size, channels, targets_indices):
-    assert isinstance(channels, list) 
-    assert isinstance(targets_indices, list) 
+    assert isinstance(channels, list)
+    assert isinstance(targets_indices, list)
 
     def py_load_pickle(path):
         pointcloud, targets = pickle.load(open(path.numpy(), "rb"))
@@ -89,11 +93,12 @@ def tf_load_pickle(path, subsample_size, channels, targets_indices):
     targets.set_shape((len(targets_indices,)))
     return pointcloud, targets
 
+
 # Parameters for dataset generation.
 shuffle_buffer_size = 64
 subsample_size = 1024
 channels = list(range(0, 3))
-targets_indices = [0] # 0 is height, 1 is weight.
+targets_indices = [0]  # 0 is height, 1 is weight.
 
 # Create dataset for training.
 paths = paths_training
@@ -130,27 +135,31 @@ model.summary()
 training_callbacks = []
 
 # Pushes metrics and losses into the run on AzureML.
+
+
 class AzureLogCallback(callbacks.Callback):
-    
+
     def on_epoch_end(self, epoch, logs=None):
         if logs is not None:
             for key, value in logs.items():
                 run.log(key, value)
+
+
 training_callbacks.append(AzureLogCallback())
 
-# Add TensorBoard callback.                
+# Add TensorBoard callback.
 tensorboard_callback = tf.keras.callbacks.TensorBoard(
-        log_dir="logs", 
-        histogram_freq=0, 
-        write_graph=True, 
-        write_grads=False, 
-        write_images=True, 
-        embeddings_freq=0, 
-        embeddings_layer_names=None, 
-        embeddings_metadata=None, 
-        embeddings_data=None, 
-        update_freq="epoch"
-    )
+    log_dir="logs",
+    histogram_freq=0,
+    write_graph=True,
+    write_grads=False,
+    write_images=True,
+    embeddings_freq=0,
+    embeddings_layer_names=None,
+    embeddings_metadata=None,
+    embeddings_data=None,
+    update_freq="epoch"
+)
 training_callbacks.append(tensorboard_callback)
 
 
@@ -175,16 +184,15 @@ model.fit(
 # Save the model.
 print("Saving and uploading weights...")
 path = "gapnet_weights.h5"
-model.save_weights(path)    
+model.save_weights(path)
 run.upload_file(name="gapnet_weights.h5", path_or_stream=path)
 
 # Save the model.
 print("Saving and uploading model...")
 path = "gapnet_model"
-model.save(path)    
+model.save(path)
 run.upload_folder(name="gapnet", path=path)
 
 
-
 # Done.
-run.complete()      
+run.complete()

@@ -1,5 +1,6 @@
 from tensorflow.keras import models, layers
 
+
 def create_cnn(input_shape, dropout):
     model = models.Sequential()
 

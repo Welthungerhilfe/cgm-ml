@@ -1,23 +1,24 @@
+from inference_schema.parameter_types.numpy_parameter_type import NumpyParameterType
+from inference_schema.schema_decorators import input_schema, output_schema
+import tensorflow as tf
+from GAPNet.models import GAPNet
 import json
 import numpy as np
 import os
 import sys
 
 sys.path.append('/var/azureml-app/azureml-models/gapnet_height_s1/1/')
-from GAPNet.models import GAPNet
 
-import tensorflow as tf
 #from tensorflow.keras import models
 
-from inference_schema.schema_decorators import input_schema, output_schema
-from inference_schema.parameter_types.numpy_parameter_type import NumpyParameterType
 
 def init():
     global model
     model = GAPNet()
     output_directory = '/var/azureml-app/azureml-models/gapnet_height_s1/1/GAPNet'
     model.load_weights(os.path.join(output_directory, "gapnet_weights.h5"))
-    
+
+
 def run(data):
     try:
         data_list = json.loads(data)

@@ -137,6 +137,7 @@ del dataset_norm
 
 # Note: Now the datasets are prepared.
 
+
 def download_pretrained_model(output_model_fpath):
     print(f"Downloading pretrained model from {CONFIG.PRETRAINED_RUN}")
     previous_experiment = Experiment(workspace=workspace, name=CONFIG.PRETRAINED_EXPERIMENT)

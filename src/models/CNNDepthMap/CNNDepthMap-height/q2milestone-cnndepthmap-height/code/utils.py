@@ -6,27 +6,28 @@ import math
 import matplotlib.pyplot as plt
 import os
 
+
 class GradCAM:
     def __init__(self, model, layerName):
         self.model = model
         self.layerName = layerName
-    
-        self.gradModel = Model(inputs=[self.model.inputs], 
-                                            outputs=[self.model.get_layer(self.layerName).output, model.output])
-    
+
+        self.gradModel = Model(inputs=[self.model.inputs],
+                               outputs=[self.model.get_layer(self.layerName).output, model.output])
+
     def compute_heatmap(self, image, classIdx, eps=1e-8):
-    
+
         with tf.GradientTape() as tape:
             tape.watch(self.gradModel.get_layer(self.layerName).output)
             inputs = tf.cast(image, tf.float32)
-            (convOutputs,predictions) = self.gradModel(inputs)
-            if len(predictions)==1:
+            (convOutputs, predictions) = self.gradModel(inputs)
+            if len(predictions) == 1:
                 loss = predictions[0]
             else:
                 loss = predictions[:, classIdx]
 
         grads = tape.gradient(loss, convOutputs)
-    
+
         castConvOutputs = tf.cast(convOutputs > 0, "float32")
         castGrads = tf.cast(grads > 0, "float32")
         guidedGrads = castConvOutputs * castGrads * grads
@@ -45,11 +46,12 @@ class GradCAM:
         heatmap = numer / denom
         heatmap = (heatmap * 255).astype("float32")
         return heatmap
-    
+
+
 def make_grid(image_dir):
     from glob import glob
-    files = glob(image_dir+'/*.png')    
-    result_figsize_resolution = 80 
+    files = glob(image_dir + '/*.png')
+    result_figsize_resolution = 80
     images_count = 8
     # Calculate the grid size:
     grid_size = math.ceil(math.sqrt(images_count))
@@ -69,7 +71,7 @@ def make_grid(image_dir):
 
     plt.subplots_adjust(left=0.0, right=1.0, bottom=0.0, top=1.0)
     save_location = '{}/grid'.format(image_dir)
-    if not os.path.exists(save_location):            
+    if not os.path.exists(save_location):
         os.makedirs(save_location)
     plt.savefig('{}/resultgrid.png'.format(save_location))
     plt.clf()

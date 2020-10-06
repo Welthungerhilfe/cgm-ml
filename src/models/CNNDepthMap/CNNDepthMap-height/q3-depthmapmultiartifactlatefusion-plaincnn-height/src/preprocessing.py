@@ -19,6 +19,7 @@ REGEX_PICKLE = re.compile(
     r"pc_(?P<qrcode>[a-zA-Z0-9]+-[a-zA-Z0-9]+)_(?P<unixepoch>\d+)_(?P<code>\d{3})_(?P<idx>\d{3}).p$"
 )
 
+
 @tf.function(input_signature=[tf.TensorSpec(None, tf.float32),  # (240,180,5)
                               tf.TensorSpec(None, tf.float32),  # (1,)
                               ])
@@ -38,7 +39,8 @@ def augmentation(image: np.ndarray, mode=DATA_AUGMENTATION_SAME_PER_CHANNEL) -> 
 
     if mode == DATA_AUGMENTATION_SAME_PER_CHANNEL:
         # Split channel into separate greyscale images
-        image_reshaped = image.reshape(n_channels, height, width, 1)  # for imgaug this order means: (N, height, width, channels)
+        # for imgaug this order means: (N, height, width, channels)
+        image_reshaped = image.reshape(n_channels, height, width, 1)
         return gen_data_aug_sequence().augment_images(image_reshaped).reshape(height, width, n_channels)
 
     elif mode == DATA_AUGMENTATION_DIFFERENT_EACH_CHANNEL:
@@ -58,7 +60,8 @@ def gen_data_aug_sequence():
     seq = iaa.Sequential([
         iaa.Fliplr(0.5),
         iaa.Affine(rotate=(-10, 10)),
-        sometimes(iaa.Multiply((0.95, 1.1))),  # brightness  # TODO find out if this makes sense for depthmaps (talk to Lubos)
+        # brightness  # TODO find out if this makes sense for depthmaps (talk to Lubos)
+        sometimes(iaa.Multiply((0.95, 1.1))),
         iaa.CropAndPad(percent=(-0.02, 0.02), pad_cval=(-0.1, 0.1)),  # TODO is this useful for regression on photos?
         iaa.GaussianBlur(sigma=(0, 1.0)),
         sometimes(

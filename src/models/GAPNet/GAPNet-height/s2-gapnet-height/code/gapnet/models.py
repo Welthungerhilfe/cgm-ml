@@ -17,7 +17,6 @@ class GAPNet(tf.keras.Model):
 
         self.build_graph(input_shape=(None, number_of_points, features_in))
 
-
     def build_graph(self, input_shape):
         input_shape_nobatch = input_shape[1:]
         self.build(input_shape)
@@ -79,7 +78,6 @@ class GAPNet(tf.keras.Model):
         self.dense3 = layers.Dense(1, activation="linear")
 
         super(GAPNet, self).build(input_shape)
-
 
     def call(self, inputs):
 
@@ -187,7 +185,6 @@ class GAPNet(tf.keras.Model):
         #assert_shape_is(net, (40,))
 
         return net
-
 
     def create_explaining_model(self):
         """

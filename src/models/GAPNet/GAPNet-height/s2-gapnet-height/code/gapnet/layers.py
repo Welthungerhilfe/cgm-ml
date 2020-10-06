@@ -5,6 +5,7 @@ from tensorflow.keras import models, layers
 from .utils import assert_shape_is
 import numpy as np
 
+
 class KNN(tf.keras.layers.Layer):
     """
     For a given sequence of vectors, computes the k-nearest neighbors.
@@ -14,11 +15,9 @@ class KNN(tf.keras.layers.Layer):
         self.k = k
         super(KNN, self).__init__(**kwargs)
 
-
     def build(self, input_shape):
 
         super(KNN, self).build(input_shape)
-
 
     def call(self, input):
 
@@ -38,7 +37,7 @@ class KNN(tf.keras.layers.Layer):
         _, nn_idx = tf.nn.top_k(neg_adj, k=self.k)
 
         # Compute the neighbors.
-        batch_size = tf.shape(point_cloud)[0] # Note: Treat batch-size differently.
+        batch_size = tf.shape(point_cloud)[0]  # Note: Treat batch-size differently.
         num_points = point_cloud.get_shape()[1]
         num_dims = point_cloud.get_shape()[2]
         idx_ = tf.range(batch_size) * num_points
@@ -63,11 +62,10 @@ class GraphAttention(tf.keras.layers.Layer):
     def __init__(self, features_out, batch_normalization=True, **kwargs):
 
         self.features_out = features_out
-        self.batch_normalization = batch_normalization=True
+        self.batch_normalization = batch_normalization = True
 
         # Call super.
         super(GraphAttention, self).__init__(**kwargs)
-
 
     def build(self, input_shapes):
 
@@ -86,8 +84,8 @@ class GraphAttention(tf.keras.layers.Layer):
             self.features_out,
             activation="relu",
             name=self.name + "_self_attention_mlp1"
-            )
-        if self.batch_normalization == True:
+        )
+        if self.batch_normalization:
             self.self_attention_bn1 = layers.BatchNormalization()
 
         # MLP 2 for self attention.
@@ -95,8 +93,8 @@ class GraphAttention(tf.keras.layers.Layer):
             1,
             activation="relu",
             name=self.name + "_self_attention_mlp2"
-            )
-        if self.batch_normalization == True:
+        )
+        if self.batch_normalization:
             self.self_attention_bn2 = layers.BatchNormalization()
 
         # MLP 1 for neighbor attention.
@@ -104,8 +102,8 @@ class GraphAttention(tf.keras.layers.Layer):
             self.features_out,
             activation="relu",
             name=self.name + "_neighbor_attention_mlp1"
-            )
-        if self.batch_normalization == True:
+        )
+        if self.batch_normalization:
             self.neighbor_attention_bn1 = layers.BatchNormalization()
 
         # MLP 2 for neighbor attention.
@@ -113,8 +111,8 @@ class GraphAttention(tf.keras.layers.Layer):
             1,
             activation="relu",
             name=self.name + "_neighbor_attention_mlp2"
-            )
-        if self.batch_normalization == True:
+        )
+        if self.batch_normalization:
             self.neighbor_attention_bn2 = layers.BatchNormalization()
 
         # Final bias.
@@ -124,7 +122,6 @@ class GraphAttention(tf.keras.layers.Layer):
 
         # Call super.
         super(GraphAttention, self).build(input_shapes)
-
 
     def call(self, inputs):
 
@@ -155,19 +152,19 @@ class GraphAttention(tf.keras.layers.Layer):
 
         # MLP 1 for self attention including batch normalization.
         self_attention = self.self_attention_mlp1(point_cloud)
-        if self.batch_normalization == True:
+        if self.batch_normalization:
             self_attention = self.self_attention_bn1(self_attention)
         assert_shape_is(self_attention, (1024, 1, 16))
 
         # MLP 2 for self attention including batch normalization.
         self_attention = self.self_attention_mlp2(self_attention)
-        if self.batch_normalization == True:
+        if self.batch_normalization:
             self_attention = self.self_attention_bn2(self_attention)
         assert_shape_is(self_attention, (1024, 1, 1))
 
         # MLP 1 for neighbor attention including batch normalization.
         neighbor_attention = self.neighbor_attention_mlp1(point_cloud_knn_difference)
-        if self.batch_normalization == True:
+        if self.batch_normalization:
             neighbor_attention = self.neighbor_attention_bn1(neighbor_attention)
         assert_shape_is(neighbor_attention, (1024, 20, 16))
 
@@ -176,7 +173,7 @@ class GraphAttention(tf.keras.layers.Layer):
 
         # MLP 2 for neighbor attention including batch normalization.
         neighbor_attention = self.neighbor_attention_mlp2(neighbor_attention)
-        if self.batch_normalization == True:
+        if self.batch_normalization:
             neighbor_attention = self.neighbor_attention_bn2(neighbor_attention)
         assert_shape_is(neighbor_attention, (1024, 20, 1))
 
@@ -221,14 +218,16 @@ class MultiGraphAttention(tf.keras.layers.Layer):
         # Call super.
         super(MultiGraphAttention, self).__init__(**kwargs)
 
-
     def build(self, input_shape):
 
-        self.graph_attentions = [GraphAttention(features_out=self.features_out, batch_normalization=self.batch_normalization) for _ in range(self.heads)]
+        self.graph_attentions = [
+            GraphAttention(
+                features_out=self.features_out,
+                batch_normalization=self.batch_normalization) for _ in range(
+                self.heads)]
 
         # Call super.
         super(MultiGraphAttention, self).build(input_shape)
-
 
     def call(self, inputs):
 
@@ -275,7 +274,7 @@ class MultiGraphAttention(tf.keras.layers.Layer):
         assert False
         return (input_shape[0], 1024, 1, 16 * self.heads)
 
-    
+
 class Transform(tf.keras.layers.Layer):
     """
     spatial transform network: The spatial transform network is used to make
@@ -286,9 +285,6 @@ class Transform(tf.keras.layers.Layer):
 
     def __init__(self, **kwargs):
         super(Transform, self).__init__(**kwargs)
-        
-
-
 
         #w_init = tf.zeros_initializer()
         #self.transform_w = tf.Variable(
@@ -302,8 +298,6 @@ class Transform(tf.keras.layers.Layer):
     #        initial_value=b_init(shape=(3 * 3,), dtype='float32'),
     #        trainable=True
     #    )
-
-
 
     def build(self, input_shape):
 
@@ -341,10 +335,8 @@ class Transform(tf.keras.layers.Layer):
         self.dense2 = layers.Dense(256, activation="linear")
         self.bn2 = layers.BatchNormalization()
         self.activation2 = layers.Activation("relu")
-        
 
         super(Transform, self).build(input_shape)
-
 
     def call(self, inputs):
 

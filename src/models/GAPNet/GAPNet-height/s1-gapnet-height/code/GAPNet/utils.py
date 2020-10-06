@@ -1,5 +1,6 @@
 import tensorflow as tf
 
+
 def assert_shape_is(tensor, expected_shape):
     assert tensor.dtype == tf.float32, str(tensor.dtype)
     assert isinstance(tensor, tf.Tensor), type(tensor)

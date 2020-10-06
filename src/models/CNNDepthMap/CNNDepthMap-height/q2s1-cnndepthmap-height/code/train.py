@@ -16,7 +16,8 @@ import argparse
 # Parse command line arguments.
 parser = argparse.ArgumentParser(description="Training script.")
 parser.add_argument('--split_seed', nargs=1, default=0, type=int, help="The random seed for splitting.")
-parser.add_argument('--target_size', nargs=1, default="172x224", type=str, help="The target image size format WIDTHxHEIGHT.")
+parser.add_argument('--target_size', nargs=1, default="172x224", type=str,
+                    help="The target image size format WIDTHxHEIGHT.")
 parser.add_argument('--epochs', nargs=1, default=1000, type=int, help="The number of epochs.")
 parser.add_argument('--batch_size', nargs=1, default=256, type=int, help="The batch size for training.")
 
@@ -64,7 +65,7 @@ else:
 
 # Get the QR-code paths.
 print("Dataset path:", dataset_path)
-print(glob.glob(os.path.join(dataset_path, "*"))) # Debug
+print(glob.glob(os.path.join(dataset_path, "*")))  # Debug
 print("Getting QR-code paths...")
 qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
 
@@ -84,11 +85,13 @@ print("\t" + "\n\t".join(qrcode_paths_validate))
 
 assert len(qrcode_paths_training) > 0 and len(qrcode_paths_validate) > 0
 
+
 def get_depthmap_files(paths):
     pickle_paths = []
     for path in paths:
         pickle_paths.extend(glob.glob(os.path.join(path, "**", "*.p")))
     return pickle_paths
+
 
 # Get the pointclouds.
 print("Getting depthmap paths...")
@@ -100,6 +103,8 @@ print("Using {} files for training.".format(len(paths_training)))
 print("Using {} files for validation.".format(len(paths_validate)))
 
 # Function for loading and processing depthmaps.
+
+
 def tf_load_pickle(path):
 
     def py_load_pickle(path):
@@ -114,16 +119,18 @@ def tf_load_pickle(path):
     targets.set_shape((len(targets_indices,)))
     return depthmap, targets
 
+
 def tf_flip(image):
 
     image = tf.image.random_flip_left_right(image)
     return image
 
+
 # Parameters for dataset generation.
 shuffle_buffer_size = 64
 subsample_size = 1024
 channels = list(range(0, 3))
-targets_indices = [0] # 0 is height, 1 is weight.
+targets_indices = [0]  # 0 is height, 1 is weight.
 
 # Create dataset for training.
 paths = paths_training
@@ -152,7 +159,18 @@ del dataset
 # Instantiate model.
 model = models.Sequential()
 
-model.add(layers.Conv2D(filters=16, kernel_size=(3, 3), padding="same", activation="relu", input_shape=(image_target_height, image_target_width, 1)))
+model.add(
+    layers.Conv2D(
+        filters=16,
+        kernel_size=(
+            3,
+            3),
+        padding="same",
+        activation="relu",
+        input_shape=(
+                image_target_height,
+                image_target_width,
+            1)))
 model.add(layers.Conv2D(filters=16, kernel_size=(3, 3), padding="same", activation="relu"))
 model.add(layers.MaxPooling2D(pool_size=(2, 2)))
 
@@ -192,34 +210,38 @@ model.summary()
 training_callbacks = []
 
 # Pushes metrics and losses into the run on AzureML.
+
+
 class AzureLogCallback(callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs=None):
         if logs is not None:
             for key, value in logs.items():
                 run.log(key, value)
+
+
 training_callbacks.append(AzureLogCallback())
 
 # Add TensorBoard callback.
 tensorboard_callback = tf.keras.callbacks.TensorBoard(
-        log_dir="logs",
-        histogram_freq=0,
-        write_graph=True,
-        write_grads=False,
-        write_images=True,
-        embeddings_freq=0,
-        embeddings_layer_names=None,
-        embeddings_metadata=None,
-        embeddings_data=None,
-        update_freq="epoch"
-    )
+    log_dir="logs",
+    histogram_freq=0,
+    write_graph=True,
+    write_grads=False,
+    write_images=True,
+    embeddings_freq=0,
+    embeddings_layer_names=None,
+    embeddings_metadata=None,
+    embeddings_data=None,
+    update_freq="epoch"
+)
 training_callbacks.append(tensorboard_callback)
 
 # Add checkpoint callback.
 best_model_path = "best_model.h5"
 checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath=best_model_path,
-    monitor="val_loss", 
+    monitor="val_loss",
     save_best_only=True,
     verbose=1
 )

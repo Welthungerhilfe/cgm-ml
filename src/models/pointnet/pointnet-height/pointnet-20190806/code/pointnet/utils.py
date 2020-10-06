@@ -65,7 +65,8 @@ def subsample_pointcloud(pointcloud, target_size, subsampling_method="random", d
 
     # Check if the requested subsampling method is all right.
     possible_subsampling_methods = ["random", "first", "sequential_skip"]
-    assert subsampling_method in possible_subsampling_methods, "Subsampling method {} not in {}".format(subsampling_method, possible_subsampling_methods)
+    assert subsampling_method in possible_subsampling_methods, "Subsampling method {} not in {}".format(
+        subsampling_method, possible_subsampling_methods)
 
     # Random subsampling.
     if subsampling_method == "random":
@@ -75,16 +76,16 @@ def subsample_pointcloud(pointcloud, target_size, subsampling_method="random", d
 
     elif subsampling_method == "first":
         result = np.zeros((target_size, pointcloud.shape[1]), dtype="float32")
-        result[:len(pointcloud),:] = pointcloud[:target_size]
+        result[:len(pointcloud), :] = pointcloud[:target_size]
 
     elif subsampling_method == "sequential_skip":
         result = np.zeros((target_size, pointcloud.shape[1]), dtype="float32")
         skip = max(1, round(len(pointcloud) / target_size))
-        pointcloud_skipped = pointcloud[::skip,:]
+        pointcloud_skipped = pointcloud[::skip, :]
         result = np.zeros((target_size, pointcloud.shape[1]), dtype="float32")
-        result[:len(pointcloud_skipped),:] = pointcloud_skipped[:target_size]
+        result[:len(pointcloud_skipped), :] = pointcloud_skipped[:target_size]
 
-    return result[:,dimensions]
+    return result[:, dimensions]
 
 
 def load_vtk(vtk_path):
@@ -115,13 +116,13 @@ def render_pointcloud(points, title=None):
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(111, projection='3d')
 
-    ax.scatter(points[:,0], points[:,1], points[:,2], s=0.5, cmap="gray", alpha=0.5)
+    ax.scatter(points[:, 0], points[:, 1], points[:, 2], s=0.5, cmap="gray", alpha=0.5)
 
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.set_zlabel("z")
 
-    if title != None:
+    if title is not None:
         plt.title(title)
 
     plt.show()
@@ -155,28 +156,28 @@ def pad_voxelgrid(voxelgrid, voxelgrid_target_shape):
 def crop_voxelgrid(voxelgrid, voxelgrid_target_shape):
 
     while voxelgrid.shape[0] > voxelgrid_target_shape[0]:
-        voxels_start = np.count_nonzero(voxelgrid[0,:,:] != 0.0)
-        voxels_end = np.count_nonzero(voxelgrid[-1,:,:] != 0.0)
+        voxels_start = np.count_nonzero(voxelgrid[0, :, :] != 0.0)
+        voxels_end = np.count_nonzero(voxelgrid[-1, :, :] != 0.0)
         if voxels_start > voxels_end:
-            voxelgrid = voxelgrid[:-1,:,:]
+            voxelgrid = voxelgrid[:-1, :, :]
         else:
-            voxelgrid = voxelgrid[1:,:,:]
+            voxelgrid = voxelgrid[1:, :, :]
 
     while voxelgrid.shape[1] > voxelgrid_target_shape[1]:
-        voxels_start = np.count_nonzero(voxelgrid[:,0,:] != 0.0)
-        voxels_end = np.count_nonzero(voxelgrid[:,-1,:] != 0.0)
+        voxels_start = np.count_nonzero(voxelgrid[:, 0, :] != 0.0)
+        voxels_end = np.count_nonzero(voxelgrid[:, -1, :] != 0.0)
         if voxels_start > voxels_end:
-            voxelgrid = voxelgrid[:,:-1,:]
+            voxelgrid = voxelgrid[:, :-1, :]
         else:
-            voxelgrid = voxelgrid[:,1:,:]
+            voxelgrid = voxelgrid[:, 1:, :]
 
     while voxelgrid.shape[2] > voxelgrid_target_shape[2]:
-        voxels_start = np.count_nonzero(voxelgrid[:,:,0] != 0.0)
-        voxels_end = np.count_nonzero(voxelgrid[:,:,-1] != 0.0)
+        voxels_start = np.count_nonzero(voxelgrid[:, :, 0] != 0.0)
+        voxels_end = np.count_nonzero(voxelgrid[:, :, -1] != 0.0)
         if voxels_start > voxels_end:
-            voxelgrid = voxelgrid[:,:,:-1]
+            voxelgrid = voxelgrid[:, :, :-1]
         else:
-            voxelgrid = voxelgrid[:,:,1:]
+            voxelgrid = voxelgrid[:, :, 1:]
 
     return voxelgrid
 
@@ -206,7 +207,11 @@ def render_voxelgrid(voxelgrid, title=None):
     transformed_voxelgrid = np.flip(np.flip(voxelgrid, axis=2), axis=0)
 
     facecolors = np.zeros(transformed_voxelgrid.shape + (3,))
-    for x, y, z in itertools.product(range(transformed_voxelgrid.shape[0]), range(transformed_voxelgrid.shape[1]), range(transformed_voxelgrid.shape[2])):
+    for x, y, z in itertools.product(
+        range(
+            transformed_voxelgrid.shape[0]), range(
+            transformed_voxelgrid.shape[1]), range(
+                transformed_voxelgrid.shape[2])):
         color = (1.0 - y / 32)
         facecolors[x, y, z, 0] = color
         facecolors[x, y, z, 1] = color
@@ -214,7 +219,7 @@ def render_voxelgrid(voxelgrid, title=None):
 
     ax.voxels(transformed_voxelgrid, facecolors=facecolors, edgecolor="k")
 
-    if title != None:
+    if title is not None:
         plt.title(title)
 
     plt.show()
@@ -255,10 +260,11 @@ def pointcloud_to_rgb_map(original_pointcloud, target_width=512, target_height=5
     '''
     Maps a pointcloud to a RGB-image. Stores height, density and intensity as separate channels.
     '''
-    if axis=="horizontal":
+    if axis == "horizontal":
 
         # Transform to pixel-space.
-        scale = np.array([target_width / scale_factor, target_width / scale_factor, target_width / scale_factor, target_width / scale_factor]) # TODO is this okay?
+        scale = np.array([target_width / scale_factor, target_width / scale_factor, target_width /
+                          scale_factor, target_width / scale_factor])  # TODO is this okay?
         translate = np.array([target_width / 2, target_height / 2, 0.0, 0.0])
         pointcloud = original_pointcloud * scale + translate
 
@@ -271,42 +277,43 @@ def pointcloud_to_rgb_map(original_pointcloud, target_width=512, target_height=5
         pointcloud = pointcloud[crop_mask]
 
         # Get indices and counts.
-        _, indices, counts = np.unique(pointcloud[:,0:2], axis=0, return_index=True, return_counts = True)
+        _, indices, counts = np.unique(pointcloud[:, 0:2], axis=0, return_index=True, return_counts=True)
 
         # Get unique pixel coordinates.
         pixel_coordinates = np.int_(np.array([[x, y] for x, y, _, _ in pointcloud[indices]]))
 
         # Create the height map.
-        heights = pointcloud[indices][:,2]
+        heights = pointcloud[indices][:, 2]
         height_map = np.zeros((target_width, target_height))
-        height_map[pixel_coordinates[:,0], pixel_coordinates[:,1]] = heights
+        height_map[pixel_coordinates[:, 0], pixel_coordinates[:, 1]] = heights
         height_map /= target_width
 
         # Create the density map.
-        densities = np.minimum(1.0, np.log(counts + 1)/np.log(64))
+        densities = np.minimum(1.0, np.log(counts + 1) / np.log(64))
         density_map = np.zeros((target_width, target_height))
-        density_map[pixel_coordinates[:,0], pixel_coordinates[:,1]] = densities
+        density_map[pixel_coordinates[:, 0], pixel_coordinates[:, 1]] = densities
 
         # Create the intensity map.
-        intensities = pointcloud[indices][:,3]
+        intensities = pointcloud[indices][:, 3]
         intensity_map = np.zeros((target_width, target_height))
-        intensity_map[pixel_coordinates[:,0], pixel_coordinates[:,1]] = intensities
+        intensity_map[pixel_coordinates[:, 0], pixel_coordinates[:, 1]] = intensities
         intensity_map /= target_width
 
         # Compose the RGB-map.
         rgb_map = np.zeros((target_width, target_height, 3))
-        rgb_map[:,:,0] = height_map
-        rgb_map[:,:,1] = density_map
-        rgb_map[:,:,2] = intensity_map
+        rgb_map[:, :, 0] = height_map
+        rgb_map[:, :, 1] = density_map
+        rgb_map[:, :, 2] = intensity_map
 
         return rgb_map
 
-    elif axis=="vertical":
+    elif axis == "vertical":
 
         # Transform to pixel-space.
-        scale = np.array([target_width / scale_factor, target_width / scale_factor, target_width / scale_factor, target_width / scale_factor])
+        scale = np.array([target_width / scale_factor, target_width / scale_factor,
+                          target_width / scale_factor, target_width / scale_factor])
         # TODO is this okay?
-        translate = np.array([target_height / 2, target_width / 2, -target_width/3, 0.0])
+        translate = np.array([target_height / 2, target_width / 2, -target_width / 3, 0.0])
         pointcloud = original_pointcloud * scale + translate
 
         # Crop the pointcloud.
@@ -320,38 +327,39 @@ def pointcloud_to_rgb_map(original_pointcloud, target_width=512, target_height=5
         pointcloud = pointcloud[crop_mask]
 
         # Get indices and counts.
-        _, indices, counts = np.unique(pointcloud[:,[1, 2]], axis=0, return_index=True, return_counts = True)
+        _, indices, counts = np.unique(pointcloud[:, [1, 2]], axis=0, return_index=True, return_counts=True)
 
         # Get unique pixel coordinates.
         pixel_coordinates = np.int_(np.array([[-x, y] for _, y, x, _ in pointcloud[indices]]))
 
         # Create the height map.
-        heights = pointcloud[indices][:,0]
+        heights = pointcloud[indices][:, 0]
         height_map = np.zeros((target_width, target_height))
-        height_map[pixel_coordinates[:,0], pixel_coordinates[:,1]] = heights
+        height_map[pixel_coordinates[:, 0], pixel_coordinates[:, 1]] = heights
         height_map /= target_width
 
         # Create the density map.
-        densities = np.minimum(1.0, np.log(counts + 1)/np.log(64))
+        densities = np.minimum(1.0, np.log(counts + 1) / np.log(64))
         density_map = np.zeros((target_width, target_height))
-        density_map[pixel_coordinates[:,0], pixel_coordinates[:,1]] = densities
+        density_map[pixel_coordinates[:, 0], pixel_coordinates[:, 1]] = densities
 
         # Create the intensity map.
-        intensities = pointcloud[indices][:,3]
+        intensities = pointcloud[indices][:, 3]
         intensity_map = np.zeros((target_width, target_height))
-        intensity_map[pixel_coordinates[:,0], pixel_coordinates[:,1]] = intensities
+        intensity_map[pixel_coordinates[:, 0], pixel_coordinates[:, 1]] = intensities
         intensity_map /= target_width
 
         # Compose the RGB-map.
         rgb_map = np.zeros((target_width, target_height, 3))
-        rgb_map[:,:,0] = height_map
-        rgb_map[:,:,1] = density_map
-        rgb_map[:,:,2] = intensity_map
+        rgb_map[:, :, 0] = height_map
+        rgb_map[:, :, 1] = density_map
+        rgb_map[:, :, 2] = intensity_map
 
         return rgb_map
 
     else:
         raise Exception("Unknown axis: " + axis)
+
 
 def show_rgb_map(rgb_map):
     '''
@@ -361,15 +369,16 @@ def show_rgb_map(rgb_map):
     plt.figure(figsize=(10, 10))
     plt.subplots_adjust(wspace=0.1, hspace=0.1)
     plt.subplot(2, 2, 1)
-    show_rgb_map_channel(rgb_map[::-1,:,:], "RGB")
+    show_rgb_map_channel(rgb_map[::-1, :, :], "RGB")
     plt.subplot(2, 2, 2)
-    show_rgb_map_channel(rgb_map[::-1,:,0], "Height", cmap="gray")
+    show_rgb_map_channel(rgb_map[::-1, :, 0], "Height", cmap="gray")
     plt.subplot(2, 2, 3)
-    show_rgb_map_channel(rgb_map[::-1,:,1], "Density", cmap="gray")
+    show_rgb_map_channel(rgb_map[::-1, :, 1], "Density", cmap="gray")
     plt.subplot(2, 2, 4)
-    show_rgb_map_channel(rgb_map[::-1,:,2], "Intensity", cmap="gray")
+    show_rgb_map_channel(rgb_map[::-1, :, 2], "Intensity", cmap="gray")
     plt.show()
     plt.close()
+
 
 def show_rgb_map_channel(data, title, cmap=None):
     '''
@@ -380,6 +389,7 @@ def show_rgb_map_channel(data, title, cmap=None):
     fig.axes.get_xaxis().set_visible(False)
     fig.axes.get_yaxis().set_visible(False)
     plt.title(title)
+
 
 def find_timestamps_of_trained_models(root_path):
     '''
@@ -397,7 +407,7 @@ def find_timestamps_of_trained_models(root_path):
     return date_times
 
 
-def plot_date_times(date_times, all_history_paths, start_index, end_index = 100090, key_suffix=None):
+def plot_date_times(date_times, all_history_paths, start_index, end_index=100090, key_suffix=None):
     for date_time in date_times:
 
         # Load all histories for date-time.
@@ -411,13 +421,14 @@ def plot_date_times(date_times, all_history_paths, start_index, end_index = 1000
         for history, history_path in zip(histories, history_paths):
             split = history_path.split("/")[-1].split("-")
             for key in history.keys():
-                if key_suffix != None and key_suffix in key:
+                if key_suffix is not None and key_suffix in key:
                     plt.plot(history[key][start_index:end_index], label=key + " " + split[2] + " " + date_time)
     plt.legend()
     plt.show()
     plt.close()
 
-def get_mean_error(date_times, all_history_paths, start_index, end_index = 100090, key_suffix=None):
+
+def get_mean_error(date_times, all_history_paths, start_index, end_index=100090, key_suffix=None):
     for date_time in date_times:
 
         # Load all histories for date-time.
@@ -431,10 +442,22 @@ def get_mean_error(date_times, all_history_paths, start_index, end_index = 10009
         for history, history_path in zip(histories, history_paths):
             split = history_path.split("/")[-1].split("-")
             for key in history.keys():
-                if key_suffix != None and key_suffix in key:
+                if key_suffix is not None and key_suffix in key:
                     lst = history[key][start_index:end_index]
                     avg_error = sum(lst) / len(lst)
-                    print("Avg " + key + " " + split[2] + " " + date_time + " between epoch " + str(start_index) + " and " + str(end_index) + " = " + str(avg_error))
+                    print(
+                        "Avg " +
+                        key +
+                        " " +
+                        split[2] +
+                        " " +
+                        date_time +
+                        " between epoch " +
+                        str(start_index) +
+                        " and " +
+                        str(end_index) +
+                        " = " +
+                        str(avg_error))
 
 
 def find_all_history_paths(root_path):
@@ -475,16 +498,16 @@ def multiprocess(
     disable_gpu=False
 ):
     # Get number of workers.
-    if number_of_workers == None:
+    if number_of_workers is None:
         number_of_workers = multiprocessing.cpu_count()
     print("Using {} workers.".format(number_of_workers))
-    if disable_gpu == True:
+    if disable_gpu:
         print("GPU is disabled.")
 
     # Split into list.
     entry_sublists = np.array_split(entries, number_of_workers)
     assert len(entry_sublists) == number_of_workers
-    assert np.sum([len(entry_sublist) for entry_sublist in entry_sublists] ) == len(entries)
+    assert np.sum([len(entry_sublist) for entry_sublist in entry_sublists]) == len(entries)
 
     # Define an output queue
     output = multiprocessing.Queue()
@@ -492,27 +515,27 @@ def multiprocess(
     # This method is starting point for multiprocessing
     def process_entries(entry_sublist, process_index):
 
-        if disable_gpu == True:
-            os.environ["CUDA_VISIBLE_DEVICES"]="-1"
+        if disable_gpu:
+            os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
         try:
             # Process individually.
             if process_individial_entries:
                 for entry_index, entry in enumerate(tqdm(entry_sublist, position=process_index)):
-                    if pass_process_index == False:
+                    if not pass_process_index:
                         result = process_method(entry)
                     else:
                         result = process_method(entry, process_index)
 
             # Process all.
             else:
-                if pass_process_index == False:
+                if not pass_process_index:
                     result = process_method(entry_sublist)
                 else:
                     result = process_method(entry_sublist, process_index)
 
             # No results returned. Just provide status string.
-            if result == None:
+            if result is None:
                 output.put("Processed {}".format(len(entry_sublist)))
 
             # Results found. Playing it safe. Use pickle.
@@ -531,10 +554,14 @@ def multiprocess(
             print(e)
             traceback.print_exc()
 
-
-
     # Setup a list of processes that we want to run
-    processes = [multiprocessing.Process(target=process_entries, args=(entry_sublist, process_index)) for process_index, entry_sublist in enumerate(entry_sublists)]
+    processes = [
+        multiprocessing.Process(
+            target=process_entries,
+            args=(
+                entry_sublist,
+                process_index)) for process_index,
+        entry_sublist in enumerate(entry_sublists)]
 
     # Run processes
     for process in processes:
@@ -568,7 +595,17 @@ def multiprocess(
 
 
 # Render a subsample of the artifacts.
-def render_artifacts_as_gallery(artifacts, targets=None, qr_code=None, timestamp=None, num_columns=10, target_size=(1920 // 4, 1080 // 4), image_path=None, use_plt=True):
+def render_artifacts_as_gallery(
+        artifacts,
+        targets=None,
+        qr_code=None,
+        timestamp=None,
+        num_columns=10,
+        target_size=(
+            1920 // 4,
+            1080 // 4),
+    image_path=None,
+        use_plt=True):
 
   # Render results image.
     result_images = []
@@ -605,13 +642,13 @@ def render_artifacts_as_gallery(artifacts, targets=None, qr_code=None, timestamp
         title_string += " Targets: " + ", ".join([str(target) for target in targets])
 
     # Render with plt.
-    if use_plt == True:
+    if use_plt:
         plt.figure(figsize=(20, int(20 * result_image.shape[0] / result_image.shape[1])))
         plt.imshow(result_image)
         plt.axis("off")
         plt.title(title_string)
 
-        if image_path == None:
+        if image_path is None:
             plt.show()
         else:
             plt.savefig(image_path)
@@ -619,4 +656,4 @@ def render_artifacts_as_gallery(artifacts, targets=None, qr_code=None, timestamp
 
     else:
         # Write image to hard drive.
-        cv2.imwrite(image_path, result_image[:,:,::-1])
+        cv2.imwrite(image_path, result_image[:, :, ::-1])

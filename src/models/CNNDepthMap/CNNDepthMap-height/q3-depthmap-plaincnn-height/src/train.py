@@ -77,6 +77,7 @@ print(len(qrcode_paths_validate))
 
 assert len(qrcode_paths_training) > 0 and len(qrcode_paths_validate) > 0
 
+
 def get_depthmap_files(paths):
     pickle_paths = []
     for path in paths:
@@ -164,6 +165,8 @@ model.summary()
 training_callbacks = []
 
 # Pushes metrics and losses into the run on AzureML.
+
+
 class AzureLogCallback(callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs=None):

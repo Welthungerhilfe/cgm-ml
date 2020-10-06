@@ -1,3 +1,8 @@
+import utils
+import modelutils
+from inference_schema.parameter_types.numpy_parameter_type import NumpyParameterType
+from inference_schema.schema_decorators import input_schema, output_schema
+import tensorflow as tf
 import json
 import numpy as np
 import os
@@ -5,13 +10,9 @@ import sys
 
 sys.path.append('/structure/azureml-app/azureml-models/pointnet-height-20190806/1/pointnet')
 #sys.path.append('/var/azureml-app/azureml-models/20190806-1551_220-55height/1/20190806-1551_220-55height')
-import modelutils, utils
 
-import tensorflow as tf
 tf.compat.v1.disable_eager_execution()
 
-from inference_schema.schema_decorators import input_schema, output_schema
-from inference_schema.parameter_types.numpy_parameter_type import NumpyParameterType
 
 def init():
     global model
@@ -20,7 +21,8 @@ def init():
     hidden_sizes = [512, 256, 128]
     weights_path = '/structure/azureml-app/azureml-models/pointnet-height-20190806/1/pointnet/20190806-1551_220-55height-pointnet-model-weights.h5'
     model = modelutils.load_pointnet(weights_path, input_shape, output_size, hidden_sizes)
-    
+
+
 def run(data):
     try:
         data_list = json.loads(data)
