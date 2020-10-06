@@ -1,12 +1,13 @@
-from config import DATA_AUGMENTATION_SAME_PER_CHANNEL, DATA_AUGMENTATION_DIFFERENT_EACH_CHANNEL, DATA_AUGMENTATION_NO
-import numpy as np
 from pathlib import Path
-import pytest
 import sys
+
+import numpy as np
+import pytest
 import tensorflow as tf
 
 sys.path.append(str(Path(__file__).parents[1]))
 
+from config import DATA_AUGMENTATION_SAME_PER_CHANNEL, DATA_AUGMENTATION_DIFFERENT_EACH_CHANNEL, DATA_AUGMENTATION_NO
 from preprocessing import augmentation, tf_augment_sample, sample_systematic_from_artifacts, sample_windows_from_artifacts, REGEX_PICKLE  # noqa: E402
 
 

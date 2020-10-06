@@ -1,12 +1,14 @@
+import os
+import pickle
+import random
+
 from azureml.core import Workspace
 from azureml.core import Experiment
 from azureml.core.run import Run
-import os
 import glob2 as glob
 import tensorflow as tf
 from tensorflow.keras import models, layers, callbacks
-import pickle
-import random
+
 from preprocessing import preprocess_depthmap, preprocess_targets
 
 # Get the current run.
