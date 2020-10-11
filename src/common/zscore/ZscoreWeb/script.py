@@ -1,5 +1,8 @@
-from flask import *
+from flask import Flask, request, render_template
+
 from cgmzscore import Calculator
+
+
 app = Flask(__name__)
 
 
