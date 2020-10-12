@@ -165,10 +165,7 @@ model.summary()
 training_callbacks = []
 
 # Pushes metrics and losses into the run on AzureML.
-
-
 class AzureLogCallback(callbacks.Callback):
-
     def on_epoch_end(self, epoch, logs=None):
         if logs is not None:
             for key, value in logs.items():
@@ -176,6 +173,7 @@ class AzureLogCallback(callbacks.Callback):
 
 
 training_callbacks.append(AzureLogCallback())
+
 
 # Add TensorBoard callback.
 tensorboard_callback = tf.keras.callbacks.TensorBoard(
@@ -193,7 +191,6 @@ tensorboard_callback = tf.keras.callbacks.TensorBoard(
 training_callbacks.append(tensorboard_callback)
 
 # Add checkpoint callback.
-#best_model_path = os.path.join('validation','best_model.h5')
 best_model_path = str(REPO_DIR / 'data/outputs/best_model.h5')
 checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath=best_model_path,
@@ -202,14 +199,6 @@ checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     verbose=1
 )
 training_callbacks.append(checkpoint_callback)
-
-layer_name = 'conv2d_11'
-#save_dir = os.path.join('validation','out')
-save_dir = str(REPO_DIR / 'data/outputs/out')
-CHECK_FOLDER = os.path.isdir(save_dir)
-#if not CHECK_FOLDER:
-#    os.makedirs(save_dir)
-#    print("created folder : ", save_dir)
 
 optimizer = tf.keras.optimizers.Nadam(learning_rate=CONFIG.LEARNING_RATE)
 
