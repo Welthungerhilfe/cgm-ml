@@ -134,7 +134,8 @@ def py_load_pickle(path, max_value):
             base_path_list = path_as_str.split('/')[:i]
             base_path_str = "/".join(base_path_list)
             print(base_path_str, os.path.exists(base_path_str))
-        print("os.listdir(base_path_str): ", str(os.listdir(base_path_str)))
+        deepest_dir = "/".join(base_path_str.split('/')[:-1])
+        print("os.listdir(base_path_str): ", str(os.listdir(deepest_dir)))
 
         raise e
     depthmap = preprocess_depthmap(depthmap)
