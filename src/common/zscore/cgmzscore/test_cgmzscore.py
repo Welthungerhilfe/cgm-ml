@@ -1,9 +1,11 @@
 '''
 # Test case from data provide in survey of https://www.who.int/childgrowth/software/
 '''
-from cgmzscore import Calculator
-import pandas as pd
 import os
+
+import pandas as pd
+
+from cgmzscore import Calculator
 
 module_dir = str(os.path.split(os.path.abspath(__file__))[0])
 
