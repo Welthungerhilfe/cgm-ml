@@ -226,11 +226,12 @@ tensorboard_callback = tf.keras.callbacks.TensorBoard(
 training_callbacks.append(tensorboard_callback)
 
 # Add checkpoint callback.
-best_model_path = str(DATA_DIR / 'outputs/best_model.h5')
+best_model_path = str(DATA_DIR / 'outputs/best_model_weights.h5')
 checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath=best_model_path,
     monitor="val_loss",
     save_best_only=True,
+    save_weights_only=True,
     verbose=1
 )
 training_callbacks.append(checkpoint_callback)
