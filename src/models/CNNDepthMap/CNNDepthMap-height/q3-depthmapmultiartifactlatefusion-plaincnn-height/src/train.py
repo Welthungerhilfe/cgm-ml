@@ -1,3 +1,4 @@
+from pathlib import Path
 import os
 import random
 from typing import List
@@ -47,7 +48,15 @@ else:
     print("Running in online mode...")
     experiment = run.experiment
     workspace = experiment.workspace
-    dataset_path = run.input_datasets["dataset"]
+    # dataset_path = run.input_datasets["dataset"]
+
+    # Get dataset.
+    print("Accessing dataset...")
+    dataset_name = "anon-depthmap-95k"
+    dataset_path = str(DATA_DIR / dataset_name)
+    if not os.path.exists(dataset_path):
+        dataset = workspace.datasets[dataset_name]
+        dataset.download(target_path=dataset_path, overwrite=False)
 
 # Get the QR-code paths.
 dataset_scans_path = os.path.join(dataset_path, "scans")
