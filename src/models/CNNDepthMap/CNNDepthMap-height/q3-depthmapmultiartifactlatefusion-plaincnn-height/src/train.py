@@ -21,6 +21,9 @@ random.seed(CONFIG.SPLIT_SEED)
 # Get the current run.
 run = Run.get_context()
 
+DATA_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path(".")
+print(f"DATA_DIR: {DATA_DIR}")
+
 # Offline run. Download the sample dataset and run locally. Still push results to Azure.
 if(run.id.startswith("OfflineRun")):
     print("Running in offline mode...")
@@ -34,7 +37,7 @@ if(run.id.startswith("OfflineRun")):
     # Get dataset.
     print("Accessing dataset...")
     dataset_name = "anon-depthmap-mini"
-    dataset_path = str(REPO_DIR / "data" / dataset_name)
+    dataset_path = str(DATA_DIR / dataset_name)
     if not os.path.exists(dataset_path):
         dataset = workspace.datasets[dataset_name]
         dataset.download(target_path=dataset_path, overwrite=False)
@@ -147,7 +150,7 @@ def download_pretrained_model(output_model_fpath):
 
 def get_base_model():
     if CONFIG.PRETRAINED_RUN:
-        model_fpath = REPO_DIR / "data/pretrained/" / CONFIG.PRETRAINED_RUN / "best_model.h5"
+        model_fpath = DATA_DIR / "pretrained/" / CONFIG.PRETRAINED_RUN / "best_model.h5"
         if not os.path.exists(model_fpath):
             download_pretrained_model(model_fpath)
         print(f"Loading pretrained model from {model_fpath}")
@@ -215,7 +218,7 @@ tensorboard_callback = tf.keras.callbacks.TensorBoard(
 training_callbacks.append(tensorboard_callback)
 
 # Add checkpoint callback.
-best_model_path = str(REPO_DIR / 'data/outputs/best_model.h5')
+best_model_path = str(DATA_DIR / 'outputs/best_model.h5')
 checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath=best_model_path,
     monitor="val_loss",
