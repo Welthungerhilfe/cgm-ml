@@ -115,8 +115,6 @@ venv.bak/
 
 *.p
 *.h5
-*.jpg
-*.png
 
 #VS Code
 .vscode/*
