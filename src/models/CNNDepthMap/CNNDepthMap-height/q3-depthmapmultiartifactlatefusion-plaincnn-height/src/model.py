@@ -1,6 +1,6 @@
+import os
+
 from tensorflow.keras import models, layers
-
-
 from tensorflow.keras.models import Model
 from tensorflow.keras import layers
 import numpy as np
@@ -31,6 +31,70 @@ def get_base_model():
         input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1)
         base_model = create_base_cnn(input_shape, dropout=CONFIG.USE_DROPOUT)  # output_shape: (128,)
     return base_model
+
+
+# adapted from https://github.com/AI-Guru/ngdlm/blob/master/ngdlm/models/gan.py
+class LateFusionModel(Model):
+    def __init__(self, base_model, head_model):
+        super().__init__()
+
+        assert base_model != None
+        assert head_model != None
+
+        self.base_model = base_model
+        self.head_model = head_model
+
+        # Implement artifact flow through the same model
+        model_input = layers.Input(
+            shape=(CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, CONFIG.N_ARTIFACTS)
+        )
+
+        features_list = []
+        for i in range(CONFIG.N_ARTIFACTS):
+            features_part = model_input[:, :, :, i:i + 1]
+            features_part = base_model(features_part)
+            features_list.append(features_part)
+
+        concatenation = tf.concat(features_list, axis=-1)
+        model_output = layers.Dense(1, activation="linear")(concatenation)  # shape: (None,640)
+
+        self.latefusion = models.Model(model_input, model_output)
+
+    def compile(self, optimizer, loss="mse", metrics=["mae"], **kwargs):
+        """Compiles the model. Same as vanilla Keras"""
+        self.latefusion.compile(optimizer, loss, metrics, **kwargs)
+
+    def summary(self):
+        print("base_model:")
+        self.base_model.summary()
+        print("head_model:")
+        self.head_model.summary()
+        print("latefusion:")
+        self.latefusion.summary()
+
+    def save(self, filepath):
+        """Save latefusion model including the base net and the head.
+
+        The base and head use the path plus a respective annotation.
+        This code
+
+        >>> latefusionmodel = LateFusionModel(base_model, head_model)
+        >>> latefusionmodel.save("latefusionmodel.h5")
+
+        will create the files *latefusionmodel.h5*,
+                              *latefusionmodel-base.h5*, and
+                              *latefusionmodel-head.h5*.
+        """
+        self.latefusion.save(filepath)
+        self.base_model.save(append_to_filepath(filepath, "-base"))
+        self.head_model.save(append_to_filepath(filepath, "-head"))
+
+    def load_weights(self, filepath, **kwargs):
+        self.latefusion.load_weights(filepath, **kwargs)
+        self.base_model.load_weights(append_to_filepath(filepath, "-base"), **kwargs)
+        self.head_model.load_weights(append_to_filepath(filepath, "-head"), **kwargs)
+
+
 def load_base_cgm_model(model_fpath, should_freeze=False):
     # load model
     loaded_model = models.load_model(model_fpath)
@@ -113,3 +177,9 @@ def create_head(input_shape, dropout):
 
     model.add(layers.Dense(1, activation="linear"))
     return model
+
+
+def append_to_filepath(filepath, string):
+    """Add a string to a file-path. Right before the extension."""
+    filepath, extension = os.path.splitext(filepath)
+    return filepath + string + extension
