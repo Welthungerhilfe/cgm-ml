@@ -13,7 +13,7 @@ from config import CONFIG
 from constants import REPO_DIR
 from model import create_base_cnn, create_head, load_base_cgm_model
 from preprocessing import create_multiartifact_paths, tf_load_pickle, tf_augment_sample
-
+from utils import  get_dataset, get_dataset_path
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
@@ -35,31 +35,20 @@ if(run.id.startswith("OfflineRun")):
     experiment = Experiment(workspace, "training-junkyard")
     run = experiment.start_logging(outputs=None, snapshot_directory=None)
 
-    # Get dataset.
-    print("Accessing dataset...")
     dataset_name = "anon-depthmap-mini"
-    dataset_path = str(DATA_DIR / dataset_name)
-    if not os.path.exists(dataset_path):
-        dataset = workspace.datasets[dataset_name]
-        dataset.download(target_path=dataset_path, overwrite=False)
+    get_dataset(workspace, dataset_name, dataset_path=get_dataset_path(DATA_DIR, dataset_name))
 
 # Online run. Use dataset provided by training notebook.
 else:
     print("Running in online mode...")
     experiment = run.experiment
     workspace = experiment.workspace
-    # dataset_path = run.input_datasets["dataset"]
 
-    # Get dataset.
-    print("Accessing dataset...")
     dataset_name = "anon-depthmap-95k"
-    dataset_path = str(DATA_DIR / dataset_name)
-    if not os.path.exists(dataset_path):
-        dataset = workspace.datasets[dataset_name]
-        dataset.download(target_path=dataset_path, overwrite=False)
+    get_dataset(workspace, dataset_name, dataset_path=get_dataset_path(DATA_DIR, dataset_name))
 
 # Get the QR-code paths.
-dataset_scans_path = os.path.join(dataset_path, "scans")
+dataset_scans_path = os.path.join(get_dataset_path(DATA_DIR, dataset_name), "scans")
 print("Dataset path:", dataset_scans_path)
 # print(glob.glob(os.path.join(dataset_scans_path, "*"))) # Debug
 print("Getting QR-code paths...")
