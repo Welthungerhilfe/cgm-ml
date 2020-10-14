@@ -156,19 +156,6 @@ def download_pretrained_model(output_model_fpath):
     previous_run.download_file("outputs/best_model.h5", output_model_fpath)
 
 
-def get_base_model():
-    if CONFIG.PRETRAINED_RUN:
-        model_fpath = DATA_DIR / "pretrained/" / CONFIG.PRETRAINED_RUN / "best_model.h5"
-        if not os.path.exists(model_fpath):
-            download_pretrained_model(model_fpath)
-        print(f"Loading pretrained model from {model_fpath}")
-        base_model = load_base_cgm_model(model_fpath, should_freeze=CONFIG.SHOULD_FREEZE_BASE)
-    else:
-        input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1)
-        base_model = create_base_cnn(input_shape, dropout=CONFIG.USE_DROPOUT)  # output_shape: (128,)
-    return base_model
-
-
 # Create the base model
 base_model = get_base_model()
 base_model.summary()
@@ -178,21 +165,6 @@ head_input_shape = (128 * CONFIG.N_ARTIFACTS,)
 head_model = create_head(head_input_shape, dropout=CONFIG.USE_CROPOUT)
 # head_model.summary()
 
-# Implement artifact flow through the same model
-model_input = layers.Input(
-    shape=(CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, CONFIG.N_ARTIFACTS)
-)
-
-features_list = []
-for i in range(CONFIG.N_ARTIFACTS):
-    features_part = model_input[:, :, :, i:i + 1]
-    features_part = base_model(features_part)
-    features_list.append(features_part)
-
-concatenation = tf.concat(features_list, axis=-1)
-model_output = layers.Dense(1, activation="linear")(concatenation)  # shape: (None,640)
-
-model = models.Model(model_input, model_output)
 model.summary()
 
 # Get ready to add callbacks.

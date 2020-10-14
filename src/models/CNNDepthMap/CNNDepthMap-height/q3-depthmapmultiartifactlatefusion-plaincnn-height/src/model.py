@@ -1,6 +1,36 @@
 from tensorflow.keras import models, layers
 
 
+from tensorflow.keras.models import Model
+from tensorflow.keras import layers
+import numpy as np
+import matplotlib.pyplot as plt
+
+from config import CONFIG
+from constants import REPO_DIR
+
+DATA_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path(".")
+
+def main():
+    base_model = get_base_model()
+
+    head_input_shape = (128 * CONFIG.N_ARTIFACTS,)
+    head_model = create_head(head_input_shape, dropout=CONFIG.USE_CROPOUT)
+
+    LateFusionModel(base_model, head_model)
+
+
+def get_base_model():
+    if CONFIG.PRETRAINED_RUN:
+        model_fpath = DATA_DIR / "pretrained/" / CONFIG.PRETRAINED_RUN / "best_model.h5"
+        if not os.path.exists(model_fpath):
+            download_pretrained_model(model_fpath)
+        print(f"Loading pretrained model from {model_fpath}")
+        base_model = load_base_cgm_model(model_fpath, should_freeze=CONFIG.SHOULD_FREEZE_BASE)
+    else:
+        input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1)
+        base_model = create_base_cnn(input_shape, dropout=CONFIG.USE_DROPOUT)  # output_shape: (128,)
+    return base_model
 def load_base_cgm_model(model_fpath, should_freeze=False):
     # load model
     loaded_model = models.load_model(model_fpath)
