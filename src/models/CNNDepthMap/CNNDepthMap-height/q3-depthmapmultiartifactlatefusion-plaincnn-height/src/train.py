@@ -22,8 +22,9 @@ random.seed(CONFIG.SPLIT_SEED)
 # Get the current run.
 run = Run.get_context()
 
-DATA_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path(".")
+DATA_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path("/mnt/data")
 print(f"DATA_DIR: {DATA_DIR}")
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # Offline run. Download the sample dataset and run locally. Still push results to Azure.
 if(run.id.startswith("OfflineRun")):
