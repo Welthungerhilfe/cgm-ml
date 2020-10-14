@@ -124,19 +124,8 @@ def py_load_pickle(path, max_value):
     try:
         depthmap, targets = pickle.load(open(path_, "rb"))
     except OSError as e:
-        print(f"Bug US41 encountered: path: {path}, type(path): {str(type(path))}, type(path_): {str(type(path_))}")
-
-        # path_ is of type: bytes
-        path_as_str = path_.decode("utf-8")
-        print(f"path_as_str: {path_as_str}")
-
-        for i in range(2, 8):
-            base_path_list = path_as_str.split('/')[:i]
-            base_path_str = "/".join(base_path_list)
-            print(base_path_str, os.path.exists(base_path_str))
-        deepest_dir = "/".join(base_path_str.split('/')[:-1])
-        print("os.listdir(base_path_str): ", str(os.listdir(deepest_dir)))
-
+        print(f"path: {path}, type(path) {str(type(path))}")
+        print(e)
         raise e
     depthmap = preprocess_depthmap(depthmap)
     depthmap = depthmap / max_value
