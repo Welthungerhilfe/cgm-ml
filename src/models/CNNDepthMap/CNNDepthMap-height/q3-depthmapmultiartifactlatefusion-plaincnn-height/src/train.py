@@ -11,7 +11,7 @@ from tensorflow.keras import callbacks, layers, models
 
 from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, REPO_DIR
-from model import create_base_cnn, create_head, load_base_cgm_model
+from model import create_base_cnn, create_head, load_base_cgm_model, get_base_model, get_head_model, LateFusionModel
 from preprocessing import create_multiartifact_paths, tf_load_pickle, tf_augment_sample
 from utils import download_dataset, get_dataset_path
 
@@ -148,24 +148,10 @@ del dataset_norm
 
 # Note: Now the datasets are prepared.
 
-
-def download_pretrained_model(output_model_fpath):
-    print(f"Downloading pretrained model from {CONFIG.PRETRAINED_RUN}")
-    previous_experiment = Experiment(workspace=workspace, name=CONFIG.PRETRAINED_EXPERIMENT)
-    previous_run = Run(previous_experiment, CONFIG.PRETRAINED_RUN)
-    previous_run.download_file("outputs/best_model.h5", output_model_fpath)
-
-
-# Create the base model
 base_model = get_base_model()
-base_model.summary()
-
-# Create the head
-head_input_shape = (128 * CONFIG.N_ARTIFACTS,)
-head_model = create_head(head_input_shape, dropout=CONFIG.USE_CROPOUT)
-# head_model.summary()
-
-model.summary()
+head_model = get_head_model()
+latefusionmodel = LateFusionModel(base_model, head_model)
+latefusionmodel.summary()
 
 # Get ready to add callbacks.
 training_callbacks = []
@@ -210,14 +196,14 @@ training_callbacks.append(checkpoint_callback)
 optimizer = tf.keras.optimizers.Nadam(learning_rate=CONFIG.LEARNING_RATE)
 
 # Compile the model.
-model.compile(
+latefusionmodel.compile(
     optimizer=optimizer,
     loss="mse",
     metrics=["mae"]
 )
 
 # Train the model.
-model.fit(
+latefusionmodel.fit(
     dataset_training.batch(CONFIG.BATCH_SIZE),
     validation_data=dataset_validation.batch(CONFIG.BATCH_SIZE),
     epochs=CONFIG.EPOCHS,

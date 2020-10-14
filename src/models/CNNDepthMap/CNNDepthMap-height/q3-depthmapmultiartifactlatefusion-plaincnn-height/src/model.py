@@ -1,5 +1,9 @@
 import os
+from pathlib import Path
 
+from azureml.core import Experiment, Workspace
+from azureml.core.run import Run
+import tensorflow as tf
 from tensorflow.keras import models, layers
 from tensorflow.keras.models import Model
 from tensorflow.keras import layers
@@ -9,15 +13,13 @@ import matplotlib.pyplot as plt
 from config import CONFIG
 from constants import REPO_DIR
 
+run = Run.get_context()
 DATA_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path(".")
 
-def main():
-    base_model = get_base_model()
 
+def get_head_model():
     head_input_shape = (128 * CONFIG.N_ARTIFACTS,)
-    head_model = create_head(head_input_shape, dropout=CONFIG.USE_CROPOUT)
-
-    LateFusionModel(base_model, head_model)
+    return create_head(head_input_shape, dropout=CONFIG.USE_CROPOUT)
 
 
 def get_base_model():
@@ -31,6 +33,13 @@ def get_base_model():
         input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1)
         base_model = create_base_cnn(input_shape, dropout=CONFIG.USE_DROPOUT)  # output_shape: (128,)
     return base_model
+
+
+def download_pretrained_model(output_model_fpath):
+    print(f"Downloading pretrained model from {CONFIG.PRETRAINED_RUN}")
+    previous_experiment = Experiment(workspace=Workspace.from_config(), name=CONFIG.PRETRAINED_EXPERIMENT)
+    previous_run = Run(previous_experiment, CONFIG.PRETRAINED_RUN)
+    previous_run.download_file("outputs/best_model.h5", output_model_fpath)
 
 
 # adapted from https://github.com/AI-Guru/ngdlm/blob/master/ngdlm/models/gan.py
@@ -63,6 +72,10 @@ class LateFusionModel(Model):
     def compile(self, optimizer, loss="mse", metrics=["mae"], **kwargs):
         """Compiles the model. Same as vanilla Keras"""
         self.latefusion.compile(optimizer, loss, metrics, **kwargs)
+
+    def fit(self, x, **kwargs):
+        """Compiles the model. Same as vanilla Keras"""
+        self.latefusion.fit(x, **kwargs)
 
     def summary(self):
         print("base_model:")
@@ -163,7 +176,7 @@ def create_base_cnn(input_shape, dropout):
 
 def create_head(input_shape, dropout):
     model = models.Sequential(name="head")
-    model.add(layers.Dense(128, activation="relu"))
+    model.add(layers.Dense(128, activation="relu", input_shape=input_shape))
     if dropout:
         model.add(layers.Dropout(0.2))
 
