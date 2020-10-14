@@ -189,6 +189,7 @@ checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath=best_model_path,
     monitor="val_loss",
     save_best_only=True,
+    save_weights_only=True,
     verbose=1
 )
 training_callbacks.append(checkpoint_callback)
@@ -201,6 +202,10 @@ latefusionmodel.compile(
     loss="mse",
     metrics=["mae"]
 )
+
+# tmp_model_filepath = str(DATA_DIR / "outputs/latefusionmodel.h5")
+# latefusionmodel.save(tmp_model_filepath)
+# latefusionmodel.load_weights(tmp_model_filepath)
 
 # Train the model.
 latefusionmodel.fit(

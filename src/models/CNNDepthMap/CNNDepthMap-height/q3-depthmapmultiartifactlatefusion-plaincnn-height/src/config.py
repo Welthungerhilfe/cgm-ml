@@ -39,7 +39,7 @@ CONFIG = dotdict(dict(
     # PRETRAINED_RUN="q3-depthmap-plaincnn-height-95k_1600451633_cb44f6db",  # Run17 (baseline: min(val_mae)=2.21cm)
     PRETRAINED_RUN="q3-depthmap-plaincnn-height-95k_1597988908_42c4ef33",  # Run3 (baseline: min(val_mae)=1.96cm)
 
-    SHOULD_FREEZE_BASE=True,
+    SHOULD_FREEZE_BASE=False,
 ))
 
 CONFIG.PRETRAINED_EXPERIMENT = "_".join(CONFIG.PRETRAINED_RUN.split('_')[:-2])

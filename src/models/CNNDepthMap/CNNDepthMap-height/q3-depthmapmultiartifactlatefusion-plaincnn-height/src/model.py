@@ -98,9 +98,16 @@ class LateFusionModel(Model):
                               *latefusionmodel-base.h5*, and
                               *latefusionmodel-head.h5*.
         """
+        print("save()")
         self.latefusion.save(filepath)
         self.base_model.save(append_to_filepath(filepath, "-base"))
         self.head_model.save(append_to_filepath(filepath, "-head"))
+
+    def save_weights(self, filepath):
+        print("save_weights()")
+        self.latefusion.save_weights(filepath)
+        self.base_model.save_weights(append_to_filepath(filepath, "-base-weights"))
+        self.head_model.save_weights(append_to_filepath(filepath, "-head-weights"))
 
     def load_weights(self, filepath, **kwargs):
         self.latefusion.load_weights(filepath, **kwargs)
