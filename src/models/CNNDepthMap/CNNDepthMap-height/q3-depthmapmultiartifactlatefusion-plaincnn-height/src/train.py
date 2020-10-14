@@ -13,7 +13,7 @@ from config import CONFIG
 from constants import REPO_DIR
 from model import create_base_cnn, create_head, load_base_cgm_model
 from preprocessing import create_multiartifact_paths, tf_load_pickle, tf_augment_sample
-from utils import  get_dataset, get_dataset_path
+from utils import download_dataset, get_dataset_path
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
@@ -37,7 +37,7 @@ if(run.id.startswith("OfflineRun")):
     run = experiment.start_logging(outputs=None, snapshot_directory=None)
 
     dataset_name = "anon-depthmap-mini"
-    get_dataset(workspace, dataset_name, dataset_path=get_dataset_path(DATA_DIR, dataset_name))
+    download_dataset(workspace, dataset_name, dataset_path=get_dataset_path(DATA_DIR, dataset_name))
 
 # Online run. Use dataset provided by training notebook.
 else:
@@ -45,8 +45,8 @@ else:
     experiment = run.experiment
     workspace = experiment.workspace
 
-    dataset_name = "anon-depthmap-95k"
-    get_dataset(workspace, dataset_name, dataset_path=get_dataset_path(DATA_DIR, dataset_name))
+    dataset_name = CONFIG.DATASET_NAME
+    download_dataset(workspace, dataset_name, dataset_path=get_dataset_path(DATA_DIR, dataset_name))
 
 # Get the QR-code paths.
 dataset_scans_path = os.path.join(get_dataset_path(DATA_DIR, dataset_name), "scans")
