@@ -10,7 +10,7 @@ from azureml.core.run import Run
 from tensorflow.keras import callbacks, layers, models
 
 from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
-from constants import DATASET_LOCATION_ONLINE_RUN, REPO_DIR
+from constants import DATA_DIR_ONLINE_RUN, REPO_DIR
 from model import create_base_cnn, create_head, load_base_cgm_model
 from preprocessing import create_multiartifact_paths, tf_load_pickle, tf_augment_sample
 from utils import download_dataset, get_dataset_path
@@ -22,7 +22,7 @@ random.seed(CONFIG.SPLIT_SEED)
 # Get the current run.
 run = Run.get_context()
 
-DATA_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path(DATASET_LOCATION_ONLINE_RUN)
+DATA_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path(DATA_DIR_ONLINE_RUN)
 print(f"DATA_DIR: {DATA_DIR}")
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
