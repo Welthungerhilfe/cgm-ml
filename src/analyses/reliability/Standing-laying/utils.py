@@ -17,7 +17,7 @@ def get_timestamp_from_pcd(pcd_path):
         return -1
     # get the time from the header of the pcd file
     import re
-    timestamp = re.findall("\d+\.\d+", firstLine)
+    timestamp = re.findall(r'\d+\.\d+', firstLine)
 
     # check if a timestamp is parsed from the header of the pcd file
     try:
@@ -33,7 +33,7 @@ def get_timestamp_from_rgb(rgb_path):
 
 
 def find_closest(A, target):
-    #A must be sorted
+    # A must be sorted
     idx = A.searchsorted(target)
     idx = np.clip(idx, 1, len(A) - 1)
     left = A[idx - 1]
@@ -60,7 +60,7 @@ def standing_laying_predict(qrcode_pcd_rgb):
             img = tf.expand_dims(img, axis=0)
             model = load_model(REPO_DIR / 'src' / 'common' / 'eval' / 'logs'
                                / 'q4-rgb-plaincnn-classifaction-standing-lying-8k' / 'run_27' / 'best_model.h5')
-            qr_code.append([model.predict(img), qr_code[i][1], qr_code[i][0]])
-        qr_codes_predicts.append(qr_code)
-    
+            qr_code_predict.append([model.predict(img), qr_code[i][1], qr_code[i][0]])
+        qr_codes_predicts.append(qr_code_predict)
+
     return qr_codes_predicts

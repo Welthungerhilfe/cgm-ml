@@ -1,7 +1,6 @@
 from train import process_path
 import numpy as np
 from pathlib import Path
-import pytest
 import sys
 import tensorflow as tf
 
