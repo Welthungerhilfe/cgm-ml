@@ -6,7 +6,7 @@ def load_base_cgm_model(model_fpath, should_freeze=False):
     loaded_model = models.load_model(model_fpath)
 
     # cut off last layer
-    _ = loaded_model._layers.pop()
+    _ = loaded_model._layers.pop()  # TODO debug
 
     if should_freeze:
         for layer in loaded_model._layers:
@@ -81,5 +81,5 @@ def create_head(input_shape, dropout):
     if dropout:
         model.add(layers.Dropout(0.2))
 
-    model.add(layers.Dense(1, activation="linear"))
+    model.add(layers.Dense(1, activation="linear", input_shape=input_shape))
     return model

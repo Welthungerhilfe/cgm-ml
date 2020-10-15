@@ -173,9 +173,11 @@ def get_base_model():
 base_model = get_base_model()
 base_model.summary()
 
+assert base_model.output_shape == (None, 128)
+
 # Create the head
-# head_input_shape = (128 * CONFIG.N_ARTIFACTS,)
-# head_model = create_head(head_input_shape, dropout=CONFIG.USE_CROPOUT)
+head_input_shape = (128 * CONFIG.N_ARTIFACTS,)
+head_model = create_head(head_input_shape, dropout=CONFIG.USE_CROPOUT)
 # head_model.summary()
 
 # Implement artifact flow through the same model
@@ -189,8 +191,9 @@ for i in range(CONFIG.N_ARTIFACTS):
     features_part = base_model(features_part)
     features_list.append(features_part)
 
-concatenation = tf.concat(features_list, axis=-1)
-model_output = layers.Dense(1, activation="linear")(concatenation)  # shape: (None,640)
+concatenation = tf.keras.layers.concatenate(features_list, axis=-1)
+# model_output = layers.Dense(1, activation="linear")(concatenation)  # shape: (None,640)
+model_output = head_model(concatenation)
 
 model = models.Model(model_input, model_output)
 model.summary()
@@ -226,12 +229,11 @@ tensorboard_callback = tf.keras.callbacks.TensorBoard(
 training_callbacks.append(tensorboard_callback)
 
 # Add checkpoint callback.
-best_model_path = str(DATA_DIR / 'outputs/best_model_weights.h5')
+best_model_path = str(DATA_DIR / 'outputs/best_model.h5')
 checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath=best_model_path,
     monitor="val_loss",
     save_best_only=True,
-    save_weights_only=True,
     verbose=1
 )
 training_callbacks.append(checkpoint_callback)
