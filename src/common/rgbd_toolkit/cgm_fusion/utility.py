@@ -66,6 +66,9 @@ def write_color_ply(fname, points, color_vals, confidence, normals):
     print(fname)
 
 
+
+#from cgm_fusion.calibration import get_intrinsic_matrix, get_extrinsic_matrix, get_k, get_intrinsic_matrix_depth
+
 from  cgm_fusion.calibration import *
 
 
@@ -290,6 +293,9 @@ def get_all_channel(ply_path, output_path_np,calibration_file):
 
     np.save(output_path_np, viz_image)
     return viz_image
+
+
+
 
 
 '''

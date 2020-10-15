@@ -6,6 +6,7 @@ from azureml.core.dataset import Dataset
 import json
 import os
 from glob import glob
+from pathlib import Path
 # check core SDK version number
 print("Azure ML SDK Version: ", azureml.core.VERSION)
 import sys
@@ -26,6 +27,8 @@ import cgm_fusion.utility as utility
 from cgm_fusion.utility import Channel
 import cgm_fusion.calibration 
 from cgm_fusion.fusion import apply_fusion,fuse_rgbd 
+import warnings
+warnings.filterwarnings("ignore")
 
 # import command_update_segmentation
 
@@ -36,14 +39,16 @@ from cgmcore import  utils
 
 import datetime
 import matplotlib.pyplot as plt
-
+from io import BytesIO
+import tarfile
+import tempfile
+from six.moves import urllib
 
 import logging
 logging.getLogger('').handlers = []
 logging.basicConfig(filename='./RGBD.log',level=logging.DEBUG, format='%(asctime)s %(message)s')
 
 import argparse
-
 
 
 def find_closest(A, target):
@@ -55,10 +60,49 @@ def find_closest(A, target):
     idx  -= target - left < right - target
     return idx
 
-def update_qrs(unique_qr_codes, rgb_paths,pcd_paths,mount_path,output):
+def update_qrs(unique_qr_codes, process_index=0):
     
-    qr_counter = 0
 
+    print("Processing..")
+    qr_counter = 0
+    rgb_paths=[]
+    pcd_paths=[]
+        
+        
+    # load model for segmentation
+    
+    modelType = "./xception_model"
+    MODEL     = DeepLabModel(modelType)
+    logging.info('model loaded successfully : ' + modelType)
+
+
+    
+    # MODEL_NAME = 'xception_coco_voctrainaug'  # @param ['mobilenetv2_coco_voctrainaug', 'mobilenetv2_coco_voctrainval', 'xception_coco_voctrainaug', 'xception_coco_voctrainval']
+
+    # _DOWNLOAD_URL_PREFIX = 'http://download.tensorflow.org/models/'
+    # _MODEL_URLS = {
+    #     'mobilenetv2_coco_voctrainaug':
+    #         'deeplabv3_mnv2_pascal_train_aug_2018_01_29.tar.gz',
+    #     'mobilenetv2_coco_voctrainval':
+    #         'deeplabv3_mnv2_pascal_trainval_2018_01_29.tar.gz',
+    #     'xception_coco_voctrainaug':
+    #         'deeplabv3_pascal_train_aug_2018_01_04.tar.gz',
+    #     'xception_coco_voctrainval':
+    #         'deeplabv3_pascal_trainval_2018_01_04.tar.gz',
+    # }
+    # _TARBALL_NAME = 'deeplab_model.tar.gz'
+
+    # model_dir = tempfile.mkdtemp()
+    # tf.gfile.MakeDirs(model_dir)
+
+    # download_path = os.path.join(model_dir, _TARBALL_NAME)
+    # print('downloading model, this might take a while...')
+    # urllib.request.urlretrieve(_DOWNLOAD_URL_PREFIX + _MODEL_URLS[MODEL_NAME],
+    #                 download_path)
+    # print('download completed! loading DeepLab model...')
+
+    # MODEL = DeepLabModel(download_path)
+    # print('model loaded successfully!')
     
     
     # load model for segmentation
@@ -66,20 +110,28 @@ def update_qrs(unique_qr_codes, rgb_paths,pcd_paths,mount_path,output):
     modelType = "./xception_model"
     MODEL     = DeepLabModel(modelType)
     logging.info('model loaded successfully : ' + modelType)
-    
-    for qr in unique_qr_codes:
 
+
+    for qr in tqdm(unique_qr_codes,position=process_index):
+
+        logging.info("reading qr code"+ str(qr))
+        for dirname,dirs,qr_paths in os.walk(Path(qr)):
+                for file in qr_paths :
+                        dir_path=os.path.join(dirname,file)
+                        #print("dir_path",dir_path)
+                        if file.endswith(".jpg"):
+                            rgb_paths.append(dir_path)
+                            [norm_rgb_time, rgb_path] = get_timestamps_from_rgb(rgb_paths)
+                        if file.endswith(".pcd"):
+                            pcd_paths.append(dir_path)
+                            [norm_pcd_time, pcd_path] = get_timestamps_from_pcd(pcd_paths)
+            
+    # check if a qr code has rgb and pcd, otherwise the previous function returned -1
         qr_counter = qr_counter + 1
         if qr == "{qrcode}":
             continue
         if qr == "data":
             continue
-
-
-        [norm_rgb_time, rgb_path] = get_timestamps_from_rgb(qr,rgb_paths)
-        [norm_pcd_time, pcd_path] = get_timestamps_from_pcd(qr,pcd_paths)
-        
-        # check if a qr code has rgb and pcd, otherwise the previous function returned -1
 
         if ( size(norm_rgb_time) == 0 ):
             logging.error("wrong size of jpg")
@@ -96,6 +148,7 @@ def update_qrs(unique_qr_codes, rgb_paths,pcd_paths,mount_path,output):
 
 
         for pcd in norm_pcd_time:
+            #print("hi")
             
             nn = find_closest(norm_rgb_time, pcd)
             logging.info("timestamp of rgb: " + "{0:.2f}".format(round(pcd,2))               + " with index " + str(i)) # + " path: " + str(pcd_path[i]))
@@ -105,17 +158,26 @@ def update_qrs(unique_qr_codes, rgb_paths,pcd_paths,mount_path,output):
             path, filename = os.path.split(str(pcd_path[i]))
 
             pcd_file = pcd_path[i]
-            #pcd_file = pcd_file[0]
             jpg_file = rgb_path[nn]
-            
-            
+
+            qr_folder=str(Path(qr)).split("/")[-1]
+            seg_folder_,rgbd_folder_=output_paths()
+
+
             # check if a segmentation for the found jpg exists
-            seg_path = jpg_file.replace('.jpg', '_SEG.png')
+            seg_path_ = jpg_file.replace('.jpg', '_SEG.png')
+            seg_path_,seg_file=os.path.split(seg_path_)  
+            seg_folder=os.path.join(seg_folder_,qr_folder)
+
+            if not os.path.exists(seg_folder):
+                os.mkdir(seg_folder)
+            seg_path=os.path.join(seg_folder,seg_file)
+            
             if not( os.path.exists(seg_path) ):
-                
+            
                 logging.debug('applying segmentation')
-                seg_path = apply_segmentation(jpg_file, MODEL)
-                #check if the path now exists
+                seg_path = apply_segmentation(jpg_file,seg_path, MODEL)
+                # check if the path now exists
             if not( os.path.exists(seg_path) ):
                     logging.error('Segmented file does not exist: ' + seg_path)
 
@@ -123,22 +185,15 @@ def update_qrs(unique_qr_codes, rgb_paths,pcd_paths,mount_path,output):
 
             calibration_file="./calibration.xml"
             
-            
-            # the point cloud and rgbd data is fused and additionally the cloud is saved as ply and .npy respectively
-            #fused_cloud = apply_fusion(calibration_file,pcd_file, jpg_file, seg_path)
-            #rgbdseg_arr = fuse_rgbd(calibration_file,pcd_file, jpg_file, seg_path)
-            
             try: 
-                
                 #fused_cloud = apply_fusion(calibration_file,pcd_file, jpg_file, seg_path)
                 rgbdseg_arr = fuse_rgbd(calibration_file,pcd_file, jpg_file, seg_path)
             
-                                           
+                                            
             except Exception as e: 
                 logging.error("Something went wrong. ")
                 
                 logging.error(str(e))
-                print("error",e)
                 continue
 
             # now save the new data to the folder
@@ -148,67 +203,44 @@ def update_qrs(unique_qr_codes, rgb_paths,pcd_paths,mount_path,output):
             # replace the pcd and the pc_ in the path for fused data
             pc_filename = pcd_path_old.replace(".pcd", ".ply")
             pc_filename = pc_filename.replace("pc_",   "pcrgb_")
-
             
+            qr_rgbd=os.path.join(rgbd_folder_,qr_folder)
+            
+            
+
+            rgbd_filename = pc_filename.replace(fused_folder.split("measure")[0], qr_rgbd+"/")
             
 
             # write the data to the new storage
-            pc_filename = pc_filename.replace(mount_path, output)
-            pc_png=pc_filename.replace(".ply",".npy")
-            rgb_filename=pc_png.replace("/pc/","/RGBD/")
+            rgbd_filename=rgbd_filename.replace(".ply",".npy")
+            rgbd_filename=rgbd_filename.replace("/pc/","/rgbd/")
             
             
 
-
-            #check if folder exists
-            # pc_folder = os.path.dirname(pc_filename)
-            # if not(os.path.isfile(pc_folder)): 
-            #     logging.info("Folder does not exist for " + str(pc_filename))
-            #     os.makedirs(pc_folder, exist_ok=True)
-            #     logging.info("Created folder " + str(pc_folder))
-
-            rgb_folder=os.path.dirname(rgb_filename)
-            if not(os.path.isfile(rgb_folder)): 
-                logging.info("Folder does not exist for " + str(rgb_filename))
-                os.makedirs(rgb_folder, exist_ok=True)
-                logging.info("Created folder " + str(rgb_folder))
+            rgbd_folder=os.path.dirname(rgbd_filename)
+            if not(os.path.isfile(rgbd_folder)): 
+                logging.info("Folder does not exist for " + str(rgbd_filename))
+                os.makedirs(rgbd_folder, exist_ok=True)
+                logging.info("Created folder " + str(rgbd_folder))
 
 
-            logging.info("Going to writing new fused data to: " + pc_filename)
+            logging.info("Going to writing new fused data to: " + rgbd_filename)
 
+            np_path="/np/" #dummy
             
-             
+            
+                
             try: 
                 #fused_cloud.to_file(pc_filename)
-                np.save(rgb_filename,rgbdseg_arr)
-                # fig=plt.figure() 
-                # #plt.imshow(rgbdseg_arr)
-                # plt.imsave(rgb_filename,rgbdseg_arr) 
-                    
+                #fig=plt.figure() 
+                #plt.imshow(rgbdseg_arr)
+                #plt.imsave(rgbd_filename,rgbdseg_arr) 
+                np.save(rgbd_filename,rgbdseg_arr)
+    
             except AttributeError :
                 logging.error("An error occured -- skipping this file to save ") 
                 continue
 
-def main(args):
-    
-    mount_path=args.input
-    rgb_paths=[]
-    pcd_paths=[]
-    for qr in os.listdir(mount_path):
-    
-        for dirname,dirs,files in os.walk(os.path.join(mount_path,qr)):
-      
-            for file in files:
-                dir_path=os.path.join(dirname,file)
-                if file.endswith(".jpg"):
-                    rgb_paths.append(dir_path)
-                if file.endswith(".pcd"):
-                    pcd_paths.append(dir_path)
-
-
-
-    unique_qr_codes=os.listdir(mount_path)
-    update_qrs(unique_qr_codes,rgb_paths,pcd_paths,mount_path,output=args.output)
 
 if __name__ == "__main__":
     
@@ -224,4 +256,24 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
 
-    main(args)
+    folders=os.listdir(args.input)
+    unique_qr_codes=[os.path.join(args.input,x) for x in folders]
+    
+    ## make dirs for saving output files
+    def output_paths(args_output=args.output):
+        seg_output=os.path.join(args_output,"SEG")
+        if not os.path.exists(seg_output):
+            os.makedirs(seg_output)
+        rgbd_output=os.path.join(args_output,"RGBD")
+        if not os.path.exists(rgbd_output):
+            os.makedirs(rgbd_output)
+        return seg_output,rgbd_output
+
+    utils.multiprocess(unique_qr_codes,
+        process_method = update_qrs, 
+        process_individial_entries  = False, 
+        number_of_workers           = 4,
+        pass_process_index          = True, 
+        progressbar                 = True, 
+        disable_gpu                 =True)
+    

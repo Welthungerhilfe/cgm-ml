@@ -5,6 +5,8 @@ import datetime
 import numpy as np
 import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
+import tarfile
+import os
 
 
 class DeepLabModel(object):
@@ -16,6 +18,29 @@ class DeepLabModel(object):
     FROZEN_GRAPH_NAME = 'frozen_inference_graph'
 
     def __init__(self, tarball_path):
+        """Creates and loads pretrained deeplab model."""
+        # self.graph = tf.Graph()
+
+        # graph_def = None
+        # # Extract frozen graph from tar archive.
+        # tar_file = tarfile.open(tarball_path)
+        # for tar_info in tar_file.getmembers():
+        #     if self.FROZEN_GRAPH_NAME in os.path.basename(tar_info.name):
+        #         file_handle = tar_file.extractfile(tar_info)
+        #         graph_def = tf.GraphDef.FromString(file_handle.read())
+        #         break
+
+        # tar_file.close()
+
+        # if graph_def is None:
+        #     raise RuntimeError('Cannot find inference graph in tar archive.')
+
+        # with self.graph.as_default():
+        #     tf.import_graph_def(graph_def, name='')
+
+        #self.sess = tf.Session(graph=self.graph)
+
+        
         self.graph = tf.Graph()
 
         graph_def = None
@@ -58,7 +83,7 @@ class DeepLabModel(object):
         return resized_image, seg_map
 
 
-def apply_segmentation(jpg_path, model):
+def apply_segmentation(jpg_path, seg_path,model):
 
     # get path and generate output path from it
     seg_path = jpg_path.replace(".jpg", "_SEG.png")
