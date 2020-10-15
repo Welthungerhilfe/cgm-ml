@@ -12,7 +12,11 @@ DATA_AUGMENTATION_NO = "no"
 SAMPLING_STRATEGY_SYSTEMATIC = "systematic"
 SAMPLING_STRATEGY_WINDOW = "window"
 
+DATASET_MODE_DOWNLOAD = "dataset_mode_download"
+DATASET_MODE_MOUNT = "dataset_mode_mount"
+
 CONFIG = dotdict(dict(
+    DATASET_MODE=DATASET_MODE_MOUNT,
     DATASET_NAME="anon-depthmap-95k",
     SPLIT_SEED=0,
     IMAGE_TARGET_HEIGHT=240,
