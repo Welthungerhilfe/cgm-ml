@@ -71,7 +71,7 @@ def create_base_cnn(input_shape, dropout):
 
 def create_head(input_shape, dropout):
     model = models.Sequential(name="head")
-    model.add(layers.Dense(128, activation="relu"))
+    model.add(layers.Dense(128, activation="relu", input_shape=input_shape))
     if dropout:
         model.add(layers.Dropout(0.2))
 
@@ -83,5 +83,5 @@ def create_head(input_shape, dropout):
     if dropout:
         model.add(layers.Dropout(0.2))
 
-    model.add(layers.Dense(1, activation="linear", input_shape=input_shape))
+    model.add(layers.Dense(1, activation="linear"))
     return model
