@@ -6,13 +6,15 @@ def load_base_cgm_model(model_fpath, should_freeze=False):
     loaded_model = models.load_model(model_fpath)
 
     # cut off last layer
-    _ = loaded_model._layers.pop()  # TODO debug
+    beheaded_model = models.Sequential()
+    for layer in loaded_model.layers[:-1]:
+        beheaded_model.add(layer)
 
     if should_freeze:
-        for layer in loaded_model._layers:
+        for layer in beheaded_model._layers:
             layer.trainable = False
 
-    return loaded_model
+    return beheaded_model
 
 
 def create_base_cnn(input_shape, dropout):
