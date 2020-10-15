@@ -5,7 +5,7 @@ def load_base_cgm_model(model_fpath, should_freeze=False):
     # load model
     loaded_model = models.load_model(model_fpath)
 
-    # cut off last layer
+    # cut off last layer (https://stackoverflow.com/a/59304656/5497962)
     beheaded_model = models.Sequential()
     for layer in loaded_model.layers[:-1]:
         beheaded_model.add(layer)
