@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def get_timestamps_from_rgb(qr_code,rgb_paths):
+def get_timestamps_from_rgb(rgb_paths):
     #connector1 = dbutils.connect_to_main_database()
 
     # get all artifacts of a certain unique qr code
@@ -54,7 +54,7 @@ def get_timestamp_from_pcd(pcd_path):
 
     return return_timestamp  # index error? IndexError
 
-def get_timestamps_from_pcd(qr_code,pcd_paths): 
+def get_timestamps_from_pcd(pcd_paths): 
 #     connector2 = dbutils.connect_to_main_database()
     
 #     sql_statement  = "SELECT '{}'".format(mount_path + '/') + " || storage_path FROM artifact "
