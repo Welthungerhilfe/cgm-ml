@@ -247,15 +247,6 @@ model.compile(
     metrics=["mae"]
 )
 
-# Reproducing the error:
-tmp_model_filepath = str(DATA_DIR / "outputs/tmpmodel.h5")
-model.save(tmp_model_filepath)
-tf.keras.models.load_model(tmp_model_filepath)
-
-
-# model.save_weights(tmp_model_filepath)
-# model.load_weights(tmp_model_filepath)
-
 # Train the model.
 model.fit(
     dataset_training.batch(CONFIG.BATCH_SIZE),
