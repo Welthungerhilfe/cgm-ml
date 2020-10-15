@@ -146,11 +146,6 @@ def fuse_rgbd(calibration_file,pcd_file,jpg_file, seg_path):
 
     #initialize an empty black image
     viz_image = np.zeros((width, height, 4))
-    # for x in range(width):
-    #     for y in range(height):
-    #         segm = im_array2[y][x][1] / 255.0
-    #         #viz_image[width - x - 1][height - y - 1][:] = im_array[y][x][:] / 255.0
-
 
     #add depth into RGB array
     map = plt.get_cmap('rainbow')
