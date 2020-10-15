@@ -48,7 +48,7 @@ else:
     dataset_path = run.input_datasets["dataset"]
 
 # Get the Image paths.
-dataset_path = os.path.join(dataset_path, "test")
+dataset_path = os.path.join(dataset_path, "train")
 print("Dataset path:", dataset_path)
 print("Getting image...")
 image_paths = glob.glob(os.path.join(dataset_path, "*/*.jpg"))
@@ -217,7 +217,7 @@ fine_tuning('block14_sepconv1')
 model.fit(
     dataset_training.batch(CONFIG.BATCH_SIZE),
     validation_data=dataset_validation.batch(CONFIG.BATCH_SIZE),
-    epochs=CONFIG.EPOCHS,
+    epochs=CONFIG.TUNE_EPOCHS,
     callbacks=training_callbacks,
     verbose=2
 )
