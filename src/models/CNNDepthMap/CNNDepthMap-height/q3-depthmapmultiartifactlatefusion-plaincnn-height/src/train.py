@@ -70,7 +70,7 @@ assert len(qrcode_paths) != 0
 random.seed(CONFIG.SPLIT_SEED)
 random.shuffle(qrcode_paths)
 split_index = int(len(qrcode_paths) * 0.8)
-qrcode_paths_training = qrcode_paths[:split_index][:10]
+qrcode_paths_training = qrcode_paths[:split_index][:10]  # DEBUG
 
 qrcode_paths_validate = qrcode_paths[split_index:]
 qrcode_paths_activation = random.choice(qrcode_paths_validate)
