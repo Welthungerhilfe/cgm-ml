@@ -70,7 +70,7 @@ assert len(qrcode_paths) != 0
 random.seed(CONFIG.SPLIT_SEED)
 random.shuffle(qrcode_paths)
 split_index = int(len(qrcode_paths) * 0.8)
-qrcode_paths_training = qrcode_paths[:split_index]
+qrcode_paths_training = qrcode_paths[:split_index][:10]
 
 qrcode_paths_validate = qrcode_paths[split_index:]
 qrcode_paths_activation = random.choice(qrcode_paths_validate)
@@ -174,8 +174,8 @@ base_model = get_base_model()
 base_model.summary()
 
 # Create the head
-head_input_shape = (128 * CONFIG.N_ARTIFACTS,)
-head_model = create_head(head_input_shape, dropout=CONFIG.USE_CROPOUT)
+# head_input_shape = (128 * CONFIG.N_ARTIFACTS,)
+# head_model = create_head(head_input_shape, dropout=CONFIG.USE_CROPOUT)
 # head_model.summary()
 
 # Implement artifact flow through the same model
@@ -185,7 +185,7 @@ model_input = layers.Input(
 
 features_list = []
 for i in range(CONFIG.N_ARTIFACTS):
-    features_part = model_input[:, :, :, i:i + 1]
+    features_part = model_input[:, :, :, i:(i + 1)]
     features_part = base_model(features_part)
     features_list.append(features_part)
 
@@ -244,6 +244,15 @@ model.compile(
     loss="mse",
     metrics=["mae"]
 )
+
+# Reproducing the error:
+tmp_model_filepath = str(DATA_DIR / "outputs/tmpmodel.h5")
+model.save(tmp_model_filepath)
+tf.keras.models.load_model(tmp_model_filepath)
+
+
+# model.save_weights(tmp_model_filepath)
+# model.load_weights(tmp_model_filepath)
 
 # Train the model.
 model.fit(
