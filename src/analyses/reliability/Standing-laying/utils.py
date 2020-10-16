@@ -2,6 +2,7 @@ from pathlib import Path
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import load_model
+from tqdm import tqdm
 
 REPO_DIR = Path(__file__).parents[4].absolute()
 
@@ -42,11 +43,11 @@ def find_closest(A, target):
     return idx
 
 
-def standing_laying_predict(qrcode_pcd_rgb):
+def standing_laying_predict(qrcode_pcd_rgb,model):
     qr_codes_predicts = []
     for qr_code in qrcode_pcd_rgb:
         qr_code_predict = []
-        for i in range(len(qr_code)):
+        for i in tqdm(range(len(qr_code))):
             file = qr_code[i][0]
             img = tf.io.read_file(file)                 # read the image in tensorflow
             img = tf.image.decode_jpeg(img, channels=3)   # change the jpg to rgb
@@ -58,8 +59,6 @@ def standing_laying_predict(qrcode_pcd_rgb):
             img = tf.image.resize(img, [240, 180])  # Resize the image by 240 * 180
             # Increase the dimesion so that it can fit as a input in model.predict
             img = tf.expand_dims(img, axis=0)
-            model = load_model(REPO_DIR / 'src' / 'common' / 'eval' / 'logs'
-                               / 'q4-rgb-plaincnn-classifaction-standing-lying-8k' / 'run_27' / 'best_model.h5')
             qr_code_predict.append([model.predict(img), qr_code[i][1], qr_code[i][0]])
         qr_codes_predicts.append(qr_code_predict)
 
