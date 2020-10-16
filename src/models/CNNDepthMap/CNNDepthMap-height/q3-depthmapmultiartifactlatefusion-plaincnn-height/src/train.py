@@ -70,7 +70,7 @@ assert len(qrcode_paths) != 0
 random.seed(CONFIG.SPLIT_SEED)
 random.shuffle(qrcode_paths)
 split_index = int(len(qrcode_paths) * 0.8)
-qrcode_paths_training = qrcode_paths[:split_index][:10]  # DEBUG
+qrcode_paths_training = qrcode_paths[:split_index][:10]
 
 qrcode_paths_validate = qrcode_paths[split_index:]
 qrcode_paths_activation = random.choice(qrcode_paths_validate)
@@ -172,7 +172,6 @@ def get_base_model():
 # Create the base model
 base_model = get_base_model()
 base_model.summary()
-
 assert base_model.output_shape == (None, 128)
 
 # Create the head
@@ -187,12 +186,12 @@ model_input = layers.Input(
 
 features_list = []
 for i in range(CONFIG.N_ARTIFACTS):
-    features_part = model_input[:, :, :, i:(i + 1)]
+    features_part = model_input[:, :, :, i:i + 1]
     features_part = base_model(features_part)
     features_list.append(features_part)
 
 concatenation = tf.keras.layers.concatenate(features_list, axis=-1)
-# model_output = layers.Dense(1, activation="linear")(concatenation)  # shape: (None,640)
+assert concatenation.shape.as_list() == tf.TensorShape((None, 128 * CONFIG.N_ARTIFACTS)).as_list()
 model_output = head_model(concatenation)
 
 model = models.Model(model_input, model_output)
