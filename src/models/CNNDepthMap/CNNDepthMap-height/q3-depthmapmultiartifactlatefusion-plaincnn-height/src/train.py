@@ -22,9 +22,8 @@ random.seed(CONFIG.SPLIT_SEED)
 # Get the current run.
 run = Run.get_context()
 
-DATA_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path(DATA_DIR_ONLINE_RUN)
+DATA_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path(".")
 print(f"DATA_DIR: {DATA_DIR}")
-DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # Offline run. Download the sample dataset and run locally. Still push results to Azure.
 if run.id.startswith("OfflineRun"):
@@ -52,7 +51,7 @@ else:
     if CONFIG.DATASET_MODE == DATASET_MODE_MOUNT:
         dataset_path = run.input_datasets["dataset"]
     elif CONFIG.DATASET_MODE == DATASET_MODE_DOWNLOAD:
-        dataset_path = get_dataset_path(DATA_DIR, dataset_name)
+        dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
         download_dataset(workspace, dataset_name, dataset_path)
     else:
         raise NameError(f"Unknown DATASET_MODE: {CONFIG.DATASET_MODE}")
