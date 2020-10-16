@@ -1,7 +1,6 @@
 from pathlib import Path
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.models import load_model
 from tqdm import tqdm
 
 REPO_DIR = Path(__file__).parents[4].absolute()
@@ -43,7 +42,7 @@ def find_closest(A, target):
     return idx
 
 
-def standing_laying_predict(qrcode_pcd_rgb,model):
+def standing_laying_predict(qrcode_pcd_rgb, model):
     qr_codes_predicts = []
     for qr_code in qrcode_pcd_rgb:
         qr_code_predict = []
