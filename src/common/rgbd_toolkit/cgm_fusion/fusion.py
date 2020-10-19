@@ -29,11 +29,13 @@ import open3d as o3d
 import logging
 import matplotlib.pyplot as plt
 from PIL import Image
+import datetime
 
 from cgm_fusion.calibration import get_intrinsic_matrix, get_extrinsic_matrix, get_k
 from cgm_fusion.utility import write_color_ply, fuse_point_cloud , get_depth_channel
 
 from pyntcloud import PyntCloud
+from DeepLabModel import rotate
 
 
 def get_depth_image_from_point_cloud(calibration_file, pcd_file, output_file):
@@ -113,8 +115,8 @@ def get_depth_image_from_point_cloud(calibration_file, pcd_file, output_file):
     # im_coords, _ = cv2.projectPoints(points, r_vec, t_vec, intrinsic[:3, :3], np.array([k1, k2, 0, 0]))
 
 
-def fuse_rgbd(calibration_file,pcd_file,jpg_file, seg_path):
-
+def fuse_rgbd(calibration_file,pcd_file,image, seg_path):
+    start=datetime.datetime.now()
     try:
         cloud      = PyntCloud.from_file(pcd_file)         # load the data from the files
     except ValueError:
@@ -136,7 +138,7 @@ def fuse_rgbd(calibration_file,pcd_file,jpg_file, seg_path):
     width = int(1920 * scale)
     height = int(1080 * scale)
 
-    pil_im = Image.open(jpg_file)
+    pil_im = image#Image.open(jpg_file)
     pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
     im_array = np.asarray(pil_im)
 
@@ -167,7 +169,9 @@ def fuse_rgbd(calibration_file,pcd_file,jpg_file, seg_path):
             viz_image[x][y][3]= segm
 
     
-            
+    end=datetime.datetime.now()
+    diff=end-start
+    #print("time taken foor fusing {}".format(diff))     
     return viz_image
 
     
