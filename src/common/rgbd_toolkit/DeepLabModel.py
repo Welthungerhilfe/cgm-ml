@@ -8,6 +8,16 @@ tf.disable_v2_behavior()
 import tarfile
 import os
 
+def rotate(jpg_file):
+    img=jpg_file.split("/")[-1]
+    
+    
+    if '_100_' in img or '_101_' in img or '_102_' in img:
+        image = cv2.rotate(jpg_file, cv2.ROTATE_90_CLOCKWISE)
+    elif '_200_' in img or '_201_' in img or '_202_' in img:
+        image = cv2.rotate(jpg_file, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    
+    return image
 
 class DeepLabModel(object):
     """Class to load deeplab model and run inference."""
@@ -19,32 +29,18 @@ class DeepLabModel(object):
 
     def __init__(self, tarball_path):
         """Creates and loads pretrained deeplab model."""
-        # self.graph = tf.Graph()
-
-        # graph_def = None
-        # # Extract frozen graph from tar archive.
-        # tar_file = tarfile.open(tarball_path)
-        # for tar_info in tar_file.getmembers():
-        #     if self.FROZEN_GRAPH_NAME in os.path.basename(tar_info.name):
-        #         file_handle = tar_file.extractfile(tar_info)
-        #         graph_def = tf.GraphDef.FromString(file_handle.read())
-        #         break
-
-        # tar_file.close()
-
-        # if graph_def is None:
-        #     raise RuntimeError('Cannot find inference graph in tar archive.')
-
-        # with self.graph.as_default():
-        #     tf.import_graph_def(graph_def, name='')
-
-        #self.sess = tf.Session(graph=self.graph)
-
-        
         self.graph = tf.Graph()
 
         graph_def = None
-        graph_def = tf.compat.v1.GraphDef.FromString(open(tarball_path + "/frozen_inference_graph.pb", "rb").read()) 
+        # Extract frozen graph from tar archive.
+        tar_file = tarfile.open(tarball_path)
+        for tar_info in tar_file.getmembers():
+            if self.FROZEN_GRAPH_NAME in os.path.basename(tar_info.name):
+                file_handle = tar_file.extractfile(tar_info)
+                graph_def = tf.GraphDef.FromString(file_handle.read())
+                break
+
+        tar_file.close()
 
         if graph_def is None:
             raise RuntimeError('Cannot find inference graph in tar archive.')
@@ -52,11 +48,26 @@ class DeepLabModel(object):
         with self.graph.as_default():
             tf.import_graph_def(graph_def, name='')
 
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
-    #    session = tf.Session(config=config, ...)
+        self.sess = tf.Session(graph=self.graph)
 
-        self.sess = tf.Session(graph=self.graph, config=config)
+       ## 
+    #     self.graph = tf.Graph()
+
+    #     graph_def = None
+    #     graph_def = tf.compat.v1.GraphDef.FromString(open(tarball_path + "/frozen_inference_graph.pb", "rb").read()) 
+
+    #     if graph_def is None:
+    #         raise RuntimeError('Cannot find inference graph in tar archive.')
+
+    #     with self.graph.as_default():
+    #         tf.import_graph_def(graph_def, name='')
+
+    #     config = tf.ConfigProto()
+    #     config.gpu_options.allow_growth = True
+    # #    session = tf.Session(config=config, ...)
+
+    #     self.sess = tf.Session(graph=self.graph, config=config)
+    ##
 
     def run(self, image):
         """Runs inference on a single image.
@@ -83,24 +94,11 @@ class DeepLabModel(object):
         return resized_image, seg_map
 
 
-def apply_segmentation(jpg_path, seg_path,model):
+def apply_segmentation(image, seg_path,model):
 
     # get path and generate output path from it
-    seg_path = jpg_path.replace(".jpg", "_SEG.png")
-
-    # load image from path
-    try:
-        logging.info("Trying to open : " + jpg_path)
-        jpeg_str   = open(jpg_path, "rb").read()
-        orignal_im = Image.open(BytesIO(jpeg_str))
-    except IOError:
-        logging.error('Cannot retrieve image. Please check file: ' + jpg_path)
-        return
-
-
-    # apply segmentation via pre trained model
-    logging.info('running deeplab on image %s...' % jpg_path)
-    resized_im, seg_map = model.run(orignal_im)
+    
+    resized_im, seg_map = model.run(image)#orignal_im)
 
 
     # convert the image into a binary mask
@@ -116,7 +114,7 @@ def apply_segmentation(jpg_path, seg_path,model):
 
                 
     img = Image.fromarray(dummyImg)
-    img = img.convert('RGB').resize(orignal_im.size, Image.ANTIALIAS)
+    img = img.convert('RGB').resize(image.size, Image.ANTIALIAS)
     img.save('./output.png')
 
     logging.info("saved file to" + seg_path)
