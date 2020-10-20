@@ -25,7 +25,7 @@ steps:
 
 - script: |
     python -m pip install --upgrade pip
-    pip install numpy==1.19.1 tensorflow==2.3.0 azureml-sdk[notebooks,automl]==1.13.0 glob2==0.7 imgaug==0.4.0 flake8==3.8.4 pytest pytest-azurepipelines
+    pip install numpy==1.19.1 glob2==0.7 wheel
   displayName: 'Install dependencies'
 
 - script: |
