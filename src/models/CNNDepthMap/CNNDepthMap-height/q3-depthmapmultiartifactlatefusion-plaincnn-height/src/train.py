@@ -35,7 +35,7 @@ if run.id.startswith("OfflineRun"):
     experiment = Experiment(workspace, "training-junkyard")
     run = experiment.start_logging(outputs=None, snapshot_directory=None)
 
-    dataset_name = "anon-depthmap-mini"
+    dataset_name = CONFIG.DATASET_NAME_LOCAL
     dataset_path = get_dataset_path(DATA_DIR, dataset_name)
     download_dataset(workspace, dataset_name, dataset_path)
 

@@ -18,6 +18,7 @@ DATASET_MODE_MOUNT = "dataset_mode_mount"
 CONFIG = dotdict(dict(
     DATASET_MODE=DATASET_MODE_DOWNLOAD,
     DATASET_NAME="anon-depthmap-95k",
+    DATASET_NAME_LOCAL="anon-depthmap-mini",
     SPLIT_SEED=0,
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
@@ -29,7 +30,7 @@ CONFIG = dotdict(dict(
 
     # Parameters for dataset generation.
     TARGET_INDEXES=[0],  # 0 is height, 1 is weight.
-    N_ARTIFACTS=5,
+    N_ARTIFACTS=5,  # number of artifact in one sample of multiartifact approach
     CODES_FOR_POSE_AND_SCANSTEP=("100", ),
     N_REPEAT_DATASET=1,
     DATA_AUGMENTATION_MODE=DATA_AUGMENTATION_NO,
