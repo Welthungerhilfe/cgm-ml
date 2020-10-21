@@ -239,11 +239,7 @@ training_callbacks.append(checkpoint_callback)
 optimizer = tf.keras.optimizers.Nadam(learning_rate=CONFIG.LEARNING_RATE)
 
 # Compile the model.
-model.compile(
-    optimizer=optimizer,
-    loss="mse",
-    metrics=["mae"]
-)
+model.compile(optimizer=optimizer, loss="mse", metrics=["mae"])
 
 # Train the model.
 model.fit(
@@ -253,6 +249,24 @@ model.fit(
     callbacks=training_callbacks,
     verbose=2
 )
+
+if CONFIG.EPOCHS_TUNE:
+    # Un-freeze
+    for layer in base_model._layers:
+        layer.trainable = True
+
+    # Adjust learning rate
+    optimizer = tf.keras.optimizers.Nadam(learning_rate=CONFIG.LEARNING_RATE_TUNE)
+    model.compile(optimizer=optimizer, loss="mse", metrics=["mae"])
+
+    print("Start fine-tuning")
+    model.fit(
+        dataset_training.batch(CONFIG.BATCH_SIZE),
+        validation_data=dataset_validation.batch(CONFIG.BATCH_SIZE),
+        epochs=CONFIG.EPOCHS_TUNE,
+        callbacks=training_callbacks,
+        verbose=2
+    )
 
 # Done.
 run.complete()
