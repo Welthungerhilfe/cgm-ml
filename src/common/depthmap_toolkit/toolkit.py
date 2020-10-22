@@ -65,9 +65,9 @@ def swapEdges(event):
 
 def show():
     if rgb:
-      depthmap.process(plt, input, depth[index], rgb[index])
+        depthmap.process(plt, input, depth[index], rgb[index])
     else:
-      depthmap.process(plt, input, depth[index], 0)
+        depthmap.process(plt, input, depth[index], 0)
 
     if edges == 1:
         depthmap.showEdges()
@@ -106,7 +106,7 @@ rgb = []
 for (dirpath, dirnames, filenames) in walk(input + '/depth'):
     depth = filenames
 for (dirpath, dirnames, filenames) in walk(input + '/rgb'):
-  rgb = filenames
+    rgb = filenames
 depth.sort()
 rgb.sort()
 
