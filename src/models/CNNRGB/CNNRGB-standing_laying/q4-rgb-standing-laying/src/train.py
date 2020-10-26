@@ -2,16 +2,15 @@ import os
 import random
 
 import glob2 as glob
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 from tensorflow.keras import callbacks
 
-
 from config import CONFIG
 from constants import REPO_DIR
-from model import create_cnn, fine_tuning
+from model import create_cnn, set_trainable_layer
 
 # Make experiment reproducable
 tf.random.set_seed(CONFIG.SPLIT_SEED)
@@ -48,7 +47,7 @@ else:
     dataset_path = run.input_datasets["dataset"]
 
 # Get the Image paths.
-dataset_path = os.path.join(dataset_path, "train")
+dataset_path = os.path.join(dataset_path, "test")
 print("Dataset path:", dataset_path)
 print("Getting image...")
 image_paths = glob.glob(os.path.join(dataset_path, "*/*.jpg"))
@@ -186,14 +185,6 @@ checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
 )
 training_callbacks.append(checkpoint_callback)
 
-layer_name = 'conv2d_11'
-#save_dir = os.path.join('validation','out')
-save_dir = './outputs/out'
-CHECK_FOLDER = os.path.isdir(save_dir)
-#if not CHECK_FOLDER:
-#    os.makedirs(save_dir)
-#    print("created folder : ", save_dir)
-
 optimizer = tf.keras.optimizers.RMSprop(learning_rate=CONFIG.LEARNING_RATE)
 
 # Compile the model.
@@ -212,7 +203,7 @@ model.fit(
 )
 
 #  function use to tune the top convolution layer
-fine_tuning('block14_sepconv1')
+set_trainable_layer('block14_sepconv1',model)
 
 model.fit(
     dataset_training.batch(CONFIG.BATCH_SIZE),

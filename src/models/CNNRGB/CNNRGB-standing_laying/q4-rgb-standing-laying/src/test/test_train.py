@@ -1,14 +1,17 @@
-from train import process_path
-import numpy as np
-from pathlib import Path
 import sys
+from pathlib import Path
+
+import numpy as np
 import tensorflow as tf
 
 sys.path.append(str(Path(__file__).parents[1]))
+from train import process_path
+from constants import REPO_DIR
+print(REPO_DIR)
 
 
 def test_get_label_0():
-    paths = ['/Users/prajwalsingh/cgm-ml-service/data/anon-rgb-classification/test/laying/rgb_1597851643-23im8oux3j_1597851643547_202_330741.97858975903.jpg']
+    paths = [str(REPO_DIR)+'/data/anon-rgb-classification/test/laying/rgb_1597886481-znzw5yzhjh_1597886481929_200_13520.886623759001.jpg']
     dataset = tf.data.Dataset.from_tensor_slices(paths)
     dataset = dataset.map(lambda path: process_path(path))
 
@@ -17,7 +20,7 @@ def test_get_label_0():
 
 
 def test_get_label_1():
-    paths = ['/Users/prajwalsingh/cgm-ml-service/data/anon-rgb-classification/test/standing/rgb_1583438117-71v1y4z0gd_1592711198959_100_74914.611084559.jpg']
+    paths = [str(REPO_DIR)+'/data/anon-rgb-classification/test/standing/rgb_1585352016-s51bhrzmtt_1592712865086_100_520010.772824759.jpg']
     dataset = tf.data.Dataset.from_tensor_slices(paths)
     dataset = dataset.map(lambda path: process_path(path))
 
@@ -26,7 +29,7 @@ def test_get_label_1():
 
 
 def test_data():
-    paths = ['/Users/prajwalsingh/cgm-ml-service/data/anon-rgb-classification/test/laying/rgb_1597851643-23im8oux3j_1597851643547_202_330741.97858975903.jpg']
+    paths = [str(REPO_DIR)+'/data/anon-rgb-classification/test/laying/rgb_1597886481-znzw5yzhjh_1597886481929_200_13520.886623759001.jpg']
     dataset = tf.data.Dataset.from_tensor_slices(paths)
     dataset = dataset.map(lambda path: process_path(path))
 

@@ -1,4 +1,6 @@
+import re
 from pathlib import Path
+
 import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
@@ -16,7 +18,6 @@ def get_timestamp_from_pcd(pcd_path):
         print(pcd_path)
         return -1
     # get the time from the header of the pcd file
-    import re
     timestamp = re.findall(r'\d+\.\d+', firstLine)
 
     # check if a timestamp is parsed from the header of the pcd file
@@ -32,12 +33,12 @@ def get_timestamp_from_rgb(rgb_path):
     return float(rgb_path[0:-4].split('/')[-1].split('_')[-1])
 
 
-def find_closest(A, target):
+def find_closest(rgb_list: list, target: float) -> int:
     # A must be sorted
-    idx = A.searchsorted(target)
-    idx = np.clip(idx, 1, len(A) - 1)
-    left = A[idx - 1]
-    right = A[idx]
+    idx = rgb_list.searchsorted(target)
+    idx = np.clip(idx, 1, len(rgb_list) - 1)
+    left = rgb_list[idx - 1]
+    right = rgb_list[idx]
     idx -= target - left < right - target
     return idx
 
