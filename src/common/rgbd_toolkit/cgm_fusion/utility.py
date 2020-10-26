@@ -17,7 +17,6 @@
 #
 
 
-from cgm_fusion.calibration import *
 import numpy as np
 import cv2
 import pandas as pd
@@ -26,37 +25,39 @@ from pyntcloud import PyntCloud
 from pyntcloud.io import write_ply
 
 import sys
-import os
+import os 
 
 import pickle
 import logging
+
 
 
 #from enum import Enum
 from enum import IntEnum
 
 
-def fuse_point_cloud(points, rgb_vals, confidence, seg_vals):
-    df = pd.DataFrame(columns=['x', 'y', 'z', 'red', 'green', 'blue', 'seg'])  # 'nx', 'ny', 'nz'])
+def fuse_point_cloud(points, rgb_vals, confidence, seg_vals): 
+    df = pd.DataFrame(columns=['x', 'y', 'z','red', 'green', 'blue', 'seg'])# 'nx', 'ny', 'nz'])
 
-    df['x'] = points[:, 0]                              # saving carthesian coordinates
-    df['y'] = points[:, 1]
-    df['z'] = points[:, 2]
+    df['x']     = points[:, 0]                              # saving carthesian coordinates
+    df['y']     = points[:, 1]
+    df['z']     = points[:, 2]
 
-    df['red'] = rgb_vals[:, 2].astype(np.uint8)           # saving the color
+    df['red']   = rgb_vals[:, 2].astype(np.uint8)           # saving the color
     df['green'] = rgb_vals[:, 1].astype(np.uint8)
-    df['blue'] = rgb_vals[:, 0].astype(np.uint8)
+    df['blue']  = rgb_vals[:, 0].astype(np.uint8)
 
-    df['c'] = confidence[:].astype(np.float)            # saving the confidence
+    df['c']     = confidence[:].astype(np.float)            # saving the confidence
 
-    df['seg'] = seg_vals[:].astype(np.float)              # saving the segmentation
+    df['seg']   = seg_vals[:].astype(np.float)              # saving the segmentation
 
     # df['nx']    = normals[:, 0]                             # normal x coordinate
     # df['ny']    = normals[:, 1]                             # normal y coordinate
     # df['nz']    = normals[:, 2]                             # normal z coordinate
 
-    new_pc = PyntCloud(df)
+    new_pc      = PyntCloud(df)
     return new_pc
+    
 
 
 def write_color_ply(fname, points, color_vals, confidence, normals):
@@ -65,21 +66,25 @@ def write_color_ply(fname, points, color_vals, confidence, normals):
     print(fname)
 
 
+
 #from cgm_fusion.calibration import get_intrinsic_matrix, get_extrinsic_matrix, get_k, get_intrinsic_matrix_depth
 
+from  cgm_fusion.calibration import *
 
-def apply_projection(points, calibration_file):
-    intrinsic = get_intrinsic_matrix_depth(calibration_file)
 
-    ext_d = get_extrinsic_matrix_depth(calibration_file, idx=4)
+def apply_projection(points,calibration_file):
+    intrinsic  = get_intrinsic_matrix_depth(calibration_file)
 
-    r_vec = ext_d[:3, :3]
-    t_vec = -ext_d[:3, 3]
+    ext_d      = get_extrinsic_matrix_depth(calibration_file,idx=4)
+
+    r_vec      =  ext_d[:3, :3]
+    t_vec      = -ext_d[:3, 3]
 
     k1, k2, k3 = get_k_depth(calibration_file)
     im_coords, _ = cv2.projectPoints(points, r_vec, t_vec, intrinsic[:3, :3], np.array([k1, k2, 0, 0]))
 
     return im_coords
+
 
 
 class Channel(IntEnum):
@@ -96,39 +101,40 @@ class Channel(IntEnum):
     nz = 10
 
 
-def get_depth_channel(ply_path, output_path_np, output_path_png, calibration_file):
+def get_depth_channel(ply_path, output_path_np, output_path_png,calibration_file):
     channel = Channel.z
     #calibration_file =  '/whhdata/calibration.xml'
     if not os.path.exists(calibration_file):                   # check if the califile exists
-        logging.error('Calibration does not exist')
-        return
+        logging.error ('Calibration does not exist')
+        return 
 
     # get a default black image
-    height = 224                                       # todo remove magic numbers
-    width = 172                                       # todo remove magic numbers
+    height         = 224                                       # todo remove magic numbers               
+    width          = 172                                       # todo remove magic numbers
     nr_of_channels = 1
-    viz_image = np.zeros((height, width, nr_of_channels), np.float64)
+    viz_image = np.zeros((height,width,nr_of_channels), np.float64)
 
     try:
-        cloud = PyntCloud.from_file(ply_path)                 # load the data from the files
-    except ValueError as e:
+        cloud  = PyntCloud.from_file(ply_path)                 # load the data from the files
+    except ValueError as e: 
         logging.error(" Error reading point cloud ")
         logging.error(str(e))
         logging.error(ply_path)
-
+        
     print(cloud.points.values[:, 3])
     r = cloud.points.values[:, 3]
     print(min(r))
     print(max(r))
     print(np.mean(r))
 
+        
     points = cloud.points.values[:, :3]                        # get x y z
-    z = cloud.points.values[:, 2]                   # get only z coordinate
-    z = (z - min(z)) / (max(z) - min(z))                  # normalize the data to 0 to 1
+    z      = cloud.points.values[:, 2]                   # get only z coordinate
+    z      = (z - min(z)) / (max(z) - min(z))                  # normalize the data to 0 to 1
 
     # iterat of the points and calculat the x y coordinates in the image
-    # get the data for calibration
-    im_coords = apply_projection(points, calibration_file)
+    # get the data for calibration 
+    im_coords = apply_projection(points,calibration_file)
 
     # manipulate the pixels color value depending on the z coordinate
     # TODO make this a function
@@ -137,55 +143,63 @@ def get_depth_channel(ply_path, output_path_np, output_path_png, calibration_fil
         x = int(np.round(x))
         y = int(np.round(y))
         if x >= 0 and x < height and y >= 0 and y < width:
-            viz_image[x, y] = z[i]  # 255 #255-255*z[i]
+            viz_image[x,y] = z[i] #255 #255-255*z[i]
+
 
     img_debug = cv2.normalize(src=viz_image, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 
-    cv2.imwrite("/tmp/viz_debug.png", viz_image)
+    cv2.imwrite("/tmp/viz_debug.png", viz_image) 
+
 
     # resize and  return the image after pricessing
     # dim = (180, 240)
     # viz_image = cv2.resize(viz_image, dim, interpolation = cv2.INTER_AREA)
 
+
     #np.save(output_path_np, viz_image)
     #viz_2 = np.load("/tmp/out.npy")
 
     img_n = cv2.normalize(src=viz_image, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
-    cv2.imwrite(output_path_png, img_n)
+    cv2.imwrite(output_path_png, img_n) 
+
 
     return viz_image
 
 
-def get_rgbd_channel(ply_path, output_path_np, calibration_file):
+
+
+def get_rgbd_channel(ply_path, output_path_np,calibration_file):
     channel = Channel.z
     #calibration_file =  '/whhdata/calibration.xml'
     if not os.path.exists(calibration_file):                   # check if the califile exists
-        logging.error('Calibration does not exist')
-        return
+        logging.error ('Calibration does not exist')
+        return 
 
     # get a default black image
-    height = 224                                       # todo remove magic numbers
-    width = 172                                       # todo remove magic numbers
+    height         = 224                                       # todo remove magic numbers               
+    width          = 172                                       # todo remove magic numbers
     nr_of_channels = 4
-    viz_image = np.zeros((height, width, nr_of_channels), np.float64)
+    viz_image = np.zeros((height,width,nr_of_channels), np.float64)
 
     try:
-        cloud = PyntCloud.from_file(ply_path)                 # load the data from the files
-    except ValueError as e:
+        cloud  = PyntCloud.from_file(ply_path)                 # load the data from the files
+    except ValueError as e: 
         logging.error(" Error reading point cloud ")
         logging.error(str(e))
         logging.error(ply_path)
-
+        
+        
+        
     points = cloud.points.values[:, :3]                        # get x y z
-    z = cloud.points.values[:, 2]                   # get only z coordinate
-    z = (z - min(z)) / (max(z) - min(z))                  # normalize the data to 0 to 1
-    r = cloud.points.values[:, 4]
-    g = cloud.points.values[:, 5]
-    b = cloud.points.values[:, 6]
+    z      = cloud.points.values[:, 2]                   # get only z coordinate
+    z      = (z - min(z)) / (max(z) - min(z))                  # normalize the data to 0 to 1
+    r      = cloud.points.values[:, 4]
+    g      = cloud.points.values[:, 5]
+    b      = cloud.points.values[:, 6]
 
     # iterat of the points and calculat the x y coordinates in the image
-    # get the data for calibration
-    im_coords = apply_projection(points, calibration_file)
+    # get the data for calibration 
+    im_coords = apply_projection(points,calibration_file)
     #im_coords=np.nan_to_num(im_coords)                     #removing nans
 
     # manipulate the pixels color value depending on the z coordinate
@@ -196,56 +210,60 @@ def get_rgbd_channel(ply_path, output_path_np, calibration_file):
             x = int(np.round(x))
             y = int(np.round(y))
             if x >= 0 and x < height and y >= 0 and y < width:
-                viz_image[x, y, 0] = r[i]
-                viz_image[x, y, 1] = g[i]
-                viz_image[x, y, 2] = b[i]
-                viz_image[x, y, 3] = z[i]
-    except BaseException:
+                viz_image[x,y, 0] = r[i]
+                viz_image[x,y, 1] = g[i]
+                viz_image[x,y, 2] = b[i]
+                viz_image[x,y, 3] = z[i] 
+    except:
         pass
 
     np.save(output_path_np, viz_image)
     return viz_image
 
 
-def get_all_channel(ply_path, output_path_np, calibration_file):
+
+def get_all_channel(ply_path, output_path_np,calibration_file):
     channel = Channel.z
     #calibration_file =  '/whhdata/calibration.xml'
     if not os.path.exists(calibration_file):                   # check if the califile exists
-        logging.error('Calibration does not exist')
-        return
+        logging.error ('Calibration does not exist')
+        return 
 
     # get a default black image
-    height = 224                                       # todo remove magic numbers
-    width = 172                                       # todo remove magic numbers
+    height         = 224                                       # todo remove magic numbers               
+    width          = 172                                       # todo remove magic numbers
     nr_of_channels = 11
-    viz_image = np.zeros((height, width, nr_of_channels), np.float64)
+    viz_image = np.zeros((height,width,nr_of_channels), np.float64)
 
     try:
-        cloud = PyntCloud.from_file(ply_path)                 # load the data from the files
-    except ValueError as e:
+        cloud  = PyntCloud.from_file(ply_path)                 # load the data from the files
+    except ValueError as e: 
         logging.error(" Error reading point cloud ")
         logging.error(str(e))
         logging.error(ply_path)
-
+        
+        
+        
     points = cloud.points.values[:, :3]                        # get x y z
-    x = cloud.points.values[:, 0]
-    y = cloud.points.values[:, 1]
-    z = cloud.points.values[:, 2]                   # get only z coordinate
-    z = (z - min(z)) / (max(z) - min(z))                  # normalize the data to 0 to 1
+    x      = cloud.points.values[:, 0]
+    y      = cloud.points.values[:, 1]
+    z      = cloud.points.values[:, 2]                   # get only z coordinate
+    z      = (z - min(z)) / (max(z) - min(z))                  # normalize the data to 0 to 1
 
-    r = cloud.points.values[:, 4]
-    g = cloud.points.values[:, 5]
-    b = cloud.points.values[:, 6]
+    r      = cloud.points.values[:, 4]
+    g      = cloud.points.values[:, 5]
+    b      = cloud.points.values[:, 6]
 
-    seg = cloud.points.values[:, 7]
-    conf = cloud.points.values[:, 3]
+    seg    = cloud.points.values[:, 7]
+    conf   = cloud.points.values[:, 3]
 
-    nx = cloud.points.values[:, 8]
-    nx = cloud.points.values[:, 9]
-    nz = cloud.points.values[:, 10]
+    nx     = cloud.points.values[:, 8]
+    nx     = cloud.points.values[:, 9]
+    nz     = cloud.points.values[:, 10]
+
 
     # iterat of the points and calculat the x y coordinates in the image
-    # get the data for calibration
+    # get the data for calibration 
     im_coords = apply_projection(points)
 
     # manipulate the pixels color value depending on the z coordinate
@@ -255,59 +273,65 @@ def get_all_channel(ply_path, output_path_np, calibration_file):
         x = int(np.round(x))
         y = int(np.round(y))
         if x >= 0 and x < height and y >= 0 and y < width:
-            viz_image[x, y, 0] = x[i]
-            viz_image[x, y, 1] = y[i]
-            viz_image[x, y, 2] = z[i]
+            viz_image[x,y, 0] = x[i]
+            viz_image[x,y, 1] = y[i]
+            viz_image[x,y, 2] = z[i]
+            
+            viz_image[x,y, 3] = r[i] 
+            viz_image[x,y, 4] = g[i] 
+            viz_image[x,y, 5] = b[i] 
+            
+            viz_image[x,y, 6] = seg[i] 
+            viz_image[x,y, 7] = conf[i] 
 
-            viz_image[x, y, 3] = r[i]
-            viz_image[x, y, 4] = g[i]
-            viz_image[x, y, 5] = b[i]
+            viz_image[x,y, 8] = nx[i]             
+            viz_image[x,y, 9] = ny[i]             
+            viz_image[x,y,10] = nz[i]             
 
-            viz_image[x, y, 6] = seg[i]
-            viz_image[x, y, 7] = conf[i]
 
-            viz_image[x, y, 8] = nx[i]
-            viz_image[x, y, 9] = ny[i]
-            viz_image[x, y, 10] = nz[i]
+
 
     np.save(output_path_np, viz_image)
     return viz_image
 
 
+
+
+
 '''
 Function to get the depth from a point cloud as an image for visualization
 '''
-
-
-def get_viz_channel(calibration_file, ply_path, channel=Channel.z, output_path="/tmp/output.png"):
+def get_viz_channel(calibration_file,ply_path, channel=Channel.z, output_path="/tmp/output.png"):
 
     #calibration_file =  '/whhdata/calibration.xml'
     if not os.path.exists(calibration_file):                # check if the califile exists
-        logging.error('Calibration does not exist')
-        return
+        logging.error ('Calibration does not exist')
+        return 
 
     # get a default black image
-    height = 224
-    width = 172
+    height         = 224
+    width          = 172
     nr_of_channels = 1
-    viz_image = np.zeros((height, width, nr_of_channels), np.uint8)
+    viz_image = np.zeros((height,width,nr_of_channels), np.uint8)
 
     # get the points from the pointcloud
     try:
-        cloud = PyntCloud.from_file(ply_path)              # load the data from the files
-    except ValueError as e:
+        cloud  = PyntCloud.from_file(ply_path)              # load the data from the files
+    except ValueError as e: 
         logging.error(" Error reading point cloud ")
         logging.error(str(e))
 
-    # print (int(channel))
+        
 
+    # print (int(channel))    
+        
     points = cloud.points.values[:, :3]                        # get x y z
-    z = cloud.points.values[:, int(channel)]                   # get only z coordinate
-    z = (z - min(z)) / (max(z) - min(z))                  # normalize the data to 0 to 1
+    z      = cloud.points.values[:, int(channel)]                   # get only z coordinate
+    z      = (z - min(z)) / (max(z) - min(z))                  # normalize the data to 0 to 1
 
     # iterat of the points and calculat the x y coordinates in the image
-    # get the data for calibration
-    im_coords = apply_projection(points, calibration_file)
+    # get the data for calibration 
+    im_coords = apply_projection(points,calibration_file)
 
     # manipulate the pixels color value depending on the z coordinate
     # TODO make this a function
@@ -316,12 +340,12 @@ def get_viz_channel(calibration_file, ply_path, channel=Channel.z, output_path="
         x = int(np.round(x))
         y = int(np.round(y))
         if x >= 0 and x < height and y >= 0 and y < width:
-            viz_image[x, y] = 255 * z[i]
+            viz_image[x,y] = 255*z[i]
 
     # resize and  return the image after pricessing
-    imgScale = 0.25
-    newX, newY = viz_image.shape[1] * imgScale, viz_image.shape[0] * imgScale
-    cv2.imwrite(output_path, viz_image)
+    imgScale  = 0.25
+    newX,newY = viz_image.shape[1]*imgScale, viz_image.shape[0]*imgScale
+    cv2.imwrite(output_path, viz_image) 
 
     return viz_image
 
@@ -329,17 +353,14 @@ def get_viz_channel(calibration_file, ply_path, channel=Channel.z, output_path="
 '''
 Function to get the rgb from a point cloud as an image for visualization
 '''
-
-
 def get_viz_rgb(ply_path):
     get_viz_channel(ply_path, channel=Channel.red, output_path="/tmp/red.png")
+
 
 
 '''
 Function to get the confidence from a point cloud as an image for visualization
 '''
-
-
 def get_viz_confidence(ply_path):
     get_viz_channel(ply_path, channel=Channel.confidence, output_path="/tmp/confidence.png")
 
@@ -347,8 +368,6 @@ def get_viz_confidence(ply_path):
 '''
 Function to get the confidence from a point cloud as an image for visualization
 '''
-
-
 def get_viz_depth(ply_path):
     get_viz_channel(ply_path, channel=Channel.z, output_path="/tmp/depth.png")
 
@@ -356,11 +375,10 @@ def get_viz_depth(ply_path):
 '''
 Function to get the segmentation from a point cloud as an image for visualization
 '''
-
-
 def get_viz_segmentation(ply_path):
     get_viz_channel(ply_path, channel=Channel.segmentation, output_path="/tmp/segmentation.png")
 
-
+    
 def get_viz_normal_z(ply_path):
     get_viz_channel(ply_path, channel=Channel.nz, output_path="/tmp/normals.png")
+

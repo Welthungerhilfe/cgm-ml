@@ -24,7 +24,6 @@ import numpy as np
 import os
 #calib_file = r'/whhdata/calibration.xml' # todo make this a parameter
 
-
 def get_intrinsic_matrix(calib_file):
     with open(calib_file) as fd:
         calib = xmltodict.parse(fd.read())
@@ -66,7 +65,6 @@ def get_k(calib_file):
          [0, 0, 1, 0]])
     return k1, k2, k3
 
-
 def get_k_depth(calib_file):
     with open(calib_file) as fd:
         calib = xmltodict.parse(fd.read())
@@ -81,27 +79,27 @@ def get_k_depth(calib_file):
     return k1, k2, k3
 
 
-def get_extrinsic_matrix(calib_file, idx=1):
+def get_extrinsic_matrix(calib_file,idx=1):
     with open(calib_file) as fd:
         calib = xmltodict.parse(fd.read())
-
+        
     arr = calib['rig']['extrinsic_calibration'][idx]['A_T_B']
     arr = arr.split(';')
     arr = [x.replace('[', '').replace(']', '') for x in arr]
     mat = np.array([np.fromstring(x, sep=',') for x in arr])
-    mat[:3, :3] = mat[:3, :3].T  # maybe transpose?
+    mat[:3, :3] = mat[:3, :3].T # maybe transpose?
     mat = np.vstack([mat, np.array([0, 0, 0, 1])])
     return mat
+    
 
-
-def get_extrinsic_matrix_depth(calib_file, idx=1):
+def get_extrinsic_matrix_depth(calib_file,idx=1):
     with open(calib_file) as fd:
         calib = xmltodict.parse(fd.read())
-
+        
     arr = calib['rig']['extrinsic_calibration'][0]['A_T_B']
     arr = arr.split(';')
     arr = [x.replace('[', '').replace(']', '') for x in arr]
     mat = np.array([np.fromstring(x, sep=',') for x in arr])
-    mat[:3, :3] = mat[:3, :3].T  # maybe transpose?
+    mat[:3, :3] = mat[:3, :3].T # maybe transpose?
     mat = np.vstack([mat, np.array([0, 0, 0, 1])])
     return mat
