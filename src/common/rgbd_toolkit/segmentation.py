@@ -8,16 +8,6 @@ tf.disable_v2_behavior()
 import tarfile
 import os
 
-def rotate(jpg_file):
-    img=jpg_file.split("/")[-1]
-    
-    
-    if '_100_' in img or '_101_' in img or '_102_' in img:
-        image = cv2.rotate(jpg_file, cv2.ROTATE_90_CLOCKWISE)
-    elif '_200_' in img or '_201_' in img or '_202_' in img:
-        image = cv2.rotate(jpg_file, cv2.ROTATE_90_COUNTERCLOCKWISE)
-    
-    return image
 
 class DeepLabModel(object):
     """Class to load deeplab model and run inference."""
@@ -50,24 +40,6 @@ class DeepLabModel(object):
 
         self.sess = tf.Session(graph=self.graph)
 
-       ## 
-    #     self.graph = tf.Graph()
-
-    #     graph_def = None
-    #     graph_def = tf.compat.v1.GraphDef.FromString(open(tarball_path + "/frozen_inference_graph.pb", "rb").read()) 
-
-    #     if graph_def is None:
-    #         raise RuntimeError('Cannot find inference graph in tar archive.')
-
-    #     with self.graph.as_default():
-    #         tf.import_graph_def(graph_def, name='')
-
-    #     config = tf.ConfigProto()
-    #     config.gpu_options.allow_growth = True
-    # #    session = tf.Session(config=config, ...)
-
-    #     self.sess = tf.Session(graph=self.graph, config=config)
-    ##
 
     def run(self, image):
         """Runs inference on a single image.
@@ -93,10 +65,46 @@ class DeepLabModel(object):
 
         return resized_image, seg_map
 
+def load_model():
+# load model for segmentation
+    modelType = "./xception_model"
+    MODEL     = DeepLabModel(modelType)
+    logging.info('model loaded successfully : ' + modelType)
+        
+    MODEL_NAME = 'xception_coco_voctrainval'  # @param ['mobilenetv2_coco_voctrainaug', 'mobilenetv2_coco_voctrainval', 'xception_coco_voctrainaug', 'xception_coco_voctrainval']
+
+    _DOWNLOAD_URL_PREFIX = 'http://download.tensorflow.org/models/'
+    _MODEL_URLS = {
+        'mobilenetv2_coco_voctrainaug':
+            'deeplabv3_mnv2_pascal_train_aug_2018_01_29.tar.gz',
+        'mobilenetv2_coco_voctrainval':
+            'deeplabv3_mnv2_pascal_trainval_2018_01_29.tar.gz',
+        'xception_coco_voctrainaug':
+            'deeplabv3_pascal_train_aug_2018_01_04.tar.gz',
+        'xception_coco_voctrainval':
+            'deeplabv3_pascal_trainval_2018_01_04.tar.gz',
+    }
+    _TARBALL_NAME = 'deeplab_model.tar.gz'
+
+    model_dir = tempfile.mkdtemp()
+    tf.gfile.MakeDirs(model_dir)
+
+    download_path = os.path.join(model_dir, _TARBALL_NAME)
+    print('downloading model, this might take a while...')
+    urllib.request.urlretrieve(_DOWNLOAD_URL_PREFIX + _MODEL_URLS[MODEL_NAME],
+                    download_path)
+    print('download completed! loading DeepLab model...')
+
+    model = DeepLabModel(download_path)
+    print('model loaded successfully!')
+
+    return model
+
 
 def apply_segmentation(image, seg_path,model):
 
     # get path and generate output path from it
+
     
     resized_im, seg_map = model.run(image)#orignal_im)
 
@@ -115,7 +123,7 @@ def apply_segmentation(image, seg_path,model):
                 
     img = Image.fromarray(dummyImg)
     img = img.convert('RGB').resize(image.size, Image.ANTIALIAS)
-    img.save('./output.png')
+    #img.save('./output.png')
 
     logging.info("saved file to" + seg_path)
     img.save(seg_path)
