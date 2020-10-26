@@ -38,7 +38,7 @@ from cgm_fusion.calibration import get_intrinsic_matrix, get_extrinsic_matrix, g
 from cgm_fusion.utility import write_color_ply, fuse_point_cloud , get_depth_channel
 
 from pyntcloud import PyntCloud
-from DeepLabModel import rotate
+
 
 
 def get_depth_image_from_point_cloud(calibration_file, pcd_file, output_file):
@@ -101,8 +101,8 @@ def get_depth_image_from_point_cloud(calibration_file, pcd_file, output_file):
 
     depth_img_resize = cv2.resize(z*255, (180, 180 ))                  # todo: make width and height variable
 
-    cv2.imwrite("/tmp/depth_224x172.png", depth_img)
-    cv2.imwrite("/tmp/depth_240x180.png", depth_img_resize)
+    #cv2.imwrite("/tmp/depth_224x172.png", depth_img)
+    #cv2.imwrite("/tmp/depth_240x180.png", depth_img_resize)
 
 
     # not sure if we need this 
@@ -141,11 +141,11 @@ def fuse_rgbd(calibration_file,pcd_file,image, seg_path=0):
     width = int(1920 * scale)
     height = int(1080 * scale)
 
-    image.save("check_invert.png")
-    pil_im = image#Image.open(jpg_file)
+    pil_im = image
     pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
     im_array = np.asarray(pil_im)
 
+    #comment out for segmentation
     # pil_im2 = Image.open(seg_path)
     # pil_im2 = pil_im2.resize((height, width), Image.ANTIALIAS)
     # im_array2 = np.asarray(pil_im2)
@@ -178,10 +178,6 @@ def fuse_rgbd(calibration_file,pcd_file,image, seg_path=0):
                 newx = height - y - 1
                 newy = width - x - 1
 
-            #newy = height - y - 1
-            #newx = x
-
-            #if newx >= 0 and newy >= 0 and newx < height and newy < width:
             viz_image[newy][newx][0] = color[0]
             viz_image[newy][newx][1] = color[1]
             viz_image[newy][newx][2] = color[2] 
@@ -191,7 +187,7 @@ def fuse_rgbd(calibration_file,pcd_file,image, seg_path=0):
     
     end=datetime.datetime.now()
     diff=end-start
-    #print("time taken foor fusing {}".format(diff))     
+
     return viz_image
 
     
