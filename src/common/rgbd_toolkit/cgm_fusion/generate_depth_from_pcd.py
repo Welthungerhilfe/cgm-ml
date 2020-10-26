@@ -1,22 +1,12 @@
-from matplotlib import pyplot as plt
-import numpy as np
-import itertools
-from IPython.display import display, clear_output
-from ipywidgets import interact, interact_manual
-import ipywidgets as widgets
-from tqdm import tqdm
-import os
-import glob2
-import pandas as pd
-import matplotlib.pyplot as plt
-from cgmcore import utils
-import numpy
-from cgm_fusion import utility
-from cgm_fusion import fusion
 import sys
 sys.path.insert(0, "..")
 
 #from cgm_fusion import calibration
+from cgm_fusion import fusion
+from cgm_fusion import utility
+
+import numpy
+
 
 
 # import glob, os
@@ -25,9 +15,25 @@ sys.path.insert(0, "..")
 #     print(file)
 
 
+import sys
 sys.path.insert(0, "..")
 # import dbutils
+from cgmcore import utils
+import matplotlib.pyplot as plt
+import pandas as pd
+import glob2
+import os
 # import config
+from tqdm import tqdm
+import ipywidgets as widgets
+from ipywidgets import interact, interact_manual
+from IPython.display import display, clear_output
+import itertools
+from tqdm import tqdm
+import numpy as np
+
+
+from matplotlib import pyplot as plt
 
 
 # # get the number of rgb artifacts
@@ -40,7 +46,7 @@ sys.path.insert(0, "..")
 # utility.get_depth_channel(ply_path="/tmp/cloud_debug.ply", output_path_np = "/tmp/output.npy", output_path_png="/tmp/output.png")
 # utility.get_rgbd_channel(ply_path="/tmp/cloud_debug.ply", output_path_np = "/tmp/output.npy")
 
-utility.get_all_channel(ply_path="/tmp/cloud_debug.ply", output_path_np="/tmp/output.npy")
+utility.get_all_channel(ply_path="/tmp/cloud_debug.ply", output_path_np = "/tmp/output.npy")
 
 
 # utility.get_viz_channel(ply_path="/tmp/cloud_debug.ply",  channel=4, output_path="/tmp/red.png")
