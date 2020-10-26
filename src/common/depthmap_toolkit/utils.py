@@ -108,7 +108,7 @@ def exportOBJ(filename, triangulate):
                     res = convert2Dto3DOriented(calibration[1], x, y, depth)
                     if res:
                         count = count + 1
-                        indices[x][y] = count # add index of written vertex into array
+                        indices[x][y] = count  # add index of written vertex into array
                         file.write('v ' + str(res[0]) + ' ' + str(res[1]) + ' ' + str(res[2]) + '\n')
 
         if triangulate:
