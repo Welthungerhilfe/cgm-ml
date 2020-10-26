@@ -4,6 +4,10 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
 trigger:
+  branches:
+    include:
+    - master
+    - releases/*
   paths:
     include:
     - src/commmon/zscore/*
@@ -12,8 +16,6 @@ pool:
   vmImage: 'ubuntu-latest'
 strategy:
   matrix:
-    Python36:
-      python.version: '3.6'
     Python37:
       python.version: '3.7'
 
