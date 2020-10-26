@@ -1,5 +1,5 @@
 import math
-
+import numpy as np
 
 def add(a, b):
     return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
@@ -95,7 +95,10 @@ def convert3Dto2D(intrisics, x, y, z):
 #write obj
 
 
-def exportOBJ(filename):
+def exportOBJ(filename, triangulate):
+
+    count = 0
+    indices = np.zeros((width, height))
     with open(filename, 'w') as file:
         for x in range(2, width - 2):
             for y in range(2, height - 2):
@@ -103,10 +106,27 @@ def exportOBJ(filename):
                 if depth:
                     res = convert2Dto3DOriented(calibration[1], x, y, depth)
                     if res:
+                        count = count + 1
+                        indices[x][y] = count
                         file.write('v ' + str(res[0]) + ' ' + str(res[1]) + ' ' + str(res[2]) + '\n')
+
+        if triangulate:
+            maxDiff = 0.2
+            for x in range(2, width - 2):
+                for y in range(2, height - 2):
+                    d00 = parseDepth(x, y)
+                    d10 = parseDepth(x + 1, y)
+                    d01 = parseDepth(x, y + 1)
+                    d11 = parseDepth(x + 1, y + 1)
+                    if indices[x][y] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
+                        if abs(d00 - d10) + abs(d00 - d01) + abs(d10 - d01) < maxDiff:
+                            file.write('f ' + str(int(indices[x][y])) + ' ' + str(int(indices[x + 1][y])) + ' ' + str(int(indices[x][y + 1])) + '\n')
+                    if indices[x + 1][y + 1] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
+                        if abs(d11 - d10) + abs(d11 - d01) + abs(d10 - d01) < maxDiff:
+                            file.write('f ' + str(int(indices[x + 1][y + 1])) + ' ' + str(int(indices[x + 1][y])) + ' ' + str(int(indices[x][y + 1])) + '\n')
         print('Pointcloud exported into ' + filename)
 
-#write obj
+#write pcd
 
 
 def exportPCD(filename):

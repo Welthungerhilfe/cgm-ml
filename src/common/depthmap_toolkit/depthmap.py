@@ -9,7 +9,7 @@ import zipfile
 
 def export(type, filename):
     if type == 'obj':
-        utils.exportOBJ('export/' + filename)
+        utils.exportOBJ('export/' + filename, 1)
     if type == 'pcd':
         utils.exportPCD('export/' + filename)
 
