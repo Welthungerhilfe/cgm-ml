@@ -25,6 +25,9 @@ import os
 import cv2
 import numpy as np
 import pandas as pd
+import math
+from math import sin,cos,radians
+
 import open3d as o3d
 import logging
 import matplotlib.pyplot as plt
@@ -115,7 +118,7 @@ def get_depth_image_from_point_cloud(calibration_file, pcd_file, output_file):
     # im_coords, _ = cv2.projectPoints(points, r_vec, t_vec, intrinsic[:3, :3], np.array([k1, k2, 0, 0]))
 
 
-def fuse_rgbd(calibration_file,pcd_file,image, seg_path):
+def fuse_rgbd(calibration_file,pcd_file,image, seg_path=0):
     start=datetime.datetime.now()
     try:
         cloud      = PyntCloud.from_file(pcd_file)         # load the data from the files
@@ -138,16 +141,17 @@ def fuse_rgbd(calibration_file,pcd_file,image, seg_path):
     width = int(1920 * scale)
     height = int(1080 * scale)
 
+    image.save("check_invert.png")
     pil_im = image#Image.open(jpg_file)
     pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
     im_array = np.asarray(pil_im)
 
-    pil_im2 = Image.open(seg_path)
-    pil_im2 = pil_im2.resize((width, height), Image.ANTIALIAS)
-    im_array2 = np.asarray(pil_im2)
-
+    # pil_im2 = Image.open(seg_path)
+    # pil_im2 = pil_im2.resize((height, width), Image.ANTIALIAS)
+    # im_array2 = np.asarray(pil_im2)
+    pcd_name=pcd_file.split("/")[-1]
     #initialize an empty black image
-    viz_image = np.zeros((width, height, 4))
+    viz_image = np.zeros((width, height, 3))
     # for x in range(width):
     #     for y in range(height):
     #         segm = im_array2[y][x][1] / 255.0
@@ -156,17 +160,33 @@ def fuse_rgbd(calibration_file,pcd_file,image, seg_path):
 
     #add depth into RGB array
     map = plt.get_cmap('rainbow')
+    pcd_name=pcd_file.split("/")[-1]
+
     for i in range(len(points)):
         x = int(im_coords[i][0][0] * scale)
         y = int(im_coords[i][0][1] * scale)
         if x >= 0 and y >= 0 and x < width and y < height:
-            segm = im_array2[y][x][1] / 255.0
+            #segm = im_array2[y][x][1] / 255.0
             depth = points[i][2]
             color = map(depth - 0.75)
-            viz_image[x][y][0] = color[0]
-            viz_image[x][y][1] = color[1]
-            viz_image[x][y][2] = color[2] 
-            viz_image[x][y][3]= segm
+            
+
+            if '_100_' in pcd_name or '_101_' in pcd_name or '_102_' in pcd_name:
+                newx = y - 1        #height - y - 1
+                newy = x - 1
+            elif '_200_' in pcd_name or '_201_' in pcd_name or '_202_' in pcd_name:
+                newx = height - y - 1
+                newy = width - x - 1
+
+            #newy = height - y - 1
+            #newx = x
+
+            #if newx >= 0 and newy >= 0 and newx < height and newy < width:
+            viz_image[newy][newx][0] = color[0]
+            viz_image[newy][newx][1] = color[1]
+            viz_image[newy][newx][2] = color[2] 
+            #viz_image[x][y][3]= segm
+    
 
     
     end=datetime.datetime.now()
