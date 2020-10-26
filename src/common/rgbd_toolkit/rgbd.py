@@ -3,6 +3,7 @@ tf.disable_v2_behavior()
 
 from PIL import Image
 
+
 import azureml.core
 from azureml.core.dataset import Dataset
 import json
@@ -17,12 +18,14 @@ sys.path.append('../cgm-ml')
 sys.path.append(os.path.dirname(os.getcwd()))
 #print("sys.path",sys.path)
 import numpy as np
+import pickle
 from numpy import size
 import pandas as pd
 #import progressbar #@todo remove this 
 import logging
 from tqdm import tqdm
-import dbutils
+#import dbutils
+
 
 from DeepLabModel import DeepLabModel,apply_segmentation
 from get_timestamps import get_timestamps_from_rgb,get_timestamps_from_pcd
@@ -67,7 +70,9 @@ def process_pcd(norm_pcd_time,process_index=0):
     i = 0
 
     for pcd in tqdm(norm_pcd_time,position=process_index):
-            
+
+
+            start1=datetime.datetime.now()
             nn = find_closest(norm_rgb_time, pcd)
             logging.info("timestamp of pcd: " + "{0:.2f}".format(round(pcd,2))+ " with index " + str(i)  + " path: " + str(pcd_path[i]))
             logging.info("timestamp of jpg: " + "{0:.2f}".format(round(norm_rgb_time[nn],2)) + " with index " + str(nn) + " path: " + str(rgb_path[nn]))
@@ -90,64 +95,86 @@ def process_pcd(norm_pcd_time,process_index=0):
             elif '_200_' in img_name or '_201_' in img_name or '_202_' in img_name:
                 image = img.rotate(angle=90)
                 image.save("./tmp_90_100.png")
+
             
+            
+            
+            qr_folder=str(Path(qr)).split("/")[-1]
+
+            
+            
+            #seg_folder_,rgbd_folder_=output_paths()
+            #rgbd_folder_=output_paths()
             
 
-            qr_folder=str(Path(qr)).split("/")[-1]
-            
-            seg_folder_,rgbd_folder_=output_paths()
+            # if not os.path.exists(rgbd_folder_):
+            #     os.mkdir(rgbd_folder_)
 
 
             # check if a segmentation for the found jpg exists
-            seg_path_ = jpg_file.replace('.jpg', '_SEG.png')
-            seg_path_,seg_file=os.path.split(seg_path_)  
-            seg_folder=os.path.join(seg_folder_,qr_folder)
+            # seg_path_ = jpg_file.replace('.jpg', '_SEG.png')
+            # seg_path_,seg_file=os.path.split(seg_path_)  
+            # seg_folder=os.path.join(seg_folder_,qr_folder)
 
-            if not os.path.exists(seg_folder):
-                os.mkdir(seg_folder)
-            seg_path=os.path.join(seg_folder,seg_file)
+            # if not os.path.exists(seg_folder):
+            #     os.mkdir(seg_folder)
+            # seg_path=os.path.join(seg_folder,seg_file)
             
-            if not( os.path.exists(seg_path) ):
+            # if not( os.path.exists(seg_path) ):
             
-                logging.debug('applying segmentation')
-                seg_path = apply_segmentation(image,seg_path, MODEL)
-                # check if the path now exists
-            if not( os.path.exists(seg_path) ):
-                    logging.error('Segmented file does not exist: ' + seg_path)
+            #     logging.debug('applying segmentation')
+            #     seg_path = apply_segmentation(image,seg_path, MODEL)
+            #     # check if the path now exists
+            # if not( os.path.exists(seg_path) ):
+            #         logging.error('Segmented file does not exist: ' + seg_path)
 
             i = i+1
-
+            
             calibration_file="./calibration.xml"
-            
-            try: 
-                #fused_cloud = apply_fusion(calibration_file,pcd_file, jpg_file, seg_path)
-                rgbdseg_arr = fuse_rgbd(calibration_file,pcd_file, image, seg_path)
-            
-                                            
-            except Exception as e: 
-                logging.error("Something went wrong. ")
-                
-                logging.error(str(e))
-                continue
+            #rgbdseg_arr = fuse_rgbd(calibration_file,pcd_file, image)
+           
 
             # now save the new data to the folder
             fused_folder, pc_filename = os.path.split(str(pcd_file))
             pcd_path_old = pcd_file
+
+            scan_type=pcd_file.split("/")[-1].split("_")[3]
+            #print("scan_type",scan_type)
             
             # replace the pcd and the pc_ in the path for fused data
             pc_filename = pcd_path_old.replace(".pcd", ".ply")
             pc_filename = pc_filename.replace("pc_",   "pcrgb_")
             
+            qr_=pcd_path_old.split("/"+qr_folder+"/")[-1]
+            qr_match="qrcode/"+qr_folder+"/"+qr_
+            #print("qr_",qr_match)
+            
             qr_rgbd=os.path.join(rgbd_folder_,qr_folder)
+            #print("qr_rgbdd",qr_rgbd)
+            
+            # scan_type=int(myfile.loc[np.where(myfile["storage_path"]==qr_match)].T.squeeze().at["key"])
+            # height=int(myfile.loc[np.where(myfile["storage_path"]==qr_match)].T.squeeze().at["height"])
+            # weight=int(myfile.loc[np.where(myfile["storage_path"]==qr_match)].T.squeeze().at["weight"])
+
+            height=int(myfile.loc[np.where(myfile["qrcode"]==qr_folder)].iloc[0].loc["height"])
+            weight=int(myfile.loc[np.where(myfile["qrcode"]==qr_folder)].iloc[0].loc["weight"])
+
+            
+            # print("height",height)
+            # print("weight",weight)
+            qr_rgbd_scan=os.path.join(qr_rgbd,str(scan_type))
+            
+            
             
             
 
-            rgbd_filename = pc_filename.replace(fused_folder.split("measure")[0], qr_rgbd+"/")
+            rgbd_filename = pc_filename.replace(fused_folder.split("measure")[0], qr_rgbd_scan+"/")
+            
             
 
             # write the data to the new storage
-            rgbd_filename=rgbd_filename.replace(".ply",".npy")
-            rgbd_filename=rgbd_filename.replace("/pc/","/rgbd/")
+            rgbd_filename=rgbd_filename.replace(".ply",".pkl")
+            rgbd_filename=rgbd_filename.replace("/pc/","")  #"/rgbd/"
             
             
 
@@ -161,19 +188,52 @@ def process_pcd(norm_pcd_time,process_index=0):
             logging.info("Going to writing new fused data to: " + rgbd_filename)
 
             np_path="/np/" #dummy
-            
-            
+            if not os.path.exists(rgbd_filename):
+                try: 
+                    #fused_cloud = apply_fusion(calibration_file,pcd_file, jpg_file, seg_path)
+                    rgbdseg_arr = fuse_rgbd(calibration_file,pcd_file, image)#, seg_path)
+                    #fused_cloud.to_file(pc_filename)
+                    #fig=plt.figure() 
+                    #plt.imshow(rgbdseg_arr)
+                    #plt.imsave(rgbd_filename,rgbdseg_arr) 
+                    
+                    #np.save(rgbd_filename,rgbdseg_arr)
+                    labels=np.array([height,weight])
+                    data=(rgbdseg_arr,labels)
+                    pickle.dump(data, open(rgbd_filename, "wb"))
+                    #print("saved file")
+                    logging.info("successfully wrote new data to" + rgbd_filename)
+
                 
-            try: 
-                #fused_cloud.to_file(pc_filename)
-                #fig=plt.figure() 
-                #plt.imshow(rgbdseg_arr)
-                #plt.imsave(rgbd_filename,rgbdseg_arr) 
-                np.save(rgbd_filename,rgbdseg_arr)
-    
-            except AttributeError :
-                logging.error("An error occured -- skipping this file to save ") 
-                continue
+                                                
+                except Exception as e: 
+                    logging.error("Something went wrong.Skipping this file" + pc_filename)
+                    
+                    logging.error(str(e))
+                    continue
+                
+                    
+                # try: 
+                #     #fused_cloud.to_file(pc_filename)
+                #     #fig=plt.figure() 
+                #     #plt.imshow(rgbdseg_arr)
+                #     #plt.imsave(rgbd_filename,rgbdseg_arr) 
+                    
+                #     #np.save(rgbd_filename,rgbdseg_arr)
+                #     labels=np.array([height,weight])
+                #     data=(rgbdseg_arr,labels)
+                #     pickle.dump(data, open(rgbd_filename, "wb"))
+                #     #print("saved file")
+                #     logging.info("successfully wrote new data to" + rgbd_filename)
+
+                #     end1=datetime.datetime.now()
+
+                #     diff1=end1-start1
+
+        
+                # except AttributeError :
+                #     logging.error("An error occured -- skipping this file to save ") 
+                #     continue
 
 
 
@@ -191,18 +251,35 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
 
-    folders=os.listdir(args.input)
-    unique_qr_codes=[os.path.join(args.input,x) for x in folders]
+    # folders=os.listdir(args.input)
+    # unique_qr_codes=[os.path.join(args.input,x) for x in folders]
+    
+    
+    myfile=pd.read_csv("artifacts.csv")
+    
+    qrcode=myfile["qrcode"]
+    paths=myfile["storage_path"]
+    
+    mnt=args.input+"/qrcode/"
+    
+    unique_qr_codes=[os.path.join(mnt,line) for line in qrcode]
+    #print(unique_qr_codes)
     
     ## make dirs for saving output files
-    def output_paths(args_output=args.output):
-        seg_output=os.path.join(args_output,"SEG")
-        if not os.path.exists(seg_output):
-            os.makedirs(seg_output)
-        rgbd_output=os.path.join(args_output,"RGBD")
-        if not os.path.exists(rgbd_output):
-            os.makedirs(rgbd_output)
-        return seg_output,rgbd_output
+    # def output_paths(args_output=args.output):
+    #     # seg_output=os.path.join(args_output,"SEG")
+    #     # if not os.path.exists(seg_output):
+    #     #     os.makedirs(seg_output)
+    #     rgbd_output=os.path.join(args_output,"RGBD")
+    #     if not os.path.exists(rgbd_output):
+    #         os.makedirs(rgbd_output)
+    #     #return seg_output,rgbd_output
+    #         return rgbd_output
+
+    rgbd_folder_=args.output
+    if not os.path.exists(rgbd_folder_):
+        os.mkdir(rgbd_folder_)
+
 
    
      # load model for segmentation
@@ -210,32 +287,32 @@ if __name__ == "__main__":
     # MODEL     = DeepLabModel(modelType)
     # logging.info('model loaded successfully : ' + modelType)
         
-    MODEL_NAME = 'xception_coco_voctrainval'  # @param ['mobilenetv2_coco_voctrainaug', 'mobilenetv2_coco_voctrainval', 'xception_coco_voctrainaug', 'xception_coco_voctrainval']
+    # MODEL_NAME = 'xception_coco_voctrainval'  # @param ['mobilenetv2_coco_voctrainaug', 'mobilenetv2_coco_voctrainval', 'xception_coco_voctrainaug', 'xception_coco_voctrainval']
 
-    _DOWNLOAD_URL_PREFIX = 'http://download.tensorflow.org/models/'
-    _MODEL_URLS = {
-        'mobilenetv2_coco_voctrainaug':
-            'deeplabv3_mnv2_pascal_train_aug_2018_01_29.tar.gz',
-        'mobilenetv2_coco_voctrainval':
-            'deeplabv3_mnv2_pascal_trainval_2018_01_29.tar.gz',
-        'xception_coco_voctrainaug':
-            'deeplabv3_pascal_train_aug_2018_01_04.tar.gz',
-        'xception_coco_voctrainval':
-            'deeplabv3_pascal_trainval_2018_01_04.tar.gz',
-    }
-    _TARBALL_NAME = 'deeplab_model.tar.gz'
+    # _DOWNLOAD_URL_PREFIX = 'http://download.tensorflow.org/models/'
+    # _MODEL_URLS = {
+    #     'mobilenetv2_coco_voctrainaug':
+    #         'deeplabv3_mnv2_pascal_train_aug_2018_01_29.tar.gz',
+    #     'mobilenetv2_coco_voctrainval':
+    #         'deeplabv3_mnv2_pascal_trainval_2018_01_29.tar.gz',
+    #     'xception_coco_voctrainaug':
+    #         'deeplabv3_pascal_train_aug_2018_01_04.tar.gz',
+    #     'xception_coco_voctrainval':
+    #         'deeplabv3_pascal_trainval_2018_01_04.tar.gz',
+    # }
+    # _TARBALL_NAME = 'deeplab_model.tar.gz'
 
-    model_dir = tempfile.mkdtemp()
-    tf.gfile.MakeDirs(model_dir)
+    # model_dir = tempfile.mkdtemp()
+    # tf.gfile.MakeDirs(model_dir)
 
-    download_path = os.path.join(model_dir, _TARBALL_NAME)
-    print('downloading model, this might take a while...')
-    urllib.request.urlretrieve(_DOWNLOAD_URL_PREFIX + _MODEL_URLS[MODEL_NAME],
-                    download_path)
-    print('download completed! loading DeepLab model...')
+    # download_path = os.path.join(model_dir, _TARBALL_NAME)
+    # print('downloading model, this might take a while...')
+    # urllib.request.urlretrieve(_DOWNLOAD_URL_PREFIX + _MODEL_URLS[MODEL_NAME],
+    #                 download_path)
+    # print('download completed! loading DeepLab model...')
 
-    MODEL = DeepLabModel(download_path)
-    print('model loaded successfully!')
+    # MODEL = DeepLabModel(download_path)
+    # print('model loaded successfully!')
     qr_counter = 0
     rgb_paths=[]
     pcd_paths=[]
@@ -245,9 +322,10 @@ if __name__ == "__main__":
     
     print("Processing..")
     start=datetime.datetime.now()
-    for qr in unique_qr_codes:#,position=process_index):
-        print("reading qr code")
+    for qr in set(unique_qr_codes):#,position=process_index):
+        #print("reading qr code {}".format(qr))
         logging.info("reading qr code"+ str(qr))
+        
         for dirname,dirs,qr_paths in os.walk(Path(qr)):
                 for file in qr_paths :
                         dir_path=os.path.join(dirname,file)
@@ -256,14 +334,16 @@ if __name__ == "__main__":
                             rgb_paths.append(dir_path)
                         if file.endswith(".pcd"):
                             pcd_paths.append(dir_path)
-                            
+        
             
     # check if a qr code has rgb and pcd, otherwise the previous function returned -1
-        qr_counter = qr_counter + 1
-        if qr == "{qrcode}":
-            continue
-        if qr == "data":
-            continue
+        
+        # if qr == "{qrcode}":
+        #     continue
+        # if qr == "data":
+        #     continue
+        
+                            
         
         [norm_rgb_time, rgb_path] = get_timestamps_from_rgb(rgb_paths)
         [norm_pcd_time, pcd_path] = get_timestamps_from_pcd(pcd_paths)
@@ -281,15 +361,16 @@ if __name__ == "__main__":
 
         
 
-        print("len of norm_pcd_time",len(norm_pcd_time))
+        #print("len of norm_pcd_time",len(norm_pcd_time))
 
         utils.multiprocess(norm_pcd_time,
         process_method = process_pcd, 
         process_individial_entries  = False, 
-        number_of_workers           = 4,
+        number_of_workers           = 20,
         pass_process_index          = True, 
         progressbar                 = True, 
-        disable_gpu                 =True)
+        disable_gpu                 =False)
+        
     
 
         
@@ -297,6 +378,7 @@ if __name__ == "__main__":
     diff = end - start
     print("***Done***")
     print("total time took is {}".format(diff))
+    logging.info("total time took is"+ str(diff))
 
 
     
