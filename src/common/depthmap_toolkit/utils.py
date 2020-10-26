@@ -211,7 +211,7 @@ def parseConfidence(tx, ty):
 def parseData(filename):
     global width, height, depthScale, maxConfidence, data, position, rotation
     with open('data', 'rb') as file:
-        line = str(file.readline())[:-3]
+        line = str(file.readline())[:-1]
         header = line.split('_')
         res = header[0].split('x')
         width = int(res[0])
