@@ -13,6 +13,8 @@ This project uses machine learning to identify malnutrition from 3D scans of chi
 
 ### Requirements
 
+Our development environment is [Microsoft Azure ML](https://azure.microsoft.com/en-us/services/machine-learning/#security)
+
 You will need:
 * Python 3
 * TensorFlow version 2
@@ -33,7 +35,7 @@ If you have access to scan data, you can use: `src/data_utils` to understand and
 
 Data access is provided on as-needed basis following signature of the Welthungerhilfe Data Privacy & Commitment to
 Maintain Data Secrecy Agreement. If you need data access (e.g. to train your machine learning models),
-please contact [Markus Matiaschek](mailto:mmatiaschek@childgrowthmonitor.org) for details.
+please contact [Markus Matiaschek](mailto:info@childgrowthmonitor.org) for details.
 
 ## Contributing
 
