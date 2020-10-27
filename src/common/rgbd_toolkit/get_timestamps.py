@@ -22,8 +22,7 @@ def get_timestamps_from_rgb(rgb_paths):
         return [error, path]
     
     timestamps      = np.asarray(timestamps)
-    # print("timestamp rgb",timestamps)
-    # print("rgb path",path)
+    
     return [timestamps, path]
 
 
