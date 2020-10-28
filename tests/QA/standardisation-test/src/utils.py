@@ -11,7 +11,7 @@ import pandas as pd
 #import glob2 as glob
 import pickle
 import numpy as np
-from test_config import DATA_CONFIG, RESULT_CONFIG
+from test_config import DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG
 #from src.test_config import DATA_CONFIG, RESULT_CONFIG
 
 image_target_height = 240
@@ -37,7 +37,9 @@ def get_intra_TEM(measureOne, measureTwo):
     assert(len(measureOne.index) == len(measureTwo.index))
     sum_of_square_of_deviation = ((measureOne - measureTwo) **2).sum()
     absolute_TEM = math.sqrt(sum_of_square_of_deviation/(2* len(measureOne.index)))
-    print("Absolute TEM : ", absolute_TEM)
+    
+    if EVAL_CONFIG.DEBUG_LOG:
+        print("Absolute TEM : ", absolute_TEM)
 
     return absolute_TEM
 

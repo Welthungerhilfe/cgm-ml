@@ -29,8 +29,10 @@ EVAL_CONFIG = dotdict(dict(
     DEBUG_RUN = False,
     #DEBUG_RUN = True,
 
+    DEBUG_LOG = True,
+
     #Will run eval on specified # of scan instead of full dataset
-    DEBUG_NUMBER_OF_SCAN = 50,
+    DEBUG_NUMBER_OF_DEPTHMAP = 500,
 
     SPLIT_SEED=0,
 ))
@@ -70,4 +72,6 @@ RESULT_CONFIG = dotdict(dict(
     
     #path of csv file in the experiment which final result is stored
     SAVE_PATH = './outputs/result.csv',
+    SAVE_TEM_PATH = './outputs/result_tem.csv',
+
 ))
