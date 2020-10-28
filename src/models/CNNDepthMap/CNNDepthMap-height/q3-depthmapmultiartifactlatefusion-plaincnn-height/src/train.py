@@ -12,7 +12,7 @@ from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, REPO_DIR
 from model import create_head, get_base_model
 from preprocessing import create_samples, tf_load_pickle, tf_augment_sample
-from utils import download_dataset, get_dataset_path
+from utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
@@ -164,45 +164,18 @@ model_output = head_model(concatenation)
 model = models.Model(model_input, model_output)
 model.summary()
 
-# Get ready to add callbacks.
-training_callbacks = []
-
-
-# Pushes metrics and losses into the run on AzureML.
-class AzureLogCallback(callbacks.Callback):
-    def on_epoch_end(self, epoch, logs=None):
-        if logs is not None:
-            for key, value in logs.items():
-                run.log(key, value)
-
-
-training_callbacks.append(AzureLogCallback())
-
-
-# Add TensorBoard callback.
-tensorboard_callback = tf.keras.callbacks.TensorBoard(
-    log_dir="logs",
-    histogram_freq=0,
-    write_graph=True,
-    write_grads=False,
-    write_images=True,
-    embeddings_freq=0,
-    embeddings_layer_names=None,
-    embeddings_metadata=None,
-    embeddings_data=None,
-    update_freq="epoch"
-)
-training_callbacks.append(tensorboard_callback)
-
-# Add checkpoint callback.
 best_model_path = str(DATA_DIR / 'outputs/best_model.ckpt')
-checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+checkpoint_callback = callbacks.ModelCheckpoint(
     filepath=best_model_path,
     monitor="val_loss",
     save_best_only=True,
     verbose=1
 )
-training_callbacks.append(checkpoint_callback)
+training_callbacks = [
+    AzureLogCallback(run),
+    create_tensorboard_callback(),
+    checkpoint_callback
+]
 
 optimizer = tf.keras.optimizers.Nadam(learning_rate=CONFIG.LEARNING_RATE)
 
