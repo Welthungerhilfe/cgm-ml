@@ -1,8 +1,8 @@
 import os
-import pandas as pd
-import glob2 as glob
 import pickle
 import numpy as np
+import pandas as pd
+import glob2 as glob
 from test_config import DATA_CONFIG, RESULT_CONFIG
 
 
@@ -18,6 +18,9 @@ def preprocess_targets(targets, targets_indices):
 
 
 def get_depthmap_files(paths):
+    '''
+    Prepare the list of all the depthmap pickle files in dataset
+    '''
     pickle_paths = []
     for path in paths:
         pickle_paths.extend(glob.glob(os.path.join(path, "**", "*.p")))
@@ -25,7 +28,10 @@ def get_depthmap_files(paths):
 
 
 def get_column_list(depthmap_path_list, prediction):
-
+    '''
+    Prepare the list of all artifact with its corresponding scantype, 
+    qrcode, target and prediction
+    '''
     qrcode_list, scan_type_list, artifact_list, prediction_list, target_list = [], [], [], [], []
     
     for idx, path in enumerate(depthmap_path_list):
@@ -49,6 +55,10 @@ def avgerror(row):
 
 
 def calculate_performance(code, df_mae):
+    '''
+    For each scantype, calculate the performance of the model
+    across all error margin
+    '''
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
     accuracy_list = []
     for acc in RESULT_CONFIG.ACCURACIES:
@@ -66,14 +76,15 @@ def calculate_performance(code, df_mae):
 
 
 def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH):
-    
-    ## Calculate accuracies across the scantypes
-
+    '''
+    Calculate accuracies across the scantypes and
+    save the final results table to the CSV file
+    ''' 
     dfs = []
     for code in DATA_CONFIG.CODE_TO_SCANTYPE.keys():
         df = calculate_performance(code, MAE)
         full_model_name = complete_name + DATA_CONFIG.CODE_TO_SCANTYPE[code]
-        df.rename(index={0:full_model_name}, inplace=True)
+        df.rename(index = {0 : full_model_name}, inplace = True)
         #display(HTML(df.to_html()))
         dfs.append(df)
 
@@ -83,5 +94,5 @@ def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH):
     print(result)
 
     # Save the model results in csv file
-    result.to_csv(CSV_OUT_PATH, index=True)
+    result.to_csv(CSV_OUT_PATH, index = True)
 

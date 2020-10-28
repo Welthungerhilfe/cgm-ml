@@ -4,7 +4,7 @@ from azureml.core.authentication import AuthenticationException, AzureCliAuthent
 
 def get_auth():
     '''
-    Authentication to access workspace
+    Azure CLI Authentication to access workspace
     '''
     try:
         auth = AzureCliAuthentication()

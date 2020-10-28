@@ -32,7 +32,7 @@ EVAL_CONFIG = dotdict(dict(
     #Will run eval on specified # of scan instead of full dataset
     DEBUG_NUMBER_OF_SCAN = 50,
 
-    SPLIT_SEED=0,
+    SPLIT_SEED = 0,
 ))
 
 #Details of Evaluation Dataset
@@ -40,23 +40,23 @@ DATA_CONFIG = dotdict(dict(
     #Name of evaluation dataset
     NAME = 'anon-depthmap-testset',
     
-    IMAGE_TARGET_HEIGHT=240,
-    IMAGE_TARGET_WIDTH=180,
+    IMAGE_TARGET_HEIGHT = 240,
+    IMAGE_TARGET_WIDTH = 180,
     
     #Batch size for evaluation
-    BATCH_SIZE=256,
-    NORMALIZATION_VALUE=7.5,
+    BATCH_SIZE = 256,
+    NORMALIZATION_VALUE = 7.5,
     
     # Parameters for dataset generation.
-    TARGET_INDEXES=[0],  # 0 is height, 1 is weight.
+    TARGET_INDEXES = [0],  # 0 is height, 1 is weight.
 
     CODE_TO_SCANTYPE = {
-        '100': '_front',
-        '101': '_360',
-        '102': '_back',
-        '200': '_lyingfront',
-        '201': '_lyingrot',
-        '202': '_lyingback',
+        '100' : '_front',
+        '101' : '_360',
+        '102' : '_back',
+        '200' : '_lyingfront',
+        '201' : '_lyingrot',
+        '202' : '_lyingback',
     }
 ))
 

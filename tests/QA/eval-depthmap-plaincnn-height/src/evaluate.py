@@ -5,18 +5,21 @@ import pandas as pd
 import numpy as np
 import glob2 as glob
 import tensorflow as tf
+from tensorflow.keras.models import load_model
+
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 
-from test_config import MODEL_CONFIG, EVAL_CONFIG, DATA_CONFIG, RESULT_CONFIG
-from constants import REPO_DIR
-from tensorflow.keras.models import load_model
-
 import utils
+from constants import REPO_DIR
+from test_config import MODEL_CONFIG, EVAL_CONFIG, DATA_CONFIG, RESULT_CONFIG
 
 
 # Function for loading and processing depthmaps.
 def tf_load_pickle(path, max_value):
+    '''
+    Utility to load the depthmap pickle file
+    '''
     def py_load_pickle(path, max_value):
         depthmap, targets = pickle.load(open(path.numpy(), "rb"))
         depthmap = utils.preprocess_depthmap(depthmap)
@@ -30,7 +33,15 @@ def tf_load_pickle(path, max_value):
     targets.set_shape((len(DATA_CONFIG.TARGET_INDEXES,)))
     return depthmap, targets
 
+
 def get_height_prediction(MODEL_PATH, dataset_evaluation):
+    '''
+    Perform the height prediction on the dataset  
+    Input:
+        MODEL_PATH : Path of the trained model
+        dataset_evaluation : dataset in which Evaluation 
+        need to performed
+    '''
     model = load_model(MODEL_PATH)
     predictions = model.predict(dataset_evaluation.batch(DATA_CONFIG.BATCH_SIZE))
     prediction_list = np.squeeze(predictions)
@@ -54,7 +65,7 @@ if __name__ == "__main__":
         print("Accessing workspace...")
         workspace = Workspace.from_config()
         experiment = Experiment(workspace, EVAL_CONFIG.EXPERIMENT_NAME)
-        run = experiment.start_logging(outputs=None, snapshot_directory=None)
+        run = experiment.start_logging(outputs = None, snapshot_directory = None)
 
         # Get dataset.
         print("Accessing dataset...")
@@ -62,7 +73,7 @@ if __name__ == "__main__":
         dataset_path = str(REPO_DIR / "data" / dataset_name)
         if not os.path.exists(dataset_path):
             dataset = workspace.datasets[dataset_name]
-            dataset.download(target_path=dataset_path, overwrite=False)
+            dataset.download(target_path = dataset_path, overwrite = False)
 
     # Online run. Use dataset provided by training notebook.
     else:
@@ -75,9 +86,9 @@ if __name__ == "__main__":
     dataset_path = os.path.join(dataset_path, "scans")
     print("Dataset path:", dataset_path)
     #print(glob.glob(os.path.join(dataset_path, "*"))) # Debug
-    print("Getting QR-code paths...")
+    print("Getting QR code paths...")
     qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
-    print("qrcode_paths: ", len(qrcode_paths))
+    print("QR code paths: ", len(qrcode_paths))
     assert len(qrcode_paths) != 0
 
     if EVAL_CONFIG.DEBUG_RUN and len(qrcode_paths) > EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN:
@@ -90,7 +101,7 @@ if __name__ == "__main__":
     print(len(qrcode_paths))
 
     # Get the pointclouds.
-    print("Getting depthmap paths...")
+    print("Getting Depthmap paths...")
     paths_evaluation = utils.get_depthmap_files(qrcode_paths)
     del qrcode_paths
 
@@ -105,31 +116,31 @@ if __name__ == "__main__":
     dataset_evaluation = dataset_norm
     del dataset_norm
 
-    prediction_list1 = get_height_prediction(MODEL_CONFIG.NAME, dataset_evaluation)
+    #Get the prediction
+    prediction_listOne = get_height_prediction(MODEL_CONFIG.NAME, dataset_evaluation)
 
-    print(prediction_list1)
+    print("Prediction made by model on the depthmaps...")
+    print(prediction_listOne)
 
     qrcode_list, scantype_list, artifact_list, prediction_list, target_list = utils.get_column_list(
-        paths_evaluation, 
-        prediction_list1)
+        paths_evaluation, prediction_listOne)
 
     df = pd.DataFrame({
-        'qrcode':qrcode_list,
-        'artifact':artifact_list,
-        'scantype':scantype_list,
-        'GT': target_list,
-        'predicted':prediction_list
+        'qrcode' : qrcode_list,
+        'artifact' : artifact_list,
+        'scantype' : scantype_list,
+        'GT' : target_list,
+        'predicted' : prediction_list
         }, columns = RESULT_CONFIG.COLUMNS)
 
     df['GT'] = df['GT'].astype('float64')
     df['predicted'] = df['predicted'].astype('float64')
 
     MAE = df.groupby(['qrcode', 'scantype']).mean()
-    print(MAE)
+    print("Mean Avg Error: ", MAE)
 
-    MAE['error'] = MAE.apply(utils.avgerror, axis=1)
-    #MAE
-
+    MAE['error'] = MAE.apply(utils.avgerror, axis = 1)
+    
     print("Saving the results")
     utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, RESULT_CONFIG.SAVE_PATH)
 
