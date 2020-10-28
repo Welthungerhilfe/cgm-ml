@@ -22,7 +22,7 @@ def onclick(event):
     width = utils.getWidth()
     height = utils.getHeight()
     if event.xdata is not None and event.ydata is not None:
-        x = width - int(event.ydata) - 1
+        x = int(event.ydata)
         y = height - int(event.xdata) - 1
         if x > 1 and y > 1 and x < width - 2 and y < height - 2:
             depth = utils.parseDepth(x, y)
