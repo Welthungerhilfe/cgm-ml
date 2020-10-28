@@ -23,7 +23,7 @@ In the future we plan to not support PCD files anymore (due to their big size).
 
 * The convertor accepts only the data captured by cgm-scanner. The data could be captured by any ARCore device supporting ToF sensor. Converting could be done by following command:
 
-python convertdepth2pcd.py input
+`python convertdepth2pcd.py input`
 
 * The input folder has to contain camera_calibration.txt file and subfolder depth containing one or more depthmap files.
 * The output will be stored in folder export.
@@ -32,7 +32,7 @@ python convertdepth2pcd.py input
 
 * The tool accepts only the data captured by cgm-scanner. The data could be captured by any ARCore device supporting ToF sensor. Tool could be opened by following command:
 
-python toolkit.py input
+`python toolkit.py input`
 
 * The input folder has to contain camera_calibration.txt file and subfolder depth containing one or more depthmap files.
 * By arrows "<<" and ">>" you can switch to next or previous depthmap in the folder
