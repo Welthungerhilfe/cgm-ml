@@ -1,17 +1,16 @@
-#import glob as glob
-import glob2 as glob
-import pandas as pd
-import numpy as np
-from pathlib import Path
+import os
 import xlrd
 import math
 import utils
-from skimage.transform import resize
-
-import os
 import pickle
 import random
+import numpy as np
+import pandas as pd
+#import glob as glob
+import glob2 as glob
+from pathlib import Path
 import matplotlib.pyplot as plt
+from skimage.transform import resize
 from IPython.display import display
 
 import tensorflow as tf
@@ -24,6 +23,9 @@ from tensorflow.keras.models import load_model
 
 
 class DataGenerator(tf.keras.utils.Sequence):
+    '''
+    Generator Class to create dataset in batches 
+    '''
     def __init__(self, X, batch_size):
         self.X = X
         self.batch_size = batch_size
@@ -35,7 +37,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         return l
 
     def __getitem__(self, index):
-        X = self.X[index*self.batch_size:(index+1)*self.batch_size]
+        X = self.X[index*self.batch_size : (index+1)*self.batch_size]
         return self.__getdepthmap__(X)
     
     def __getdepthmap__(self, depthmap_path_list):
@@ -52,6 +54,9 @@ class DataGenerator(tf.keras.utils.Sequence):
 
 # Function for loading and processing depthmaps.
 def tf_load_pickle(path, max_value):
+    '''
+    Utility to load the depthmap pickle file
+    '''
     def py_load_pickle(path, max_value):
         depthmap, targets = pickle.load(open(path.numpy(), "rb"))
         depthmap = utils.preprocess_depthmap(depthmap)
@@ -67,12 +72,29 @@ def tf_load_pickle(path, max_value):
 
 
 def get_height_prediction(MODEL_PATH, dataset_evaluation):
+    '''
+    Perform the height prediction on the dataset  
+    Input:
+        MODEL_PATH : Path of the trained model
+        dataset_evaluation : dataset in which Evaluation 
+        need to performed
+    '''
     model = load_model(MODEL_PATH)
     predictions = model.predict(DataGenerator(depthmap_path_list, DATA_CONFIG.BATCH_SIZE))
     prediction_list = np.squeeze(predictions)
     return prediction_list
 
 def prepare_depthmap_measure_table(depthmap_path_list, prediction_list):
+    '''
+    Prepares the measure table from the prediction by model
+    on the depthmap
+    Input:
+        depthmap_path_list : List of Depthmaps paths of standardised dataset
+        prediction_list : List of prediction on the above depthmap
+    Output:
+        depthmap_measure_table : Depthmap Measure Table for qrcode in the 
+        standardised dataset
+    '''
     df = pd.DataFrame({'depthmap_path': depthmap_path_list, 'prediction': prediction_list})
     df['enumerator'] = df['depthmap_path'].apply(lambda x : x.split('/')[-3])
     df['qrcode'] = df['depthmap_path'].apply(lambda x : x.split('/')[-5])
@@ -86,7 +108,7 @@ def prepare_depthmap_measure_table(depthmap_path_list, prediction_list):
     
     if EVAL_CONFIG.DEBUG_LOG:
         display(groups_for_two_measure)
-
+    
     for idx, (name, group) in enumerate(groups_for_two_measure):
         length = group.index.size
 
@@ -109,10 +131,9 @@ def prepare_depthmap_measure_table(depthmap_path_list, prediction_list):
 
     # depthmap_measure_table contains measurement predicted by model 
     depthmap_measure_table = pd.pivot_table(df, values = 'prediction', index = 'qrcode', 
-                columns= ['enumerator', 'MeasureGroup'], aggfunc = np.mean)    
+                columns = ['enumerator', 'MeasureGroup'], aggfunc = np.mean)    
     depthmap_measure_table = depthmap_measure_table.dropna(axis = 1)
     
-
     #convert multi index column to single index column
     single_index_column = pd.Index([col[0] + '_' + col[1] for col in depthmap_measure_table.columns.tolist()])
     depthmap_measure_table.columns = single_index_column
@@ -126,9 +147,17 @@ def prepare_final_measure_table(excel_path, sheet_name, depthmap_measure_table):
     """
     Merge enumerator measure table and depthmap measure table
     and return final table
+    Input:
+        excel_path : Excel file path of the measure done by enumerator 
+        of Standardisation test
+        sheet_name : Name of the sheet in the excel
+        depthmap_measure_table : Measure table of the qrcode based on 
+        prediction from the model
+    Output : 
+        final_measure_table : Final Measure table of the prediction done 
+        using model and enumerator
     """
-    
-    standardisation_df = pd.read_excel(excel_path, header=[0, 1], sheet_name=sheet_name)
+    standardisation_df = pd.read_excel(excel_path, header = [0, 1], sheet_name = sheet_name)
     standardisation_df.drop(['ENUMERATOR NO.7', 'ENUMERATOR NO.8'], axis = 1, inplace = True)
 
     if EVAL_CONFIG.DEBUG_LOG:
@@ -146,7 +175,7 @@ def prepare_final_measure_table(excel_path, sheet_name, depthmap_measure_table):
     standardisation_df.set_index('qrcode', inplace = True)
     
     #drop unused columns
-    standardisation_df.drop('Unnamed: 0_level_0_Child Number ', inplace=True, axis=1) 
+    standardisation_df.drop('Unnamed: 0_level_0_Child Number ', inplace = True, axis = 1) 
     if EVAL_CONFIG.DEBUG_LOG: 
         display(standardisation_df)
         display("Index of dfs: ", standardisation_df.index)
@@ -159,7 +188,15 @@ def prepare_final_measure_table(excel_path, sheet_name, depthmap_measure_table):
     return final_measure_table
 
 def prepare_and_save_tem_results(measure_table, save_path):
-
+    '''
+    Calculate TEM using the measure table for enumerator and trained model
+    Input:
+        measure_table : Final measure table containing measurement from 
+        enumerator and trained model
+        save_path : Path to save the TEM results
+    Output:
+        result : TEM result for each measurer(enumerator and trained model) 
+    '''
     result_index = list(set([col.split('_')[0] for col in measure_table.columns]))
     result_col = ['TEM']
     result = pd.DataFrame(columns = result_col, index = result_index)
@@ -172,7 +209,7 @@ def prepare_and_save_tem_results(measure_table, save_path):
     
     if EVAL_CONFIG.DEBUG_LOG:
         display(result)
-
+    
     result.to_csv(save_path)
     return result
 
@@ -197,16 +234,16 @@ if __name__ == "__main__":
         print("Accessing workspace...")
         workspace = Workspace.from_config()
         experiment = Experiment(workspace, EVAL_CONFIG.EXPERIMENT_NAME)
-        run = experiment.start_logging(outputs=None, snapshot_directory=None)
+        run = experiment.start_logging(outputs = None, snapshot_directory = None)
 
         # Get dataset.
         print("Accessing dataset...")
         dataset_name = DATA_CONFIG.NAME
         dataset_path = str(REPO_DIR / "data" / dataset_name)
-        print("A: ", dataset_path)
+        print("Dataset Path: ", dataset_path)
         if not os.path.exists(dataset_path):
             dataset = workspace.datasets[dataset_name]
-            dataset.download(target_path=dataset_path, overwrite=False)
+            dataset.download(target_path = dataset_path, overwrite = False)
 
     # Online run. Use dataset provided by training notebook.
     else:
@@ -229,7 +266,6 @@ if __name__ == "__main__":
         depthmap_path_list = depthmap_path_list[:EVAL_CONFIG.DEBUG_NUMBER_OF_DEPTHMAP]
         print("Executing on {} qrcodes for FAST RUN".format(EVAL_CONFIG.DEBUG_NUMBER_OF_DEPTHMAP))
 
-
     print("Paths for Depth map Evaluation:")
     print("\t" + "\n\t".join(depthmap_path_list))
     print("Using {} artifact files for evaluation.".format(len(depthmap_path_list)))
@@ -239,8 +275,8 @@ if __name__ == "__main__":
     depthmap_measure_table = prepare_depthmap_measure_table(depthmap_path_list, prediction_list)
     
     data_path = Path(dataset_path)
-    excel_path = data_path / 'Standardization test October.xlsx'
-    sheet_name = 'DRS'
+    excel_path = data_path / DATA_CONFIG.EXCEL_NAME
+    sheet_name = DATA_CONFIG.SHEET_NAME
 
     final_measure_table = prepare_final_measure_table(excel_path, sheet_name, depthmap_measure_table)
     result = prepare_and_save_tem_results(final_measure_table, RESULT_CONFIG.SAVE_TEM_PATH)

@@ -31,26 +31,33 @@ EVAL_CONFIG = dotdict(dict(
 
     DEBUG_LOG = True,
 
+    TEM_THRESHOLD = 0.2,
+
     #Will run eval on specified # of scan instead of full dataset
     DEBUG_NUMBER_OF_DEPTHMAP = 500,
 
-    SPLIT_SEED=0,
+    SPLIT_SEED = 0,
 ))
 
 #Details of Evaluation Dataset
 DATA_CONFIG = dotdict(dict(
     #Name of evaluation dataset
     NAME = 'standardization_test_01',
+
+    #Excel file in which measurement of each enumerator is stored
+    #while standardisation test
+    EXCEL_NAME = 'Standardization test October.xlsx',
+    SHEET_NAME = 'DRS',
     
-    IMAGE_TARGET_HEIGHT=240,
-    IMAGE_TARGET_WIDTH=180,
+    IMAGE_TARGET_HEIGHT = 240,
+    IMAGE_TARGET_WIDTH = 180,
     
     #Batch size for evaluation
-    BATCH_SIZE=256,
-    NORMALIZATION_VALUE=7.5,
+    BATCH_SIZE = 256,
+    NORMALIZATION_VALUE = 7.5,
     
     # Parameters for dataset generation.
-    TARGET_INDEXES=[0],  # 0 is height, 1 is weight.
+    TARGET_INDEXES = [0],  # 0 is height, 1 is weight.
 
     CODE_TO_SCANTYPE = {
         '100': '_front',
