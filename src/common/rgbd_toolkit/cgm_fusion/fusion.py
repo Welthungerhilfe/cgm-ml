@@ -227,16 +227,9 @@ def apply_fusion(calibration_file, pcd_file, jpg_file, seg_path):
     confidence = cloud.points.values[:, 3]
     
     # get the data for calibration
-    intrinsic  = get_intrinsic_matrix(calibration_file)
-    ext_d      = get_extrinsic_matrix(calibration_file,idx=4)
-
-    r_vec      = ext_d[:3, :3]
-    t_vec      = -ext_d[:3, 3]
-
-    k1, k2, k3 = get_k(calibration_file)
-    im_coords, _ = cv2.projectPoints(points, r_vec, t_vec, intrinsic[:3, :3], np.array([k1, k2, 0, 0]))
-    # print("im_coords",im_coords)
-    # np.savetxt("im_coords.txt",im_coords.squeeze())
+    
+    im_coords, _ = projectPoints(points,calibration_file)
+    
     color_vals   = np.zeros_like(points)
     
     segment_vals = np.zeros_like(points)
