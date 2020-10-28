@@ -6,11 +6,12 @@ from azureml.core.run import Run
 from tensorflow.keras import models, layers
 
 from config import CONFIG
+from constants import MODEL_H5_FILENAME
 
 
 def get_base_model(workspace: Workspace, data_dir: Path) -> models.Sequential:
     if CONFIG.PRETRAINED_RUN:
-        model_fpath = data_dir / "pretrained/" / CONFIG.PRETRAINED_RUN / "best_model.h5"
+        model_fpath = data_dir / "pretrained/" / CONFIG.PRETRAINED_RUN / MODEL_H5_FILENAME
         if not os.path.exists(model_fpath):
             download_pretrained_model(workspace, model_fpath)
         print(f"Loading pretrained model from {model_fpath}")
@@ -25,7 +26,7 @@ def download_pretrained_model(workspace: Workspace, output_model_fpath: str):
     print(f"Downloading pretrained model from {CONFIG.PRETRAINED_RUN}")
     previous_experiment = Experiment(workspace=workspace, name=CONFIG.PRETRAINED_EXPERIMENT)
     previous_run = Run(previous_experiment, CONFIG.PRETRAINED_RUN)
-    previous_run.download_file("outputs/best_model.h5", output_model_fpath)
+    previous_run.download_file(f"outputs/{MODEL_H5_FILENAME}", output_model_fpath)
 
 
 def load_base_cgm_model(model_fpath: str, should_freeze: bool=False) -> models.Sequential:
