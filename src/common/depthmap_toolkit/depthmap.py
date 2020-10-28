@@ -9,7 +9,7 @@ import zipfile
 
 def export(type, filename):
     if type == 'obj':
-        utils.exportOBJ('export/' + filename)
+        utils.exportOBJ('export/' + filename, triangulate=True)
     if type == 'pcd':
         utils.exportPCD('export/' + filename)
 
@@ -51,15 +51,17 @@ def process(plt, dir, depth, rgb):
     utils.parseData('data')
 
     #read rgb data
+    global hasRGB
     global im_array
     if rgb:
+        hasRGB = 1
         width = utils.getWidth()
         height = utils.getHeight()
         pil_im = Image.open(dir + '/rgb/' + rgb)
         pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
         im_array = np.asarray(pil_im)
     else:
-        im_array = 0
+        hasRGB = 0
 
     #parse calibration
     global calibration
@@ -152,7 +154,7 @@ def showResult():
     fig.canvas.mpl_connect('button_press_event', onclick)
     width = utils.getWidth()
     height = utils.getHeight()
-    output = np.zeros((width, height, 3))
+    output = np.zeros((width, height * 3, 3))
     for x in range(width):
         for y in range(height):
             depth = utils.parseDepth(x, y)
@@ -165,8 +167,10 @@ def showResult():
                 vec = utils.convert3Dto2D(calibration[0], vec[0], vec[1], vec[2])
 
                 #set output pixel
-                output[x][height - y - 1][0] = utils.parseConfidence(x, y)
-                if im_array and vec[0] > 0 and vec[1] > 1 and vec[0] < width and vec[1] < height:
-                    output[x][height - y - 1][1] = im_array[vec[1]][vec[0]][1] / 255.0  # test matching on RGB data
-                output[x][height - y - 1][2] = 1.0 - min(depth / 2.0, 1.0)  # depth data scaled to be visible
-    plt.imshow(output, extent=[0, height, 0, width])
+                output[x][height - y - 1][:] = 1.0 - min(depth / 2.0, 1.0)  # depth data scaled to be visible
+                output[x][height + height - y - 1][:] = utils.parseConfidence(x, y)
+                if vec[0] > 0 and vec[1] > 1 and vec[0] < width and vec[1] < height and hasRGB:
+                    output[x][2 * height + height - y - 1][0] = im_array[int(vec[1])][int(vec[0])][0] / 255.0
+                    output[x][2 * height + height - y - 1][1] = im_array[int(vec[1])][int(vec[0])][1] / 255.0
+                    output[x][2 * height + height - y - 1][2] = im_array[int(vec[1])][int(vec[0])][2] / 255.0
+    plt.imshow(output)

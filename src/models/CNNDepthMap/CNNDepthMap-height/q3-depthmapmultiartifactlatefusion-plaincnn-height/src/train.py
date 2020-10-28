@@ -22,12 +22,11 @@ random.seed(CONFIG.SPLIT_SEED)
 # Get the current run.
 run = Run.get_context()
 
-DATA_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path(DATA_DIR_ONLINE_RUN)
+DATA_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path(".")
 print(f"DATA_DIR: {DATA_DIR}")
-DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # Offline run. Download the sample dataset and run locally. Still push results to Azure.
-if(run.id.startswith("OfflineRun")):
+if run.id.startswith("OfflineRun"):
     print("Running in offline mode...")
 
     # Access workspace.
@@ -36,7 +35,7 @@ if(run.id.startswith("OfflineRun")):
     experiment = Experiment(workspace, "training-junkyard")
     run = experiment.start_logging(outputs=None, snapshot_directory=None)
 
-    dataset_name = "anon-depthmap-mini"
+    dataset_name = CONFIG.DATASET_NAME_LOCAL
     dataset_path = get_dataset_path(DATA_DIR, dataset_name)
     download_dataset(workspace, dataset_name, dataset_path)
 
@@ -52,7 +51,7 @@ else:
     if CONFIG.DATASET_MODE == DATASET_MODE_MOUNT:
         dataset_path = run.input_datasets["dataset"]
     elif CONFIG.DATASET_MODE == DATASET_MODE_DOWNLOAD:
-        dataset_path = get_dataset_path(DATA_DIR, dataset_name)
+        dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
         download_dataset(workspace, dataset_name, dataset_path)
     else:
         raise NameError(f"Unknown DATASET_MODE: {CONFIG.DATASET_MODE}")
@@ -172,6 +171,7 @@ def get_base_model():
 # Create the base model
 base_model = get_base_model()
 base_model.summary()
+assert base_model.output_shape == (None, 128)
 
 # Create the head
 head_input_shape = (128 * CONFIG.N_ARTIFACTS,)
@@ -189,8 +189,9 @@ for i in range(CONFIG.N_ARTIFACTS):
     features_part = base_model(features_part)
     features_list.append(features_part)
 
-concatenation = tf.concat(features_list, axis=-1)
-model_output = layers.Dense(1, activation="linear")(concatenation)  # shape: (None,640)
+concatenation = tf.keras.layers.concatenate(features_list, axis=-1)
+assert concatenation.shape.as_list() == tf.TensorShape((None, 128 * CONFIG.N_ARTIFACTS)).as_list()
+model_output = head_model(concatenation)
 
 model = models.Model(model_input, model_output)
 model.summary()
@@ -226,7 +227,7 @@ tensorboard_callback = tf.keras.callbacks.TensorBoard(
 training_callbacks.append(tensorboard_callback)
 
 # Add checkpoint callback.
-best_model_path = str(DATA_DIR / 'outputs/best_model.h5')
+best_model_path = str(DATA_DIR / 'outputs/best_model.ckpt')
 checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath=best_model_path,
     monitor="val_loss",
@@ -238,11 +239,7 @@ training_callbacks.append(checkpoint_callback)
 optimizer = tf.keras.optimizers.Nadam(learning_rate=CONFIG.LEARNING_RATE)
 
 # Compile the model.
-model.compile(
-    optimizer=optimizer,
-    loss="mse",
-    metrics=["mae"]
-)
+model.compile(optimizer=optimizer, loss="mse", metrics=["mae"])
 
 # Train the model.
 model.fit(
@@ -252,6 +249,24 @@ model.fit(
     callbacks=training_callbacks,
     verbose=2
 )
+
+if CONFIG.EPOCHS_TUNE:
+    # Un-freeze
+    for layer in base_model._layers:
+        layer.trainable = True
+
+    # Adjust learning rate
+    optimizer = tf.keras.optimizers.Nadam(learning_rate=CONFIG.LEARNING_RATE_TUNE)
+    model.compile(optimizer=optimizer, loss="mse", metrics=["mae"])
+
+    print("Start fine-tuning")
+    model.fit(
+        dataset_training.batch(CONFIG.BATCH_SIZE),
+        validation_data=dataset_validation.batch(CONFIG.BATCH_SIZE),
+        epochs=CONFIG.EPOCHS_TUNE,
+        callbacks=training_callbacks,
+        verbose=2
+    )
 
 # Done.
 run.complete()

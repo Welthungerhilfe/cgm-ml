@@ -5,14 +5,16 @@ def load_base_cgm_model(model_fpath, should_freeze=False):
     # load model
     loaded_model = models.load_model(model_fpath)
 
-    # cut off last layer
-    _ = loaded_model._layers.pop()
+    # cut off last layer (https://stackoverflow.com/a/59304656/5497962)
+    beheaded_model = models.Sequential(name="base_model_beheaded")
+    for layer in loaded_model.layers[:-1]:
+        beheaded_model.add(layer)
 
     if should_freeze:
-        for layer in loaded_model._layers:
+        for layer in beheaded_model._layers:
             layer.trainable = False
 
-    return loaded_model
+    return beheaded_model
 
 
 def create_base_cnn(input_shape, dropout):
@@ -68,8 +70,8 @@ def create_base_cnn(input_shape, dropout):
 
 
 def create_head(input_shape, dropout):
-    model = models.Sequential()
-    model.add(layers.Dense(128, activation="relu"))
+    model = models.Sequential(name="head")
+    model.add(layers.Dense(128, activation="relu", input_shape=input_shape))
     if dropout:
         model.add(layers.Dropout(0.2))
 

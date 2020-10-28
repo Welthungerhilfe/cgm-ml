@@ -1,5 +1,5 @@
 import math
-
+import numpy as np
 
 def add(a, b):
     return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
@@ -94,8 +94,12 @@ def convert3Dto2D(intrisics, x, y, z):
 
 #write obj
 
+#triangulate=True generates OBJ of type mesh
+#triangulate=False generates OBJ of type pointcloud
+def exportOBJ(filename, triangulate):
 
-def exportOBJ(filename):
+    count = 0
+    indices = np.zeros((width, height))
     with open(filename, 'w') as file:
         for x in range(2, width - 2):
             for y in range(2, height - 2):
@@ -103,10 +107,34 @@ def exportOBJ(filename):
                 if depth:
                     res = convert2Dto3DOriented(calibration[1], x, y, depth)
                     if res:
+                        count = count + 1
+                        indices[x][y] = count  # add index of written vertex into array
                         file.write('v ' + str(res[0]) + ' ' + str(res[1]) + ' ' + str(res[2]) + '\n')
+
+        if triangulate:
+            maxDiff = 0.2
+            for x in range(2, width - 2):
+                for y in range(2, height - 2):
+                    #get depth of all points of 2 potential triangles
+                    d00 = parseDepth(x, y)
+                    d10 = parseDepth(x + 1, y)
+                    d01 = parseDepth(x, y + 1)
+                    d11 = parseDepth(x + 1, y + 1)
+
+                    #check if first triangle points have existing indices
+                    if indices[x][y] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
+                        #check if the triangle size is valid (to prevent generating triangle connecting child and background)
+                        if abs(d00 - d10) + abs(d00 - d01) + abs(d10 - d01) < maxDiff:
+                            file.write('f ' + str(int(indices[x][y])) + ' ' + str(int(indices[x + 1][y])) + ' ' + str(int(indices[x][y + 1])) + '\n')
+
+                    #check if second triangle points have existing indices
+                    if indices[x + 1][y + 1] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
+                        #check if the triangle size is valid (to prevent generating triangle connecting child and background)
+                        if abs(d11 - d10) + abs(d11 - d01) + abs(d10 - d01) < maxDiff:
+                            file.write('f ' + str(int(indices[x + 1][y + 1])) + ' ' + str(int(indices[x + 1][y])) + ' ' + str(int(indices[x][y + 1])) + '\n')
         print('Pointcloud exported into ' + filename)
 
-#write obj
+#write pcd
 
 
 def exportPCD(filename):
@@ -191,7 +219,7 @@ def parseConfidence(tx, ty):
 def parseData(filename):
     global width, height, depthScale, maxConfidence, data, position, rotation
     with open('data', 'rb') as file:
-        line = str(file.readline())[:-3]
+        line = str(file.readline())[:-1]
         header = line.split('_')
         res = header[0].split('x')
         width = int(res[0])

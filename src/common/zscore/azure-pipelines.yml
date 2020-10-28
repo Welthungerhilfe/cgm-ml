@@ -4,40 +4,39 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
 trigger:
-  batch: true
+  branches:
+    include:
+    - master
+    - releases/*
+  paths:
+    include:
+    - src/commmon/zscore/*
 
 pool:
   vmImage: 'ubuntu-latest'
 strategy:
   matrix:
-    Python36:
-      python.version: '3.6'
     Python37:
       python.version: '3.7'
-
-variables:
-  PIP_CACHE_DIR: $(Pipeline.Workspace)/.pip
 
 steps:
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '$(python.version)'
   displayName: 'Use Python $(python.version)'
-- task: Cache@2
-  inputs:
-    key: 'python | "$(Agent.OS)" | requirements.txt'
-    restoreKeys: |
-      python | "$(Agent.OS)"
-      python
-    path: $(PIP_CACHE_DIR)
-  displayName: Cache pip packages
+
 - script: |
     python -m pip install --upgrade pip
-    pip install numpy==1.19.1 tensorflow==2.3.0 azureml-sdk[notebooks,automl]==1.13.0 glob2==0.7 imgaug==0.4.0 flake8==3.8.4 pytest==5.4.2 pytest-cov==2.10.0 pytest-azurepipelines
+    pip install numpy==1.19.1 glob2==0.7 wheel
   displayName: 'Install dependencies'
+
 - script: |
-    flake8 src/
-  displayName: 'flake8'
+    cd src/common/zscore
+    python setup.py sdist bdist_wheel
+  displayName: 'Create Package'
+
 - script: |
-    pytest --cov=src
-  displayName: 'pytest'
+    cd src/common/zscore
+    pip install twine
+    python -m twine upload --skip-existing --verbose -p $(Pypi Token) -u __token__ --repository cgmzscore --repository-url https://upload.pypi.org/legacy/ dist/*.whl
+  displayName: 'Upload package'

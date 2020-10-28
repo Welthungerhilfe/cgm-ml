@@ -64,7 +64,11 @@ def swapEdges(event):
 
 
 def show():
-    depthmap.process(plt, input, depth[index], 0)  # rgb[index])
+    if rgb:
+        depthmap.process(plt, input, depth[index], rgb[index])
+    else:
+        depthmap.process(plt, input, depth[index], 0)
+
     if edges == 1:
         depthmap.showEdges()
     else:
@@ -95,15 +99,16 @@ if len(sys.argv) != 2:
     print('You did not enter input folder')
     print('E.g.: python toolkit.py honor')
     sys.exit(1)
+
 input = sys.argv[1]
 depth = []
-#rgb = []
+rgb = []
 for (dirpath, dirnames, filenames) in walk(input + '/depth'):
     depth = filenames
-#for (dirpath, dirnames, filenames) in walk(input + '/rgb'):
-#  rgb = filenames
+for (dirpath, dirnames, filenames) in walk(input + '/rgb'):
+    rgb = filenames
 depth.sort()
-#rgb.sort()
+rgb.sort()
 
 #make sure there is a new export folder
 try:
