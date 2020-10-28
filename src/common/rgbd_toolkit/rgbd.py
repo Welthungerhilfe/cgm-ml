@@ -38,6 +38,7 @@ import logging
 logging.getLogger('').handlers = []
 logging.basicConfig(filename='./RGBD.log',level=logging.DEBUG, format='%(asctime)s %(message)s')
 import argparse
+import concurrent.futures
 
  
 
@@ -52,22 +53,15 @@ def find_closest(A, target):
 
 
 
-def process_pcd(norm_pcd_time,process_index=0):
-    i = 0
+def process_pcd(paths,process_index=0):
+    
 
-    for pcd in tqdm(norm_pcd_time,position=process_index):
+            pcd_file = paths[0]
+            jpg_file = paths[1]
 
-            #find the closest rgb file for the pcd
-            nn = find_closest(norm_rgb_time, pcd)
-            logging.info("timestamp of pcd: " + "{0:.2f}".format(round(pcd,2))+ " with index " + str(i)  + " path: " + str(pcd_path[i]))
-            logging.info("timestamp of jpg: " + "{0:.2f}".format(round(norm_rgb_time[nn],2)) + " with index " + str(nn) + " path: " + str(rgb_path[nn]))
-            
-            #get the original file path 
-            path, filename = os.path.split(str(pcd_path[i]))
-
-            #located the nearest jpg file of that pcd
-            pcd_file = pcd_path[i]
-            jpg_file = rgb_path[nn]
+            # #located the nearest jpg file of that pcd
+            # pcd_file = pcd_path[i]
+            # jpg_file = rgb_path[nn]
             
             #rotating and aligning rgb image
             img_name=jpg_file.split("/")[-1]
@@ -101,8 +95,6 @@ def process_pcd(norm_pcd_time,process_index=0):
             #     # check if the path now exists
             # if not( os.path.exists(seg_path) ):
             #         logging.error('Segmented file does not exist: ' + seg_path)
-
-            i = i+1
             
             calibration_file="./calibration.xml"
            
@@ -167,9 +159,36 @@ def process_pcd(norm_pcd_time,process_index=0):
                     logging.error("Something went wrong.Skipping this file" + pc_filename)
                     
                     logging.error(str(e))
-                    continue
+                    pass
+            logging.info("file already processed")
             
-            
+def get_files(norm_rgb_time, rgb_path, norm_pcd_time, pcd_path):
+    files = []
+    if len(norm_rgb_time) == 0:
+        print("no rgb images found")
+        return []
+
+    if len(norm_pcd_time) == 0:
+        print("no pcd images found")
+        return []
+
+    i = 0
+
+    for pcd in norm_pcd_time:
+        nn = find_closest(norm_rgb_time, pcd)
+
+        # get the original file path
+        path, filename = os.path.split(str(pcd_path[i]))
+
+        pcd_file = pcd_path[i]
+        #pcd_file = pcd_file[0]
+        jpg_file = rgb_path[nn]
+        #pcd_id = pcd_artifact_id[i]
+        #rgb_id = rgb_artifact_id[nn]
+        files.append([pcd_file, jpg_file])
+
+        i = i+1
+    return files       
                 
                 
 
@@ -244,27 +263,14 @@ if __name__ == "__main__":
     #getting the timestamps of rgb and pcd paths
         [norm_rgb_time, rgb_path] = get_timestamps_from_rgb(rgb_paths)
         [norm_pcd_time, pcd_path] = get_timestamps_from_pcd(pcd_paths)
-
-        if ( size(norm_rgb_time) == 0 ):
-            logging.error("wrong size of jpg")
-            logging.error("size rgb: " + str(size(norm_rgb_time)))
-            continue
-
-        if ( size(norm_pcd_time) == 0 ): 
-            logging.error("wrong size of pcd")    
-            logging.error("size pcd: " + str(size(norm_pcd_time)))
-            continue
-
-
-    #processing every pcd file with its nearest rgb using multiprocessing workers
-        utils.multiprocess(norm_pcd_time,
-        process_method = process_pcd, 
-        process_individial_entries  = False, 
-        number_of_workers           = args.w,
-        pass_process_index          = True, 
-        progressbar                 = True, 
-        disable_gpu                 =True)
         
+    
+        paths = get_files(norm_rgb_time, rgb_path, norm_pcd_time, pcd_path)
+    
+    #processing every pcd file with its nearest rgb using multiprocessing workers
+        with concurrent.futures.ProcessPoolExecutor(max_workers=args.w) as executor:
+            res = list(tqdm(executor.map(process_pcd, paths), total = len(paths)))
+    
         
     end = datetime.datetime.now()
     diff = end - start
