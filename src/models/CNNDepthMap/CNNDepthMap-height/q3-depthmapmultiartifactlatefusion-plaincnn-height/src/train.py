@@ -71,8 +71,6 @@ split_index = int(len(qrcode_paths) * 0.8)
 qrcode_paths_training = qrcode_paths[:split_index]
 
 qrcode_paths_validate = qrcode_paths[split_index:]
-qrcode_paths_activation = random.choice(qrcode_paths_validate)
-qrcode_paths_activation = [qrcode_paths_activation]
 
 del qrcode_paths
 
@@ -81,8 +79,6 @@ print("Paths for training:")
 print("\t" + "\n\t".join(qrcode_paths_training))
 print("Paths for validation:")
 print("\t" + "\n\t".join(qrcode_paths_validate))
-print("Paths for activation:")
-print("\t" + "\n\t".join(qrcode_paths_activation))
 
 print(len(qrcode_paths_training))
 print(len(qrcode_paths_validate))
@@ -94,9 +90,6 @@ print(f"Samples for training: {len(paths_training)}")
 
 paths_validate = create_samples(qrcode_paths_validate)
 print(f"Samples for validate: {len(paths_validate)}")
-
-paths_activate = create_samples(qrcode_paths_activation)
-print(f"Samples for activate: {len(paths_activate)}")
 
 # Create dataset for training.
 paths = paths_training  # list
@@ -123,15 +116,6 @@ dataset_norm = dataset_norm.cache()
 dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
 dataset_validation = dataset_norm
 del dataset_norm
-
-# Create dataset for activation
-# paths = paths_activate
-# dataset = tf.data.Dataset.from_tensor_slices(paths)
-# dataset_norm = dataset.map(lambda path: tf_load_pickle(path), tf.data.experimental.AUTOTUNE)
-# dataset_norm = dataset_norm.cache()
-# dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
-# dataset_activation = dataset_norm
-# del dataset_norm
 
 # Note: Now the datasets are prepared.
 
