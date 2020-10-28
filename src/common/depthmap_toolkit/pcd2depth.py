@@ -1,6 +1,8 @@
-import numpy as np
-import utils
 import zipfile
+
+import numpy as np
+
+import utils
 
 
 def process(calibration, pcd, depthfile):

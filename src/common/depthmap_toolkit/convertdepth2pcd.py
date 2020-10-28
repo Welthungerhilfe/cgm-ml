@@ -1,9 +1,11 @@
-import matplotlib.pyplot as plt
-from os import walk
-import depthmap
-import shutil
 import os
+import shutil
 import sys
+from os import walk
+
+import matplotlib.pyplot as plt
+
+import depthmap
 
 if len(sys.argv) != 2:
     print('You did not enter input folder')

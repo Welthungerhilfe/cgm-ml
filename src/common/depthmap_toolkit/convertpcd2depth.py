@@ -1,9 +1,10 @@
+import os
+import shutil
+import sys
 from os import walk
 from shutil import copyfile
+
 import pcd2depth
-import shutil
-import os
-import sys
 
 if len(sys.argv) != 2:
     print('You did not enter input folder')

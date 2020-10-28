@@ -1,8 +1,10 @@
-import matplotlib.pyplot as plt
-from PIL import Image
-import numpy as np
-import utils
 import zipfile
+
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
+
+import utils
 
 #export data
 
