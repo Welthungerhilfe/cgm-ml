@@ -31,7 +31,7 @@ EVAL_CONFIG = dotdict(dict(
 
     DEBUG_LOG = True,
 
-    TEM_THRESHOLD = 0.2,
+    TEM_THRESHOLD = 0.6,
 
     #Will run eval on specified # of scan instead of full dataset
     DEBUG_NUMBER_OF_DEPTHMAP = 500,
