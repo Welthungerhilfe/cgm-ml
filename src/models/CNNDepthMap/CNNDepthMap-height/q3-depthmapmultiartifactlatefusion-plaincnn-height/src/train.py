@@ -1,7 +1,6 @@
 from pathlib import Path
 import os
 import random
-from typing import List
 
 import glob2 as glob
 import tensorflow as tf
@@ -11,7 +10,7 @@ from tensorflow.keras import callbacks, layers, models
 
 from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, REPO_DIR
-from model import create_base_cnn, create_head, load_base_cgm_model
+from model import create_head, get_base_model
 from preprocessing import create_samples, tf_load_pickle, tf_augment_sample
 from utils import download_dataset, get_dataset_path
 
@@ -137,28 +136,8 @@ del dataset_norm
 # Note: Now the datasets are prepared.
 
 
-def download_pretrained_model(output_model_fpath):
-    print(f"Downloading pretrained model from {CONFIG.PRETRAINED_RUN}")
-    previous_experiment = Experiment(workspace=workspace, name=CONFIG.PRETRAINED_EXPERIMENT)
-    previous_run = Run(previous_experiment, CONFIG.PRETRAINED_RUN)
-    previous_run.download_file("outputs/best_model.h5", output_model_fpath)
-
-
-def get_base_model():
-    if CONFIG.PRETRAINED_RUN:
-        model_fpath = DATA_DIR / "pretrained/" / CONFIG.PRETRAINED_RUN / "best_model.h5"
-        if not os.path.exists(model_fpath):
-            download_pretrained_model(model_fpath)
-        print(f"Loading pretrained model from {model_fpath}")
-        base_model = load_base_cgm_model(model_fpath, should_freeze=CONFIG.SHOULD_FREEZE_BASE)
-    else:
-        input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1)
-        base_model = create_base_cnn(input_shape, dropout=CONFIG.USE_DROPOUT)  # output_shape: (128,)
-    return base_model
-
-
 # Create the base model
-base_model = get_base_model()
+base_model = get_base_model(DATA_DIR)
 base_model.summary()
 assert base_model.output_shape == (None, 128)
 
