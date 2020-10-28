@@ -46,17 +46,6 @@
       displayName: 'Saving Workspace Config'
 
     - bash: |
-        cd tests/QA/eval-depthmap-plaincnn-height
-        ls -l
-        source /usr/share/miniconda/etc/profile.d/conda.sh
-        conda activate CGM_QA_Pipeline
-        echo Executing eval_notebook.ipynb
-        papermill eval_notebook.ipynb depthmap-plaincnn-height_output.ipynb --log-output --no-progress-bar -k python3
-        jupyter nbconvert --to html depthmap-plaincnn-height_output.ipynb
-        ls -l
-      displayName: 'Depthmap PlainCNN Height Model Evaluation'
-
-    - bash: |
         cd tests/QA/standardisation-test
         ls -l
         source /usr/share/miniconda/etc/profile.d/conda.sh
@@ -66,7 +55,6 @@
         jupyter nbconvert --to html standardisation-test_output.ipynb
         ls -l
       displayName: 'Standardisation Test Model Evaluation'
-
 
     - task: CopyFiles@2
       inputs:
