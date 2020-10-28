@@ -8,27 +8,24 @@ from tensorflow.keras import models, layers
 from config import CONFIG
 
 
-workspace = Workspace.from_config()
-
-
-def download_pretrained_model(output_model_fpath: str):
-    print(f"Downloading pretrained model from {CONFIG.PRETRAINED_RUN}")
-    previous_experiment = Experiment(workspace=workspace, name=CONFIG.PRETRAINED_EXPERIMENT)
-    previous_run = Run(previous_experiment, CONFIG.PRETRAINED_RUN)
-    previous_run.download_file("outputs/best_model.h5", output_model_fpath)
-
-
-def get_base_model(data_dir: Path) -> models.Sequential:
+def get_base_model(workspace: Workspace, data_dir: Path) -> models.Sequential:
     if CONFIG.PRETRAINED_RUN:
         model_fpath = data_dir / "pretrained/" / CONFIG.PRETRAINED_RUN / "best_model.h5"
         if not os.path.exists(model_fpath):
-            download_pretrained_model(model_fpath)
+            download_pretrained_model(workspace, model_fpath)
         print(f"Loading pretrained model from {model_fpath}")
         base_model = load_base_cgm_model(model_fpath, should_freeze=CONFIG.SHOULD_FREEZE_BASE)
     else:
         input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1)
         base_model = create_base_cnn(input_shape, dropout=CONFIG.USE_DROPOUT)  # output_shape: (128,)
     return base_model
+
+
+def download_pretrained_model(workspace: Workspace, output_model_fpath: str):
+    print(f"Downloading pretrained model from {CONFIG.PRETRAINED_RUN}")
+    previous_experiment = Experiment(workspace=workspace, name=CONFIG.PRETRAINED_EXPERIMENT)
+    previous_run = Run(previous_experiment, CONFIG.PRETRAINED_RUN)
+    previous_run.download_file("outputs/best_model.h5", output_model_fpath)
 
 
 def load_base_cgm_model(model_fpath: str, should_freeze: bool=False) -> models.Sequential:

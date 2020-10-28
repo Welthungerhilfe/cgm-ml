@@ -121,14 +121,13 @@ del dataset_norm
 
 
 # Create the base model
-base_model = get_base_model(DATA_DIR)
+base_model = get_base_model(workspace, DATA_DIR)
 base_model.summary()
 assert base_model.output_shape == (None, 128)
 
 # Create the head
 head_input_shape = (128 * CONFIG.N_ARTIFACTS,)
 head_model = create_head(head_input_shape, dropout=CONFIG.USE_CROPOUT)
-# head_model.summary()
 
 # Implement artifact flow through the same model
 model_input = layers.Input(
