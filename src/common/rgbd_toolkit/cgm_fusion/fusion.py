@@ -32,14 +32,26 @@ import open3d as o3d
 import logging
 import matplotlib.pyplot as plt
 from PIL import Image
-import datetime
 
 from cgm_fusion.calibration import get_intrinsic_matrix, get_extrinsic_matrix, get_k
 from cgm_fusion.utility import write_color_ply, fuse_point_cloud , get_depth_channel
 
 from pyntcloud import PyntCloud
 
+def projectPoints(pcd_points,calibration_file):
 
+    #get the data for calibration
+    intrinsic  = get_intrinsic_matrix(calibration_file)
+    ext_d      = get_extrinsic_matrix(calibration_file,idx=4)
+
+    r_vec      = ext_d[:3, :3]
+    t_vec      = -ext_d[:3, 3]
+
+    k1, k2, k3 = get_k(calibration_file)
+
+    im_coords, _ = cv2.projectPoints(pcd_points, r_vec, t_vec, intrinsic[:3, :3], np.array([k1, k2, 0, 0]))
+
+    return im_coords,_
 
 def get_depth_image_from_point_cloud(calibration_file, pcd_file, output_file):
     if not os.path.exists(pcd_file):                        # check all files exist
@@ -118,8 +130,9 @@ def get_depth_image_from_point_cloud(calibration_file, pcd_file, output_file):
     # im_coords, _ = cv2.projectPoints(points, r_vec, t_vec, intrinsic[:3, :3], np.array([k1, k2, 0, 0]))
 
 
-def fuse_rgbd(calibration_file,pcd_file,image, seg_path=0):
-    start=datetime.datetime.now()
+
+def fuse_rgbd(calibration_file,pcd_file,image, seg_path=0): #TODO:uncomment zero for segmentation fusion
+    
     try:
         cloud      = PyntCloud.from_file(pcd_file)         # load the data from the files
     except ValueError:
@@ -127,38 +140,26 @@ def fuse_rgbd(calibration_file,pcd_file,image, seg_path=0):
         raise
 
     points     = cloud.points.values[:, :3]
-
-    #get the data for calibration
-    intrinsic  = get_intrinsic_matrix(calibration_file)
-    ext_d      = get_extrinsic_matrix(calibration_file,idx=4)
-
-    r_vec      = ext_d[:3, :3]
-    t_vec      = -ext_d[:3, 3]
-
-    k1, k2, k3 = get_k(calibration_file)
-    im_coords, _ = cv2.projectPoints(points, r_vec, t_vec, intrinsic[:3, :3], np.array([k1, k2, 0, 0]))
+    #getting projected points
+    im_coords, _ = projectPoints(points,calibration_file)
+    
+    #setting the RGB image dimensions
     scale = 0.1
     width = int(1920 * scale)
     height = int(1080 * scale)
-
-    pil_im = image
-    pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
+    #reading image and resizing
+    pil_im = image.resize((width, height), Image.ANTIALIAS)
     im_array = np.asarray(pil_im)
 
-    #comment out for segmentation
+    #TODO:comment out for segmentation
     # pil_im2 = Image.open(seg_path)
     # pil_im2 = pil_im2.resize((height, width), Image.ANTIALIAS)
     # im_array2 = np.asarray(pil_im2)
-    pcd_name=pcd_file.split("/")[-1]
+    
     #initialize an empty black image
     viz_image = np.zeros((width, height, 3))
-    # for x in range(width):
-    #     for y in range(height):
-    #         segm = im_array2[y][x][1] / 255.0
-    #         #viz_image[width - x - 1][height - y - 1][:] = im_array[y][x][:] / 255.0
-
-
-    #add depth into RGB array
+    
+    #addING depth into RGB array
     map = plt.get_cmap('rainbow')
     pcd_name=pcd_file.split("/")[-1]
 
@@ -169,10 +170,9 @@ def fuse_rgbd(calibration_file,pcd_file,image, seg_path=0):
             #segm = im_array2[y][x][1] / 255.0
             depth = points[i][2]
             color = map(depth - 0.75)
-            
 
             if '_100_' in pcd_name or '_101_' in pcd_name or '_102_' in pcd_name:
-                newx = y - 1        #height - y - 1
+                newx = y - 1        
                 newy = x - 1
             elif '_200_' in pcd_name or '_201_' in pcd_name or '_202_' in pcd_name:
                 newx = height - y - 1
@@ -183,16 +183,7 @@ def fuse_rgbd(calibration_file,pcd_file,image, seg_path=0):
             viz_image[newy][newx][2] = color[2] 
             #viz_image[x][y][3]= segm
     
-
-    
-    end=datetime.datetime.now()
-    diff=end-start
-
     return viz_image
-
-    
-
-
 
 
 def apply_fusion(calibration_file, pcd_file, jpg_file, seg_path):

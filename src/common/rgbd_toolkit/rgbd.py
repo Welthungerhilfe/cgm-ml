@@ -36,106 +36,102 @@ import warnings
 warnings.filterwarnings("ignore")
 import logging
 logging.getLogger('').handlers = []
-logging.basicConfig(filename='./RGBD.log',level=logging.DEBUG, format='%(asctime)s %(message)s')
+logging.basicConfig(filename='./RGBD_PR.log',level=logging.DEBUG, format='%(asctime)s %(message)s')
 import argparse
 import concurrent.futures
 
  
-
-def find_closest(A, target):
-    #A must be sorted
-    idx   = A.searchsorted(target)
-    idx   = np.clip(idx, 1, len(A)-1)
-    left  = A[idx-1]
-    right = A[idx]
-    idx  -= target - left < right - target
+#function to find the closest rgbd images for a given pcd
+def find_closest(rgb,pcd):
+    
+    #rgb must be sorted
+    idx   = rgb.searchsorted(pcd)
+    idx   = np.clip(idx, 1, len(rgb)-1)
+    left  = rgb[idx-1]
+    right = rgb[idx]
+    idx  -= pcd - left < right - pcd
     return idx
+
+def get_filename(pcd_file,rgbd_folder,qr_folder):
+
+    # now save the new data to the folder
+    fused_folder, pc_filename = os.path.split(str(pcd_file))
+    pcd_path_old = pcd_file
+
+    #finding if its standing or lying artifact
+    scan_type=pcd_file.split("/")[-1].split("_")[3]
+    
+    # replace the pcd and the pc_ in the path for fused data
+    pc_filename = pcd_path_old.replace(".pcd", ".ply")
+    pc_filename = pc_filename.replace("pc_",   "pcrgb_")
+    
+    #make a folder for scan type
+    qr_rgbd=os.path.join(rgbd_folder,qr_folder)
+    qr_rgbd_scan=os.path.join(qr_rgbd,str(scan_type))
+
+    #make the output rgbd filename
+    rgbd_filename = pc_filename.replace(fused_folder.split("measure")[0], qr_rgbd_scan+"/")
+    
+    # manipulate the filename
+    rgbd_filename=rgbd_filename.replace(".ply",".pkl")
+    rgbd_filename=rgbd_filename.replace("/pc/","") 
+
+    #check if output rgbd folder exists
+    rgbd_folder_=os.path.dirname(rgbd_filename)
+    if not(os.path.isfile(rgbd_folder_)): 
+        logging.info("Folder does not exist for " + str(rgbd_filename))
+        os.makedirs(rgbd_folder_, exist_ok=True)
+        logging.info("Created folder " + str(rgbd_folder_))
+    
+    ##TODO:uncomment for segmentation fusion
+
+    # check if a segmentation for the found jpg exists
+    # seg_path_ = jpg_file.replace('.jpg', '_SEG.png')
+    # seg_path_,seg_file=os.path.split(seg_path_)  
+    # seg_folder=os.path.join(seg_folder_,qr_folder)
+
+    # if not os.path.exists(seg_folder):
+    #     os.mkdir(seg_folder)
+    # seg_path=os.path.join(seg_folder,seg_file)
+    
+    # if not( os.path.exists(seg_path) ):
+    
+    #     logging.debug('applying segmentation')
+    #     seg_path = apply_segmentation(image,seg_path,model)
+    #     # check if the path now exists
+    # if not( os.path.exists(seg_path) ):
+    #         logging.error('Segmented file does not exist: ' + seg_path)
+
+    return rgbd_filename
 
 
 
 def process_pcd(paths,process_index=0):
-    
 
             pcd_file = paths[0]
             jpg_file = paths[1]
 
-            # #located the nearest jpg file of that pcd
-            # pcd_file = pcd_path[i]
-            # jpg_file = rgb_path[nn]
-            
             #rotating and aligning rgb image
             img_name=jpg_file.split("/")[-1]
             img=Image.open(jpg_file)
-    
-            
+      
             if '_100_' in img_name or '_101_' in img_name or '_102_' in img_name:
                 image = img.rotate(angle=270)
                 
             elif '_200_' in img_name or '_201_' in img_name or '_202_' in img_name:
                 image = img.rotate(angle=90)
                 
-            
+            #get the qr folder
             qr_folder=str(Path(qr)).split("/")[-1]
-
-            ##TODO:uncomment for segmentation fusion
-
-            # check if a segmentation for the found jpg exists
-            # seg_path_ = jpg_file.replace('.jpg', '_SEG.png')
-            # seg_path_,seg_file=os.path.split(seg_path_)  
-            # seg_folder=os.path.join(seg_folder_,qr_folder)
-
-            # if not os.path.exists(seg_folder):
-            #     os.mkdir(seg_folder)
-            # seg_path=os.path.join(seg_folder,seg_file)
-            
-            # if not( os.path.exists(seg_path) ):
-            
-            #     logging.debug('applying segmentation')
-            #     seg_path = apply_segmentation(image,seg_path,model)
-            #     # check if the path now exists
-            # if not( os.path.exists(seg_path) ):
-            #         logging.error('Segmented file does not exist: ' + seg_path)
             
             calibration_file="./calibration.xml"
            
-
-            # now save the new data to the folder
-            fused_folder, pc_filename = os.path.split(str(pcd_file))
-            pcd_path_old = pcd_file
-
-            #finding if its standing or lying artifact
-            scan_type=pcd_file.split("/")[-1].split("_")[3]
-            
-            
-            
-            # replace the pcd and the pc_ in the path for fused data
-            pc_filename = pcd_path_old.replace(".pcd", ".ply")
-            pc_filename = pc_filename.replace("pc_",   "pcrgb_")
-            
-            #make a folder for scan type
-            qr_rgbd=os.path.join(rgbd_folder_,qr_folder)
-            qr_rgbd_scan=os.path.join(qr_rgbd,str(scan_type))
-            
             if args.mounted:
             #get height and weight label for the corresponding artifact
                 height=int(artifacts_file.loc[np.where(artifacts_file["qrcode"]==qr_folder)].iloc[0].loc["height"])
                 weight=int(artifacts_file.loc[np.where(artifacts_file["qrcode"]==qr_folder)].iloc[0].loc["weight"])
             
-            #make the output rgbd filename
-            rgbd_filename = pc_filename.replace(fused_folder.split("measure")[0], qr_rgbd_scan+"/")
-            
-    
-            # write the data to the new storage
-            rgbd_filename=rgbd_filename.replace(".ply",".pkl")
-            rgbd_filename=rgbd_filename.replace("/pc/","")  
-            
-            #check if output rgbd folder exists
-            rgbd_folder=os.path.dirname(rgbd_filename)
-            if not(os.path.isfile(rgbd_folder)): 
-                logging.info("Folder does not exist for " + str(rgbd_filename))
-                os.makedirs(rgbd_folder, exist_ok=True)
-                logging.info("Created folder " + str(rgbd_folder))
-
+            rgbd_filename=get_filename(pcd_file,rgbd_folder,qr_folder)
 
             logging.info("Going to writing new fused data to: " + rgbd_filename)
 
@@ -148,7 +144,7 @@ def process_pcd(paths,process_index=0):
                         data=(rgbdseg_arr,labels)
                         pickle.dump(data, open(rgbd_filename, "wb"))
                     else:
-                    #saving as a png file if not mounted data
+            #saving as a png file if not mounted data
                         rgbd_filename=rgbd_filename.replace(".pkl",".png")
                         fig = plt.figure()
                         plt.imsave(rgbd_filename,rgbdseg_arr)
@@ -156,11 +152,13 @@ def process_pcd(paths,process_index=0):
 
                     logging.info("successfully wrote new data to" + rgbd_filename)                              
                 except Exception as e: 
-                    logging.error("Something went wrong.Skipping this file" + pc_filename)
+                    logging.error("Something went wrong.Skipping this file")
                     
                     logging.error(str(e))
-                    pass
+                    continue
             logging.info("file already processed")
+
+            
             
 def get_files(norm_rgb_time, rgb_path, norm_pcd_time, pcd_path):
     files = []
@@ -180,11 +178,10 @@ def get_files(norm_rgb_time, rgb_path, norm_pcd_time, pcd_path):
         # get the original file path
         path, filename = os.path.split(str(pcd_path[i]))
 
+        #located the nearest jpg file of that pcd
         pcd_file = pcd_path[i]
-        #pcd_file = pcd_file[0]
         jpg_file = rgb_path[nn]
-        #pcd_id = pcd_artifact_id[i]
-        #rgb_id = rgb_artifact_id[nn]
+
         files.append([pcd_file, jpg_file])
 
         i = i+1
@@ -235,11 +232,10 @@ if __name__ == "__main__":
     if args.segmented:
         model=load_model()
 
-    
     #making output dir for storing rgbd files
-    rgbd_folder_=args.output
-    if not os.path.exists(rgbd_folder_):
-        os.mkdir(rgbd_folder_)
+    rgbd_folder=args.output
+    if not os.path.exists(rgbd_folder):
+        os.mkdir(rgbd_folder)
 
 
     #initialize empty lists for rgb and pcd paths of a given qr code
