@@ -9,7 +9,7 @@ from azureml.core.run import Run
 from tensorflow.keras import callbacks, layers, models
 
 from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
-from constants import DATA_DIR_ONLINE_RUN, REPO_DIR
+from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
 from model import create_head, get_base_model
 from preprocessing import create_samples, tf_load_pickle, tf_augment_sample
 from utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback
@@ -147,7 +147,7 @@ model_output = head_model(concatenation)
 model = models.Model(model_input, model_output)
 model.summary()
 
-best_model_path = str(DATA_DIR / 'outputs/best_model.ckpt')
+best_model_path = str(DATA_DIR / f'outputs/{MODEL_CKPT_FILENAME}')
 checkpoint_callback = callbacks.ModelCheckpoint(
     filepath=best_model_path,
     monitor="val_loss",
