@@ -30,12 +30,12 @@ qrcode
 
 2. usage: 
 ```
-rgbd.py [-h] [--input inputpath] [--output outputpath] optional: [--mounted if using the input as the mounted datastore of qr codes]  [--w specifying number of workers]
+python rgbd.py [-h] [--input inputpath] [--output outputpath] optional: [--mounted if using the input as the mounted datastore of qr codes]  [--w specifying number of workers]
 ```
 
 For eg: 
 ```
-python rgbd.py --input [/mnt/cgmmlprod/cgminbmzprod_v5.0/] --output [/mnt/preprocessed/rgbd56k/] --mounted --w [20]
+python rgbd.py --input /mnt/cgmmlprod/cgminbmzprod_v5.0/ --output /mnt/preprocessed/rgbd56k/ --mounted --w 20
 ```
 
 3. TODO add segmented rgbd

@@ -103,7 +103,7 @@ class Channel(IntEnum):
 
 def get_depth_channel(ply_path, output_path_np, output_path_png,calibration_file):
     channel = Channel.z
-    #calibration_file =  '/whhdata/calibration.xml'
+    
     if not os.path.exists(calibration_file):                   # check if the califile exists
         logging.error ('Calibration does not exist')
         return 
@@ -170,7 +170,7 @@ def get_depth_channel(ply_path, output_path_np, output_path_png,calibration_file
 
 def get_rgbd_channel(ply_path, output_path_np,calibration_file):
     channel = Channel.z
-    #calibration_file =  '/whhdata/calibration.xml'
+    
     if not os.path.exists(calibration_file):                   # check if the califile exists
         logging.error ('Calibration does not exist')
         return 
@@ -204,19 +204,17 @@ def get_rgbd_channel(ply_path, output_path_np,calibration_file):
 
     # manipulate the pixels color value depending on the z coordinate
     # TODO make this a function
-    try:
-        for i, t in enumerate(im_coords):
-            x, y = t.squeeze()
-            x = int(np.round(x))
-            y = int(np.round(y))
-            if x >= 0 and x < height and y >= 0 and y < width:
-                viz_image[x,y, 0] = r[i]
-                viz_image[x,y, 1] = g[i]
-                viz_image[x,y, 2] = b[i]
-                viz_image[x,y, 3] = z[i] 
-    except:
-        pass
-
+    
+    for i, t in enumerate(im_coords):
+        x, y = t.squeeze()
+        x = int(np.round(x))
+        y = int(np.round(y))
+        if x >= 0 and x < height and y >= 0 and y < width:
+            viz_image[x,y, 0] = r[i]
+            viz_image[x,y, 1] = g[i]
+            viz_image[x,y, 2] = b[i]
+            viz_image[x,y, 3] = z[i] 
+    
     np.save(output_path_np, viz_image)
     return viz_image
 
@@ -224,7 +222,7 @@ def get_rgbd_channel(ply_path, output_path_np,calibration_file):
 
 def get_all_channel(ply_path, output_path_np,calibration_file):
     channel = Channel.z
-    #calibration_file =  '/whhdata/calibration.xml'
+    
     if not os.path.exists(calibration_file):                   # check if the califile exists
         logging.error ('Calibration does not exist')
         return 
@@ -303,7 +301,7 @@ Function to get the depth from a point cloud as an image for visualization
 '''
 def get_viz_channel(calibration_file,ply_path, channel=Channel.z, output_path="/tmp/output.png"):
 
-    #calibration_file =  '/whhdata/calibration.xml'
+    
     if not os.path.exists(calibration_file):                # check if the califile exists
         logging.error ('Calibration does not exist')
         return 
