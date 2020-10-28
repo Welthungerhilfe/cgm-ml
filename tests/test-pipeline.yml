@@ -56,12 +56,26 @@
         ls -l
       displayName: 'Depthmap PlainCNN Height Model Evaluation'
 
+    - bash: |
+        cd tests/QA/standardisation-test
+        ls -l
+        source /usr/share/miniconda/etc/profile.d/conda.sh
+        conda activate CGM_QA_Pipeline
+        echo Executing eval_notebook.ipynb
+        papermill eval_notebook.ipynb standardisation-test_output.ipynb --log-output --no-progress-bar -k python3
+        jupyter nbconvert --to html standardisation-test_output.ipynb
+        ls -l
+      displayName: 'Standardisation Test Model Evaluation'
+
+
     - task: CopyFiles@2
       inputs:
         SourceFolder: '$(Build.SourcesDirectory)'
         Contents: |
           tests/QA/eval-depthmap-plaincnn-height/depthmap-plaincnn-height_output.html
           tests/QA/eval-depthmap-plaincnn-height/*.csv
+          tests/QA/standardisation-test/standardisation-test_output.html
+          tests/QA/standardisation-test/*.csv
         TargetFolder: '$(Build.ArtifactStagingDirectory)'
       displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
 
