@@ -10,3 +10,4 @@ dependencies:
     - azureml-sdk[notebooks,automl]==1.13.0
     - papermill==1.0.1
     - nbconvert==5.6.0
+    - matplotlib==3.2.1
