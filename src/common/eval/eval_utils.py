@@ -9,6 +9,7 @@ REPO_DIR = Path(os.getcwd()).parents[2]
 
 # Error margin on various ranges
 EVALUATION_ACCURACIES = [.2, .4, .8, 1.2, 2., 2.5, 3., 4., 5., 6.]
+MODEL_CKPT_FILENAME = "best_model.ckpt"
 
 CODE_TO_SCANTYPE = {
     '100': '_front',
