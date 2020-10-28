@@ -207,9 +207,17 @@ def prepare_and_save_tem_results(measure_table, save_path):
         tem = utils.get_intra_TEM(heightOne, heightTwo)
         result.loc[idx, 'TEM'] = tem
     
+    new_index = []
+    for idx in result.index:
+        if idx[:3] == 'cgm':
+            new_index.append('Model_Measure_' + idx)
+        else:
+            new_index.append(idx)
+    result.index = new_index
+
     if EVAL_CONFIG.DEBUG_LOG:
         display(result)
-    
+
     result.to_csv(save_path)
     return result
 
