@@ -134,6 +134,16 @@ def py_load_pickle(path, max_value):
     return depthmap, targets
 
 
+def create_samples(qrcode_paths: List[str]) -> List[List[str]]:
+    samples = []
+    for qrcode_path in sorted(qrcode_paths):
+        for code in CONFIG.CODES_FOR_POSE_AND_SCANSTEP:
+            p = os.path.join(qrcode_path, code)
+            new_samples = create_multiartifact_paths(p, CONFIG.N_ARTIFACTS)
+            samples.extend(new_samples)
+    return samples
+
+
 def create_multiartifact_paths(qrcode_path: str, n_artifacts: int) -> List[List[str]]:
     """Look at files for 1 qrcode and divide into samples.
 

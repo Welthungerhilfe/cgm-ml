@@ -12,7 +12,7 @@ from tensorflow.keras import callbacks, layers, models
 from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, REPO_DIR
 from model import create_base_cnn, create_head, load_base_cgm_model
-from preprocessing import create_multiartifact_paths, tf_load_pickle, tf_augment_sample
+from preprocessing import create_samples, tf_load_pickle, tf_augment_sample
 from utils import download_dataset, get_dataset_path
 
 # Make experiment reproducible
@@ -89,17 +89,6 @@ print(len(qrcode_paths_training))
 print(len(qrcode_paths_validate))
 
 assert len(qrcode_paths_training) > 0 and len(qrcode_paths_validate) > 0
-
-
-def create_samples(qrcode_paths: List[str]) -> List[List[str]]:
-    samples = []
-    for qrcode_path in sorted(qrcode_paths):
-        for code in CONFIG.CODES_FOR_POSE_AND_SCANSTEP:
-            p = os.path.join(qrcode_path, code)
-            new_samples = create_multiartifact_paths(p, CONFIG.N_ARTIFACTS)
-            samples.extend(new_samples)
-    return samples
-
 
 paths_training = create_samples(qrcode_paths_training)
 print(f"Samples for training: {len(paths_training)}")
