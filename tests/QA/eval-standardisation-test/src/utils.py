@@ -1,18 +1,15 @@
-import glob as glob
-import pandas as pd
+import os
 import math
+import zipfile
+import pickle
+import numpy as np
+import pandas as pd
+import glob2 as glob
 import matplotlib.pyplot as plt
 from IPython.display import display
 from skimage.transform import resize
 
-import zipfile
-import os
-import pandas as pd
-#import glob2 as glob
-import pickle
-import numpy as np
 from test_config import DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG
-#from src.test_config import DATA_CONFIG, RESULT_CONFIG
 
 image_target_height = 240
 image_target_width = 180

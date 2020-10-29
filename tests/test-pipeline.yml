@@ -18,16 +18,9 @@
 
     - bash: |
         cd tests
-        ls -l
         source /usr/share/miniconda/etc/profile.d/conda.sh
-        which conda
         conda env create -f environment.yml
-        conda env list
-        jupyter kernelspec list
         conda activate CGM_QA_Pipeline
-        conda list
-        conda list | grep nbconvert
-        conda list | grep papermill
         jupyter kernelspec list
       displayName: 'Environment Creation'
     
@@ -39,7 +32,6 @@
     
     - bash: |
         cd tests/QA
-        ls -l
         source /usr/share/miniconda/etc/profile.d/conda.sh
         conda activate CGM_QA_Pipeline
         python auth.py -sid $(subscriptionid) -rg $(RESOURCE_GROUP) -wn $(WORKSPACE_NAME)
@@ -47,7 +39,6 @@
 
     - bash: |
         cd tests/QA/eval-depthmap-height
-        ls -l
         source /usr/share/miniconda/etc/profile.d/conda.sh
         conda activate CGM_QA_Pipeline
         echo Executing eval_notebook.ipynb
@@ -58,7 +49,6 @@
 
     - bash: |
         cd tests/QA/eval-standardisation-test
-        ls -l
         source /usr/share/miniconda/etc/profile.d/conda.sh
         conda activate CGM_QA_Pipeline
         echo Executing eval_notebook.ipynb

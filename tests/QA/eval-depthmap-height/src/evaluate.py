@@ -1,8 +1,8 @@
 import os
-import pickle
 import random
-import pandas as pd
+import pickle
 import numpy as np
+import pandas as pd
 import glob2 as glob
 import tensorflow as tf
 from tensorflow.keras.models import load_model
@@ -117,13 +117,13 @@ if __name__ == "__main__":
     del dataset_norm
 
     #Get the prediction
-    prediction_listOne = get_height_prediction(MODEL_CONFIG.NAME, dataset_evaluation)
+    prediction_list_one = get_height_prediction(MODEL_CONFIG.NAME, dataset_evaluation)
 
     print("Prediction made by model on the depthmaps...")
-    print(prediction_listOne)
+    print(prediction_list_one)
 
     qrcode_list, scantype_list, artifact_list, prediction_list, target_list = utils.get_column_list(
-        paths_evaluation, prediction_listOne)
+        paths_evaluation, prediction_list_one)
 
     df = pd.DataFrame({
         'qrcode' : qrcode_list,
