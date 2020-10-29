@@ -84,7 +84,7 @@ class PreprocessedDataGenerator(object):
         elif input_type == "rgbmap":
             self.dataset_path = os.path.join(dataset_path, "pcd")
         else:
-            raise Exception("Unknown input_type: " + class_self.input_type)
+            raise Exception("Unknown input_type: " + self.input_type)
 
         # Assign the instance-variables.
         self.input_type = input_type
@@ -119,7 +119,7 @@ class PreprocessedDataGenerator(object):
 
         # Retrieve the QR-codes from the folders.
         paths = glob.glob(os.path.join(self.dataset_path, "*"))
-        paths = [path for path in paths if os.path.isdir(path) == True]
+        paths = [path for path in paths if os.path.isdir(path) is True]
         self.qrcodes = sorted([path.split("/")[-1] for path in paths])
 
     def _prepare_qrcodes_dictionary(self):
@@ -158,7 +158,7 @@ class PreprocessedDataGenerator(object):
 
     def generate(self, size, qrcodes_to_use=None, verbose=False, workers=1):
 
-        if qrcodes_to_use == None:
+        if qrcodes_to_use is None:
             qrcodes_to_use = self.qrcodes
 
         print("Using {} workers...".format(workers))
@@ -217,7 +217,7 @@ class PreprocessedDataGenerator(object):
                 raise Exception("Unexpected value for 'workers' " + str(workers))
 
     def _create_voxelgrid_from_pointcloud(self, pointcloud, augmentation=True):
-        if self.voxelgrid_random_rotation == True and augmentation == True:
+        if self.voxelgrid_random_rotation is True and augmentation is True:
             pointcloud = self._rotate_point_cloud(pointcloud)
 
         # Create voxelgrid from pointcloud.
@@ -227,9 +227,9 @@ class PreprocessedDataGenerator(object):
         voxelgrid = pointcloud.structures[voxelgrid_id].get_feature_vector(mode="density")
 
         # Do the preprocessing.
-        if preprocess == True:
-            voxelgrid = utils.ensure_voxelgrid_shape(voxelgrid, self.voxelgrid_target_shape)
-            assert voxelgrid.shape == self.voxelgrid_target_shape
+        # if preprocess is True:
+        #     voxelgrid = utils.ensure_voxelgrid_shape(voxelgrid, self.voxelgrid_target_shape)
+        #     assert voxelgrid.shape == self.voxelgrid_target_shape
 
         return voxelgrid
 
@@ -258,10 +258,10 @@ class PreprocessedDataGenerator(object):
 
 def generate_data(class_self, size, qrcodes_to_use, verbose, return_control="return_values"):
 
-    if isinstance(class_self, type(Bunch)) == False:
+    if isinstance(class_self, type(Bunch)) is False:
         class_self = Bunch(dict(class_self))
 
-    if verbose == True:
+    if verbose is True:
         print("Generating using QR-codes:", qrcodes_to_use)
 
     assert size != 0
@@ -269,7 +269,7 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, return_control="ret
     x_inputs = []
     y_outputs = []
 
-    if verbose == True:
+    if verbose is True:
         bar = progressbar.ProgressBar(max_value=size)
     while len(x_inputs) < size:
 
@@ -335,10 +335,10 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, return_control="ret
 
         assert len(x_inputs) == len(y_outputs)
 
-        if verbose == True:
+        if verbose is True:
             bar.update(len(x_inputs))
 
-    if verbose == True:
+    if verbose is True:
         bar.finish()
 
     assert len(x_inputs) == size

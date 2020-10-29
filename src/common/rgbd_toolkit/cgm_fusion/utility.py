@@ -16,7 +16,7 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from cgm_fusion.calibration import get_intrinsic_matrix_depth,get_extrinsic_matrix_depth,get_k_depth
+from cgm_fusion.calibration import get_intrinsic_matrix_depth, get_extrinsic_matrix_depth, get_k_depth
 import numpy as np
 import os
 import logging
@@ -244,9 +244,9 @@ def get_all_channel(ply_path, output_path_np, calibration_file):
     seg = cloud.points.values[:, 7]
     conf = cloud.points.values[:, 3]
 
-    nx = cloud.points.values[:, 8]
-    nx = cloud.points.values[:, 9]
-    nz = cloud.points.values[:, 10]
+    # nx = cloud.points.values[:, 8]
+    # nx = cloud.points.values[:, 9]
+    # nz = cloud.points.values[:, 10]
 
     # iterat of the points and calculat the x y coordinates in the image
     # get the data for calibration

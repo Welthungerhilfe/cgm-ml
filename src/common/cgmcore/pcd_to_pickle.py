@@ -4,7 +4,7 @@ import numpy as np
 from pyntcloud import PyntCloud
 import pathlib
 import os
-import pathlib
+
 
 
 source_path = '/mnt/depthmap/pcd_50k/'
@@ -26,7 +26,7 @@ def load_pcd_as_ndarray(pcd_path):
 
 def pcd_to_pickle(dataset):
     """
-    --dataset: A csv file conataining height, weight, qrcode, storage path for pcd 
+    --dataset: A csv file conataining height, weight, qrcode, storage path for pcd
 
     return:
     -- folder with pickle file having pointcloud, height and weight

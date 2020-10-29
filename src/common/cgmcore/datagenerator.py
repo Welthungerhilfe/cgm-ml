@@ -191,9 +191,9 @@ class DataGenerator(object):
 
             # Filter paths for qrcodes and measurements. Find all JPGs and PCDs for a given QR-code and make sure that the timestamps are related.
             jpg_paths = [jpg_path for jpg_path in self.jpg_paths if self._is_matching_measurement(
-                jpg_path, qrcode, timestamp) == True]
+                jpg_path, qrcode, timestamp) is True]
             pcd_paths = [pcd_path for pcd_path in self.pcd_paths if self._is_matching_measurement(
-                pcd_path, qrcode, timestamp) == True]
+                pcd_path, qrcode, timestamp) is True]
 
             # Store it all.
             qrcodes_dictionary[qrcode].append((targets, jpg_paths, pcd_paths))
@@ -299,13 +299,13 @@ class DataGenerator(object):
             pointcloud = PyntCloud.from_file(pcd_path).points.values
             pointcloud = np.array(pointcloud)
 
-            if self.pointcloud_target_size != None and preprocess == True:
+            if self.pointcloud_target_size != None and preprocess is True:
                 pointcloud = pointcloud[:self.pointcloud_target_size]
                 if len(pointcloud) < self.pointcloud_target_size:
                     zeros = np.zeros((self.pointcloud_target_size - len(pointcloud), 4))
                     pointcloud = np.concatenate([pointcloud, zeros])
 
-            if self.pointcloud_random_rotation == True and augmentation == True:
+            if self.pointcloud_random_rotation is True and augmentation is True:
                 numpy_points = pointcloud[:, 0:3]
                 numpy_points = self._rotate_point_cloud(numpy_points)
                 pointcloud[:, 0:3] = numpy_points
@@ -319,7 +319,7 @@ class DataGenerator(object):
 
             # Load the pointcloud.
             point_cloud = PyntCloud.from_file(pcd_path)
-            if self.voxelgrid_random_rotation == True and augmentation == True:
+            if self.voxelgrid_random_rotation is True and augmentation is True:
                 points = point_cloud.points
                 numpy_points = points.values[:, 0:3]
                 numpy_points = self._rotate_point_cloud(numpy_points)
@@ -332,7 +332,7 @@ class DataGenerator(object):
             voxelgrid = point_cloud.structures[voxelgrid_id].get_feature_vector(mode="density")
 
             # Do the preprocessing.
-            if preprocess == True:
+            if preprocess is True:
                 voxelgrid = utils.ensure_voxelgrid_shape(voxelgrid, self.voxelgrid_target_shape)
                 assert voxelgrid.shape == self.voxelgrid_target_shape
 
@@ -387,7 +387,7 @@ class DataGenerator(object):
 
     def generate(self, size, qrcodes_to_use=None, verbose=False, yield_file_paths=False, multiprocessing_jobs=1):
 
-        if qrcodes_to_use == None:
+        if qrcodes_to_use is None:
             qrcodes_to_use = self.qrcodes
 
         # Main loop.
@@ -452,7 +452,7 @@ class DataGenerator(object):
                             result_values[1].shape) + " vs " + str(y_outputs_arrays[-1].shape)
                     x_inputs_arrays.append(result_values[0])
                     y_outputs_arrays.append(result_values[1])
-                    if yield_file_paths == True:
+                    if yield_file_paths is True:
                         file_paths_arrays.append(result_values[2])
                     else:
                         file_paths_arrays.append([])
@@ -464,7 +464,7 @@ class DataGenerator(object):
                 assert len(y_outputs) == size
 
                 # Done.
-                if yield_file_paths == False:
+                if yield_file_paths is False:
                     yield x_inputs, y_outputs
                 else:
                     yield x_inputs, y_outputs, file_paths
@@ -475,7 +475,7 @@ class DataGenerator(object):
 
     def generate_dataset(self, qrcodes_to_use=None):
 
-        if qrcodes_to_use == None:
+        if qrcodes_to_use is None:
             qrcodes_to_use = self.qrcodes
 
         x_qrcodes = []
@@ -531,7 +531,7 @@ class DataGenerator(object):
                     y_outputs.append(targets)
 
             else:
-                raise Exception("Unknown input_type: " + input_type)
+                raise Exception("Unknown input_type: " + self.input_type)
 
         x_qrcodes = np.array(x_qrcodes)
         x_inputs = np.array(x_inputs)
@@ -712,7 +712,7 @@ def test_parameters():
 
 
 def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, output_queue):
-    if verbose == True:
+    if verbose is True:
         print("Generating using QR-codes:", qrcodes_to_use)
 
     assert size != 0
@@ -721,7 +721,7 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, o
     y_outputs = []
     file_paths = []
 
-    if verbose == True:
+    if verbose is True:
         bar = progressbar.ProgressBar(max_value=size)
     while len(x_inputs) < size:
 
@@ -771,10 +771,10 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, o
         assert len(x_inputs) == len(y_outputs)
         assert len(y_outputs) == len(file_paths)
 
-        if verbose == True:
+        if verbose is True:
             bar.update(len(x_inputs))
 
-    if verbose == True:
+    if verbose is True:
         bar.finish()
 
     assert len(x_inputs) == size
@@ -787,7 +787,7 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, o
     # Prepare result values.
     assert len(x_inputs) == size
     assert len(y_outputs) == size
-    if yield_file_paths == False:
+    if yield_file_paths is False:
         return_values = (x_inputs, y_outputs)
     else:
         return_values = (x_inputs, y_outputs, file_paths)

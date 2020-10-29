@@ -187,7 +187,7 @@ def center_crop_voxelgrid(voxelgrid, voxelgrid_target_shape):
     for i in range(3):
         crop_start[i] = (voxelgrid.shape[i] - voxelgrid_target_shape[i]) // 2
         crop_start[i] = max(0, crop_start[i])
-        crop_end[i] = target_shape[i] + crop_start[i]
+        crop_end[i] = voxelgrid_target_shape[i] + crop_start[i]
     voxelgrid = voxelgrid[crop_start[0]:crop_end[0],
                           crop_start[1]:crop_end[1], crop_start[2]:crop_end[2]]
 
@@ -488,10 +488,10 @@ def multiprocess(
     disable_gpu=False
 ):
     # Get number of workers.
-    if number_of_workers == None:
+    if number_of_workers is None:
         number_of_workers = multiprocessing.cpu_count()
     print("Using {} workers.".format(number_of_workers))
-    if disable_gpu == True:
+    if disable_gpu is True:
         print("GPU is disabled.")
 
     # Split into list.
@@ -505,27 +505,27 @@ def multiprocess(
     # This method is starting point for multiprocessing
     def process_entries(entry_sublist, process_index):
 
-        if disable_gpu == True:
+        if disable_gpu is True:
             os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
         try:
             # Process individually.
             if process_individial_entries:
                 for entry_index, entry in enumerate(tqdm(entry_sublist, position=process_index)):
-                    if pass_process_index == False:
+                    if pass_process_index is False:
                         result = process_method(entry)
                     else:
                         result = process_method(entry, process_index)
 
             # Process all.
             else:
-                if pass_process_index == False:
+                if pass_process_index is False:
                     result = process_method(entry_sublist)
                 else:
                     result = process_method(entry_sublist, process_index)
 
             # No results returned. Just provide status string.
-            if result == None:
+            if result is None:
                 output.put("Processed {}".format(len(entry_sublist)))
 
             # Results found. Playing it safe. Use pickle.
@@ -582,11 +582,11 @@ def multiprocess(
 # Render a subsample of the artifacts.
 def render_artifacts_as_gallery(artifacts, targets=None, qr_code=None, timestamp=None, num_columns=10, target_size=(1920 // 4, 1080 // 4), image_path=None, use_plt=True):
 
-  # Render results image.
+    # Render results image.
     result_images = []
     row_images = []
     for artifact in artifacts:
-        if isinstance(artifact, str) == False:
+        if isinstance(artifact, str) is False:
             artifact = artifact[0]
         path = artifact.replace("whhdata", "localssd")
         img = Image.open(path)
@@ -617,13 +617,13 @@ def render_artifacts_as_gallery(artifacts, targets=None, qr_code=None, timestamp
         title_string += " Targets: " + ", ".join([str(target) for target in targets])
 
     # Render with plt.
-    if use_plt == True:
+    if use_plt is True:
         plt.figure(figsize=(20, int(20 * result_image.shape[0] / result_image.shape[1])))
         plt.imshow(result_image)
         plt.axis("off")
         plt.title(title_string)
 
-        if image_path == None:
+        if image_path is None:
             plt.show()
         else:
             plt.savefig(image_path)

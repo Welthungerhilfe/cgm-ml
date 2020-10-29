@@ -61,7 +61,7 @@ def create_multiview_model_old(base_model, multiviews_num, input_shape, output_s
 
     model = models.Sequential()
     model.add(layers.TimeDistributed(base_model, input_shape=(multiviews_num,) + input_shape))
-    if use_lstm == True:
+    if use_lstm is True:
         model.add(layers.LSTM(8, activation="relu"))
     else:
         model.add(layers.AveragePooling1D(multiviews_num))
@@ -216,7 +216,7 @@ def create_point_net(input_shape, output_size, hidden_sizes=[512, 256], use_lamb
     input_T = layers.Reshape((input_shape[1], input_shape[1]))(x)
 
     # forward net
-    if use_lambda == True:
+    if use_lambda is True:
         g = layers.Lambda(mat_mul, arguments={'B': input_T})(input_points)
     else:
         g = layers.dot([input_points, input_T], axes=-1, normalize=True)
@@ -242,7 +242,7 @@ def create_point_net(input_shape, output_size, hidden_sizes=[512, 256], use_lamb
     feature_T = layers.Reshape((64, 64))(f)
 
     # forward net
-    if use_lambda == True:
+    if use_lambda is True:
         g = layers.Lambda(mat_mul, arguments={'B': feature_T})(g)
     else:
         g = layers.dot([g, feature_T], axes=-1, normalize=True)
@@ -388,4 +388,5 @@ def load_pointnet(weights_path, input_shape, output_size, hidden_sizes):
     except:
         model = create_point_net(input_shape, output_size, hidden_sizes, use_lambda=True)
         model.load_weights(weights_path)
+        passs
     return model

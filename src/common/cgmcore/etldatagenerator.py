@@ -7,6 +7,7 @@ import os
 import numpy as np
 import glob2 as glob
 import random
+import uuid
 import progressbar
 from pyntcloud import PyntCloud
 import pickle
@@ -153,7 +154,7 @@ class ETLDataGenerator(object):
 
     def generate(self, size, qrcodes_to_use=None, verbose=False, yield_file_paths=False, multiprocessing_jobs=1):
 
-        if qrcodes_to_use == None:
+        if qrcodes_to_use is None:
             qrcodes_to_use = self.qrcodes
 
         # Main loop.
@@ -218,7 +219,7 @@ class ETLDataGenerator(object):
                             result_values[1].shape) + " vs " + str(y_outputs_arrays[-1].shape)
                     x_inputs_arrays.append(result_values[0])
                     y_outputs_arrays.append(result_values[1])
-                    if yield_file_paths == True:
+                    if yield_file_paths is True:
                         file_paths_arrays.append(result_values[2])
                     else:
                         file_paths_arrays.append([])
@@ -245,14 +246,14 @@ class ETLDataGenerator(object):
         if pointcloud == []:
             pointcloud = PyntCloud.from_file(pcd_path).points.values
 
-            if self.pointcloud_target_size != None and preprocess == True:
+            if self.pointcloud_target_size != None and preprocess is True:
                 pointcloud = np.array(pointcloud)[:, 0:3]  # Drop confidence.
                 pointcloud = pointcloud[:self.pointcloud_target_size]
                 if len(pointcloud) < self.pointcloud_target_size:
                     zeros = np.zeros((self.pointcloud_target_size - len(pointcloud), 4))
                     pointcloud = np.concatenate([pointcloud, zeros])
 
-            if self.pointcloud_random_rotation == True and augmentation == True:
+            if self.pointcloud_random_rotation is True and augmentation is True:
                 numpy_points = pointcloud[:, 0:3]
                 numpy_points = self._rotate_point_cloud(numpy_points)
                 pointcloud[:, 0:3] = numpy_points
@@ -266,7 +267,7 @@ class ETLDataGenerator(object):
 
             # Load the pointcloud.
             point_cloud = PyntCloud.from_file(pcd_path)
-            if self.voxelgrid_random_rotation == True and augmentation == True:
+            if self.voxelgrid_random_rotation is True and augmentation is True:
                 points = point_cloud.points
                 numpy_points = points.values[:, 0:3]
                 numpy_points = self._rotate_point_cloud(numpy_points)
@@ -279,7 +280,7 @@ class ETLDataGenerator(object):
             voxelgrid = point_cloud.structures[voxelgrid_id].get_feature_vector(mode="density")
 
             # Do the preprocessing.
-            if preprocess == True:
+            if preprocess is True:
                 voxelgrid = utils.ensure_voxelgrid_shape(voxelgrid, self.voxelgrid_target_shape)
                 assert voxelgrid.shape == self.voxelgrid_target_shape
 
@@ -337,7 +338,7 @@ def get_dataset_path(root_path="../data/etl"):
 
 
 def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, output_queue):
-    if verbose == True:
+    if verbose is True:
         print("Generating using QR-codes:", qrcodes_to_use)
 
     assert size != 0
@@ -346,7 +347,7 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, o
     y_outputs = []
     file_paths = []
 
-    if verbose == True:
+    if verbose is True:
         bar = progressbar.ProgressBar(max_value=size)
     while len(x_inputs) < size:
 
@@ -396,10 +397,10 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, o
         assert len(x_inputs) == len(y_outputs)
         assert len(y_outputs) == len(file_paths)
 
-        if verbose == True:
+        if verbose is True:
             bar.update(len(x_inputs))
 
-    if verbose == True:
+    if verbose is True:
         bar.finish()
 
     assert len(x_inputs) == size
@@ -418,7 +419,7 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, o
         return_values = (x_inputs, y_outputs, file_paths)
 
     # This is used in multiprocessing. Creates a pickle file and puts the data there.
-    if output_queue != None:
+    if output_queue is not None:
         output_path = uuid.uuid4().hex + ".p"
         pickle.dump(return_values, open(output_path, "wb"))
         output_queue.put(output_path)
@@ -465,6 +466,6 @@ def get_input(class_self, jpg_paths, pcd_paths):
 
     # Should not happen.
     else:
-        raise Exception("Unknown input_type: " + input_type)
+        raise Exception("Unknown input_type: " + class_self.input_type)
 
     return x_input, file_path

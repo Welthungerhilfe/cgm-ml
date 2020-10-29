@@ -14,11 +14,11 @@ from pathlib import Path
 import azureml.core
 import tensorflow.compat.v1 as tf
 from PIL import Image
-sys.path.append('../cgm-ml')
-sys.path.append(os.path.dirname(os.getcwd()))
 from get_timestamps import get_timestamps_from_rgb, get_timestamps_from_pcd
 from cgm_fusion.fusion import fuse_rgbd
 #from segmentation import DeepLabModel, load_model, apply_segmentation
+sys.path.append('../cgm-ml')
+sys.path.append(os.path.dirname(os.getcwd()))
 tf.disable_v2_behavior()
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 # check core SDK version number
