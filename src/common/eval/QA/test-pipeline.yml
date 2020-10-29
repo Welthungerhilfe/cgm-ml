@@ -63,8 +63,8 @@
         Contents: |
           src/common/eval/QA/eval-depthmap-height/depthmap-height_output.html
           src/common/eval/QA/eval-depthmap-height/*.csv
-          src/common/eval/QA/standardisation-test/standardisation-test_output.html
-          src/common/eval/QA/standardisation-test/*.csv
+          src/common/eval/QA/eval-standardisation-test/standardisation-test_output.html
+          src/common/eval/QA/eval-standardisation-test/*.csv
         TargetFolder: '$(Build.ArtifactStagingDirectory)'
       displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
 
