@@ -325,7 +325,7 @@ def get_viz_channel(calibration_file,
             viz_image[x, y] = 255 * z[i]
 
     # resize and  return the image after pricessing
-    imgScale = 0.25
+    #imgScale = 0.25
     #newX, newY = viz_image.shape[1] * imgScale, viz_image.shape[0] * imgScale
     cv2.imwrite(output_path, viz_image)
 

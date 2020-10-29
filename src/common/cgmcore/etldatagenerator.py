@@ -75,7 +75,7 @@ class ETLDataGenerator(object):
 
         # Find all QR-codes.
         self._find_qrcodes()
-        assert self.qrcodes != [], "No QR-codes found!"
+        assert self.qrcodes is not None, "No QR-codes found!"
 
         # Prepare the data.
         self._prepare_qrcodes_dictionary()

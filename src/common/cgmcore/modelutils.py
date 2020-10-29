@@ -361,6 +361,7 @@ def save_model_and_history(output_path, datetime_string, model, history, trainin
         print("Saved model to" + model_path)
     except Exception:
         print("WARNING! Failed to save model. Use model-weights instead.")
+        pass
 
     # Save the model weights.
     model_weights_name = datetime_string + "-" + name + "-model-weights.h5"
