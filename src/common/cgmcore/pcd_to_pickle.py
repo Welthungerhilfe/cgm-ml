@@ -6,7 +6,6 @@ import pathlib
 import os
 
 
-
 source_path = '/mnt/depthmap/pcd_50k/'
 target_path = '/mnt/depthmap/pcd_50k/pcd_50k_pkl'
 dataset = '../../gitrepo/cgm-ml-service/dataset_EDA/opensource_pcd_data/artifacts.csv'

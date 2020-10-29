@@ -137,7 +137,7 @@ class PreprocessedDataGenerator(object):
                 glob_search_path)
 
             # Filter the paths if specified.
-            if self.filter != None:
+            if self.filter is not None:
                 if self.filter == "front":
                     filter_for = "104"
                 elif self.filter == "360":

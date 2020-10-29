@@ -119,7 +119,7 @@ def render_pointcloud(points, title=None):
     ax.set_ylabel("y")
     ax.set_zlabel("z")
 
-    if title != None:
+    if title is not None:
         plt.title(title)
 
     plt.show()
@@ -213,7 +213,7 @@ def render_voxelgrid(voxelgrid, title=None):
 
     ax.voxels(transformed_voxelgrid, facecolors=facecolors, edgecolor="k")
 
-    if title != None:
+    if title is not None:
         plt.title(title)
 
     plt.show()
@@ -420,7 +420,7 @@ def plot_date_times(date_times, all_history_paths, start_index, end_index=100090
         for history, history_path in zip(histories, history_paths):
             split = history_path.split("/")[-1].split("-")
             for key in history.keys():
-                if key_suffix != None and key_suffix in key:
+                if key_suffix is not None and key_suffix in key:
                     plt.plot(history[key][start_index:end_index],
                              label=key + " " + split[2] + " " + date_time)
     plt.legend()
@@ -443,7 +443,7 @@ def get_mean_error(date_times, all_history_paths, start_index, end_index=100090,
         for history, history_path in zip(histories, history_paths):
             split = history_path.split("/")[-1].split("-")
             for key in history.keys():
-                if key_suffix != None and key_suffix in key:
+                if key_suffix is not None and key_suffix in key:
                     lst = history[key][start_index:end_index]
                     avg_error = sum(lst) / len(lst)
                     print("Avg " + key + " " + split[2] + " " + date_time + " between epoch " + str(

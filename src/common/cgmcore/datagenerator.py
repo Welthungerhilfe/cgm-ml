@@ -268,7 +268,7 @@ class DataGenerator(object):
         Extracts a timestamp from a path.
         """
         # This is fix of the "underscores in QR-code"-issue. Poor man's solution ;)
-        if qrcode != None:
+        if qrcode is not None:
             file_path = file_path.replace(qrcode, "REPLACED")
 
         timestamp = file_path.split(os.sep)[-1].split("_")[2]
@@ -299,7 +299,7 @@ class DataGenerator(object):
             pointcloud = PyntCloud.from_file(pcd_path).points.values
             pointcloud = np.array(pointcloud)
 
-            if self.pointcloud_target_size != None and preprocess is True:
+            if self.pointcloud_target_size is not None and preprocess is True:
                 pointcloud = pointcloud[:self.pointcloud_target_size]
                 if len(pointcloud) < self.pointcloud_target_size:
                     zeros = np.zeros((self.pointcloud_target_size - len(pointcloud), 4))
@@ -379,7 +379,7 @@ class DataGenerator(object):
             return (32000, 4)
 
         else:
-            raise Exception("Unknown input_type: " + input_type)
+            raise Exception("Unknown input_type: " + self.input_type)
 
     def get_output_size(self):
 
@@ -793,7 +793,7 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, o
         return_values = (x_inputs, y_outputs, file_paths)
 
     # This is used in multiprocessing. Creates a pickle file and puts the data there.
-    if output_queue != None:
+    if output_queue is not None:
         output_path = uuid.uuid4().hex + ".p"
         pickle.dump(return_values, open(output_path, "wb"))
         output_queue.put(output_path)
@@ -840,7 +840,7 @@ def get_input(class_self, jpg_paths, pcd_paths):
 
     # Should not happen.
     else:
-        raise Exception("Unknown input_type: " + input_type)
+        raise Exception("Unknown input_type: " + class_self.input_type)
 
     return x_input, file_path
 

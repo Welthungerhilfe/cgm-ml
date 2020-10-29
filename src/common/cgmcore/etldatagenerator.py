@@ -9,6 +9,7 @@ import glob2 as glob
 import random
 import uuid
 import progressbar
+import multiprocessing as mp
 from pyntcloud import PyntCloud
 import pickle
 from . import utils
@@ -231,7 +232,7 @@ class ETLDataGenerator(object):
                 assert len(y_outputs) == size
 
                 # Done.
-                if yield_file_paths == False:
+                if yield_file_paths is False:
                     yield x_inputs, y_outputs
                 else:
                     yield x_inputs, y_outputs, file_paths
@@ -243,7 +244,7 @@ class ETLDataGenerator(object):
     def _load_pointcloud(self, pcd_path, preprocess=True, augmentation=True):
 
         pointcloud = self.pointcloud_cache.get(pcd_path, [])
-        if pointcloud == []:
+        if pointcloud is None:
             pointcloud = PyntCloud.from_file(pcd_path).points.values
 
             if self.pointcloud_target_size != None and preprocess is True:
@@ -413,7 +414,7 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, o
     # Prepare result values.
     assert len(x_inputs) == size
     assert len(y_outputs) == size
-    if yield_file_paths == False:
+    if yield_file_paths is False:
         return_values = (x_inputs, y_outputs)
     else:
         return_values = (x_inputs, y_outputs, file_paths)
