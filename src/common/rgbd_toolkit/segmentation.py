@@ -1,12 +1,13 @@
-import logging
-from PIL import Image
-from io import BytesIO
 import datetime
 import numpy as np
+import logging
+import os
+from PIL import Image
+import tarfile
+import tempfile
+from six.moves import urllib
 import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
-import tarfile
-import os
 
 
 class DeepLabModel(object):
@@ -40,7 +41,6 @@ class DeepLabModel(object):
 
         self.sess = tf.Session(graph=self.graph)
 
-
     def run(self, image):
         """Runs inference on a single image.
         Args:
@@ -54,8 +54,11 @@ class DeepLabModel(object):
         width, height = image.size
         resize_ratio = 1.0 * self.INPUT_SIZE / max(width, height)
         target_size = (int(resize_ratio * width), int(resize_ratio * height))
-        resized_image = image.convert('RGB').resize(target_size, Image.ANTIALIAS)
-        batch_seg_map = self.sess.run(self.OUTPUT_TENSOR_NAME, feed_dict={self.INPUT_TENSOR_NAME: [np.asarray(resized_image)]})
+        resized_image = image.convert('RGB').resize(target_size,
+                                                    Image.ANTIALIAS)
+        batch_seg_map = self.sess.run(
+            self.OUTPUT_TENSOR_NAME,
+            feed_dict={self.INPUT_TENSOR_NAME: [np.asarray(resized_image)]})
         seg_map = batch_seg_map[0]
 
         end = datetime.datetime.now()
@@ -65,24 +68,26 @@ class DeepLabModel(object):
 
         return resized_image, seg_map
 
+
 def load_model():
-# load model for segmentation
+    # load model for segmentation
     modelType = "./xception_model"
-    MODEL     = DeepLabModel(modelType)
+    DeepLabModel(modelType)
     logging.info('model loaded successfully : ' + modelType)
-        
-    MODEL_NAME = 'xception_coco_voctrainval'  # @param ['mobilenetv2_coco_voctrainaug', 'mobilenetv2_coco_voctrainval', 'xception_coco_voctrainaug', 'xception_coco_voctrainval']
+
+    # @param ['mobilenetv2_coco_voctrainaug', 'mobilenetv2_coco_voctrainval', 'xception_coco_voctrainaug', 'xception_coco_voctrainval']
+    MODEL_NAME = 'xception_coco_voctrainval'
 
     _DOWNLOAD_URL_PREFIX = 'http://download.tensorflow.org/models/'
     _MODEL_URLS = {
         'mobilenetv2_coco_voctrainaug':
-            'deeplabv3_mnv2_pascal_train_aug_2018_01_29.tar.gz',
+        'deeplabv3_mnv2_pascal_train_aug_2018_01_29.tar.gz',
         'mobilenetv2_coco_voctrainval':
-            'deeplabv3_mnv2_pascal_trainval_2018_01_29.tar.gz',
+        'deeplabv3_mnv2_pascal_trainval_2018_01_29.tar.gz',
         'xception_coco_voctrainaug':
-            'deeplabv3_pascal_train_aug_2018_01_04.tar.gz',
+        'deeplabv3_pascal_train_aug_2018_01_04.tar.gz',
         'xception_coco_voctrainval':
-            'deeplabv3_pascal_trainval_2018_01_04.tar.gz',
+        'deeplabv3_pascal_trainval_2018_01_04.tar.gz',
     }
     _TARBALL_NAME = 'deeplab_model.tar.gz'
 
@@ -92,7 +97,7 @@ def load_model():
     download_path = os.path.join(model_dir, _TARBALL_NAME)
     print('downloading model, this might take a while...')
     urllib.request.urlretrieve(_DOWNLOAD_URL_PREFIX + _MODEL_URLS[MODEL_NAME],
-                    download_path)
+                               download_path)
     print('download completed! loading DeepLab model...')
 
     model = DeepLabModel(download_path)
@@ -101,26 +106,23 @@ def load_model():
     return model
 
 
-def apply_segmentation(image, seg_path,model):
+def apply_segmentation(image, seg_path, model):
 
     # get path and generate output path from it
 
-    
-    resized_im, seg_map = model.run(image)#orignal_im)
-
+    resized_im, seg_map = model.run(image)  # orignal_im)
 
     # convert the image into a binary mask
     width, height = resized_im.size
     dummyImg = np.zeros([height, width, 4], dtype=np.uint8)
     for x in range(width):
         for y in range(height):
-            color = seg_map[y,x]
+            color = seg_map[y, x]
             if color == 0:
-                dummyImg[y,x] = [0, 0, 0, 255]
-            else :
-                dummyImg[y,x] = [255,255,255,255]
+                dummyImg[y, x] = [0, 0, 0, 255]
+            else:
+                dummyImg[y, x] = [255, 255, 255, 255]
 
-                
     img = Image.fromarray(dummyImg)
     img = img.convert('RGB').resize(image.size, Image.ANTIALIAS)
     #img.save('./output.png')
