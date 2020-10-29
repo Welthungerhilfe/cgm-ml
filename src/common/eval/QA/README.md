@@ -10,11 +10,6 @@ It contains logic to perform evaluation of models trained on single artifacts ar
 
 It contains logic to evaluate acceptability of enumerators and our model based on measurement performed while standardisation Test.
 
-## Sklearn model RMSE
-
-It contains logic to evaluate sklearn model using RMSE. This is used just to check the working of evaluation pipeline in shortest time possible
-
-
 ## Steps to perform evaluation
 
 Each evaluation contains the [test_config.py](./eval-depthmap-height/src/config.py) in src directory.

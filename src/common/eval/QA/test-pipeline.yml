@@ -17,7 +17,7 @@
       displayName: 'QA Pipeline for cgm-ml-service'
 
     - bash: |
-        cd tests
+        cd src/common/eval/QA
         source /usr/share/miniconda/etc/profile.d/conda.sh
         conda env create -f environment.yml
         conda activate CGM_QA_Pipeline
@@ -31,14 +31,14 @@
       displayName: 'Azure Login'
     
     - bash: |
-        cd tests/QA
+        cd src/common/eval/QA
         source /usr/share/miniconda/etc/profile.d/conda.sh
         conda activate CGM_QA_Pipeline
         python auth.py -sid $(subscriptionid) -rg $(RESOURCE_GROUP) -wn $(WORKSPACE_NAME)
       displayName: 'Saving Workspace Config'
 
     - bash: |
-        cd tests/QA/eval-depthmap-height
+        cd src/common/eval/QA/eval-depthmap-height
         source /usr/share/miniconda/etc/profile.d/conda.sh
         conda activate CGM_QA_Pipeline
         echo Executing eval_notebook.ipynb
@@ -48,7 +48,7 @@
       displayName: 'Depthmap Height Model Evaluation'
 
     - bash: |
-        cd tests/QA/eval-standardisation-test
+        cd src/common/eval/QA/eval-standardisation-test
         source /usr/share/miniconda/etc/profile.d/conda.sh
         conda activate CGM_QA_Pipeline
         echo Executing eval_notebook.ipynb
@@ -61,10 +61,10 @@
       inputs:
         SourceFolder: '$(Build.SourcesDirectory)'
         Contents: |
-          tests/QA/eval-depthmap-height/depthmap-height_output.html
-          tests/QA/eval-depthmap-height/*.csv
-          tests/QA/standardisation-test/standardisation-test_output.html
-          tests/QA/standardisation-test/*.csv
+          src/common/eval/QA/eval-depthmap-height/depthmap-height_output.html
+          src/common/eval/QA/eval-depthmap-height/*.csv
+          src/common/eval/QA/standardisation-test/standardisation-test_output.html
+          src/common/eval/QA/standardisation-test/*.csv
         TargetFolder: '$(Build.ArtifactStagingDirectory)'
       displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
 
