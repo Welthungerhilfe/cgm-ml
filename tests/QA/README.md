@@ -17,7 +17,7 @@ It contains logic to evaluate sklearn model using RMSE. This is used just to che
 
 ## Steps to perform evaluation
 
-Each evaluation contains the test_config.py(./eval-depthmap-height/src/config.py) in src directory.
+Each evaluation contains the [test_config.py](./eval-depthmap-height/src/config.py) in src directory.
 
 test_config.py mainly contains below parameters:
 
