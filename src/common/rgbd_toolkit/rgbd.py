@@ -1,4 +1,3 @@
-from cgm_fusion.fusion import fuse_rgbd
 import concurrent.futures
 import argparse
 import logging
@@ -7,18 +6,19 @@ import matplotlib.pyplot as plt
 import datetime
 import os
 import sys
-sys.path.append('../cgm-ml')
-sys.path.append(os.path.dirname(os.getcwd()))
-from get_timestamps import get_timestamps_from_rgb, get_timestamps_from_pcd
-#from segmentation import DeepLabModel, load_model, apply_segmentation
 from tqdm import tqdm
 import pandas as pd
 import pickle
 import numpy as np
 from pathlib import Path
 import azureml.core
-from PIL import Image
 import tensorflow.compat.v1 as tf
+from PIL import Image
+sys.path.append('../cgm-ml')
+sys.path.append(os.path.dirname(os.getcwd()))
+from get_timestamps import get_timestamps_from_rgb, get_timestamps_from_pcd
+from cgm_fusion.fusion import fuse_rgbd
+#from segmentation import DeepLabModel, load_model, apply_segmentation
 tf.disable_v2_behavior()
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 # check core SDK version number
@@ -227,10 +227,10 @@ if __name__ == "__main__":
     if not os.path.exists(unique_qr_codes[0]):
         print("Error:invalid input paths..exiting")
         exit()
-
+    #TODO
     #loading DeepLab model
-    if args.segmented:
-        model = load_model()
+    # if args.segmented:
+    #     model = load_model()
 
     #making output dir for storing rgbd files
     rgbd_folder = args.output

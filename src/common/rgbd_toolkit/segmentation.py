@@ -5,8 +5,8 @@ import os
 from PIL import Image
 import tarfile
 import tempfile
-from six.moves import urllib
 import tensorflow.compat.v1 as tf
+from six.moves import urllib
 tf.disable_v2_behavior()
 
 

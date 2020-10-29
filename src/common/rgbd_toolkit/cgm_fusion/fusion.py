@@ -71,7 +71,7 @@ def get_depth_image_from_point_cloud(calibration_file, pcd_file, output_file):
 
     print(cloud.points.values.shape)
 
-    height = 172  # todo: get this from calibration file
+    #height = 172  # todo: get this from calibration file
 
     z = (z - min(z)) / (max(z) - min(z))  # normalize the data to 0 to 1
 
@@ -101,8 +101,8 @@ def get_depth_image_from_point_cloud(calibration_file, pcd_file, output_file):
 
     np.resize(z * 255, [224, 172, 3])
 
-    depth_img_resize = cv2.resize(
-        z * 255, (180, 180))  # todo: make width and height variable
+    # depth_img_resize = cv2.resize(
+    #     z * 255, (180, 180))  # todo: make width and height variable
 
     #cv2.imwrite("/tmp/depth_224x172.png", depth_img)
     #cv2.imwrite("/tmp/depth_240x180.png", depth_img_resize)
@@ -179,7 +179,7 @@ def fuse_rgbd(calibration_file,
 
 
 def apply_fusion(calibration_file, pcd_file, jpg_file, seg_path):
-    ''' 
+    '''
     check the path if everything is correct
     '''
     if not os.path.exists(pcd_file):  # check all files exist

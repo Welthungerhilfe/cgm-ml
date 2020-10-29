@@ -1,4 +1,5 @@
 import numpy as np
+import logging
 
 
 def get_timestamps_from_rgb(rgb_paths):
@@ -31,7 +32,7 @@ def get_timestamp_from_pcd(pcd_path):
 
     # get the time from the header of the pcd file
     import re
-    timestamp = re.findall("\d+\.\d+", firstLine)
+    timestamp = re.findall(r"\d+\.\d+", firstLine)
 
     # check if a timestamp is parsed from the header of the pcd file
     try:

@@ -16,7 +16,7 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from cgm_fusion.calibration import *
+from cgm_fusion.calibration import get_intrinsic_matrix_depth,get_extrinsic_matrix_depth,get_k_depth
 import numpy as np
 import os
 import logging
@@ -135,12 +135,12 @@ def get_depth_channel(ply_path, output_path_np, output_path_png,
         if x >= 0 and x < height and y >= 0 and y < width:
             viz_image[x, y] = z[i]  # 255 #255-255*z[i]
 
-    img_debug = cv2.normalize(src=viz_image,
-                              dst=None,
-                              alpha=0,
-                              beta=255,
-                              norm_type=cv2.NORM_MINMAX,
-                              dtype=cv2.CV_8U)
+    # img_debug = cv2.normalize(src=viz_image,
+    #                           dst=None,
+    #                           alpha=0,
+    #                           beta=255,
+    #                           norm_type=cv2.NORM_MINMAX,
+    #                           dtype=cv2.CV_8U)
 
     cv2.imwrite("/tmp/viz_debug.png", viz_image)
 
@@ -270,9 +270,9 @@ def get_all_channel(ply_path, output_path_np, calibration_file):
             viz_image[x, y, 6] = seg[i]
             viz_image[x, y, 7] = conf[i]
 
-            viz_image[x, y, 8] = nx[i]
-            viz_image[x, y, 9] = ny[i]
-            viz_image[x, y, 10] = nz[i]
+            # viz_image[x, y, 8] = nx[i]
+            # viz_image[x, y, 9] = ny[i]
+            # viz_image[x, y, 10] = nz[i]
 
     np.save(output_path_np, viz_image)
     return viz_image
@@ -326,7 +326,7 @@ def get_viz_channel(calibration_file,
 
     # resize and  return the image after pricessing
     imgScale = 0.25
-    newX, newY = viz_image.shape[1] * imgScale, viz_image.shape[0] * imgScale
+    #newX, newY = viz_image.shape[1] * imgScale, viz_image.shape[0] * imgScale
     cv2.imwrite(output_path, viz_image)
 
     return viz_image
