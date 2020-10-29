@@ -31,7 +31,7 @@ if __name__ == "__main__":
     print("Workspace Details")
     print(ws.get_details())
 
-    print("Succsess of Authentication and Workspace Setup")
+    print("Success of Authentication and Workspace Setup")
 
     ws.write_config()
     print("Saved config file")
