@@ -19,7 +19,7 @@ MODEL_CONFIG = dotdict(dict(
 
 EVAL_CONFIG = dotdict(dict(
     #Name of evaluation
-    NAME = 'q3-depthmap-plaincnn-height-100-95k-run_17',
+    NAME = 'eval-standadisation-test',
 
     #Experiment in Azure ML which will be used for evaluation 
     EXPERIMENT_NAME = "QA-pipeline",
