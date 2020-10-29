@@ -247,7 +247,7 @@ class ETLDataGenerator(object):
         if pointcloud is None:
             pointcloud = PyntCloud.from_file(pcd_path).points.values
 
-            if self.pointcloud_target_size != None and preprocess is True:
+            if self.pointcloud_target_size is not None and preprocess is True:
                 pointcloud = np.array(pointcloud)[:, 0:3]  # Drop confidence.
                 pointcloud = pointcloud[:self.pointcloud_target_size]
                 if len(pointcloud) < self.pointcloud_target_size:
