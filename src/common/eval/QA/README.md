@@ -1,12 +1,12 @@
-## QA
+## Quality Assurance
 
 Inside QA, we have implemented logic to evaluate various different models and to perform evaluation of different use cases.
 
-## Depthmap Height evaluation
+## Evaluation on Depthmap Height Model 
 
 It contains logic to perform evaluation of models trained on single artifacts architecture.
 
-## Standardisation Test
+## Evaluate the measure of Standardisation Test
 
 It contains logic to evaluate acceptability of enumerators and our model based on measurement performed while standardisation Test.
 
@@ -25,5 +25,5 @@ test_config.py mainly contains below parameters:
 
 Make necessary changes and commit the code to run the evaluation.
 
-For more details one can look the test_config.py
+For more details one can look the [test_config.py](./eval-depthmap-height/src/config.py)
 
