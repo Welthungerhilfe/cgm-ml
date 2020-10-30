@@ -70,7 +70,7 @@ DATA_CONFIG = dotdict(dict(
 ))
 
 
-#Result configuration for result generation after evaluation is done
+#Configuration for report generation after evaluation is done
 RESULT_CONFIG = dotdict(dict(
     # Error margin on various ranges
     #EVALUATION_ACCURACIES = [.2, .4, .8, 1.2, 2., 2.5, 3., 4., 5., 6.]

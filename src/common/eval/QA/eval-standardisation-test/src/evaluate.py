@@ -102,7 +102,7 @@ def prepare_depthmap_measure_table(depthmap_path_list, prediction_list):
     df['MeasureGroup'] = 'NaN'
         
     grp_by_col = ['enumerator', 'qrcode', 'scantype']
-    MeasureGroup_code = ['Height 1', 'Height 2']
+    measure_group_code = ['Height 1', 'Height 2']
     #Group for two measurement for TEM
     groups_for_two_measure = df.groupby(grp_by_col)
     
@@ -117,8 +117,8 @@ def prepare_depthmap_measure_table(depthmap_path_list, prediction_list):
             measure_grp_one = group.index.values[: length//2]
             measure_grp_two = group.index[length//2:]
 
-            df.loc[measure_grp_one, 'MeasureGroup'] = MeasureGroup_code[0]
-            df.loc[measure_grp_two, 'MeasureGroup'] = MeasureGroup_code[1]
+            df.loc[measure_grp_one, 'MeasureGroup'] = measure_group_code[0]
+            df.loc[measure_grp_two, 'MeasureGroup'] = measure_group_code[1]
 
         # TODO: handle if qrcode contains single artifact
         # In current case it will not consider qrcode for
@@ -256,16 +256,12 @@ if __name__ == "__main__":
     # Online run. Use dataset provided by training notebook.
     else:
         print("Running in online mode...")
-        # TODO : Need to verify the online part
         experiment = run.experiment
         workspace = experiment.workspace
         dataset_path = run.input_datasets["dataset"]
 
-    print("Dataset Path ", dataset_path)
-    print("Content of Dataset: ", os.listdir(dataset_path))
     qrcode_path = os.path.join(dataset_path, "qrcode")
     print("QRcode path:", qrcode_path)
-    print(glob.glob(os.path.join(qrcode_path, "*"))) # Debug
     print("Getting Depthmap paths...")
     depthmap_path_list = glob.glob(os.path.join(qrcode_path, "*/measure/*/depth/*"))
     assert len(depthmap_path_list) != 0

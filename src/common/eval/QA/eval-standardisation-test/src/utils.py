@@ -14,7 +14,6 @@ from test_config import DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG
 image_target_height = 240
 image_target_width = 180
 
-
 measure_name_list = ['HEIGHT', 'WEIGHT', 'MUAC']
 measure_category_list = ['GOOD', 'ACCEPTABLE', 'POOR', 'REJECT']
 permissible_measure = {'HEIGHT':
@@ -25,22 +24,27 @@ permissible_measure = {'HEIGHT':
                             {'GOOD': 2.0, 'ACCEPTABLE': 2.7, 'POOR': 3.3, 'REJECT': None}
 }
 
-def get_intra_TEM(measureOne, measureTwo):
+
+def get_intra_TEM(measure_one, measure_two):
     '''
     https://www.scielo.br/pdf/rbme/v11n1/en_24109.pdf
     Compute Intra Technical Error of Measurement
     '''
-    #assert (measureOne.shape == measureTwo.shape)
-    assert(len(measureOne.index) == len(measureTwo.index))
-    sum_of_square_of_deviation = ((measureOne - measureTwo) **2).sum()
-    absolute_TEM = math.sqrt(sum_of_square_of_deviation/(2* len(measureOne.index)))
+    assert(len(measure_one.index) == len(measure_two.index))
+    sum_of_square_of_deviation = ((measure_one - measure_two) **2).sum()
+    absolute_TEM = math.sqrt(sum_of_square_of_deviation/(2* len(measure_one.index)))
     
     if EVAL_CONFIG.DEBUG_LOG:
         print("Absolute TEM : ", absolute_TEM)
 
     return absolute_TEM
 
-def get_meaure_category(technical_error_of_measurement, measure_name):
+
+def get_measure_category(technical_error_of_measurement, measure_name):
+    '''
+    Return the measure category based on the technical error of measurement
+    e.g. GOOD, ACCEPTABLE, POOR, REJECT
+    '''
     if technical_error_of_measurement < permissible_measure[measure_name]['GOOD']:
         measure_category = 'GOOD'
     elif technical_error_of_measurement < permissible_measure[measure_name]['ACCEPTABLE']:
@@ -72,7 +76,9 @@ def get_depthmap_files(paths):
 
 
 def get_column_list(depthmap_path_list, prediction):
-
+    '''
+    Prepare the columns to be included in the artifact level dataframe
+    '''
     qrcode_list, scan_type_list, artifact_list, prediction_list, target_list = [], [], [], [], []
     
     for idx, path in enumerate(depthmap_path_list):
@@ -112,10 +118,10 @@ def calculate_performance(code, df_mae):
     return df_out
 
 
-def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH):
-    
-    ## Calculate accuracies across the scantypes
-
+def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH):    
+    '''
+    Calculate accuracies across the scantypes
+    '''
     dfs = []
     for code in DATA_CONFIG.CODE_TO_SCANTYPE.keys():
         df = calculate_performance(code, MAE)
