@@ -16,7 +16,7 @@ import tensorflow.compat.v1 as tf
 from PIL import Image
 from get_timestamps import get_timestamps_from_rgb, get_timestamps_from_pcd
 from cgm_fusion.fusion import fuse_rgbd
-#from segmentation import DeepLabModel, load_model, apply_segmentation
+# from segmentation import DeepLabModel, load_model, apply_segmentation
 sys.path.append('../cgm-ml')
 sys.path.append(os.path.dirname(os.getcwd()))
 tf.disable_v2_behavior()
@@ -30,10 +30,10 @@ logging.basicConfig(filename='./RGBD.log',
                     format='%(asctime)s %(message)s')
 
 
-#function to find the closest rgbd images for a given pcd
+# function to find the closest rgbd images for a given pcd
 def find_closest(rgb, pcd):
 
-    #rgb must be sorted
+    # rgb must be sorted
     idx = rgb.searchsorted(pcd)
     idx = np.clip(idx, 1, len(rgb) - 1)
     left = rgb[idx - 1]
@@ -44,22 +44,22 @@ def find_closest(rgb, pcd):
 
 def get_filename(pcd_file, rgbd_folder, qr_folder):
 
-    # now save the new data to the folder
+    # save the new data to the folder
     fused_folder, pc_filename = os.path.split(str(pcd_file))
     pcd_path_old = pcd_file
 
-    #finding if its standing or lying artifact
+    # finding if its standing or lying artifact
     scan_type = pcd_file.split("/")[-1].split("_")[3]
 
     # replace the pcd and the pc_ in the path for fused data
     pc_filename = pcd_path_old.replace(".pcd", ".ply")
     pc_filename = pc_filename.replace("pc_", "pcrgb_")
 
-    #make a folder for scan type
+    # make a folder for scan type
     qr_rgbd = os.path.join(rgbd_folder, qr_folder)
     qr_rgbd_scan = os.path.join(qr_rgbd, str(scan_type))
 
-    #make the output rgbd filename
+    # make the output rgbd filename
     rgbd_filename = pc_filename.replace(
         fused_folder.split("measure")[0], qr_rgbd_scan + "/")
 
@@ -67,7 +67,7 @@ def get_filename(pcd_file, rgbd_folder, qr_folder):
     rgbd_filename = rgbd_filename.replace(".ply", ".pkl")
     rgbd_filename = rgbd_filename.replace("/pc/", "")
 
-    #check if output rgbd folder exists
+    # check if output rgbd folder exists
     rgbd_folder_ = os.path.dirname(rgbd_filename)
     if not (os.path.isfile(rgbd_folder_)):
         logging.info("Folder does not exist for " + str(rgbd_filename))
@@ -161,9 +161,7 @@ def get_files(norm_rgb_time, rgb_path, norm_pcd_time, pcd_path):
         print("no pcd images found")
         return []
 
-    i = 0
-
-    for pcd in norm_pcd_time:
+    for i, pcd in enumerate(norm_pcd_time):
         nn = find_closest(norm_rgb_time, pcd)
 
         # get the original file path
@@ -175,7 +173,6 @@ def get_files(norm_rgb_time, rgb_path, norm_pcd_time, pcd_path):
 
         files.append([pcd_file, jpg_file])
 
-        i = i + 1
     return files
 
 
@@ -183,16 +180,16 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
         description='Give in the qrcode folder to get rgbd data')
-    parser.add_argument('--input',
+    parser.add_argument('--input', required=True,
                         metavar='inputpath',
                         type=str,
                         help='the path to the input qrcode folder')
-    parser.add_argument('--output',
+    parser.add_argument('--output', required=True,
                         metavar='outputpath',
                         default="./output_rgbd",
                         type=str,
                         help='output rgbd folder path')
-    parser.add_argument("--w",
+    parser.add_argument("--num_workers",
                         metavar="workers",
                         type=int,
                         default=None,
@@ -201,9 +198,6 @@ if __name__ == "__main__":
         "--mounted",
         action='store_true',
         help="if you are processing on mounted data of a datastore")
-    parser.add_argument("--segmented",
-                        action='store_true',
-                        help="if you want fused rgbd with segmentation")
     args = parser.parse_args()
 
     start = datetime.datetime.now()
@@ -221,12 +215,12 @@ if __name__ == "__main__":
 
     else:
         folders = os.listdir(args.input)
-        unique_qr_codes = [os.path.join(args.input, x) for x in folders]
+        unique_qr_codes = [os.path.join(args.input, x) for x in folders if os.path.isdir(os.path.join(args.input, x))]
 
-    ##TODO: streamline validation of input directory
+    ##validation of input directory
     if not os.path.exists(unique_qr_codes[0]):
         print("Error:invalid input paths..exiting")
-        exit()
+        sys.exit()
     #TODO
     #loading DeepLab model
     # if args.segmented:
@@ -262,7 +256,7 @@ if __name__ == "__main__":
 
         #processing every pcd file with its nearest rgb using multiprocessing workers
         with concurrent.futures.ProcessPoolExecutor(
-                max_workers=args.w) as executor:
+                max_workers=args.num_workers) as executor:
             res = list(tqdm(executor.map(process_pcd, paths),
                             total=len(paths)))
 
@@ -270,4 +264,3 @@ if __name__ == "__main__":
     diff = end - start
     print("***Done***")
     print("total time took is {}".format(diff))
-    logging.info("total time took is" + str(diff))

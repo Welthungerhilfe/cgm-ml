@@ -1,6 +1,4 @@
 import cv2
-#import matplotlib.pyplot as plt
-#import numpy as np
 
 
 def rotate_image_90(image):
@@ -36,7 +34,7 @@ def find_faces(image, mark_faces=False):
                                                )
 
     print('Faces found: ', len(faces))
-
+    #Note: modifying the image with delineation of detected faces 
     if mark_faces is True:
         for (x, y, w, h) in faces:
             cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 15)

@@ -389,5 +389,4 @@ def load_pointnet(weights_path, input_shape, output_size, hidden_sizes):
     except Exception:
         model = create_point_net(input_shape, output_size, hidden_sizes, use_lambda=True)
         model.load_weights(weights_path)
-        pass
         return model

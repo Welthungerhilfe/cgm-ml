@@ -1,10 +1,10 @@
 import numpy as np
+import re
 import logging
 
 
 def get_timestamps_from_rgb(rgb_paths):
 
-    #timestamps = [x[2] for x in all_rgb]
     path = [x for x in rgb_paths]
 
     timestamps = []
@@ -31,7 +31,6 @@ def get_timestamp_from_pcd(pcd_path):
     firstLine = infile.readline()
 
     # get the time from the header of the pcd file
-    import re
     timestamp = re.findall(r"\d+\.\d+", firstLine)
 
     # check if a timestamp is parsed from the header of the pcd file
@@ -40,7 +39,7 @@ def get_timestamp_from_pcd(pcd_path):
     except IndexError:
         return_timestamp = []
 
-    return return_timestamp  # index error? IndexError
+    return return_timestamp
 
 
 def get_timestamps_from_pcd(pcd_paths):
@@ -59,11 +58,7 @@ def get_timestamps_from_pcd(pcd_paths):
             logging.error("Error with timestamp in pcd")
             return [error, p]
 
-    #print("path",path)
-
-    if (len(timestamps) == 0):
+    if len(timestamps) == 0:
         error = np.array([])
         return [error, path]
-    # print("timestamp pcd",timestamps)
-    # print("pcd path",path)
     return [timestamps, path]

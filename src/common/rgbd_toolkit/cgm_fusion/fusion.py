@@ -43,11 +43,11 @@ def projectPoints(pcd_points, calibration_file):
 
     k1, k2, k3 = get_k(calibration_file)
 
-    im_coords, _ = cv2.projectPoints(pcd_points, r_vec,
+    im_coords, jac = cv2.projectPoints(pcd_points, r_vec,
                                      t_vec, intrinsic[:3, :3],
                                      np.array([k1, k2, 0, 0]))
 
-    return im_coords, _
+    return im_coords, jac
 
 
 def get_depth_image_from_point_cloud(calibration_file, pcd_file, output_file):
@@ -133,7 +133,7 @@ def fuse_rgbd(calibration_file,
 
     points = cloud.points.values[:, :3]
     #getting projected points
-    im_coords, _ = projectPoints(points, calibration_file)
+    im_coords, jac = projectPoints(points, calibration_file)
 
     #setting the RGB image dimensions
     scale = 0.1

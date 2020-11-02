@@ -29,8 +29,10 @@ qrcode
 ```
 
 2. usage: 
+If we are preparing the data with the --mounted flag we get pickled numpy arrays of the RGBD images with their labels. If you want to see how RGBD looks like for sample qrcodes [sample input path/qrcode], or for the data tagging/inspection tool, we use the below command without the --mounted flag.
+
 ```
-python rgbd.py [-h] [--input inputpath] [--output outputpath] optional: [--mounted if using the input as the mounted datastore of qr codes]  [--w specifying number of workers]
+python rgbd.py [-h] [--input inputpath] [--output outputpath] optional: [--mounted if using the input as the mounted datastore of qr codes]  [--num_workers specifying number of workers]
 ```
 
 For eg: 

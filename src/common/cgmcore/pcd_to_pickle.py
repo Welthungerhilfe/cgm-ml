@@ -40,7 +40,6 @@ def pcd_to_pickle(dataset):
         pathlib.Path(qrcode_path).mkdir(parents=True, exist_ok=True)
         pickle_output_path = os.path.join(qrcode_path, pickle_filename)
         pickle.dump((pointcloud, label), open(pickle_output_path, "wb"))
-    return
 
 
 def main():

@@ -12,12 +12,10 @@ import glob2 as glob
 import random
 import progressbar
 from pyntcloud import PyntCloud
-#import matplotlib.pyplot as plt
 import multiprocessing as mp
 import pickle
 from . import utils
 from bunch import Bunch
-#mp.set_start_method('fork', force=True)
 
 
 class PreprocessedDataGenerator(object):
@@ -119,7 +117,7 @@ class PreprocessedDataGenerator(object):
 
         # Retrieve the QR-codes from the folders.
         paths = glob.glob(os.path.join(self.dataset_path, "*"))
-        paths = [path for path in paths if os.path.isdir(path) is True]
+        paths = [path for path in paths if os.path.isdir(path)]
         self.qrcodes = sorted([path.split("/")[-1] for path in paths])
 
     def _prepare_qrcodes_dictionary(self):

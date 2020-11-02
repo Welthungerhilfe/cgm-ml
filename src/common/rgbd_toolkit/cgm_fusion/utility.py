@@ -25,7 +25,6 @@ import pandas as pd
 
 from pyntcloud import PyntCloud
 from pyntcloud.io import write_ply
-#from enum import Enum
 from enum import IntEnum
 
 
@@ -335,42 +334,30 @@ def get_viz_channel(calibration_file,
 '''
 Function to get the rgb from a point cloud as an image for visualization
 '''
-
-
 def get_viz_rgb(ply_path):
     get_viz_channel(ply_path, channel=Channel.red, output_path="/tmp/red.png")
-
 
 '''
 Function to get the confidence from a point cloud as an image for visualization
 '''
-
-
 def get_viz_confidence(ply_path):
     get_viz_channel(ply_path,
                     channel=Channel.confidence,
                     output_path="/tmp/confidence.png")
 
-
 '''
 Function to get the confidence from a point cloud as an image for visualization
 '''
-
-
 def get_viz_depth(ply_path):
     get_viz_channel(ply_path, channel=Channel.z, output_path="/tmp/depth.png")
-
-
+    
 '''
 Function to get the segmentation from a point cloud as an image for visualization
 '''
-
-
 def get_viz_segmentation(ply_path):
     get_viz_channel(ply_path,
                     channel=Channel.segmentation,
                     output_path="/tmp/segmentation.png")
-
 
 def get_viz_normal_z(ply_path):
     get_viz_channel(ply_path,
