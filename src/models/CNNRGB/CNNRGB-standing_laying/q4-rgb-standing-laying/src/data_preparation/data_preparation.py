@@ -8,8 +8,8 @@ import os
 
 # Parent directory
 PARENT_DIRECTORY = '/mnt/preprocess/'
-os.makedirs(PARENT_DIRECTORY+'standing_laying_v1.0/train/standing', exist_ok=True)
-os.makedirs(PARENT_DIRECTORY+'/standing_laying_v1.0/train/laying', exist_ok=True)
+os.makedirs(PARENT_DIRECTORY + 'standing_laying_v1.0/train/standing', exist_ok=True)
+os.makedirs(PARENT_DIRECTORY + '/standing_laying_v1.0/train/laying', exist_ok=True)
 
 # Read CSV from the ML Database
 # To generate CSV use 'select_artifacts_with_targets' view with change in Dataformat(jpg)
