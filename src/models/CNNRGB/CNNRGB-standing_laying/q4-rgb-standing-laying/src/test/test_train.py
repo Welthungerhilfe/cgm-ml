@@ -4,9 +4,9 @@ from pathlib import Path
 import numpy as np
 import tensorflow as tf
 
-sys.path.append(str(Path(__file__).parents[1]))
-from constants import REPO_DIR
-from preprocessing import process_path
+sys.path.append(str(Path(__file__).parents[1]))  # noqa: E402
+from constants import REPO_DIR  # noqa: E402
+from preprocessing import process_path  # noqa: E402
 
 
 def test_get_label_0():
