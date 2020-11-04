@@ -13,7 +13,7 @@ import tensorflow as tf
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 
-from test_config import MODEL_CONFIG, EVAL_CONFIG, DATA_CONFIG, RESULT_CONFIG
+from config import MODEL_CONFIG, EVAL_CONFIG, DATA_CONFIG, RESULT_CONFIG
 from constants import REPO_DIR
 from tensorflow.keras.models import load_model
 

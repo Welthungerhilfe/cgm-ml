@@ -7,7 +7,7 @@ import pandas as pd
 import glob2 as glob
 from skimage.transform import resize
 
-from test_config import DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG
+from config import DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG
 
 image_target_height = 240
 image_target_width = 180
