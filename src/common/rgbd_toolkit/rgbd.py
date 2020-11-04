@@ -119,7 +119,6 @@ def process_pcd(paths, process_index=0):
     rgbd_filename = get_filename(pcd_file, rgbd_folder, qr_folder)
 
     logging.info("Going to writing new fused data to: " + rgbd_filename)
-    print("writing new data to", rgbd_filename)
 
     #saving the rgbd file with labels as pickled data
     try:
