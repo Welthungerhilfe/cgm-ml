@@ -2,7 +2,6 @@ import concurrent.futures
 import argparse
 import logging
 import warnings
-import matplotlib.pyplot as plt
 import datetime
 import os
 import sys
@@ -12,14 +11,11 @@ import pickle
 import numpy as np
 from pathlib import Path
 import azureml.core
-import tensorflow.compat.v1 as tf
 from PIL import Image
 from get_timestamps import get_timestamps_from_rgb, get_timestamps_from_pcd
 from cgm_fusion.fusion import fuse_rgbd
 sys.path.append('../cgm-ml')
 sys.path.append(os.path.dirname(os.getcwd()))
-tf.disable_v2_behavior()
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 # check core SDK version number
 print("Azure ML SDK Version: ", azureml.core.VERSION)
 warnings.filterwarnings("ignore")

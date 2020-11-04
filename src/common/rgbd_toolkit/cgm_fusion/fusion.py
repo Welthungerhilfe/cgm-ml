@@ -23,7 +23,6 @@ from cv2 import cv2
 import numpy as np
 
 import logging
-import matplotlib.pyplot as plt
 from PIL import Image
 
 from cgm_fusion.calibration import get_intrinsic_matrix, get_extrinsic_matrix, get_k
