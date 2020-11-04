@@ -8,25 +8,8 @@ import os
 
 # Parent directory
 PARENT_DIRECTORY = '/mnt/preprocess/'
-BASE_DIRECTORY_PATH = os.path.join(PARENT_DIRECTORY, 'standing_laying_v1.0/')
-if not os.path.exists(BASE_DIRECTORY_PATH):
-    os.mkdir(BASE_DIRECTORY_PATH)
-
-# Train directory
-TRAIN_DIRECTORY_PATH = os.path.join(BASE_DIRECTORY_PATH, 'train/')
-if not os.path.exists(TRAIN_DIRECTORY_PATH):
-    os.mkdir(TRAIN_DIRECTORY_PATH)
-
-# Standing directory
-STANDING_PATH = os.path.join(TRAIN_DIRECTORY_PATH, 'standing/')
-if not os.path.exists(STANDING_PATH):
-    os.mkdir(STANDING_PATH)
-
-# laying directory
-LAYING_PATH = os.path.join(TRAIN_DIRECTORY_PATH, 'laying/')
-if not os.path.exists(LAYING_PATH):
-    os.mkdir(LAYING_PATH)
-
+os.makedirs(PARENT_DIRECTORY+'standing_laying_v1.0/train/standing', exist_ok=True)
+os.makedirs(PARENT_DIRECTORY+'/standing_laying_v1.0/train/laying', exist_ok=True)
 
 # Read CSV from the ML Database
 # To generate CSV use 'select_artifacts_with_targets' view with change in Dataformat(jpg)
