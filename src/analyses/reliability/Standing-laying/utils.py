@@ -7,6 +7,15 @@ from tqdm import tqdm
 
 REPO_DIR = Path(__file__).parents[4].absolute()
 
+scan_type = {
+    'Standing_front': '_100_',
+    'Standing_back': '_101',
+    'Standing_360': '_102_',
+    'Laying_front': '_200_',
+    'Laying_back': '_201',
+    'Laying_360': '_202_'
+}
+
 
 def get_timestamp_from_pcd(pcd_path):
     filename = str(pcd_path)
@@ -26,7 +35,7 @@ def get_timestamp_from_pcd(pcd_path):
     except IndexError:
         return_timestamp = []
 
-    return return_timestamp  # index error? IndexError
+    return return_timestamp
 
 
 def get_timestamp_from_rgb(rgb_path):
@@ -52,9 +61,9 @@ def standing_laying_predict(qrcode_pcd_rgb, model):
             img = tf.io.read_file(file)                 # read the image in tensorflow
             img = tf.image.decode_jpeg(img, channels=3)   # change the jpg to rgb
             img = tf.cast(img, tf.float32) * (1. / 256)   # Normalization Not necessary
-            if '_100_' in file or '_101_' in file or '_102_' in file:
+            if scan_type['Standing_front'] in file or scan_type['Standing_back'] in file or scan_type['Standing_360'] in file:
                 img = tf.image.rot90(img, k=3)  # rotate the standing by 270 counter-clockwise
-            if '_200_' in file or '_201_' in file or '_202_' in file:
+            if scan_type['Laying_front'] in file or scan_type['Laying_back'] in file or scan_type['Laying_360'] in file:
                 img = tf.image.rot90(img, k=1)  # rotate the laying by 90 counter-clockwise
             img = tf.image.resize(img, [240, 180])  # Resize the image by 240 * 180
             # Increase the dimesion so that it can fit as a input in model.predict

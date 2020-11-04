@@ -11,6 +11,7 @@ from tensorflow.keras import callbacks
 from config import CONFIG
 from constants import REPO_DIR
 from model import create_cnn, set_trainable_layer
+from preprocessing import process_path
 
 # Make experiment reproducable
 tf.random.set_seed(CONFIG.SPLIT_SEED)
@@ -83,33 +84,6 @@ assert len(image_paths_training) > 0 and len(image_paths_validate) > 0
 class_names = np.array(sorted([item.split('/')[-1] for item in glob.glob(os.path.join(dataset_path, "*"))]))
 print(class_names)
 
-
-def get_label(file_path):
-    # convert the path to a list of path components
-    parts = tf.strings.split(file_path, os.path.sep)
-    # The second to last is the class-directory
-    one_hot = parts[-2] == class_names
-    one_hot = tf.cast(one_hot, tf.int64)
-    # Integer encode the label
-    return tf.argmax(one_hot)
-
-
-def decode_img(img):
-    # convert the compressed string to a 3D uint8 tensor
-    img = tf.image.decode_jpeg(img, channels=3)
-    img = tf.cast(img, tf.float32) * (1. / CONFIG.NORMALIZATION_VALUE)
-    # resize the image to the desired size
-    return tf.image.resize(img, [CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH])
-
-
-def process_path(file_path):
-    label = get_label(file_path)
-    # load the raw data from the file as a string
-    img = tf.io.read_file(file_path)
-    img = decode_img(img)
-    return img, label
-
-
 # Create dataset for training.
 paths = image_paths_training
 dataset = tf.data.Dataset.from_tensor_slices(paths)
@@ -128,15 +102,6 @@ dataset_norm = dataset.map(lambda path: process_path(path))
 dataset_norm = dataset_norm.cache()
 dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
 dataset_validation = dataset_norm
-del dataset_norm
-
-# Create dataset for activation
-paths = image_paths_activation
-dataset = tf.data.Dataset.from_tensor_slices(paths)
-dataset_norm = dataset.map(lambda path: process_path(path))
-dataset_norm = dataset_norm.cache()
-dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
-dataset_activation = dataset_norm
 del dataset_norm
 
 input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 3)
@@ -203,7 +168,7 @@ model.fit(
 )
 
 #  function use to tune the top convolution layer
-set_trainable_layer('block14_sepconv1',model)
+set_trainable_layer('block14_sepconv1', model)
 
 model.fit(
     dataset_training.batch(CONFIG.BATCH_SIZE),
