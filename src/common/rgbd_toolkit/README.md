@@ -29,15 +29,15 @@ qrcode
 ```
 
 2. usage: 
-If we are preparing the data with the --mounted flag we get pickled numpy arrays of the RGBD images with their labels. If you want to see how RGBD looks like for sample qrcodes [sample input path/qrcode], or for the data tagging/inspection tool, we use the below command without the --mounted flag.
+If we are preparing the data with the --pickled flag we get pickled numpy arrays of the RGBD images with their labels. If you want to see how RGBD looks like for sample qrcodes [sample input path/qrcode], or for the data tagging/inspection tool, we use the below command without the --pickled flag.
 
 ```
-python rgbd.py [-h] [--input inputpath] [--output outputpath] optional: [--mounted if using the input as the mounted datastore of qr codes]  [--num_workers specifying number of workers]
+python rgbd.py [-h] [--input inputpath] [--output outputpath] optional: [--pickled if labels of data is known and added to the label file]  [--num_workers specifying number of workers]
 ```
 
 For eg: 
 ```
-python rgbd.py --input /mnt/cgmmlprod/cgminbmzprod_v5.0/ --output /mnt/preprocessed/rgbd56k/ --mounted --w 20
+python rgbd.py --input /mnt/cgmmlprod/cgminbmzprod_v5.0/ --output /mnt/preprocessed/rgbd56k/ --pickled --w 20
 ```
 
 3. TODO add segmented rgbd

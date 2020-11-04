@@ -101,22 +101,15 @@ def process_pcd(paths, process_index=0):
     pcd_file = paths[0]
     jpg_file = paths[1]
 
-    #rotating and aligning rgb image
-    img_name = jpg_file.split("/")[-1]
-    img = Image.open(jpg_file)
-
-    if '_100_' in img_name or '_101_' in img_name or '_102_' in img_name:
-        image = img.rotate(angle=270)
-
-    elif '_200_' in img_name or '_201_' in img_name or '_202_' in img_name:
-        image = img.rotate(angle=90)
+    #rgb image
+    image = Image.open(jpg_file)
 
     #get the qr folder
     qr_folder = str(Path(qr)).split("/")[-1]
 
     calibration_file = "./calibration.xml"
 
-    if args.mounted:
+    if args.pickled:
         #get height and weight label for the corresponding artifact
         height = int(artifacts_file.loc[np.where(
             artifacts_file["qrcode"] == qr_folder)].iloc[0].loc["height"])
@@ -126,29 +119,29 @@ def process_pcd(paths, process_index=0):
     rgbd_filename = get_filename(pcd_file, rgbd_folder, qr_folder)
 
     logging.info("Going to writing new fused data to: " + rgbd_filename)
+    print("writing new data to", rgbd_filename)
 
-    #checking if file already exists and saving the rgbd file with labels if its mounted data
-    if not os.path.exists(rgbd_filename):
-        try:
-            rgbdseg_arr = fuse_rgbd(calibration_file, pcd_file,
-                                    image)  # , seg_path)
-            if args.mounted:
-                labels = np.array([height, weight])
-                data = (rgbdseg_arr, labels)
-                pickle.dump(data, open(rgbd_filename, "wb"))
-            else:
-                #saving as a png file if not mounted data
-                rgbd_filename = rgbd_filename.replace(".pkl", ".png")
-                plt.figure()
-                plt.imsave(rgbd_filename, rgbdseg_arr)
-                #np.save(rgbd_filename,rgbdseg_arr)
+    #saving the rgbd file with labels as pickled data
+    try:
+        rgbdseg_arr = fuse_rgbd(calibration_file, pcd_file,
+                                image)  # , seg_path)
+        if args.pickled:
+            labels = np.array([height, weight])
+            if not labels:
+                print("labels dont exist in artifacts.csv..exiting")
+                sys.exit()
+            data = (rgbdseg_arr, labels)
+            pickle.dump(data, open(rgbd_filename, "wb"))
+        else:
+            #saving as a png file if not pickled data
+            rgbd_filename = rgbd_filename.replace(".pkl", ".npy")
+            np.save(rgbd_filename, rgbdseg_arr)
 
-            logging.info("successfully wrote new data to" + rgbd_filename)
-        except Exception as e:
-            logging.error("Something went wrong.Skipping this file")
+        logging.info("successfully wrote new data to" + rgbd_filename)
+    except Exception as e:
+        logging.error("Something went wrong.Skipping this file")
 
-            logging.error(str(e))
-    logging.info("file already processed")
+        logging.error(str(e))
 
 
 def get_files(norm_rgb_time, rgb_path, norm_pcd_time, pcd_path):
@@ -195,15 +188,15 @@ if __name__ == "__main__":
                         default=None,
                         help="no. of cpu workers you want to process with")
     parser.add_argument(
-        "--mounted",
+        "--pickled",
         action='store_true',
-        help="if you are processing on mounted data of a datastore")
+        help="if you are processing on data of a dataset whose labels you have added into artifacts.csv")
     args = parser.parse_args()
 
     start = datetime.datetime.now()
 
-    #reading artifacts.csv for mounted qrcode paths
-    if args.mounted:
+    #reading artifacts.csv for pickled qrcode paths
+    if args.pickled:
         artifacts = os.path.join(
             os.path.dirname(os.path.dirname(os.getcwd())),
             'data_utils/dataset_EDA/50k_pcd/artifacts.csv')

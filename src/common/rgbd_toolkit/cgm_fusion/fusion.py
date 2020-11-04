@@ -19,7 +19,7 @@
 import the necessary functions
 '''
 import os
-import cv2
+from cv2 import cv2
 import numpy as np
 
 import logging
@@ -44,8 +44,8 @@ def projectPoints(pcd_points, calibration_file):
     k1, k2, k3 = get_k(calibration_file)
 
     im_coords, jac = cv2.projectPoints(pcd_points, r_vec,
-                                     t_vec, intrinsic[:3, :3],
-                                     np.array([k1, k2, 0, 0]))
+                                       t_vec, intrinsic[:3, :3],
+                                       np.array([k1, k2, 0, 0]))
 
     return im_coords, jac
 
@@ -84,7 +84,6 @@ def get_depth_image_from_point_cloud(calibration_file, pcd_file, output_file):
     # im_coords = apply_projection(points)
 
     # manipulate the pixels color value depending on the z coordinate
-    # TODO make this a function
     # for i, t in enumerate(im_coords):
     #     x, y = t.squeeze()
     #     x = int(np.round(x))
@@ -141,40 +140,49 @@ def fuse_rgbd(calibration_file,
     height = int(1080 * scale)
     #reading image and resizing
     pil_im = image.resize((width, height), Image.ANTIALIAS)
-    np.asarray(pil_im)
+    im_array = np.asarray(pil_im)
 
     #TODO:comment out for segmentation
-    # pil_im2 = Image.open(seg_path)
-    # pil_im2 = pil_im2.resize((height, width), Image.ANTIALIAS)
-    # im_array2 = np.asarray(pil_im2)
+    #pil_im2 = Image.open(seg_path)
+    #pil_im2 = pil_im2.resize((height, width), Image.ANTIALIAS)
+    #im_array2 = np.asarray(pil_im2)
+    #segm = im_array2[y][x][1] / 255.0
 
     #initialize an empty black image
-    viz_image = np.zeros((width, height, 3))
+    viz_image = np.zeros((width, height, 4))
 
     #addING depth into RGB array
-    map = plt.get_cmap('rainbow')
     pcd_name = pcd_file.split("/")[-1]
 
     for i in range(len(points)):
         x = int(im_coords[i][0][0] * scale)
         y = int(im_coords[i][0][1] * scale)
         if x >= 0 and y >= 0 and x < width and y < height:
-            #segm = im_array2[y][x][1] / 255.0
             depth = points[i][2]
-            color = map(depth - 0.75)
-
             if '_100_' in pcd_name or '_101_' in pcd_name or '_102_' in pcd_name:
-                newx = y - 1
-                newy = x - 1
-            elif '_200_' in pcd_name or '_201_' in pcd_name or '_202_' in pcd_name:
-                newx = height - y - 1
+                newx = y
                 newy = width - x - 1
 
-            viz_image[newy][newx][0] = color[0]
-            viz_image[newy][newx][1] = color[1]
-            viz_image[newy][newx][2] = color[2]
-            #viz_image[x][y][3]= segm
+            elif '_200_' in pcd_name or '_201_' in pcd_name or '_202_' in pcd_name:
+                newx = height - y - 1
+                newy = x
 
+            viz_image[newy][height - newx - 1][3] = depth
+
+    for x in range(width):
+        for y in range(height):
+
+            if '_100_' in pcd_name or '_101_' in pcd_name or '_102_' in pcd_name:
+                newx = y
+                newy = width - x - 1
+
+            elif '_200_' in pcd_name or '_201_' in pcd_name or '_202_' in pcd_name:
+                newx = height - y - 1
+                newy = x
+
+            viz_image[newy][newx][0] = im_array[y][x][0] / 255.0
+            viz_image[newy][newx][1] = im_array[y][x][1] / 255.0
+            viz_image[newy][newx][2] = im_array[y][x][2] / 255.0
     return viz_image
 
 
@@ -214,7 +222,7 @@ def apply_fusion(calibration_file, pcd_file, jpg_file, seg_path):
     hh, ww, _ = jpg.shape
 
     points = cloud.points.values[:, :3]
-    #np.savetxt("points.txt",points)
+
     confidence = cloud.points.values[:, 3]
 
     # get the data for calibration
