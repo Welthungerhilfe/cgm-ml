@@ -5,8 +5,6 @@ import pickle
 import numpy as np
 import pandas as pd
 import glob2 as glob
-import matplotlib.pyplot as plt
-from IPython.display import display
 from skimage.transform import resize
 
 from test_config import DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG
@@ -17,12 +15,12 @@ image_target_width = 180
 measure_name_list = ['HEIGHT', 'WEIGHT', 'MUAC']
 measure_category_list = ['GOOD', 'ACCEPTABLE', 'POOR', 'REJECT']
 permissible_measure = {'HEIGHT':
-                            {'GOOD': 0.4, 'ACCEPTABLE': 0.6, 'POOR': 1.0, 'REJECT': None},
-                        'WEIGHT':
-                            {'GOOD': 0.04, 'ACCEPTABLE': 0.10, 'POOR': 0.21, 'REJECT': None},
-                        'MUAC':
-                            {'GOOD': 2.0, 'ACCEPTABLE': 2.7, 'POOR': 3.3, 'REJECT': None}
-}
+                       {'GOOD': 0.4, 'ACCEPTABLE': 0.6, 'POOR': 1.0, 'REJECT': None},
+                       'WEIGHT':
+                       {'GOOD': 0.04, 'ACCEPTABLE': 0.10, 'POOR': 0.21, 'REJECT': None},
+                       'MUAC':
+                       {'GOOD': 2.0, 'ACCEPTABLE': 2.7, 'POOR': 3.3, 'REJECT': None}
+                       }
 
 
 def get_intra_TEM(measure_one, measure_two):
@@ -31,9 +29,9 @@ def get_intra_TEM(measure_one, measure_two):
     Compute Intra Technical Error of Measurement
     '''
     assert(len(measure_one.index) == len(measure_two.index))
-    sum_of_square_of_deviation = ((measure_one - measure_two) **2).sum()
-    absolute_TEM = math.sqrt(sum_of_square_of_deviation/(2* len(measure_one.index)))
-    
+    sum_of_square_of_deviation = ((measure_one - measure_two) ** 2).sum()
+    absolute_TEM = math.sqrt(sum_of_square_of_deviation / (2 * len(measure_one.index)))
+
     if EVAL_CONFIG.DEBUG_LOG:
         print("Absolute TEM : ", absolute_TEM)
 
@@ -53,7 +51,7 @@ def get_measure_category(technical_error_of_measurement, measure_name):
         measure_category = 'POOR'
     else:
         measure_category = 'REJECT'
-    
+
     return measure_category
 
 
@@ -80,7 +78,7 @@ def get_column_list(depthmap_path_list, prediction):
     Prepare the columns to be included in the artifact level dataframe
     '''
     qrcode_list, scan_type_list, artifact_list, prediction_list, target_list = [], [], [], [], []
-    
+
     for idx, path in enumerate(depthmap_path_list):
         _, targets = pickle.load(open(path, "rb"))
         targets = preprocess_targets(targets, DATA_CONFIG.TARGET_INDEXES)
@@ -118,7 +116,7 @@ def calculate_performance(code, df_mae):
     return df_out
 
 
-def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH):    
+def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH):
     '''
     Calculate accuracies across the scantypes
     '''
@@ -126,7 +124,7 @@ def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH):
     for code in DATA_CONFIG.CODE_TO_SCANTYPE.keys():
         df = calculate_performance(code, MAE)
         full_model_name = complete_name + DATA_CONFIG.CODE_TO_SCANTYPE[code]
-        df.rename(index={0:full_model_name}, inplace=True)
+        df.rename(index={0: full_model_name}, inplace=True)
         #display(HTML(df.to_html()))
         dfs.append(df)
 
@@ -162,23 +160,25 @@ def parseDepth(tx, ty, data, depthScale):
     depth *= depthScale
     return depth
 
+
 def prepare_depthmap(data, width, height, depthScale):
     # prepare array for output
     output = np.zeros((width, height, 1))
     for cx in range(width):
         for cy in range(height):
-#             output[cx][height - cy - 1][0] = parseConfidence(cx, cy)
-#             output[cx][height - cy - 1][1] = im_array[cy][cx][1] / 255.0 #test matching on RGB data
-#             output[cx][height - cy - 1][2] = 1.0 - min(parseDepth(cx, cy) / 2.0, 1.0) #depth data scaled to be visible
-            output[cx][height - cy - 1] = parseDepth(cx, cy, data, depthScale) #depth data scaled to be visible
-    return (np.array(output,dtype = 'float32').reshape(width,height), height, width)
+            #             output[cx][height - cy - 1][0] = parseConfidence(cx, cy)
+            #             output[cx][height - cy - 1][1] = im_array[cy][cx][1] / 255.0 #test matching on RGB data
+            # output[cx][height - cy - 1][2] = 1.0 - min(parseDepth(cx, cy) / 2.0,
+            # 1.0) #depth data scaled to be visible
+            output[cx][height - cy - 1] = parseDepth(cx, cy, data, depthScale)  # depth data scaled to be visible
+    return (np.array(output, dtype='float32').reshape(width, height), height, width)
 
 
 def preprocess(depthmap):
     #print(depthmap.dtype)
     depthmap = preprocess_depthmap(depthmap)
     #depthmap = depthmap/depthmap.max()
-    depthmap = depthmap/7.5
+    depthmap = depthmap / 7.5
     depthmap = resize(depthmap, (image_target_height, image_target_width))
     depthmap = depthmap.reshape((depthmap.shape[0], depthmap.shape[1], 1))
     #depthmap = depthmap[None, :]
@@ -191,6 +191,8 @@ def setWidth(value):
     width = value
 
 #setter
+
+
 def setHeight(value):
     global height
     height = value

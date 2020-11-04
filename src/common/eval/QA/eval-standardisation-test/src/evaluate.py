@@ -1,6 +1,4 @@
 import os
-import xlrd
-import math
 import utils
 import pickle
 import random
@@ -9,12 +7,10 @@ import pandas as pd
 #import glob as glob
 import glob2 as glob
 from pathlib import Path
-import matplotlib.pyplot as plt
-from skimage.transform import resize
 from IPython.display import display
 
 import tensorflow as tf
-from azureml.core import Experiment, Workspace, Dataset
+from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 
 from test_config import MODEL_CONFIG, EVAL_CONFIG, DATA_CONFIG, RESULT_CONFIG
@@ -24,30 +20,31 @@ from tensorflow.keras.models import load_model
 
 class DataGenerator(tf.keras.utils.Sequence):
     '''
-    Generator Class to create dataset in batches 
+    Generator Class to create dataset in batches
     '''
+
     def __init__(self, X, batch_size):
         self.X = X
         self.batch_size = batch_size
 
     def __len__(self):
-        l = int(len(self.X) / self.batch_size)
-        if l*self.batch_size < len(self.X):
-            l += 1
-        return l
+        length = int(len(self.X) / self.batch_size)
+        if length * self.batch_size < len(self.X):
+            length += 1
+        return length
 
     def __getitem__(self, index):
-        X = self.X[index*self.batch_size : (index+1)*self.batch_size]
+        X = self.X[index * self.batch_size: (index + 1) * self.batch_size]
         return self.__getdepthmap__(X)
-    
+
     def __getdepthmap__(self, depthmap_path_list):
         depthmaps = []
         for depthmap_path in depthmap_path_list:
             data, width, height, depthScale, _ = utils.load_depth(depthmap_path)
-            depthmap,height, width = utils.prepare_depthmap(data, width, height, depthScale)
+            depthmap, height, width = utils.prepare_depthmap(data, width, height, depthScale)
             depthmap = utils.preprocess(depthmap)
             depthmaps.append(depthmap)
-                
+
         depthmaps_to_predict = tf.stack(depthmaps)
         return depthmaps_to_predict
 
@@ -73,16 +70,17 @@ def tf_load_pickle(path, max_value):
 
 def get_height_prediction(MODEL_PATH, dataset_evaluation):
     '''
-    Perform the height prediction on the dataset  
+    Perform the height prediction on the dataset
     Input:
         MODEL_PATH : Path of the trained model
-        dataset_evaluation : dataset in which Evaluation 
+        dataset_evaluation : dataset in which Evaluation
         need to performed
     '''
     model = load_model(MODEL_PATH)
     predictions = model.predict(DataGenerator(depthmap_path_list, DATA_CONFIG.BATCH_SIZE))
     prediction_list = np.squeeze(predictions)
     return prediction_list
+
 
 def prepare_depthmap_measure_table(depthmap_path_list, prediction_list):
     '''
@@ -92,121 +90,123 @@ def prepare_depthmap_measure_table(depthmap_path_list, prediction_list):
         depthmap_path_list : List of Depthmaps paths of standardised dataset
         prediction_list : List of prediction on the above depthmap
     Output:
-        depthmap_measure_table : Depthmap Measure Table for qrcode in the 
+        depthmap_measure_table : Depthmap Measure Table for qrcode in the
         standardised dataset
     '''
     df = pd.DataFrame({'depthmap_path': depthmap_path_list, 'prediction': prediction_list})
-    df['enumerator'] = df['depthmap_path'].apply(lambda x : x.split('/')[-3])
-    df['qrcode'] = df['depthmap_path'].apply(lambda x : x.split('/')[-5])
-    df['scantype'] = df['depthmap_path'].apply(lambda x : x.split('/')[-1].split('_')[-2])
+    df['enumerator'] = df['depthmap_path'].apply(lambda x: x.split('/')[-3])
+    df['qrcode'] = df['depthmap_path'].apply(lambda x: x.split('/')[-5])
+    df['scantype'] = df['depthmap_path'].apply(lambda x: x.split('/')[-1].split('_')[-2])
     df['MeasureGroup'] = 'NaN'
-        
+
     grp_by_col = ['enumerator', 'qrcode', 'scantype']
     measure_group_code = ['Height 1', 'Height 2']
     #Group for two measurement for TEM
     groups_for_two_measure = df.groupby(grp_by_col)
-    
+
     if EVAL_CONFIG.DEBUG_LOG:
         display(groups_for_two_measure)
-    
+
     for idx, (name, group) in enumerate(groups_for_two_measure):
         length = group.index.size
 
         #Check if qrcode contains contains multiple artifact or not
         if length > 1:
-            measure_grp_one = group.index.values[: length//2]
-            measure_grp_two = group.index[length//2:]
+            measure_grp_one = group.index.values[: length // 2]
+            measure_grp_two = group.index[length // 2:]
 
             df.loc[measure_grp_one, 'MeasureGroup'] = measure_group_code[0]
             df.loc[measure_grp_two, 'MeasureGroup'] = measure_group_code[1]
 
         # TODO: handle if qrcode contains single artifact
         # In current case it will not consider qrcode for
-        # standardisation test    
+        # standardisation test
 
-    df = df.dropna(axis = 0)
+    df = df.dropna(axis=0)
     if EVAL_CONFIG.DEBUG_LOG:
         display(df.describe())
         display(df.head(4))
 
-    # depthmap_measure_table contains measurement predicted by model 
-    depthmap_measure_table = pd.pivot_table(df, values = 'prediction', index = 'qrcode', 
-                columns = ['enumerator', 'MeasureGroup'], aggfunc = np.mean)    
-    depthmap_measure_table = depthmap_measure_table.dropna(axis = 1)
-    
+    # depthmap_measure_table contains measurement predicted by model
+    depthmap_measure_table = pd.pivot_table(df, values='prediction', index='qrcode',
+                                            columns=['enumerator', 'MeasureGroup'], aggfunc=np.mean)
+    depthmap_measure_table = depthmap_measure_table.dropna(axis=1)
+
     #convert multi index column to single index column
     single_index_column = pd.Index([col[0] + '_' + col[1] for col in depthmap_measure_table.columns.tolist()])
     depthmap_measure_table.columns = single_index_column
-    
+
     if EVAL_CONFIG.DEBUG_LOG:
         display(depthmap_measure_table)
 
     return depthmap_measure_table
+
 
 def prepare_final_measure_table(excel_path, sheet_name, depthmap_measure_table):
     """
     Merge enumerator measure table and depthmap measure table
     and return final table
     Input:
-        excel_path : Excel file path of the measure done by enumerator 
+        excel_path : Excel file path of the measure done by enumerator
         of Standardisation test
         sheet_name : Name of the sheet in the excel
-        depthmap_measure_table : Measure table of the qrcode based on 
+        depthmap_measure_table : Measure table of the qrcode based on
         prediction from the model
-    Output : 
-        final_measure_table : Final Measure table of the prediction done 
+    Output :
+        final_measure_table : Final Measure table of the prediction done
         using model and enumerator
     """
-    standardisation_df = pd.read_excel(excel_path, header = [0, 1], sheet_name = sheet_name)
-    standardisation_df.drop(['ENUMERATOR NO.7', 'ENUMERATOR NO.8'], axis = 1, inplace = True)
+    standardisation_df = pd.read_excel(excel_path, header=[0, 1], sheet_name=sheet_name)
+    standardisation_df.drop(['ENUMERATOR NO.7', 'ENUMERATOR NO.8'], axis=1, inplace=True)
 
     if EVAL_CONFIG.DEBUG_LOG:
         display(standardisation_df)
         display(standardisation_df.columns)
-    
+
     #Convert multiindex columns to single index columns
-    single_index_col = pd.Index([col [0] + '_'+ col[1] for col in standardisation_df.columns.tolist()])    
+    single_index_col = pd.Index([col[0] + '_' + col[1] for col in standardisation_df.columns.tolist()])
     standardisation_df.columns = single_index_col
-    
+
     #Rename column name to qrcode
-    standardisation_df.rename(columns = {'Unnamed: 1_level_0_QR Code':'qrcode'}, inplace = True) 
-    
+    standardisation_df.rename(columns={'Unnamed: 1_level_0_QR Code': 'qrcode'}, inplace=True)
+
     #set index to qrcode column
-    standardisation_df.set_index('qrcode', inplace = True)
-    
+    standardisation_df.set_index('qrcode', inplace=True)
+
     #drop unused columns
-    standardisation_df.drop('Unnamed: 0_level_0_Child Number ', inplace = True, axis = 1) 
-    if EVAL_CONFIG.DEBUG_LOG: 
+    standardisation_df.drop('Unnamed: 0_level_0_Child Number ', inplace=True, axis=1)
+    if EVAL_CONFIG.DEBUG_LOG:
         display(standardisation_df)
         display("Index of dfs: ", standardisation_df.index)
 
-    final_measure_table = pd.concat([depthmap_measure_table, standardisation_df], axis = 1)
-    
+    final_measure_table = pd.concat([depthmap_measure_table, standardisation_df], axis=1)
+
     if EVAL_CONFIG.DEBUG_LOG:
         display(final_measure_table)
 
     return final_measure_table
 
+
 def prepare_and_save_tem_results(measure_table, save_path):
     '''
     Calculate TEM using the measure table for enumerator and trained model
     Input:
-        measure_table : Final measure table containing measurement from 
+        measure_table : Final measure table containing measurement from
         enumerator and trained model
         save_path : Path to save the TEM results
     Output:
-        result : TEM result for each measurer(enumerator and trained model) 
+        result : TEM result for each measurer(enumerator and trained model)
     '''
     result_index = list(set([col.split('_')[0] for col in measure_table.columns]))
     result_col = ['TEM']
-    result = pd.DataFrame(columns = result_col, index = result_index)
-    
+    result = pd.DataFrame(columns=result_col, index=result_index)
+
     for idx in result.index:
         heightOne = measure_table[idx + '_Height 1']
         heightTwo = measure_table[idx + '_Height 2']
         tem = utils.get_intra_TEM(heightOne, heightTwo)
         result.loc[idx, 'TEM'] = tem
-    
+
     new_index = []
     for idx in result.index:
         if idx[:3] == 'cgm':
@@ -242,7 +242,7 @@ if __name__ == "__main__":
         print("Accessing workspace...")
         workspace = Workspace.from_config()
         experiment = Experiment(workspace, EVAL_CONFIG.EXPERIMENT_NAME)
-        run = experiment.start_logging(outputs = None, snapshot_directory = None)
+        run = experiment.start_logging(outputs=None, snapshot_directory=None)
 
         # Get dataset.
         print("Accessing dataset...")
@@ -251,7 +251,7 @@ if __name__ == "__main__":
         print("Dataset Path: ", dataset_path)
         if not os.path.exists(dataset_path):
             dataset = workspace.datasets[dataset_name]
-            dataset.download(target_path = dataset_path, overwrite = False)
+            dataset.download(target_path=dataset_path, overwrite=False)
 
     # Online run. Use dataset provided by training notebook.
     else:
@@ -277,7 +277,7 @@ if __name__ == "__main__":
     #Get the prediction on the artifact
     prediction_list = get_height_prediction(MODEL_CONFIG.NAME, depthmap_path_list)
     depthmap_measure_table = prepare_depthmap_measure_table(depthmap_path_list, prediction_list)
-    
+
     data_path = Path(dataset_path)
     excel_path = data_path / DATA_CONFIG.EXCEL_NAME
     sheet_name = DATA_CONFIG.SHEET_NAME

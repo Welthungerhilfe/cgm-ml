@@ -36,10 +36,10 @@ def tf_load_pickle(path, max_value):
 
 def get_height_prediction(MODEL_PATH, dataset_evaluation):
     '''
-    Perform the height prediction on the dataset  
+    Perform the height prediction on the dataset
     Input:
         MODEL_PATH : Path of the trained model
-        dataset_evaluation : dataset in which Evaluation 
+        dataset_evaluation : dataset in which Evaluation
         need to performed
     '''
     model = load_model(MODEL_PATH)
@@ -65,7 +65,7 @@ if __name__ == "__main__":
         print("Accessing workspace...")
         workspace = Workspace.from_config()
         experiment = Experiment(workspace, EVAL_CONFIG.EXPERIMENT_NAME)
-        run = experiment.start_logging(outputs = None, snapshot_directory = None)
+        run = experiment.start_logging(outputs=None, snapshot_directory=None)
 
         # Get dataset.
         print("Accessing dataset...")
@@ -73,7 +73,7 @@ if __name__ == "__main__":
         dataset_path = str(REPO_DIR / "data" / dataset_name)
         if not os.path.exists(dataset_path):
             dataset = workspace.datasets[dataset_name]
-            dataset.download(target_path = dataset_path, overwrite = False)
+            dataset.download(target_path=dataset_path, overwrite=False)
 
     # Online run. Use dataset provided by training notebook.
     else:
@@ -126,12 +126,12 @@ if __name__ == "__main__":
         paths_evaluation, prediction_list_one)
 
     df = pd.DataFrame({
-        'qrcode' : qrcode_list,
-        'artifact' : artifact_list,
-        'scantype' : scantype_list,
-        'GT' : target_list,
-        'predicted' : prediction_list
-        }, columns = RESULT_CONFIG.COLUMNS)
+        'qrcode': qrcode_list,
+        'artifact': artifact_list,
+        'scantype': scantype_list,
+        'GT': target_list,
+        'predicted': prediction_list
+    }, columns=RESULT_CONFIG.COLUMNS)
 
     df['GT'] = df['GT'].astype('float64')
     df['predicted'] = df['predicted'].astype('float64')
@@ -139,8 +139,8 @@ if __name__ == "__main__":
     MAE = df.groupby(['qrcode', 'scantype']).mean()
     print("Mean Avg Error: ", MAE)
 
-    MAE['error'] = MAE.apply(utils.avgerror, axis = 1)
-    
+    MAE['error'] = MAE.apply(utils.avgerror, axis=1)
+
     print("Saving the results")
     utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, RESULT_CONFIG.SAVE_PATH)
 

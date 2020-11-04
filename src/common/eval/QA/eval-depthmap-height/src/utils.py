@@ -29,11 +29,11 @@ def get_depthmap_files(paths):
 
 def get_column_list(depthmap_path_list, prediction):
     '''
-    Prepare the list of all artifact with its corresponding scantype, 
+    Prepare the list of all artifact with its corresponding scantype,
     qrcode, target and prediction
     '''
     qrcode_list, scan_type_list, artifact_list, prediction_list, target_list = [], [], [], [], []
-    
+
     for idx, path in enumerate(depthmap_path_list):
         _, targets = pickle.load(open(path, "rb"))
         targets = preprocess_targets(targets, DATA_CONFIG.TARGET_INDEXES)
@@ -79,12 +79,12 @@ def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH):
     '''
     Calculate accuracies across the scantypes and
     save the final results table to the CSV file
-    ''' 
+    '''
     dfs = []
     for code in DATA_CONFIG.CODE_TO_SCANTYPE.keys():
         df = calculate_performance(code, MAE)
         full_model_name = complete_name + DATA_CONFIG.CODE_TO_SCANTYPE[code]
-        df.rename(index = {0 : full_model_name}, inplace = True)
+        df.rename(index={0: full_model_name}, inplace=True)
         #display(HTML(df.to_html()))
         dfs.append(df)
 
@@ -94,5 +94,4 @@ def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH):
     print(result)
 
     # Save the model results in csv file
-    result.to_csv(CSV_OUT_PATH, index = True)
-
+    result.to_csv(CSV_OUT_PATH, index=True)
