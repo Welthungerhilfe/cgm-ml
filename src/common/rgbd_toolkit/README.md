@@ -40,7 +40,5 @@ For eg:
 python rgbd.py --input /mnt/cgmmlprod/cgminbmzprod_v5.0/ --output /mnt/preprocessed/rgbd56k/ --pickled --w 20
 ```
 
-3. TODO add segmented rgbd
-
 
 

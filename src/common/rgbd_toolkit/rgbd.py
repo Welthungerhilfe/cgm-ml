@@ -16,7 +16,6 @@ import tensorflow.compat.v1 as tf
 from PIL import Image
 from get_timestamps import get_timestamps_from_rgb, get_timestamps_from_pcd
 from cgm_fusion.fusion import fuse_rgbd
-# from segmentation import DeepLabModel, load_model, apply_segmentation
 sys.path.append('../cgm-ml')
 sys.path.append(os.path.dirname(os.getcwd()))
 tf.disable_v2_behavior()
@@ -73,26 +72,6 @@ def get_filename(pcd_file, rgbd_folder, qr_folder):
         logging.info("Folder does not exist for " + str(rgbd_filename))
         os.makedirs(rgbd_folder_, exist_ok=True)
         logging.info("Created folder " + str(rgbd_folder_))
-
-    ##TODO:uncomment for segmentation fusion
-
-    # check if a segmentation for the found jpg exists
-    # seg_path_ = jpg_file.replace('.jpg', '_SEG.png')
-    # seg_path_,seg_file=os.path.split(seg_path_)
-    # seg_folder=os.path.join(seg_folder_,qr_folder)
-
-    # if not os.path.exists(seg_folder):
-    #     os.mkdir(seg_folder)
-    # seg_path=os.path.join(seg_folder,seg_file)
-
-    # if not( os.path.exists(seg_path) ):
-
-    #     logging.debug('applying segmentation')
-    #     seg_path = apply_segmentation(image,seg_path,model)
-    #     # check if the path now exists
-    # if not( os.path.exists(seg_path) ):
-    #         logging.error('Segmented file does not exist: ' + seg_path)
-
     return rgbd_filename
 
 
@@ -213,10 +192,6 @@ if __name__ == "__main__":
     if not os.path.exists(unique_qr_codes[0]):
         print("Error:invalid input paths..exiting")
         sys.exit()
-    #TODO
-    #loading DeepLab model
-    # if args.segmented:
-    #     model = load_model()
 
     #making output dir for storing rgbd files
     rgbd_folder = args.output
