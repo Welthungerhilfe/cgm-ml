@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
+from azureml.core import Experiment, Run, Workspace
 from tqdm import tqdm
 
 REPO_DIR = Path(__file__).parents[4].absolute()
@@ -72,3 +73,21 @@ def standing_laying_predict(qrcode_pcd_rgb, model):
         qr_codes_predicts.append(qr_code_predict)
 
     return qr_codes_predicts
+
+
+def download_model(ws, EXPERIMENT_NAME, RUN_ID, INPUT_LOCATION, OUTPUT_LOCATION):
+    '''
+    Download the pretrained model
+    Input:
+         ws: workspace to access the experiment
+         EXPERIMENT_NAME: Name of the experiment in which model is saved
+         RUN_ID: Run Id of the experiment in which model is pre-trained 
+         INPUT_LOCATION: Input location in a RUN Id
+         OUTPUT_LOCATION: Location for saving the model
+    '''
+    experiment = Experiment(workspace=ws, name=EXPERIMENT_NAME)
+    #Download the model on which evaluation need to be done
+    run = Run(experiment, run_id=RUN_ID)
+    #run.get_details()
+    run.download_file(INPUT_LOCATION, OUTPUT_LOCATION)
+    print("Successfully downloaded model")
