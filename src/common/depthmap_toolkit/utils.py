@@ -3,38 +3,35 @@ import math
 import numpy as np
 
 
-def quaternion_mult(q, r):
+def quaternion_mult(q: list, r: list) -> list:
+    """Multiplication of 2 quaternions"""
     return [r[0] * q[0] - r[1] * q[1] - r[2] * q[2] - r[3] * q[3],
             r[0] * q[1] + r[1] * q[0] - r[2] * q[3] + r[3] * q[2],
             r[0] * q[2] + r[1] * q[3] + r[2] * q[0] - r[3] * q[1],
             r[0] * q[3] - r[1] * q[2] + r[2] * q[1] + r[3] * q[0]]
 
 
-def point_rotation_by_quaternion(point, q):
+def point_rotation_by_quaternion(point: list, q: list) -> list:
+    """Apply rotation to point in 3D space"""
     r = [0] + point
     q_conj = [q[0], -q[1], -q[2], -q[3]]
     return quaternion_mult(quaternion_mult(q, r), q_conj)[1:]
 
-#convert point into 3D
 
-
-def convert2Dto3D(intrisics, x, y, z):
+def convert2Dto3D(intrisics: list, x: float, y: float, z: float) -> list:
+    """Convert point in pixels into point in meters"""
     fx = intrisics[0] * float(width)
     fy = intrisics[1] * float(height)
     cx = intrisics[2] * float(width)
     cy = intrisics[3] * float(height)
     tx = (x - cx) * z / fx
     ty = (y - cy) * z / fy
-    output = []
-    output.append(tx)
-    output.append(ty)
-    output.append(z)
-    return output
-
-#convert point into 3D oriented
+    return [tx, ty, z]
 
 
-def convert2Dto3DOriented(intrisics, x, y, z):
+
+def convert2Dto3DOriented(intrisics: list, x: float, y: float, z: float) -> list:
+    """Convert point in pixels into point in meters (applying rotation)"""
     res = convert2Dto3D(calibration[1], x, y, z)
     if res:
         try:
@@ -45,21 +42,17 @@ def convert2Dto3DOriented(intrisics, x, y, z):
             i = 0
     return res
 
-#convert point into 2D
 
-
-def convert3Dto2D(intrisics, x, y, z):
+def convert3Dto2D(intrisics: list, x: float, y: float, z: float) -> list:
+    """Convert point in meters into point in pixels"""
     fx = intrisics[0] * float(width)
     fy = intrisics[1] * float(height)
     cx = intrisics[2] * float(width)
     cy = intrisics[3] * float(height)
     tx = x * fx / z + cx
     ty = y * fy / z + cy
-    output = []
-    output.append(tx)
-    output.append(ty)
-    output.append(z)
-    return output
+    return [tx, ty, z]
+
 
 #write obj
 
