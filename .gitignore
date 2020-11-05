@@ -7,6 +7,8 @@ vandelay-py.js
 logs/
 logs_*/
 tmp_train/
+honor/
+src/common/depthmap_toolkit/data
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

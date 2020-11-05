@@ -212,7 +212,7 @@ def parseCalibration(filepath):
 
 
 def parseConfidence(tx, ty):
-    return ord(data[(int(ty) * width + int(tx)) * 3 + 2]) / maxConfidence
+    return data[(int(ty) * width + int(tx)) * 3 + 2] / maxConfidence
 
 #parse depth data
 
@@ -220,7 +220,7 @@ def parseConfidence(tx, ty):
 def parseData(filename):
     global width, height, depthScale, maxConfidence, data, position, rotation
     with open('data', 'rb') as file:
-        line = str(file.readline())[:-1]
+        line = file.readline().decode().strip()
         header = line.split('_')
         res = header[0].split('x')
         width = int(res[0])
@@ -237,8 +237,8 @@ def parseData(filename):
 
 
 def parseDepth(tx, ty):
-    depth = ord(data[(int(ty) * width + int(tx)) * 3 + 0]) << 8
-    depth += ord(data[(int(ty) * width + int(tx)) * 3 + 1])
+    depth = data[(int(ty) * width + int(tx)) * 3 + 0] << 8
+    depth += data[(int(ty) * width + int(tx)) * 3 + 1]
     depth *= depthScale
     return depth
 
