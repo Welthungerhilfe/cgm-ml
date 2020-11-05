@@ -16,6 +16,7 @@ RESIZE_FACTOR = 4
 def blur_faces_in_file(source_path: str, target_path: str):
     """Blur image"""
     # Read the image.
+    import ipdb; ipdb.set_trace()
     rgb_image = cv2.imread(source_path)
     image = rgb_image[:, :, ::-1]  # RGB -> BGR for OpenCV
 
