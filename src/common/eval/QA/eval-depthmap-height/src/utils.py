@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 import pandas as pd
 import glob2 as glob
-from config import DATA_CONFIG, RESULT_CONFIG
+from qa_config import DATA_CONFIG, RESULT_CONFIG
 
 
 def preprocess_depthmap(depthmap):

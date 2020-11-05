@@ -12,7 +12,7 @@ from azureml.core.run import Run
 
 import utils
 from constants import REPO_DIR
-from config import MODEL_CONFIG, EVAL_CONFIG, DATA_CONFIG, RESULT_CONFIG
+from qa_config import MODEL_CONFIG, EVAL_CONFIG, DATA_CONFIG, RESULT_CONFIG
 
 
 # Function for loading and processing depthmaps.
