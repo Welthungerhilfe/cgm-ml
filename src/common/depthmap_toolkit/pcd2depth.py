@@ -5,6 +5,9 @@ import numpy as np
 import utils
 
 
+ENCODING = 'charmap'
+
+
 def process(calibration, pcd, depthfile):
 
     #read PCD and calibration
@@ -27,14 +30,21 @@ def process(calibration, pcd, depthfile):
 
     #write depthmap
     with open('data', 'wb') as file:
-        file.write(str(width) + 'x' + str(height) + '_0.001_255\n')
+        header_str = str(width) + 'x' + str(height) + '_0.001_255\n'
+
+        file.write(header_str.encode(ENCODING))
         for y in range(height):
             for x in range(width):
                 depth = int(output[x][y][2] * 1000)
                 confidence = int(output[x][y][0] * 255)
-                file.write(chr(depth / 256))
-                file.write(chr(depth % 256))
-                file.write(chr(confidence))
+
+                depth_byte = chr(int(depth / 256)).encode(ENCODING)
+                depth_byte2 = chr(depth % 256).encode(ENCODING)
+                confidence_byte = chr(confidence).encode(ENCODING)
+
+                file.write(depth_byte)
+                file.write(depth_byte2)
+                file.write(confidence_byte)
 
     #zip data
     with zipfile.ZipFile(depthfile, "w", zipfile.ZIP_DEFLATED) as zip:
