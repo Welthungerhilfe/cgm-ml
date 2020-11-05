@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
-from azureml.core import Experiment, Run, Workspace
+from azureml.core import Experiment, Run
 from tqdm import tqdm
 
 REPO_DIR = Path(__file__).parents[4].absolute()
@@ -81,7 +81,7 @@ def download_model(ws, EXPERIMENT_NAME, RUN_ID, INPUT_LOCATION, OUTPUT_LOCATION)
     Input:
          ws: workspace to access the experiment
          EXPERIMENT_NAME: Name of the experiment in which model is saved
-         RUN_ID: Run Id of the experiment in which model is pre-trained 
+         RUN_ID: Run Id of the experiment in which model is pre-trained
          INPUT_LOCATION: Input location in a RUN Id
          OUTPUT_LOCATION: Location for saving the model
     '''
