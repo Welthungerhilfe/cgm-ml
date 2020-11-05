@@ -36,7 +36,6 @@ In the future we plan to not support PCD files anymore (due to their big size).
 
 * The input folder has to contain camera_calibration.txt file and subfolder depth containing one or more depthmap files.
 * By arrows "<<" and ">>" you can switch to next or previous depthmap in the folder
-* Show edges shows the detected edges in the depthmap
 * Export OBJ will export the data as a pointcloud into OBJ file in export folder, this data will be reoriented using depthmap pose (if available)
 * Export PCDwill export the data as a pointcloud into PCD file in export folder
 * Convert all PCDs button has the same functionality as convertdepth2pcd

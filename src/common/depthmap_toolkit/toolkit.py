@@ -58,23 +58,13 @@ def prev(event):
     show()
 
 
-def swapEdges(event):
-    plt.close()
-    global edges
-    edges = 1 - edges
-    show()
-
-
 def show():
     if rgb:
         depthmap.process(plt, input, depth[index], rgb[index])
     else:
         depthmap.process(plt, input, depth[index], 0)
 
-    if edges == 1:
-        depthmap.showEdges()
-    else:
-        depthmap.showResult()
+    depthmap.showResult()
     ax = plt.gca()
     ax.text(0.5, 1.075, depth[index], horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
     bprev = Button(plt.axes([0.0, 0.0, 0.1, 0.075]), '<<', color='gray')
@@ -87,12 +77,6 @@ def show():
     bexportPCD.on_clicked(exportPCD)
     bconvertPCDs = Button(plt.axes([0.6, 0.0, 0.2, 0.05]), 'Convert all PCDs', color='gray')
     bconvertPCDs.on_clicked(convertAllPCDs)
-    if edges == 0:
-        bshowedges = Button(plt.axes([0.0, 0.94, 0.2, 0.05]), 'Show edges', color='gray')
-        bshowedges.on_clicked(swapEdges)
-    else:
-        bshowedges = Button(plt.axes([0.0, 0.94, 0.2, 0.05]), 'Hide edges', color='gray')
-        bshowedges.on_clicked(swapEdges)
     plt.show()
 
 
@@ -120,7 +104,6 @@ except BaseException:
 os.mkdir('export')
 
 #show viewer
-edges = 0
 index = 0
 size = len(depth)
 show()
