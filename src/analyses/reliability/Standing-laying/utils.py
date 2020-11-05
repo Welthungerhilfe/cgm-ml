@@ -10,11 +10,11 @@ REPO_DIR = Path(__file__).parents[4].absolute()
 
 scan_type = {
     'Standing_front': '_100_',
-    'Standing_back': '_101',
-    'Standing_360': '_102_',
+    'Standing_360': '_101',
+    'Standing_back': '_102_',
     'Laying_front': '_200_',
-    'Laying_back': '_201',
-    'Laying_360': '_202_'
+    'Laying_360': '_201',
+    'Laying_back': '_202_'
 }
 
 
@@ -75,19 +75,19 @@ def standing_laying_predict(qrcode_pcd_rgb, model):
     return qr_codes_predicts
 
 
-def download_model(ws, EXPERIMENT_NAME, RUN_ID, INPUT_LOCATION, OUTPUT_LOCATION):
+def download_model(ws, experiment_name, run_id, input_location, output_location):
     '''
     Download the pretrained model
     Input:
          ws: workspace to access the experiment
-         EXPERIMENT_NAME: Name of the experiment in which model is saved
-         RUN_ID: Run Id of the experiment in which model is pre-trained
-         INPUT_LOCATION: Input location in a RUN Id
-         OUTPUT_LOCATION: Location for saving the model
+         experiment_name: Name of the experiment in which model is saved
+         run_id: Run Id of the experiment in which model is pre-trained
+         input_location: Input location in a RUN Id
+         output_location: Location for saving the model
     '''
-    experiment = Experiment(workspace=ws, name=EXPERIMENT_NAME)
+    experiment = Experiment(workspace=ws, name=experiment_name)
     #Download the model on which evaluation need to be done
-    run = Run(experiment, run_id=RUN_ID)
+    run = Run(experiment, run_id=run_id)
     #run.get_details()
-    run.download_file(INPUT_LOCATION, OUTPUT_LOCATION)
+    run.download_file(input_location, output_location)
     print("Successfully downloaded model")

@@ -10,14 +10,12 @@ from tensorflow.keras import callbacks
 
 from config import CONFIG
 from constants import REPO_DIR
-from model import create_cnn, set_trainable_layer
+from model import create_cnn, set_trainable_below_layers
 from preprocessing import process_path
 
 # Make experiment reproducable
 tf.random.set_seed(CONFIG.SPLIT_SEED)
 random.seed(CONFIG.SPLIT_SEED)
-
-AUTOTUNE = tf.data.experimental.AUTOTUNE
 
 # Get the current run.
 run = Run.get_context()
@@ -168,7 +166,7 @@ model.fit(
 )
 
 #  function use to tune the top convolution layer
-set_trainable_layer('block14_sepconv1', model)
+set_trainable_below_layers('block14_sepconv1', model)
 
 model.fit(
     dataset_training.batch(CONFIG.BATCH_SIZE),

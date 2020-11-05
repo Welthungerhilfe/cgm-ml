@@ -24,7 +24,7 @@ def create_cnn(input_shape, dropout):
     return model
 
 
-def set_trainable_layer(layer_name, models):
+def set_trainable_below_layers(layer_name, models):
     set_trainable = False
     for layer in models.layers:
         if layer.name == layer_name:
