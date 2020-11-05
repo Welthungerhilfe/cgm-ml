@@ -3,11 +3,8 @@ import math
 import numpy as np
 
 
-def add(a, b):
-    return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
-
-
-def cross(a, b):
+def cross(a: list, b: list) -> list:
+    """Cross product (linear algebra)"""
     output = [0, 0, 0]
     output[0] = a[1] * b[2] - a[2] * b[1]
     output[1] = a[0] * b[2] - a[2] * b[0]
@@ -15,15 +12,17 @@ def cross(a, b):
     return output
 
 
-def dot(a, b):
+def dot(a: list, b: list) -> float:
+    """Dot product"""
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 
 
-def normalize(a):
-    len = a[0] + a[1] + a[2]
-    if len == 0:
-        len = 1
-    return [a[0] / len, a[1] / len, a[2] / len]
+def normalize(a: list):
+    """Normalize so vector length is 1."""
+    length = a[0] + a[1] + a[2]
+    if length == 0:
+        length = 1
+    return [a[0] / length, a[1] / length, a[2] / length]
 
 
 def sub(a, b):
