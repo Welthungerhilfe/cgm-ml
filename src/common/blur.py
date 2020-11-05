@@ -1,42 +1,29 @@
-import glob
 import logging
-import os
-import random
-import shutil
-import sys
 from typing import Iterable
 
 import cv2
 import face_recognition
 import numpy as np
 
-from cgmcore import utils
-from tqdm import tqdm
 
-
-CODES_FRONT_FACING =("100", "200")
-CODES_BACK_FACING =("102", "202")
+CODES_FRONT_FACING = ("100", "200")
+CODES_BACK_FACING = ("102", "202")
 CODES_360 = ("101", "201")
 
 RESIZE_FACTOR = 4
 
 
 def blur_faces_in_file(source_path: str, target_path: str):
-    """Blur image
-
-    Args:
-        source_path ([type]): [description]
-        target_path ([type]): [description]
-    """
+    """Blur image"""
     # Read the image.
     rgb_image = cv2.imread(source_path)
-    image = rgb_image[:,:,::-1]  # RGB -> BGR for OpenCV
+    image = rgb_image[:, :, ::-1]  # RGB -> BGR for OpenCV
 
     # The images are provided in 90degrees turned. Here we rotate 90degress to the right.
     image = np.swapaxes(image, 0, 1)
 
     # Scale image down for faster prediction.
-    small_image = cv2.resize(image, (0, 0), fx=1/RESIZE_FACTOR, fy=1/RESIZE_FACTOR)
+    small_image = cv2.resize(image, (0, 0), fx=1. / RESIZE_FACTOR, fy=1. / RESIZE_FACTOR)
 
     # Find face locations.
     face_locations = face_recognition.face_locations(small_image, model="cnn")
@@ -68,7 +55,7 @@ def blur_faces_in_file(source_path: str, target_path: str):
     image = np.swapaxes(image, 0, 1)
 
     # Write image to hard drive.
-    rgb_image = image[:,:,::-1]  # BGR -> RGB for OpenCV
+    rgb_image = image[:, :, ::-1]  # BGR -> RGB for OpenCV
     cv2.imwrite(target_path, rgb_image)
 
     logging.info(f"{len(face_locations)} face locations found and blurred for path: {source_path}")
