@@ -1,8 +1,4 @@
-  trigger:
-    batch: true
-    branches:
-      include:
-      - test-pipeline
+trigger: none
 
   jobs:
   - job: EvaluationJob
