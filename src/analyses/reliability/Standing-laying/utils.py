@@ -44,7 +44,6 @@ def get_timestamp_from_rgb(rgb_path):
 
 
 def find_closest(rgb_list: list, target: float) -> int:
-    # A must be sorted
     idx = rgb_list.searchsorted(target)
     idx = np.clip(idx, 1, len(rgb_list) - 1)
     left = rgb_list[idx - 1]
