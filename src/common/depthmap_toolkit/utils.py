@@ -3,38 +3,6 @@ import math
 import numpy as np
 
 
-def cross(a: list, b: list) -> list:
-    """Cross product (linear algebra)"""
-    output = [0, 0, 0]
-    output[0] = a[1] * b[2] - a[2] * b[1]
-    output[1] = a[0] * b[2] - a[2] * b[0]
-    output[2] = a[0] * b[1] - a[1] * b[0]
-    return output
-
-
-def dot(a: list, b: list) -> float:
-    """Dot product"""
-    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
-
-
-def normalize(a: list):
-    """Normalize so vector length is 1."""
-    length = a[0] + a[1] + a[2]
-    if length == 0:
-        length = 1
-    return [a[0] / length, a[1] / length, a[2] / length]
-
-
-def sub(a, b):
-    return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
-
-
-def length(a, b):
-    diff = sub(a, b)
-    value = diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2]
-    return math.sqrt(value)
-
-
 def quaternion_mult(q, r):
     return [r[0] * q[0] - r[1] * q[1] - r[2] * q[2] - r[3] * q[3],
             r[0] * q[1] + r[1] * q[0] - r[2] * q[3] + r[3] * q[2],
@@ -242,20 +210,6 @@ def parseDepth(tx, ty):
     depth *= depthScale
     return depth
 
-#get smoothed depth of the point in meters
-
-
-def parseDepthSmoothed(tx, ty, s):
-    center = parseDepth(tx, ty)
-    count = 1
-    depth = center
-    for x in range(tx - s, tx + s):
-        for y in range(ty - s, ty + s):
-            value = parseDepth(x, y)
-            if abs(center - value) < 0.1:
-                depth = depth + value
-                count = count + 1
-    return depth / count
 
 #parse line of numbers
 
