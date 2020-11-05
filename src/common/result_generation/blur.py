@@ -1,3 +1,4 @@
+import os
 import logging
 from typing import Iterable
 
@@ -13,10 +14,15 @@ CODES_360 = ("101", "201")
 RESIZE_FACTOR = 4
 
 
-def blur_faces_in_file(source_path: str, target_path: str):
-    """Blur image"""
+def blur_faces_in_file(source_path: str, target_path: str) -> bool:
+    """Blur image
+
+    Returns:
+        bool: True if blurred otherwise False
+    """
+
     # Read the image.
-    import ipdb; ipdb.set_trace()
+    assert os.path.exists(source_path), f"{source_path} does not exist"
     rgb_image = cv2.imread(source_path)
     image = rgb_image[:, :, ::-1]  # RGB -> BGR for OpenCV
 
@@ -30,9 +36,9 @@ def blur_faces_in_file(source_path: str, target_path: str):
     face_locations = face_recognition.face_locations(small_image, model="cnn")
 
     # Check if image should be used.
-    if should_image_be_used(source_path, number_of_faces=len(face_locations)):
-        logging.info(f"{len(face_locations)} face locations found and not blurred for path: {source_path}")
-        return
+    if not should_image_be_used(source_path, number_of_faces=len(face_locations)):
+        logging.warn(f"{len(face_locations)} face locations found and not blurred for path: {source_path}")
+        return False
 
     # Blur the image.
     for top, right, bottom, left in face_locations:
@@ -51,7 +57,6 @@ def blur_faces_in_file(source_path: str, target_path: str):
         # Put the blurred face region back into the frame image.
         image[top:bottom, left:right] = face_image
 
-    # ????
     # Rotate image back.
     image = np.swapaxes(image, 0, 1)
 
@@ -60,6 +65,7 @@ def blur_faces_in_file(source_path: str, target_path: str):
     cv2.imwrite(target_path, rgb_image)
 
     logging.info(f"{len(face_locations)} face locations found and blurred for path: {source_path}")
+    return True
 
 
 def should_image_be_used(source_path: str, number_of_faces: int) -> bool:
