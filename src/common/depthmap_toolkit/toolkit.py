@@ -17,7 +17,7 @@ DEPTHMAP_DIR = None
 def convertAllPCDs(event):
     input_dir = 'export'
     pcd = []
-    for (dirpath, dirnames, filenames) in walk(input_dir):
+    for _, _, filenames in walk(input_dir):
         pcd = filenames
     pcd.sort()
     try:

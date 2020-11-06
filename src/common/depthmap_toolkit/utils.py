@@ -54,12 +54,12 @@ def convert3Dto2D(intrisics: list, x: float, y: float, z: float) -> list:
     return [tx, ty, z]
 
 
-#write obj
-
-#triangulate=True generates OBJ of type mesh
-#triangulate=False generates OBJ of type pointcloud
 def exportOBJ(filename, triangulate):
+    """
 
+    triangulate=True generates OBJ of type mesh
+    triangulate=False generates OBJ of type pointcloud
+    """
     count = 0
     indices = np.zeros((width, height))
     with open(filename, 'w') as file:
@@ -96,8 +96,6 @@ def exportOBJ(filename, triangulate):
                             file.write('f ' + str(int(indices[x + 1][y + 1])) + ' ' + str(int(indices[x + 1][y])) + ' ' + str(int(indices[x][y + 1])) + '\n')
         print('Pointcloud exported into ' + filename)
 
-#write pcd
-
 
 def exportPCD(filename):
     with open(filename, 'w') as file:
@@ -124,8 +122,6 @@ def exportPCD(filename):
                                    + str(res[2]) + ' ' + str(parseConfidence(x, y)) + '\n')
         print('Pointcloud exported into ' + filename)
 
-#get valid points in depthmaps
-
 
 def getCount():
     count = 0
@@ -138,22 +134,9 @@ def getCount():
                     count = count + 1
     return count
 
-#getter
-
-
-def getWidth():
-    return width
-
-#getter
-
-
-def getHeight():
-    return height
-
-#parse calibration file
-
 
 def parseCalibration(filepath):
+    """Parse calibration file"""
     global calibration
     with open(filepath, 'r') as file:
         calibration = []
@@ -169,16 +152,14 @@ def parseCalibration(filepath):
         calibration[2][1] *= 8.0  # workaround for wrong calibration data
     return calibration
 
-#get confidence of the point in scale 0-1
-
 
 def parseConfidence(tx, ty):
+    """Get confidence of the point in scale 0-1"""
     return data[(int(ty) * width + int(tx)) * 3 + 2] / maxConfidence
-
-#parse depth data
 
 
 def parseData(filename):
+    """Parse depth data"""
     global width, height, depthScale, maxConfidence, data, position, rotation
     with open('data', 'rb') as file:
         line = file.readline().decode().strip()
@@ -194,27 +175,22 @@ def parseData(filename):
         data = file.read()
         file.close()
 
-#get depth of the point in meters
-
 
 def parseDepth(tx, ty):
+    """Get depth of the point in meters"""
     depth = data[(int(ty) * width + int(tx)) * 3 + 0] << 8
     depth += data[(int(ty) * width + int(tx)) * 3 + 1]
     depth *= depthScale
     return depth
 
 
-#parse line of numbers
-
-
 def parseNumbers(line):
+    """Parse line of numbers"""
     output = []
     values = line.split(' ')
     for value in values:
         output.append(float(value))
     return output
-
-#parse PCD
 
 
 def parsePCD(filepath):
@@ -234,24 +210,27 @@ def parsePCD(filepath):
                 data.append(values)
     return data
 
-#parse line of values
-
 
 def parseValues(line):
+    """Parse line of values"""
     output = []
     values = line.split(' ')
     for value in values:
         output.append(value)
     return output
 
-#setter
+
+def getWidth():
+    return width
+
+
+def getHeight():
+    return height
 
 
 def setWidth(value):
     global width
     width = value
-
-#setter
 
 
 def setHeight(value):
