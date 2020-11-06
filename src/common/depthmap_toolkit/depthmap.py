@@ -42,8 +42,6 @@ def onclick(event):
                     return
             print('no valid data')
 
-#get input
-
 
 def process(plt, dir, depth, rgb):
 
