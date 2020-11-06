@@ -4,8 +4,13 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
 trigger:
-- master
-- releases/*
+  branches:
+    include:
+    - master
+    - releases/*
+  paths:
+    include:
+    - src/commmon/zscore/*
 
 pr: none
 
