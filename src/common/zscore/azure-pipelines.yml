@@ -8,9 +8,6 @@ trigger:
     include:
     - master
     - releases/*
-  paths:
-    include:
-    - src/commmon/zscore/*
 
 pool:
   vmImage: 'ubuntu-latest'
