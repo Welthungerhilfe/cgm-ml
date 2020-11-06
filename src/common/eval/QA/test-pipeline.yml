@@ -1,8 +1,10 @@
 trigger:
-  batch: true
   branches:
     include:
-    - test-pipeline
+    - master
+    - releases/*
+
+pr: none
 
 jobs:
 - job: EvaluationJob
