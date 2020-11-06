@@ -82,6 +82,7 @@ def show(depthmap_dir):
     bconvertPCDs.on_clicked(convertAllPCDs)
     plt.show()
 
+
 if __name__ == "__main__":
     # Prepare
     if len(sys.argv) != 2:

@@ -1,5 +1,3 @@
-import math
-
 import numpy as np
 
 
@@ -27,7 +25,6 @@ def convert2Dto3D(intrisics: list, x: float, y: float, z: float) -> list:
     tx = (x - cx) * z / fx
     ty = (y - cy) * z / fy
     return [tx, ty, z]
-
 
 
 def convert2Dto3DOriented(intrisics: list, x: float, y: float, z: float) -> list:
