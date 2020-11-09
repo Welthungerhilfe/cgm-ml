@@ -28,7 +28,7 @@ for p in utils_paths:
 
 from model import create_cnn
 from tmp_model_util.preprocessing import preprocess_depthmap, preprocess_targets
-from utils import download_dataset, get_dataset_path
+from tmp_model_util.utils import download_dataset, get_dataset_path
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
