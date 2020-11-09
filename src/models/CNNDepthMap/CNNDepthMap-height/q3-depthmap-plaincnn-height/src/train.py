@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 import pickle
 import random
+import shutil
 
 import glob2 as glob
 import tensorflow as tf
@@ -11,8 +12,22 @@ from tensorflow.keras import callbacks
 
 from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
+
+utils_dir_path = REPO_DIR / "src/common/model_utils"
+utils_paths = glob.glob(os.path.join(utils_dir_path, "*.py"))
+temp_dir = Path(__file__).parent / "tmp_model_util"
+# Remove old temp_path    TODO idea symlink?
+if os.path.exists(temp_dir):
+    shutil.rmtree(temp_dir)
+# Copy
+os.mkdir(temp_dir)
+os.system(f'touch {temp_dir}/__init__.py')
+for p in utils_paths:
+    shutil.copy(p, temp_dir)
+# TODO remove
+
 from model import create_cnn
-from preprocessing import preprocess_depthmap, preprocess_targets
+from tmp_model_util.preprocessing import preprocess_depthmap, preprocess_targets
 from utils import download_dataset, get_dataset_path
 
 # Make experiment reproducible

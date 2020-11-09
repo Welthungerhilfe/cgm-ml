@@ -7,6 +7,7 @@ vandelay-py.js
 logs/
 logs_*/
 tmp_train/
+tmp_model_util/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
