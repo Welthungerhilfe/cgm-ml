@@ -10,7 +10,7 @@ from azureml.core.run import Run
 from tensorflow.keras import callbacks
 
 from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
-from constants import DATA_DIR_ONLINE_RUN, REPO_DIR
+from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
 from model import create_cnn
 from preprocessing import preprocess_depthmap, preprocess_targets
 from utils import download_dataset, get_dataset_path
@@ -202,7 +202,7 @@ tensorboard_callback = tf.keras.callbacks.TensorBoard(
 training_callbacks.append(tensorboard_callback)
 
 # Add checkpoint callback.
-best_model_path = str(DATA_DIR / 'outputs/best_model.ckpt')
+best_model_path = str(DATA_DIR / f'outputs/{MODEL_CKPT_FILENAME}')
 checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath=best_model_path,
     monitor="val_loss",
