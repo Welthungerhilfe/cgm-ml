@@ -19,15 +19,15 @@ run = Run.get_context()
 if run.id.startswith("OfflineRun"):
     utils_dir_path = REPO_DIR / "src/common/model_utils"
     utils_paths = glob.glob(os.path.join(utils_dir_path, "*.py"))
-    temp_dir = Path(__file__).parent / "tmp_model_util"
+    temp_model_util_dir = Path(__file__).parent / "tmp_model_util"
     # Remove old temp_path    TODO idea symlink?
-    if os.path.exists(temp_dir):
-        shutil.rmtree(temp_dir)
+    if os.path.exists(temp_model_util_dir):
+        shutil.rmtree(temp_model_util_dir)
     # Copy
-    os.mkdir(temp_dir)
-    os.system(f'touch {temp_dir}/__init__.py')
+    os.mkdir(temp_model_util_dir)
+    os.system(f'touch {temp_model_util_dir}/__init__.py')
     for p in utils_paths:
-        shutil.copy(p, temp_dir)
+        shutil.copy(p, temp_model_util_dir)
     # TODO remove
 
 from model import create_cnn
