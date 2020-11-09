@@ -13,18 +13,22 @@ from tensorflow.keras import callbacks
 from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
 
-utils_dir_path = REPO_DIR / "src/common/model_utils"
-utils_paths = glob.glob(os.path.join(utils_dir_path, "*.py"))
-temp_dir = Path(__file__).parent / "tmp_model_util"
-# Remove old temp_path    TODO idea symlink?
-if os.path.exists(temp_dir):
-    shutil.rmtree(temp_dir)
-# Copy
-os.mkdir(temp_dir)
-os.system(f'touch {temp_dir}/__init__.py')
-for p in utils_paths:
-    shutil.copy(p, temp_dir)
-# TODO remove
+# Get the current run.
+run = Run.get_context()
+
+if run.id.startswith("OfflineRun"):
+    utils_dir_path = REPO_DIR / "src/common/model_utils"
+    utils_paths = glob.glob(os.path.join(utils_dir_path, "*.py"))
+    temp_dir = Path(__file__).parent / "tmp_model_util"
+    # Remove old temp_path    TODO idea symlink?
+    if os.path.exists(temp_dir):
+        shutil.rmtree(temp_dir)
+    # Copy
+    os.mkdir(temp_dir)
+    os.system(f'touch {temp_dir}/__init__.py')
+    for p in utils_paths:
+        shutil.copy(p, temp_dir)
+    # TODO remove
 
 from model import create_cnn
 from tmp_model_util.preprocessing import preprocess_depthmap, preprocess_targets
@@ -34,8 +38,6 @@ from tmp_model_util.utils import download_dataset, get_dataset_path
 tf.random.set_seed(CONFIG.SPLIT_SEED)
 random.seed(CONFIG.SPLIT_SEED)
 
-# Get the current run.
-run = Run.get_context()
 
 DATA_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path(".")
 print(f"DATA_DIR: {DATA_DIR}")
