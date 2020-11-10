@@ -15,23 +15,20 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-'''
-import the necessary functions
-'''
-import os
-from cv2 import cv2
-import numpy as np
 
 import logging
+import os
+
+import numpy as np
+from cv2 import cv2
 from PIL import Image
-
-from cgm_fusion.calibration import get_intrinsic_matrix, get_extrinsic_matrix, get_k
-from cgm_fusion.utility import fuse_point_cloud
-
 from pyntcloud import PyntCloud
 
+from cgm_fusion.calibration import get_extrinsic_matrix, get_intrinsic_matrix, get_k
+from cgm_fusion.utility import fuse_point_cloud
 
-def projectPoints(pcd_points, calibration_file):
+
+def project_points(pcd_points, calibration_file):
 
     #get the data for calibration
     intrinsic = get_intrinsic_matrix(calibration_file)
@@ -42,7 +39,7 @@ def projectPoints(pcd_points, calibration_file):
 
     k1, k2, k3 = get_k(calibration_file)
 
-    im_coords, jac = cv2.projectPoints(pcd_points, r_vec,
+    im_coords, jac = cv2.project_points(pcd_points, r_vec,
                                        t_vec, intrinsic[:3, :3],
                                        np.array([k1, k2, 0, 0]))
 
@@ -115,7 +112,7 @@ def get_depth_image_from_point_cloud(calibration_file, pcd_file, output_file):
     # t_vec      = -ext_d[:3, 3]
 
     # k1, k2, k3 = get_k()
-    # im_coords, _ = cv2.projectPoints(points, r_vec, t_vec, intrinsic[:3, :3], np.array([k1, k2, 0, 0]))
+    # im_coords, _ = cv2.project_points(points, r_vec, t_vec, intrinsic[:3, :3], np.array([k1, k2, 0, 0]))
 
 
 def fuse_rgbd(calibration_file,
@@ -131,7 +128,7 @@ def fuse_rgbd(calibration_file,
 
     points = cloud.points.values[:, :3]
     #getting projected points
-    im_coords, jac = projectPoints(points, calibration_file)
+    im_coords, jac = project_points(points, calibration_file)
 
     #setting the RGB image dimensions
     scale = 0.1
@@ -226,7 +223,7 @@ def apply_fusion(calibration_file, pcd_file, jpg_file, seg_path):
 
     # get the data for calibration
 
-    im_coords, _ = projectPoints(points, calibration_file)
+    im_coords, _ = project_points(points, calibration_file)
 
     color_vals = np.zeros_like(points)
 
