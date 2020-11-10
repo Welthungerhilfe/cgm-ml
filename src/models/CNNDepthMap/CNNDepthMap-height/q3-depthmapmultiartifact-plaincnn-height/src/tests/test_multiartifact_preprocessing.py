@@ -24,21 +24,21 @@ def test_tf_augment_sample():
 
 def test_imgaug_on_multichannel_same():
     sample = np.ones((240, 180, 5)) * 0.5
-    result = augmentation(sample, mode=DATA_AUGMENTATION_SAME_PER_CHANNEL)
+    result = augment(sample, mode=DATA_AUGMENTATION_SAME_PER_CHANNEL)
     # assert np.all(result[0] == result[1])  # cannot be ensured currently
     assert result.shape == (240, 180, 5)
 
 
 def test_imgaug_on_multichannel_different():
     sample = np.ones((240, 180, 5)) * 0.5
-    result = augmentation(sample, mode=DATA_AUGMENTATION_DIFFERENT_EACH_CHANNEL)
+    result = augment(sample, mode=DATA_AUGMENTATION_DIFFERENT_EACH_CHANNEL)
     assert not np.all(result[0] == result[1])
     assert result.shape == (240, 180, 5)
 
 
 def test_imgaug_on_multichannel_no():
     sample = np.random.rand(240, 180, 5)
-    result = augmentation(sample, mode=DATA_AUGMENTATION_NO)
+    result = augment(sample, mode=DATA_AUGMENTATION_NO)
     assert result.shape == (240, 180, 5)
 
 

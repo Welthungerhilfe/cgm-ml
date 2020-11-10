@@ -31,7 +31,7 @@ def tf_augment_sample(depthmap, targets):
     return depthmap_aug, targets
 
 
-def augmentation(image: np.ndarray, mode=DATA_AUGMENTATION_SAME_PER_CHANNEL) -> np.ndarray:
+def augment(image: np.ndarray, mode=DATA_AUGMENTATION_SAME_PER_CHANNEL) -> np.ndarray:
     assert len(image.shape) == 3, f"image array should have 3 dimensions, but has {len(image.shape)}"
     height, width, n_channels = image.shape
     image = image.astype(np.float32)

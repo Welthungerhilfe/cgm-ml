@@ -17,14 +17,14 @@ from config import CONFIG, DATA_AUGMENTATION_SAME_PER_CHANNEL, DATA_AUGMENTATION
                               tf.TensorSpec(None, tf.float32),  # (1,)
                               ])
 def tf_augment_sample(depthmap, targets):
-    depthmap_aug = tf.numpy_function(augmentation, [depthmap, CONFIG.DATA_AUGMENTATION_MODE], tf.float32)
+    depthmap_aug = tf.numpy_function(augment, [depthmap, CONFIG.DATA_AUGMENTATION_MODE], tf.float32)
     depthmap_aug.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, CONFIG.N_ARTIFACTS))
     targets.set_shape((len(CONFIG.TARGET_INDEXES,)))
 
     return depthmap_aug, targets
 
 
-def augmentation(image: np.ndarray, mode=DATA_AUGMENTATION_SAME_PER_CHANNEL) -> np.ndarray:
+def augment(image: np.ndarray, mode=DATA_AUGMENTATION_SAME_PER_CHANNEL) -> np.ndarray:
     assert len(image.shape) == 3, f"image array should have 3 dimensions, but has {len(image.shape)}"
     height, width, n_channels = image.shape
     image = image.astype(np.float32)
