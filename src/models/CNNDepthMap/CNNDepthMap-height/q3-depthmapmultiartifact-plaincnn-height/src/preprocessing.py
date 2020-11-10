@@ -24,7 +24,7 @@ REGEX_PICKLE = re.compile(
                               tf.TensorSpec(None, tf.float32),  # (1,)
                               ])
 def tf_augment_sample(depthmap, targets):
-    depthmap_aug = tf.numpy_function(augmentation, [depthmap, CONFIG.DATA_AUGMENTATION_MODE], tf.float32)
+    depthmap_aug = tf.numpy_function(augment, [depthmap, CONFIG.DATA_AUGMENTATION_MODE], tf.float32)
     depthmap_aug.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, CONFIG.N_ARTIFACTS))
     targets.set_shape((len(CONFIG.TARGET_INDEXES,)))
 

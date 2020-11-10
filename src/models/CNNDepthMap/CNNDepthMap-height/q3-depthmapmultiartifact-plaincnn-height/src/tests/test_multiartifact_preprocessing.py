@@ -1,13 +1,10 @@
 from pathlib import Path
 import sys
 
-import numpy as np
 import pytest
-import tensorflow as tf
 
 sys.path.append(str(Path(__file__).parents[1]))
 
-from config import DATA_AUGMENTATION_SAME_PER_CHANNEL, DATA_AUGMENTATION_DIFFERENT_EACH_CHANNEL, DATA_AUGMENTATION_NO  # noqa: E402
 from preprocessing import sample_systematic_from_artifacts, sample_windows_from_artifacts, REGEX_PICKLE  # noqa: E402
 
 
