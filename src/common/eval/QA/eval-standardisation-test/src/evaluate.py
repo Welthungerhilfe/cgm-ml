@@ -1,21 +1,20 @@
 import os
-import utils
 import pickle
 import random
+from pathlib import Path
+
+import glob2 as glob
 import numpy as np
 import pandas as pd
-#import glob as glob
-import glob2 as glob
-from pathlib import Path
-from IPython.display import display
-
 import tensorflow as tf
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
-
-from qa_config import MODEL_CONFIG, EVAL_CONFIG, DATA_CONFIG, RESULT_CONFIG
-from constants import REPO_DIR
+from IPython.display import display
 from tensorflow.keras.models import load_model
+
+import utils
+from constants import REPO_DIR
+from qa_config import DATA_CONFIG, EVAL_CONFIG, MODEL_CONFIG, RESULT_CONFIG
 
 
 class DataGenerator(tf.keras.utils.Sequence):

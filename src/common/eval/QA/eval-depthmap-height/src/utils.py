@@ -1,8 +1,10 @@
 import os
 import pickle
+
+import glob2 as glob
 import numpy as np
 import pandas as pd
-import glob2 as glob
+
 from qa_config import DATA_CONFIG, RESULT_CONFIG
 
 

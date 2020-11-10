@@ -1,14 +1,13 @@
 import datetime
-from pathlib import Path
-import glob2 as glob
 import os
-import re
 import pickle
 import random
+import re
+from pathlib import Path
 
-import tensorflow as tf
+import glob2 as glob
 import matplotlib.pyplot as plt
-
+import tensorflow as tf
 
 REPO_DIR = Path(os.getcwd()).parent
 

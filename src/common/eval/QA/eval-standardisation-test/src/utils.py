@@ -1,13 +1,14 @@
-import os
 import math
-import zipfile
+import os
 import pickle
+import zipfile
+
+import glob2 as glob
 import numpy as np
 import pandas as pd
-import glob2 as glob
 from skimage.transform import resize
 
-from qa_config import DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG
+from qa_config import DATA_CONFIG, EVAL_CONFIG, RESULT_CONFIG
 
 image_target_height = 240
 image_target_width = 180
