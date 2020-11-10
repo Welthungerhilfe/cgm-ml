@@ -27,7 +27,7 @@ steps:
 - task: Cache@2
   displayName: Use cached pip environment
   inputs:
-    key: 'python | "$(Agent.OS)" | Python $(python.version) | requirements.txt'
+    key: 'python | "$(Agent.OS)" | "Python $(python.version)" | requirements.txt'
     path: $(PIP_CACHE_DIR)
     cacheHitVar: PIP_CACHE_RESTORED
 
