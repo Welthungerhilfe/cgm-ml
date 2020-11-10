@@ -1,7 +1,3 @@
-import numpy
-import xmltodict
-import numpy as np
-#
 # Child Growth Monitor - Free Software for Zero Hunger
 # Copyright (c) 2019 Dr. Christian Pfitzner <christian.pfitzner@th-nuernberg.de> for Welthungerhilfe
 #
@@ -19,6 +15,8 @@ import numpy as np
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import numpy as np
+import xmltodict
 
 #calib_file = r'/whhdata/calibration.xml' # todo make this a parameter
 

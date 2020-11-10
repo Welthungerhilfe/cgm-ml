@@ -196,9 +196,7 @@ def fuse_rgbd(calibration_file,
 
 
 def apply_fusion(calibration_file, pcd_file, jpg_file, seg_path):
-    '''
-    check the path if everything is correct
-    '''
+    '''Check the path if everything is correct'''
     if not os.path.exists(pcd_file):  # check all files exist
         logging.error('Point cloud does not exist')
         return
@@ -220,7 +218,6 @@ def apply_fusion(calibration_file, pcd_file, jpg_file, seg_path):
     except ValueError:
         logging.error(" Error reading point cloud ")
         raise
-        return
 
     jpg = cv2.imread(jpg_file, -1)
     jpg = cv2.flip(jpg, 0)
