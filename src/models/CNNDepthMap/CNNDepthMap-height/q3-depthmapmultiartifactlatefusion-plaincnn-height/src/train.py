@@ -30,7 +30,7 @@ if run.id.startswith("OfflineRun"):
         shutil.copy(p, temp_model_util_dir)
 
 from tmp_model_util.preprocessing import create_samples, tf_load_pickle, tf_augment_sample
-from utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback
+from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
