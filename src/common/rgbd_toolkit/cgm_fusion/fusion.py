@@ -40,7 +40,7 @@ def project_points(pcd_points, calibration_file):
 
     k1, k2, k3 = get_k(calibration_file)
 
-    im_coords, jac = cv2.project_points(pcd_points, r_vec,
+    im_coords, jac = cv2.projectPoints(pcd_points, r_vec,
                                        t_vec, intrinsic[:3, :3],
                                        np.array([k1, k2, 0, 0]))
 
@@ -112,12 +112,7 @@ def get_depth_image_from_point_cloud(calibration_file, pcd_file, output_file):
     # t_vec      = -ext_d[:3, 3]
 
     # k1, k2, k3 = get_k()
-    # im_coords, _ = cv2.project_points(points, r_vec, t_vec, intrinsic[:3, :3], np.array([k1, k2, 0, 0]))
-
-
-CODES_FRONT_FACING = ("100", "200")
-CODES_BACK_FACING = ("102", "202")
-CODES_360 = ("101", "201")
+    # im_coords, _ = cv2.projectPoints(points, r_vec, t_vec, intrinsic[:3, :3], np.array([k1, k2, 0, 0]))
 
 
 def does_path_belong_to_codes(path: str, codes: Iterable) -> bool:
@@ -175,6 +170,8 @@ def fuse_rgbd(calibration_file,
             elif does_path_belong_to_codes(pcd_name, codes=("200", "201", "202")):
                 newx = height - y - 1
                 newy = x
+            else:
+                raise NameError(f"{pcd_name} does not have a correct code")
 
             viz_image[newy][height - newx - 1][3] = depth
 
@@ -188,6 +185,8 @@ def fuse_rgbd(calibration_file,
             elif does_path_belong_to_codes(pcd_name, codes=("200", "201", "202")):
                 newx = height - y - 1
                 newy = x
+            else:
+                raise NameError(f"{pcd_name} does not have a correct code")
 
             viz_image[newy][newx][0] = im_array[y][x][0] / 255.0
             viz_image[newy][newx][1] = im_array[y][x][1] / 255.0
