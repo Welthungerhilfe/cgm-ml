@@ -1,34 +1,39 @@
-import concurrent.futures
 import argparse
-import logging
-import warnings
+import concurrent.futures
 import datetime
+import logging
 import os
-import sys
-from tqdm import tqdm
-import pandas as pd
 import pickle
-import numpy as np
+import sys
+import warnings
 from pathlib import Path
+
 import azureml.core
+import numpy as np
+import pandas as pd
 from PIL import Image
-from get_timestamps import get_timestamps_from_rgb, get_timestamps_from_pcd
+from tqdm import tqdm
+
 from cgm_fusion.fusion import fuse_rgbd
+from get_timestamps import get_timestamps_from_pcd, get_timestamps_from_rgb
+
 sys.path.append('../cgm-ml')
 sys.path.append(os.path.dirname(os.getcwd()))
+
 # check core SDK version number
 print("Azure ML SDK Version: ", azureml.core.VERSION)
+
 warnings.filterwarnings("ignore")
+
 logging.getLogger('').handlers = []
-logging.basicConfig(filename='./RGBD.log',
-                    level=logging.DEBUG,
-                    format='%(asctime)s %(message)s')
+logging.basicConfig(filename='./RGBD.log', level=logging.DEBUG, format='%(asctime)s %(message)s')
 
 
-# function to find the closest rgbd images for a given pcd
 def find_closest(rgb, pcd):
+    """Find the closest rgbd images for a given pcd
 
-    # rgb must be sorted
+    rgb must be sorted
+    """
     idx = rgb.searchsorted(pcd)
     idx = np.clip(idx, 1, len(rgb) - 1)
     left = rgb[idx - 1]
@@ -64,7 +69,7 @@ def get_filename(pcd_file, rgbd_folder, qr_folder):
 
     # check if output rgbd folder exists
     rgbd_folder_ = os.path.dirname(rgbd_filename)
-    if not (os.path.isfile(rgbd_folder_)):
+    if not os.path.isfile(rgbd_folder_):
         logging.info("Folder does not exist for " + str(rgbd_filename))
         os.makedirs(rgbd_folder_, exist_ok=True)
         logging.info("Created folder " + str(rgbd_folder_))
@@ -97,8 +102,7 @@ def process_pcd(paths, process_index=0):
 
     #saving the rgbd file with labels as pickled data
     try:
-        rgbdseg_arr = fuse_rgbd(calibration_file, pcd_file,
-                                image)  # , seg_path)
+        rgbdseg_arr = fuse_rgbd(calibration_file, pcd_file, image)  # , seg_path)
         if args.pickled:
             labels = np.array([height, weight])
             if not labels:
@@ -114,7 +118,6 @@ def process_pcd(paths, process_index=0):
         logging.info("successfully wrote new data to" + rgbd_filename)
     except Exception as e:
         logging.error("Something went wrong.Skipping this file")
-
         logging.error(str(e))
 
 
@@ -144,9 +147,7 @@ def get_files(norm_rgb_time, rgb_path, norm_pcd_time, pcd_path):
 
 
 if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(
-        description='Give in the qrcode folder to get rgbd data')
+    parser = argparse.ArgumentParser(description='Give in the qrcode folder to get rgbd data')
     parser.add_argument('--input', required=True,
                         metavar='inputpath',
                         type=str,
