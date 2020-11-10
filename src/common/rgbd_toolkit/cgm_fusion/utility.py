@@ -64,7 +64,6 @@ def write_color_ply(fname, points, color_vals, confidence, normals):
     print(fname)
 
 
-
 def apply_projection(points, calibration_file):
     intrinsic = get_intrinsic_matrix_depth(calibration_file)
 
