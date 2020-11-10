@@ -18,6 +18,7 @@
 
 import logging
 import os
+from typing import Iterable
 
 import numpy as np
 from cv2 import cv2
@@ -60,7 +61,6 @@ def get_depth_image_from_point_cloud(calibration_file, pcd_file, output_file):
     except ValueError:
         logging.error(" Error reading point cloud ")
         raise
-        return
 
     # points       = cloud.points.values[:, :3]
     z = cloud.points.values[:, 3]
@@ -115,6 +115,18 @@ def get_depth_image_from_point_cloud(calibration_file, pcd_file, output_file):
     # im_coords, _ = cv2.project_points(points, r_vec, t_vec, intrinsic[:3, :3], np.array([k1, k2, 0, 0]))
 
 
+CODES_FRONT_FACING = ("100", "200")
+CODES_BACK_FACING = ("102", "202")
+CODES_360 = ("101", "201")
+
+
+def does_path_belong_to_codes(path: str, codes: Iterable) -> bool:
+    for code in codes:
+        if f"_{code}_" in path:
+            return True
+    return False
+
+
 def fuse_rgbd(calibration_file,
               pcd_file,
               image,
@@ -155,11 +167,12 @@ def fuse_rgbd(calibration_file,
         y = int(im_coords[i][0][1] * scale)
         if x >= 0 and y >= 0 and x < width and y < height:
             depth = points[i][2]
-            if '_100_' in pcd_name or '_101_' in pcd_name or '_102_' in pcd_name:
+
+            if does_path_belong_to_codes(pcd_name, codes=("100", "101", "102")):
                 newx = y
                 newy = width - x - 1
 
-            elif '_200_' in pcd_name or '_201_' in pcd_name or '_202_' in pcd_name:
+            elif does_path_belong_to_codes(pcd_name, codes=("200", "201", "202")):
                 newx = height - y - 1
                 newy = x
 
@@ -168,11 +181,11 @@ def fuse_rgbd(calibration_file,
     for x in range(width):
         for y in range(height):
 
-            if '_100_' in pcd_name or '_101_' in pcd_name or '_102_' in pcd_name:
+            if does_path_belong_to_codes(pcd_name, codes=("100", "101", "102")):
                 newx = y
                 newy = width - x - 1
 
-            elif '_200_' in pcd_name or '_201_' in pcd_name or '_202_' in pcd_name:
+            elif does_path_belong_to_codes(pcd_name, codes=("200", "201", "202")):
                 newx = height - y - 1
                 newy = x
 
