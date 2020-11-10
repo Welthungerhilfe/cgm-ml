@@ -8,7 +8,7 @@ import tensorflow as tf
 sys.path.append(str(Path(__file__).parents[1]))
 
 from config import DATA_AUGMENTATION_SAME_PER_CHANNEL, DATA_AUGMENTATION_DIFFERENT_EACH_CHANNEL, DATA_AUGMENTATION_NO  # noqa: E402
-from preprocessing import augment, tf_augment_sample, sample_systematic_from_artifacts, sample_windows_from_artifacts, REGEX_PICKLE  # noqa: E402
+from preprocessing_multi import augment, tf_augment_sample, sample_systematic_from_artifacts, sample_windows_from_artifacts, REGEX_PICKLE  # noqa: E402
 
 
 def test_tf_augment_sample():

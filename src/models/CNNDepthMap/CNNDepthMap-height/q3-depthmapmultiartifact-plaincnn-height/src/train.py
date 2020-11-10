@@ -11,7 +11,7 @@ from tensorflow.keras import callbacks
 from config import CONFIG
 from constants import REPO_DIR
 from model import create_cnn
-from preprocessing import create_multiartifact_paths, tf_load_pickle, tf_augment_sample
+from preprocessing_multi import create_multiartifact_paths, tf_load_pickle, tf_augment_sample
 
 
 # Make experiment reproducible
