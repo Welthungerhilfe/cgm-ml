@@ -10,9 +10,11 @@ import imgaug.augmenters as iaa
 import numpy as np
 import tensorflow as tf
 
-from config import (CONFIG, DATA_AUGMENTATION_SAME_PER_CHANNEL,
-                    DATA_AUGMENTATION_NO, DATA_AUGMENTATION_DIFFERENT_EACH_CHANNEL,
-                    SAMPLING_STRATEGY_SYSTEMATIC, SAMPLING_STRATEGY_WINDOW)
+DATA_AUGMENTATION_SAME_PER_CHANNEL = "same_per_channel"
+DATA_AUGMENTATION_DIFFERENT_EACH_CHANNEL = "different_each_channel"
+DATA_AUGMENTATION_NO = "no"
+SAMPLING_STRATEGY_SYSTEMATIC = "systematic"
+SAMPLING_STRATEGY_WINDOW = "window"
 
 
 REGEX_PICKLE = re.compile(
@@ -23,7 +25,7 @@ REGEX_PICKLE = re.compile(
 @tf.function(input_signature=[tf.TensorSpec(None, tf.float32),  # (240,180,5)
                               tf.TensorSpec(None, tf.float32),  # (1,)
                               ])
-def tf_augment_sample(depthmap, targets):
+def tf_augment_sample(depthmap, targets, CONFIG):
     depthmap_aug = tf.numpy_function(augmentation, [depthmap, CONFIG.DATA_AUGMENTATION_MODE], tf.float32)
     depthmap_aug.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, CONFIG.N_ARTIFACTS))
     targets.set_shape((len(CONFIG.TARGET_INDEXES,)))
@@ -53,7 +55,7 @@ def augmentation(image: np.ndarray, mode=DATA_AUGMENTATION_SAME_PER_CHANNEL) -> 
     elif mode == DATA_AUGMENTATION_NO:
         return image
     else:
-        raise NameError(f"{CONFIG.DATA_AUGMENTATION_MODE}: unknown data aug mode")
+        raise NameError(f"{mode}: unknown data aug mode")
 
 
 def gen_data_aug_sequence():
@@ -92,7 +94,7 @@ def tf_load_pickle(paths):
     return depthmap, targets  # (240,180,5), (1,)
 
 
-def create_multiartifact_sample(artifacts: List[str]) -> Tuple[tf.Tensor, tf.Tensor]:
+def create_multiartifact_sample(artifacts: List[str], CONFIG) -> Tuple[tf.Tensor, tf.Tensor]:
     """Open pickle files and load data.
 
     Args:
@@ -119,7 +121,7 @@ def create_multiartifact_sample(artifacts: List[str]) -> Tuple[tf.Tensor, tf.Ten
     return depthmaps, targets
 
 
-def py_load_pickle(path, max_value):
+def py_load_pickle(path, max_value, CONFIG):
     path_ = path if isinstance(path, str) else path.numpy()
     try:
         depthmap, targets = pickle.load(open(path_, "rb"))
@@ -134,7 +136,7 @@ def py_load_pickle(path, max_value):
     return depthmap, targets
 
 
-def create_samples(qrcode_paths: List[str]) -> List[List[str]]:
+def create_samples(qrcode_paths: List[str], CONFIG) -> List[List[str]]:
     samples = []
     for qrcode_path in sorted(qrcode_paths):
         for code in CONFIG.CODES_FOR_POSE_AND_SCANSTEP:
@@ -144,7 +146,7 @@ def create_samples(qrcode_paths: List[str]) -> List[List[str]]:
     return samples
 
 
-def create_multiartifact_paths(qrcode_path: str, n_artifacts: int) -> List[List[str]]:
+def create_multiartifact_paths(qrcode_path: str, n_artifacts: int, CONFIG) -> List[List[str]]:
     """Look at files for 1 qrcode and divide into samples.
 
     Args:
