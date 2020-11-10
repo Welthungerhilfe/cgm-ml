@@ -9,6 +9,8 @@ import glob2 as glob
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
+from common.model_utils.preprocessing import preprocess_depthmap, preprocess_targets
+
 REPO_DIR = Path(os.getcwd()).parent
 
 IMAGE_TARGET_HEIGHT = 240
@@ -18,17 +20,6 @@ TARGET_INDEXES = [0]  # 0 is height, 1 is weight.
 REGEX_PICKLE = re.compile(
     r"pc_(?P<qrcode>[a-zA-Z0-9]+-[a-zA-Z0-9]+)_(?P<unixepoch>\d+)_(?P<code>\d{3})_(?P<idx>\d{3}).p"
 )
-
-
-def preprocess_targets(targets, targets_indices):
-    if targets_indices is not None:
-        targets = targets[targets_indices]
-    return targets.astype("float32")
-
-
-def preprocess_depthmap(depthmap):
-    # TODO here be more code.
-    return depthmap.astype("float32")
 
 
 def py_load_pickle(path, max_value=7.5):
