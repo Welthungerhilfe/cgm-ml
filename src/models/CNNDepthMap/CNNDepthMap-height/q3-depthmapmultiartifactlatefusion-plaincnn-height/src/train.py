@@ -172,7 +172,7 @@ checkpoint_callback = callbacks.ModelCheckpoint(
 training_callbacks = [
     AzureLogCallback(run),
     create_tensorboard_callback(),
-    checkpoint_callback
+    checkpoint_callback,
 ]
 
 optimizer = tf.keras.optimizers.Nadam(learning_rate=CONFIG.LEARNING_RATE)

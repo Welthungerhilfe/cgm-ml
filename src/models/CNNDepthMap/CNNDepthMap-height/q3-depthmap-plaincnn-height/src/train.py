@@ -31,7 +31,7 @@ if run.id.startswith("OfflineRun"):
 
 from model import create_cnn  # noqa: E402
 from tmp_model_util.preprocessing import preprocess_depthmap, preprocess_targets  # noqa: E402
-from tmp_model_util.utils import download_dataset, get_dataset_path  # noqa: E402
+from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback  # noqa: E402
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
@@ -186,37 +186,6 @@ input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1)
 model = create_cnn(input_shape, dropout=True)
 model.summary()
 
-
-# Get ready to add callbacks.
-training_callbacks = []
-
-# Pushes metrics and losses into the run on AzureML.
-class AzureLogCallback(callbacks.Callback):
-    def on_epoch_end(self, epoch, logs=None):
-        if logs is not None:
-            for key, value in logs.items():
-                run.log(key, value)
-
-
-training_callbacks.append(AzureLogCallback())
-
-
-# Add TensorBoard callback.
-tensorboard_callback = tf.keras.callbacks.TensorBoard(
-    log_dir="logs",
-    histogram_freq=0,
-    write_graph=True,
-    write_grads=False,
-    write_images=True,
-    embeddings_freq=0,
-    embeddings_layer_names=None,
-    embeddings_metadata=None,
-    embeddings_data=None,
-    update_freq="epoch"
-)
-training_callbacks.append(tensorboard_callback)
-
-# Add checkpoint callback.
 best_model_path = str(DATA_DIR / f'outputs/{MODEL_CKPT_FILENAME}')
 checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath=best_model_path,
@@ -224,7 +193,11 @@ checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     save_best_only=True,
     verbose=1
 )
-training_callbacks.append(checkpoint_callback)
+training_callbacks = [
+    AzureLogCallback(run),
+    create_tensorboard_callback(),
+    checkpoint_callback,
+]
 
 optimizer = tf.keras.optimizers.Nadam(learning_rate=CONFIG.LEARNING_RATE)
 
