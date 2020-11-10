@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+from preprocessing import augmentation
 import random
 import shutil
 
@@ -12,6 +13,8 @@ from tensorflow.keras import callbacks, layers, models
 from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
 from model import create_head, get_base_model
+from augmentation import tf_augment_sample
+from preprocessing_multiartifact import tf_load_pickle
 
 # Get the current run.
 run = Run.get_context()
@@ -29,7 +32,7 @@ if run.id.startswith("OfflineRun"):
     for p in utils_paths:
         shutil.copy(p, temp_model_util_dir)
 
-from tmp_model_util.preprocessing import create_samples, tf_load_pickle, tf_augment_sample  # noqa: E402
+from tmp_model_util.preprocessing import create_samples  # noqa: E402
 from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback  # noqa: E402
 
 # Make experiment reproducible
@@ -100,10 +103,10 @@ print(len(qrcode_paths_validate))
 
 assert len(qrcode_paths_training) > 0 and len(qrcode_paths_validate) > 0
 
-paths_training = create_samples(qrcode_paths_training)
+paths_training = create_samples(qrcode_paths_training, CONFIG)
 print(f"Samples for training: {len(paths_training)}")
 
-paths_validate = create_samples(qrcode_paths_validate)
+paths_validate = create_samples(qrcode_paths_validate, CONFIG)
 print(f"Samples for validate: {len(paths_validate)}")
 
 # Create dataset for training.

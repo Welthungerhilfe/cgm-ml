@@ -8,11 +8,8 @@ from typing import Iterator, List, Tuple
 
 import imgaug.augmenters as iaa
 import numpy as np
-import tensorflow as tf
 
-DATA_AUGMENTATION_SAME_PER_CHANNEL = "same_per_channel"
-DATA_AUGMENTATION_DIFFERENT_EACH_CHANNEL = "different_each_channel"
-DATA_AUGMENTATION_NO = "no"
+# TODO put into global constant.py
 SAMPLING_STRATEGY_SYSTEMATIC = "systematic"
 SAMPLING_STRATEGY_WINDOW = "window"
 
@@ -21,127 +18,12 @@ REGEX_PICKLE = re.compile(
     r"pc_(?P<qrcode>[a-zA-Z0-9]+-[a-zA-Z0-9]+)_(?P<unixepoch>\d+)_(?P<code>\d{3})_(?P<idx>\d{3}).p$"
 )
 
-
-@tf.function(input_signature=[tf.TensorSpec(None, tf.float32),  # (240,180,5)
-                              tf.TensorSpec(None, tf.float32),  # (1,)
-                              ])
-def tf_augment_sample(depthmap, targets, CONFIG):
-    depthmap_aug = tf.numpy_function(augmentation, [depthmap, CONFIG.DATA_AUGMENTATION_MODE], tf.float32)
-    depthmap_aug.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, CONFIG.N_ARTIFACTS))
-    targets.set_shape((len(CONFIG.TARGET_INDEXES,)))
-
-    return depthmap_aug, targets
-
-
-def augmentation(image: np.ndarray, mode=DATA_AUGMENTATION_SAME_PER_CHANNEL) -> np.ndarray:
-    assert len(image.shape) == 3, f"image array should have 3 dimensions, but has {len(image.shape)}"
-    height, width, n_channels = image.shape
-    image = image.astype(np.float32)
-    mode = mode.decode("utf-8") if isinstance(mode, bytes) else mode
-
-    if mode == DATA_AUGMENTATION_SAME_PER_CHANNEL:
-        # Split channel into separate greyscale images
-        # for imgaug this order means: (N, height, width, channels)
-        image_reshaped = image.reshape(n_channels, height, width, 1)
-        return gen_data_aug_sequence().augment_images(image_reshaped).reshape(height, width, n_channels)
-
-    elif mode == DATA_AUGMENTATION_DIFFERENT_EACH_CHANNEL:
-        image_augmented = np.zeros((height, width, n_channels), dtype=np.float32)
-        for i in range(n_channels):
-            onechannel_img = image[:, :, i]
-            image_augmented[:, :, i] = gen_data_aug_sequence().augment_images(onechannel_img).reshape(height, width)
-        return image_augmented
-
-    elif mode == DATA_AUGMENTATION_NO:
-        return image
-    else:
-        raise NameError(f"{mode}: unknown data aug mode")
-
-
-def gen_data_aug_sequence():
-    seq = iaa.Sequential([
-        iaa.Fliplr(0.5),
-        iaa.Affine(rotate=(-10, 10)),
-        # brightness  # TODO find out if this makes sense for depthmaps (talk to Lubos)
-        sometimes(iaa.Multiply((0.95, 1.1))),
-        iaa.CropAndPad(percent=(-0.02, 0.02), pad_cval=(-0.1, 0.1)),  # TODO is this useful for regression on photos?
-        iaa.GaussianBlur(sigma=(0, 1.0)),
-        sometimes(
-            iaa.OneOf(
-                [
-                    iaa.Dropout((0.01, 0.05)),
-                    iaa.CoarseDropout((0.01, 0.03), size_percent=(0.05, 0.1)),
-                    iaa.AdditiveGaussianNoise(scale=(0.0, 0.1)),
-                    iaa.SaltAndPepper((0.001, 0.005)),
-                ]
-            ),
-        ),
-    ])
-    return seq
-
-
-def sometimes(aug):
-    """Randomly enable/disable some of the augmentations"""
-    return iaa.Sometimes(0.5, aug)
-
-
-@tf.function(input_signature=[tf.TensorSpec(None, tf.string)])   # List of length n_artifacts
-def tf_load_pickle(paths):
-    """Load and process depthmaps"""
-    depthmap, targets = tf.py_function(create_multiartifact_sample, [paths], [tf.float32, tf.float32])
-    depthmap.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, CONFIG.N_ARTIFACTS))
-    targets.set_shape((len(CONFIG.TARGET_INDEXES,)))
-    return depthmap, targets  # (240,180,5), (1,)
-
-
-def create_multiartifact_sample(artifacts: List[str], CONFIG) -> Tuple[tf.Tensor, tf.Tensor]:
-    """Open pickle files and load data.
-
-    Args:
-        artifacts: List of file paths to pickle files
-
-    Returns:
-        depthmaps of shape (IMAGE_TARGET_HEIGHT, IMAGE_TARGET_WIDTH, n_artifacts)
-        targets of shape (1, )
-    """
-    targets_list = []
-    n_artifacts = len(artifacts)
-    depthmaps = np.zeros((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, n_artifacts))
-
-    for i, artifact_path in enumerate(artifacts):
-        depthmap, targets = py_load_pickle(artifact_path, CONFIG.NORMALIZATION_VALUE)
-        depthmap.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1))
-        depthmaps[:, :, i] = tf.squeeze(depthmap, axis=2)
-        targets_list.append(targets)
-    targets = targets_list[0]
-    if not np.all(targets_list == targets):
-        print("Warning: Not all targets are the same!!\n"
-              f"target_list: {str(targets_list)} artifacts: {str(artifacts)}")
-
-    return depthmaps, targets
-
-
-def py_load_pickle(path, max_value, CONFIG):
-    path_ = path if isinstance(path, str) else path.numpy()
-    try:
-        depthmap, targets = pickle.load(open(path_, "rb"))
-    except OSError as e:
-        print(f"path: {path}, type(path) {str(type(path))}")
-        print(e)
-        raise e
-    depthmap = preprocess_depthmap(depthmap)
-    depthmap = depthmap / max_value
-    depthmap = tf.image.resize(depthmap, (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH))
-    targets = preprocess_targets(targets, CONFIG.TARGET_INDEXES)
-    return depthmap, targets
-
-
 def create_samples(qrcode_paths: List[str], CONFIG) -> List[List[str]]:
     samples = []
     for qrcode_path in sorted(qrcode_paths):
         for code in CONFIG.CODES_FOR_POSE_AND_SCANSTEP:
             p = os.path.join(qrcode_path, code)
-            new_samples = create_multiartifact_paths(p, CONFIG.N_ARTIFACTS)
+            new_samples = create_multiartifact_paths(p, CONFIG.N_ARTIFACTS, CONFIG)
             samples.extend(new_samples)
     return samples
 
