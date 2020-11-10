@@ -16,7 +16,7 @@ if __name__ == "__main__":
         o3d.visualization.draw_geometries([pcd])
 
     downpcd = pcd
-    if downsample: 
+    if downsample:
         print("Downsample the point cloud with a voxel of 0.05")
         downpcd = pcd.voxel_down_sample(voxel_size=0.05)
         print(downpcd)
@@ -26,7 +26,8 @@ if __name__ == "__main__":
         o3d.visualization.draw_geometries([downpcd])
 
     print("Recompute the normal of the downsampled point cloud")
-    downpcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.1, max_nn=30))
+    downpcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(
+        radius=0.1, max_nn=30))
     if enable_visualization:
         o3d.visualization.draw_geometries([downpcd])
 
@@ -34,12 +35,12 @@ if __name__ == "__main__":
     print(downpcd.normals[0])
     print("Print the normal vectors of the first 10 points")
     print(np.asarray(downpcd.normals)[:10, :])
-    print("x: " )
-    print(np.asarray(downpcd.normals)[0,0])
+    print("x: ")
+    print(np.asarray(downpcd.normals)[0, 0])
     print("y: ")
-    print(np.asarray(downpcd.normals)[0,1])
+    print(np.asarray(downpcd.normals)[0, 1])
     print("z: ")
-    print(np.asarray(downpcd.normals)[0,2])
+    print(np.asarray(downpcd.normals)[0, 2])
     print("")
 
     print("Load a polygon volume and use it to crop the original point cloud")

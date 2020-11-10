@@ -33,7 +33,7 @@ steps:
   displayName: Cache pip packages
 - script: |
     python -m pip install --upgrade pip
-    pip install numpy==1.19.1 tensorflow==2.3.0 azureml-sdk[notebooks,automl]==1.13.0 glob2==0.7 imgaug==0.4.0 flake8==3.8.4 pytest==5.4.2 pytest-cov==2.10.0 pytest-azurepipelines
+    pip install -r requirements.txt
   displayName: 'Install dependencies'
 - script: |
     flake8 src/

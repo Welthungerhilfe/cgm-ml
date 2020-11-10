@@ -12,14 +12,11 @@ import glob2 as glob
 import random
 import progressbar
 from pyntcloud import PyntCloud
-import shutil
-#import matplotlib.pyplot as plt
 import multiprocessing as mp
-import uuid
 import pickle
 from . import utils
 from bunch import Bunch
-#mp.set_start_method('fork', force=True)
+
 
 class PreprocessedDataGenerator(object):
     """
@@ -38,13 +35,13 @@ class PreprocessedDataGenerator(object):
         voxel_size_meters=0.01,
         voxelgrid_random_rotation=False,
         pointcloud_target_size=32000,
-        pointcloud_subsampling_method = "random",
+        pointcloud_subsampling_method="random",
         pointcloud_random_rotation=False,
         rgbmap_target_width=512,
         rgbmap_target_height=512,
         rgbmap_scale_factor=1.5,
-        rgbmap_axis = "vertical"
-        ):
+        rgbmap_axis="vertical"
+    ):
         """
         Initializes a DataGenerator.
 
@@ -67,10 +64,11 @@ class PreprocessedDataGenerator(object):
         assert isinstance(input_type, str), "input_type must be string: " + str(input_type)
         #assert isinstance(output_targets, list), "output_targets must be list: " + str(output_targets)
         if input_type == "image":
-            assert len(image_target_shape) == 2, "image_target_shape must be 2-dimensional: " + str(image_target_shape)
+            assert len(image_target_shape) == 2, "image_target_shape must be 2-dimensional: " + \
+                str(image_target_shape)
         if input_type == "voxelgrid":
-            assert len(voxelgrid_target_shape) == 3, "voxelgrid_target_shape must be 3-dimensional: " + str(voxelgrid_target_shape)
-
+            assert len(voxelgrid_target_shape) == 3, "voxelgrid_target_shape must be 3-dimensional: " + \
+                str(voxelgrid_target_shape)
 
         # Set the dataset-path.
         if input_type == "image":
@@ -84,7 +82,7 @@ class PreprocessedDataGenerator(object):
         elif input_type == "rgbmap":
             self.dataset_path = os.path.join(dataset_path, "pcd")
         else:
-            raise Exception("Unknown input_type: " + class_self.input_type)
+            raise Exception("Unknown input_type: " + self.input_type)
 
         # Assign the instance-variables.
         self.input_type = input_type
@@ -110,7 +108,6 @@ class PreprocessedDataGenerator(object):
         # Prepare the data.
         self._prepare_qrcodes_dictionary()
 
-
     def _find_qrcodes(self):
         """
         Finds all QR-codes.
@@ -120,9 +117,8 @@ class PreprocessedDataGenerator(object):
 
         # Retrieve the QR-codes from the folders.
         paths = glob.glob(os.path.join(self.dataset_path, "*"))
-        paths = [path for path in paths if os.path.isdir(path) == True]
+        paths = [path for path in paths if os.path.isdir(path)]
         self.qrcodes = sorted([path.split("/")[-1] for path in paths])
-
 
     def _prepare_qrcodes_dictionary(self):
 
@@ -135,22 +131,22 @@ class PreprocessedDataGenerator(object):
             glob_search_path = os.path.join(self.dataset_path, qrcode)
             preprocessed_paths = glob.glob(os.path.join(glob_search_path, "*.p"))
 
-            assert len(preprocessed_paths) != 0, "ERROR: No files found at {}!".format(glob_search_path)
+            assert len(preprocessed_paths) != 0, "ERROR: No files found at {}!".format(
+                glob_search_path)
 
             # Filter the paths if specified.
-            if self.filter != None:
+            if self.filter is not None:
                 if self.filter == "front":
                     filter_for = "104"
                 elif self.filter == "360":
                     filter_for = "107"
                 elif self.filter == "back":
                     filter_for = "110"
-                preprocessed_paths = [path for path in preprocessed_paths if os.path.basename(path).split("_")[-2] == filter_for]
+                preprocessed_paths = [path for path in preprocessed_paths if os.path.basename(
+                    path).split("_")[-2] == filter_for]
 
             # Done.
             self.qrcodes_dictionary[qrcode] = preprocessed_paths
-
-
 
     def analyze_files(self):
 
@@ -158,10 +154,9 @@ class PreprocessedDataGenerator(object):
             print("QR-code:", qrcode)
             print("  Number of samples: {}".format(len(self.qrcodes_dictionary[qrcode])))
 
-
     def generate(self, size, qrcodes_to_use=None, verbose=False, workers=1):
 
-        if qrcodes_to_use == None:
+        if qrcodes_to_use is None:
             qrcodes_to_use = self.qrcodes
 
         print("Using {} workers...".format(workers))
@@ -195,7 +190,7 @@ class PreprocessedDataGenerator(object):
 
             while True:
 
-                 # Spawn a couple of workers and get the results.
+                # Spawn a couple of workers and get the results.
                 process_target = generate_data
                 multiple_results = [pool.apply_async(
                     process_target,
@@ -207,7 +202,6 @@ class PreprocessedDataGenerator(object):
                 # Merge data.
                 x_inputs_arrays = []
                 y_outputs_arrays = []
-                file_paths_arrays = []
                 for return_values in return_values_list:
                     x_inputs_arrays.append(return_values[0])
                     y_outputs_arrays.append(return_values[1])
@@ -220,23 +214,22 @@ class PreprocessedDataGenerator(object):
             else:
                 raise Exception("Unexpected value for 'workers' " + str(workers))
 
-
     def _create_voxelgrid_from_pointcloud(self, pointcloud, augmentation=True):
-        if self.voxelgrid_random_rotation == True and augmentation == True:
+        if self.voxelgrid_random_rotation is True and augmentation is True:
             pointcloud = self._rotate_point_cloud(pointcloud)
 
         # Create voxelgrid from pointcloud.
         pointcloud = PyntCloud(pointcloud)
-        voxelgrid_id = pointcloud.add_structure("voxelgrid", size_x=self.voxel_size_meters, size_y=self.voxel_size_meters, size_z=self.voxel_size_meters)
+        voxelgrid_id = pointcloud.add_structure(
+            "voxelgrid", size_x=self.voxel_size_meters, size_y=self.voxel_size_meters, size_z=self.voxel_size_meters)
         voxelgrid = pointcloud.structures[voxelgrid_id].get_feature_vector(mode="density")
 
         # Do the preprocessing.
-        if preprocess == True:
-            voxelgrid = utils.ensure_voxelgrid_shape(voxelgrid, self.voxelgrid_target_shape)
-            assert voxelgrid.shape == self.voxelgrid_target_shape
+        # if preprocess is True:
+        #     voxelgrid = utils.ensure_voxelgrid_shape(voxelgrid, self.voxelgrid_target_shape)
+        #     assert voxelgrid.shape == self.voxelgrid_target_shape
 
         return voxelgrid
-
 
     def _rotate_point_cloud(self, point_cloud):
 
@@ -244,8 +237,8 @@ class PreprocessedDataGenerator(object):
         cosval = np.cos(rotation_angle)
         sinval = np.sin(rotation_angle)
         rotation_matrix = np.array([[cosval, sinval, 0],
-                                        [-sinval, cosval, 0],
-                                        [0, 0, 1]])
+                                    [-sinval, cosval, 0],
+                                    [0, 0, 1]])
 
         rotated_data = np.zeros(point_cloud.shape, dtype=np.float32)
         for k in range(point_cloud.shape[0]):
@@ -263,10 +256,10 @@ class PreprocessedDataGenerator(object):
 
 def generate_data(class_self, size, qrcodes_to_use, verbose, return_control="return_values"):
 
-    if isinstance(class_self, type(Bunch)) == False:
+    if isinstance(class_self, type(Bunch)) is False:
         class_self = Bunch(dict(class_self))
 
-    if verbose == True:
+    if verbose is True:
         print("Generating using QR-codes:", qrcodes_to_use)
 
     assert size != 0
@@ -274,7 +267,7 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, return_control="ret
     x_inputs = []
     y_outputs = []
 
-    if verbose == True:
+    if verbose is True:
         bar = progressbar.ProgressBar(max_value=size)
     while len(x_inputs) < size:
 
@@ -294,8 +287,10 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, return_control="ret
             if len(class_self.qrcodes_dictionary[qrcode]) > 0:
                 preprocessed_path = random.choice(class_self.qrcodes_dictionary[qrcode])
                 with open(preprocessed_path, "rb") as file:
-                    (pointcloud, targets) = load_pointcloud_and_target(file, class_self.output_targets)
-                    assert pointcloud.shape[0] != 0, "Empty pointcloud in file {}.".format(preprocessed_path)
+                    (pointcloud, targets) = load_pointcloud_and_target(
+                        file, class_self.output_targets)
+                    assert pointcloud.shape[0] != 0, "Empty pointcloud in file {}.".format(
+                        preprocessed_path)
 
                 x_input = get_input(class_self, pointcloud)
                 y_output = targets
@@ -338,10 +333,10 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, return_control="ret
 
         assert len(x_inputs) == len(y_outputs)
 
-        if verbose == True:
+        if verbose is True:
             bar.update(len(x_inputs))
 
-    if verbose == True:
+    if verbose is True:
         bar.finish()
 
     assert len(x_inputs) == size
@@ -382,8 +377,6 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, return_control="ret
         raise Exception("Unexpected {}".format(return_control))
 
 
-
-
 def load_pointcloud_and_target(file, output_targets):
     (pointcloud, targets) = pickle.load(file)
     if output_targets == ["height"]:
@@ -406,12 +399,14 @@ def get_input(class_self, pointcloud):
 
     # Get a fused point cloud.
     elif class_self.input_type == "fusion":
-        pointcloud = utils.subsample_pointcloud(pointcloud, class_self.pointcloud_target_size, class_self.pointcloud_subsampling_method, list(range(7)))
+        pointcloud = utils.subsample_pointcloud(
+            pointcloud, class_self.pointcloud_target_size, class_self.pointcloud_subsampling_method, list(range(7)))
         x_input = pointcloud
 
     # Get a random pointcloud.
     elif class_self.input_type == "pointcloud":
-        pointcloud = utils.subsample_pointcloud(pointcloud, class_self.pointcloud_target_size, class_self.pointcloud_subsampling_method)
+        pointcloud = utils.subsample_pointcloud(
+            pointcloud, class_self.pointcloud_target_size, class_self.pointcloud_subsampling_method)
         x_input = pointcloud
 
     # Get a random pointcloud.
@@ -462,7 +457,8 @@ def get_dataset_path(root_path="/whhdata/preprocessed"):
     else:
         # Finding the latest.
         dataset_paths = glob.glob(os.path.join(root_path, "*"))
-        dataset_paths = [dataset_path for dataset_path in dataset_paths if os.path.isdir(dataset_path)]
+        dataset_paths = [
+            dataset_path for dataset_path in dataset_paths if os.path.isdir(dataset_path)]
         dataset_path = list(reversed(sorted(dataset_paths)))[0]
 
     return dataset_path

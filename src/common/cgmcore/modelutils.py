@@ -22,12 +22,11 @@ Helper module for Neural Networks.
 """
 
 from tensorflow.keras import models, layers
-from tensorflow.keras import applications
-from tensorflow.keras import backend as K
 import numpy as np
 import tensorflow as tf
 import os
 import pickle
+
 
 def create_multiview_model(base_model, multiviews_num, input_shape, output_size, use_lstm):
 
@@ -42,7 +41,7 @@ def create_multiview_model(base_model, multiviews_num, input_shape, output_size,
 
     multiview_outputs = []
     for i in range(multiviews_num):
-        multiview_input = layers.Lambda(lambda x: x[:,i])(input)
+        multiview_input = layers.Lambda(lambda x: x[:, i])(input)
         multiview_output = base_model(multiview_input)
         multiview_outputs.append(multiview_output)
     output = layers.Average()(multiview_outputs)
@@ -62,7 +61,7 @@ def create_multiview_model_old(base_model, multiviews_num, input_shape, output_s
 
     model = models.Sequential()
     model.add(layers.TimeDistributed(base_model, input_shape=(multiviews_num,) + input_shape))
-    if use_lstm == True:
+    if use_lstm is True:
         model.add(layers.LSTM(8, activation="relu"))
     else:
         model.add(layers.AveragePooling1D(multiviews_num))
@@ -178,7 +177,7 @@ def create_voxnet_model_homepage(input_shape, output_size):
     return model
 
 
-def create_point_net(input_shape, output_size, hidden_sizes = [512, 256], use_lambda=False):
+def create_point_net(input_shape, output_size, hidden_sizes=[512, 256], use_lambda=False):
     """
     Creates a PointNet.
 
@@ -212,12 +211,12 @@ def create_point_net(input_shape, output_size, hidden_sizes = [512, 256], use_la
     x = layers.BatchNormalization()(x)
     x = layers.Dense(256, activation='relu')(x)
     x = layers.BatchNormalization()(x)
-    x = layers.Dense(9, weights=[np.zeros([256, 9]), np.array([1, 0, 0, 0, 1, 0, 0, 0, 1]).astype(np.float32)])(x)
+    x = layers.Dense(9, weights=[np.zeros([256, 9]), np.array(
+        [1, 0, 0, 0, 1, 0, 0, 0, 1]).astype(np.float32)])(x)
     input_T = layers.Reshape((input_shape[1], input_shape[1]))(x)
 
-
     # forward net
-    if use_lambda == True:
+    if use_lambda is True:
         g = layers.Lambda(mat_mul, arguments={'B': input_T})(input_points)
     else:
         g = layers.dot([input_points, input_T], axes=-1, normalize=True)
@@ -238,11 +237,12 @@ def create_point_net(input_shape, output_size, hidden_sizes = [512, 256], use_la
     f = layers.BatchNormalization()(f)
     f = layers.Dense(256, activation='relu')(f)
     f = layers.BatchNormalization()(f)
-    f = layers.Dense(64 * 64, weights=[np.zeros([256, 64 * 64]), np.eye(64).flatten().astype(np.float32)])(f)
+    f = layers.Dense(64 * 64, weights=[np.zeros([256, 64 * 64]),
+                                       np.eye(64).flatten().astype(np.float32)])(f)
     feature_T = layers.Reshape((64, 64))(f)
 
     # forward net
-    if use_lambda == True:
+    if use_lambda is True:
         g = layers.Lambda(mat_mul, arguments={'B': feature_T})(g)
     else:
         g = layers.dot([g, feature_T], axes=-1, normalize=True)
@@ -262,7 +262,7 @@ def create_point_net(input_shape, output_size, hidden_sizes = [512, 256], use_la
         c = layers.Dense(hidden_size, activation='relu')(c)
         c = layers.BatchNormalization()(c)
         c = layers.Dropout(rate=0.3)(c)
-    
+
     c = layers.Dense(output_size, activation='linear')(c)
     prediction = layers.Flatten()(c)
 
@@ -270,20 +270,21 @@ def create_point_net(input_shape, output_size, hidden_sizes = [512, 256], use_la
     return model
 
 
-def create_dense_net(input_shape, output_size, hidden_sizes = []):
-    
+def create_dense_net(input_shape, output_size, hidden_sizes=[]):
+
     model = models.Sequential()
-    
+
     # Input layer.
     model.add(layers.Flatten(input_shape=input_shape))
-    
+
     for hidden_size in hidden_sizes:
         model.add(layers.Dense(hidden_size, activation="relu"))
-    
+
     # Output layer.
     model.add(layers.Dense(output_size))
-    
+
     return model
+
 
 def create_2dCNN(input_shape, output_size):
     """
@@ -315,21 +316,21 @@ def create_2dCNN(input_shape, output_size):
     model_cnn.add(layers.Dense(512, activation="relu"))
     model_cnn.add(layers.Dropout(0.25))
     model_cnn.add(layers.Dense(output_size, activation="relu"))
-    
+
     return model_cnn
 
+
 def create_vgg(input_shape, output_size):
-    
-     """
-    Creates a vgg19 and add Dense Layers.
-
-    Args:
-        input_shape (shape): Input-shape.
-        output_size (int): Output-size.
-
-    Returns:
-        Model: A model.
     """
+   Creates a vgg19 and add Dense Layers.
+
+   Args:
+       input_shape (shape): Input-shape.
+       output_size (int): Output-size.
+
+   Returns:
+       Model: A model.
+   """
 
     # Trainable params: 68,229,825
     # Non-trainable params: 20,024,384
@@ -358,8 +359,9 @@ def save_model_and_history(output_path, datetime_string, model, history, trainin
         model_path = os.path.join(output_path, model_name)
         model.save(model_path)
         print("Saved model to" + model_path)
-    except Exception as e:
+    except Exception:
         print("WARNING! Failed to save model. Use model-weights instead.")
+        pass
 
     # Save the model weights.
     model_weights_name = datetime_string + "-" + name + "-model-weights.h5"
@@ -372,20 +374,19 @@ def save_model_and_history(output_path, datetime_string, model, history, trainin
     training_details_path = os.path.join(output_path, training_details_name)
     pickle.dump(training_details, open(training_details_path, "wb"))
     print("Saved training details to" + training_details_path)
-    
+
     # Save the history.
     history_name = datetime_string + "-" + name + "-history.p"
     history_path = os.path.join(output_path, history_name)
     pickle.dump(history.history, open(history_path, "wb"))
     print("Saved history to" + history_path)
- 
+
 
 def load_pointnet(weights_path, input_shape, output_size, hidden_sizes):
     try:
         model = create_point_net(input_shape, output_size, hidden_sizes, use_lambda=False)
         model.load_weights(weights_path)
-    except:
+    except Exception:
         model = create_point_net(input_shape, output_size, hidden_sizes, use_lambda=True)
         model.load_weights(weights_path)
-    return model
-    
+        return model

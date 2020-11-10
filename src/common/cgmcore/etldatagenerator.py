@@ -7,9 +7,10 @@ import os
 import numpy as np
 import glob2 as glob
 import random
+import uuid
 import progressbar
+import multiprocessing as mp
 from pyntcloud import PyntCloud
-import shutil
 import pickle
 from . import utils
 
@@ -31,7 +32,7 @@ class ETLDataGenerator(object):
         voxelgrid_random_rotation=False,
         pointcloud_target_size=32000,
         pointcloud_random_rotation=False
-        ):
+    ):
         """
         Initializes a DataGenerator.
 
@@ -54,9 +55,11 @@ class ETLDataGenerator(object):
         assert isinstance(input_type, str), "input_type must be string: " + str(input_type)
         #assert isinstance(output_targets, list), "output_targets must be list: " + str(output_targets)
         if input_type == "image":
-            assert len(image_target_shape) == 2, "image_target_shape must be 2-dimensional: " + str(image_target_shape)
+            assert len(image_target_shape) == 2, "image_target_shape must be 2-dimensional: " + \
+                str(image_target_shape)
         if input_type == "voxelgrid":
-            assert len(voxelgrid_target_shape) == 3, "voxelgrid_target_shape must be 3-dimensional: " + str(voxelgrid_target_shape)
+            assert len(voxelgrid_target_shape) == 3, "voxelgrid_target_shape must be 3-dimensional: " + \
+                str(voxelgrid_target_shape)
 
         # Assign the instance-variables.
         self.dataset_path = dataset_path
@@ -72,7 +75,7 @@ class ETLDataGenerator(object):
 
         # Find all QR-codes.
         self._find_qrcodes()
-        assert self.qrcodes != [], "No QR-codes found!"
+        assert self.qrcodes is not None, "No QR-codes found!"
 
         # Prepare the data.
         self._prepare_qrcodes_dictionary()
@@ -81,7 +84,7 @@ class ETLDataGenerator(object):
         self.image_cache = {}
         self.voxelgrid_cache = {}
         self.pointcloud_cache = {}
-        
+
         # Check if paths are fine.
         if self.input_type == "image":
             assert self.all_jpg_paths != []
@@ -89,7 +92,6 @@ class ETLDataGenerator(object):
             assert self.all_pcd_paths != []
         else:
             raise Exception("Unexpected: " + self.input_type)
-
 
     def _find_qrcodes(self):
         """
@@ -102,12 +104,11 @@ class ETLDataGenerator(object):
         paths = glob.glob(os.path.join(self.dataset_path, "*"))
         self.qrcodes = sorted([path.split("/")[-1] for path in paths])
 
-        
     def _prepare_qrcodes_dictionary(self):
 
         self.all_pcd_paths = []
         self.all_jpg_paths = []
-        
+
         self.qrcodes_dictionary = {}
         for qrcode in self.qrcodes:
             self.qrcodes_dictionary[qrcode] = []
@@ -116,7 +117,7 @@ class ETLDataGenerator(object):
             for measurement_path in measurement_paths:
                 # Getting PCDs.
                 pcd_paths = glob.glob(os.path.join(measurement_path, "pcd", "*.pcd"))
-                
+
                 # Getting JPGs.
                 jpg_paths = glob.glob(os.path.join(measurement_path, "jpg", "*.jpg"))
 
@@ -131,7 +132,6 @@ class ETLDataGenerator(object):
                 self.all_pcd_paths.extend(pcd_paths)
                 self.all_jpg_paths.extend(jpg_paths)
 
-
     def analyze_files(self):
 
         for qrcode in self.qrcodes:
@@ -143,21 +143,19 @@ class ETLDataGenerator(object):
         print("Total PCD-files: {}".format(len(self.all_pcd_paths)))
         print("Total JPG-files: {}".format(len(self.all_jpg_paths)))
 
-                
-            #measurement_paths = glob.glob(os.path.join(self.dataset_path, qrcode, "*"))
-            #for measurement_path in measurement_paths:
-            #    print("  ", measurement_path.split("/")[-1])
-            #    pcd_paths = glob.glob(os.path.join(measurement_path, "*.pcd"))
-            #    print("    ", "{} PCDs".format(len(pcd_paths)))
+        #measurement_paths = glob.glob(os.path.join(self.dataset_path, qrcode, "*"))
+        #for measurement_path in measurement_paths:
+        #    print("  ", measurement_path.split("/")[-1])
+        #    pcd_paths = glob.glob(os.path.join(measurement_path, "*.pcd"))
+        #    print("    ", "{} PCDs".format(len(pcd_paths)))
         #print("Number of JPGs:", len(self.jpg_paths))
         #print("Number of PCDs:", len(self.pcd_paths))
         #print("Number of JSONs (personal):", len(self.json_paths_personal))
         #print("Number of JSONs (measures):", len(self.json_paths_measures))
 
-        
     def generate(self, size, qrcodes_to_use=None, verbose=False, yield_file_paths=False, multiprocessing_jobs=1):
 
-        if qrcodes_to_use == None:
+        if qrcodes_to_use is None:
             qrcodes_to_use = self.qrcodes
 
         # Main loop.
@@ -172,8 +170,10 @@ class ETLDataGenerator(object):
 
                 # Create chunks of almost equal size.
                 subset_sizes = [0] * multiprocessing_jobs
-                subset_sizes[0:multiprocessing_jobs - 1] = [size // multiprocessing_jobs] * (multiprocessing_jobs - 1)
-                subset_sizes[multiprocessing_jobs - 1] = size - sum(subset_sizes[0:multiprocessing_jobs - 1])
+                subset_sizes[0:multiprocessing_jobs - 1] = [size
+                                                            // multiprocessing_jobs] * (multiprocessing_jobs - 1)
+                subset_sizes[multiprocessing_jobs - 1] = size - \
+                    sum(subset_sizes[0:multiprocessing_jobs - 1])
                 subset_sizes = [s for s in subset_sizes if s > 0]
                 assert sum(subset_sizes) == size
 
@@ -184,7 +184,8 @@ class ETLDataGenerator(object):
                 processes = []
                 for subset_size in subset_sizes:
                     process_target = generate_data
-                    process_args = (self, subset_size, qrcodes_to_use, verbose, yield_file_paths, output_queue)
+                    process_args = (self, subset_size, qrcodes_to_use,
+                                    verbose, yield_file_paths, output_queue)
                     process = mp.Process(target=process_target, args=process_args)
                     processes.append(process)
 
@@ -212,12 +213,14 @@ class ETLDataGenerator(object):
 
                     # Gather the data into arrays.
                     if x_inputs_arrays != []:
-                        assert result_values[0].shape[1:] == x_inputs_arrays[-1].shape[1:], str(result_values[0].shape) + " vs " + str(x_inputs_arrays[-1].shape)
+                        assert result_values[0].shape[1:] == x_inputs_arrays[-1].shape[1:], str(
+                            result_values[0].shape) + " vs " + str(x_inputs_arrays[-1].shape)
                     if y_outputs_arrays != []:
-                        assert result_values[1].shape[1:] == y_outputs_arrays[-1].shape[1:], str(result_values[1].shape) + " vs " + str(y_outputs_arrays[-1].shape)
+                        assert result_values[1].shape[1:] == y_outputs_arrays[-1].shape[1:], str(
+                            result_values[1].shape) + " vs " + str(y_outputs_arrays[-1].shape)
                     x_inputs_arrays.append(result_values[0])
                     y_outputs_arrays.append(result_values[1])
-                    if yield_file_paths == True:
+                    if yield_file_paths is True:
                         file_paths_arrays.append(result_values[2])
                     else:
                         file_paths_arrays.append([])
@@ -229,36 +232,35 @@ class ETLDataGenerator(object):
                 assert len(y_outputs) == size
 
                 # Done.
-                if yield_file_paths == False:
+                if yield_file_paths is False:
                     yield x_inputs, y_outputs
                 else:
                     yield x_inputs, y_outputs, file_paths
 
             else:
-                raise Exception("Unexpected value for 'multiprocessing_jobs' " + str(multiprocessing_jobs))
-                
+                raise Exception("Unexpected value for 'multiprocessing_jobs' "
+                                + str(multiprocessing_jobs))
 
     def _load_pointcloud(self, pcd_path, preprocess=True, augmentation=True):
 
         pointcloud = self.pointcloud_cache.get(pcd_path, [])
-        if pointcloud == []:
+        if pointcloud is None:
             pointcloud = PyntCloud.from_file(pcd_path).points.values
 
-            if self.pointcloud_target_size != None and preprocess == True:
-                pointcloud = np.array(pointcloud)[:,0:3] # Drop confidence.
+            if self.pointcloud_target_size is not None and preprocess is True:
+                pointcloud = np.array(pointcloud)[:, 0:3]  # Drop confidence.
                 pointcloud = pointcloud[:self.pointcloud_target_size]
                 if len(pointcloud) < self.pointcloud_target_size:
                     zeros = np.zeros((self.pointcloud_target_size - len(pointcloud), 4))
                     pointcloud = np.concatenate([pointcloud, zeros])
 
-            if self.pointcloud_random_rotation == True and augmentation==True:
-                numpy_points = pointcloud[:,0:3]
+            if self.pointcloud_random_rotation is True and augmentation is True:
+                numpy_points = pointcloud[:, 0:3]
                 numpy_points = self._rotate_point_cloud(numpy_points)
-                pointcloud[:,0:3] = numpy_points
+                pointcloud[:, 0:3] = numpy_points
 
             #self.pointcloud_cache[pcd_path] = pointcloud
         return pointcloud
-
 
     def _load_voxelgrid(self, pcd_path, preprocess=True, augmentation=True):
         voxelgrid = self.voxelgrid_cache.get(pcd_path, [])
@@ -266,19 +268,20 @@ class ETLDataGenerator(object):
 
             # Load the pointcloud.
             point_cloud = PyntCloud.from_file(pcd_path)
-            if self.voxelgrid_random_rotation == True and augmentation == True:
+            if self.voxelgrid_random_rotation is True and augmentation is True:
                 points = point_cloud.points
-                numpy_points = points.values[:,0:3]
+                numpy_points = points.values[:, 0:3]
                 numpy_points = self._rotate_point_cloud(numpy_points)
-                points.iloc[:,0:3] = numpy_points
+                points.iloc[:, 0:3] = numpy_points
                 point_cloud.points = points
 
             # Create voxelgrid from pointcloud.
-            voxelgrid_id = point_cloud.add_structure("voxelgrid", size_x=self.voxel_size_meters, size_y=self.voxel_size_meters, size_z=self.voxel_size_meters)
+            voxelgrid_id = point_cloud.add_structure(
+                "voxelgrid", size_x=self.voxel_size_meters, size_y=self.voxel_size_meters, size_z=self.voxel_size_meters)
             voxelgrid = point_cloud.structures[voxelgrid_id].get_feature_vector(mode="density")
 
             # Do the preprocessing.
-            if preprocess == True:
+            if preprocess is True:
                 voxelgrid = utils.ensure_voxelgrid_shape(voxelgrid, self.voxelgrid_target_shape)
                 assert voxelgrid.shape == self.voxelgrid_target_shape
 
@@ -286,15 +289,14 @@ class ETLDataGenerator(object):
 
         return voxelgrid
 
-
     def _rotate_point_cloud(self, point_cloud):
 
         rotation_angle = np.random.uniform() * 2 * np.pi
         cosval = np.cos(rotation_angle)
         sinval = np.sin(rotation_angle)
         rotation_matrix = np.array([[cosval, sinval, 0],
-                                        [-sinval, cosval, 0],
-                                        [0, 0, 1]])
+                                    [-sinval, cosval, 0],
+                                    [0, 0, 1]])
 
         rotated_data = np.zeros(point_cloud.shape, dtype=np.float32)
         for k in range(point_cloud.shape[0]):
@@ -303,8 +305,8 @@ class ETLDataGenerator(object):
             rotated_data[k, ...] = np.dot(shape_pc.reshape((-1, 3)), rotation_matrix)
 
         return rotated_data
-       
-        
+
+
 def create_datagenerator_from_parameters(dataset_path, dataset_parameters):
     print("Creating data-generator...")
     datagenerator = ETLDataGenerator(
@@ -329,13 +331,15 @@ def get_dataset_path(root_path="../data/etl"):
     else:
         # Finding the latest.
         dataset_paths = glob.glob(os.path.join(root_path, "*"))
-        dataset_paths = [dataset_path for dataset_path in dataset_paths if os.path.isdir(dataset_path)]
+        dataset_paths = [
+            dataset_path for dataset_path in dataset_paths if os.path.isdir(dataset_path)]
         dataset_path = list(reversed(sorted(dataset_paths)))[0]
 
     return dataset_path
 
+
 def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, output_queue):
-    if verbose == True:
+    if verbose is True:
         print("Generating using QR-codes:", qrcodes_to_use)
 
     assert size != 0
@@ -344,7 +348,7 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, o
     y_outputs = []
     file_paths = []
 
-    if verbose == True:
+    if verbose is True:
         bar = progressbar.ProgressBar(max_value=size)
     while len(x_inputs) < size:
 
@@ -352,14 +356,14 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, o
         qrcode = random.choice(qrcodes_to_use)
 
         # Get targets and paths randomly.
-        if qrcode not in  class_self.qrcodes_dictionary.keys():
+        if qrcode not in class_self.qrcodes_dictionary.keys():
             continue
         pcd_paths, jpg_paths, targets = random.choice(class_self.qrcodes_dictionary[qrcode])
 
         # No pointclouds.
         if len(pcd_paths) == 0:
-            continue        
-            
+            continue
+
         # Get a sample.
         x_input = None
         y_output = None
@@ -394,10 +398,10 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, o
         assert len(x_inputs) == len(y_outputs)
         assert len(y_outputs) == len(file_paths)
 
-        if verbose == True:
+        if verbose is True:
             bar.update(len(x_inputs))
 
-    if verbose == True:
+    if verbose is True:
         bar.finish()
 
     assert len(x_inputs) == size
@@ -410,13 +414,13 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, o
     # Prepare result values.
     assert len(x_inputs) == size
     assert len(y_outputs) == size
-    if yield_file_paths == False:
-        return_values =  (x_inputs, y_outputs)
+    if yield_file_paths is False:
+        return_values = (x_inputs, y_outputs)
     else:
         return_values = (x_inputs, y_outputs, file_paths)
 
     # This is used in multiprocessing. Creates a pickle file and puts the data there.
-    if output_queue != None:
+    if output_queue is not None:
         output_path = uuid.uuid4().hex + ".p"
         pickle.dump(return_values, open(output_path, "wb"))
         output_queue.put(output_path)
@@ -463,6 +467,6 @@ def get_input(class_self, jpg_paths, pcd_paths):
 
     # Should not happen.
     else:
-        raise Exception("Unknown input_type: " + input_type)
+        raise Exception("Unknown input_type: " + class_self.input_type)
 
     return x_input, file_path

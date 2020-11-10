@@ -21,7 +21,7 @@ import sys
 sys.path.insert(0, "..")
 import numpy as np
 from cgmcore import utils
-os.environ["CUDA_VISIBLE_DEVICES"]="-1"    
+os.environ["CUDA_VISIBLE_DEVICES"]="-1"
 import shutil
 import cv2
 import face_recognition
@@ -47,7 +47,7 @@ logger.addHandler(console_handler)
 modes = ["file", "scan", "all"]
 
 def main():
-    
+
     # Print usage.
     if len(sys.argv) != 4:
         print("")
@@ -78,32 +78,32 @@ def main():
         results = process_scan(input_path, output_path)
         for result in results:
             logger.info(" ".join(result))
-    
+
     # Process a single file.
     elif mode == "file":
         result = process_file(input_path, output_path)
         results = [result]
         for result in results:
             logger.info(" ".join(result))
-            
-            
-        
+
+
+
 def process_all(all_path, output_path):
-    
+
     # Getting the paths of the qr-codes.
     logger.info("Gathering all qr codes...")
     qrcode_paths = glob.glob(os.path.join(all_path, "*"))
     qrcode_paths = [path for path in qrcode_paths if os.path.isdir(path) == True]
     qrcode_paths = [path for path in qrcode_paths if os.path.exists(os.path.join(path, "measurements"))]
     qrcode_paths = sorted(qrcode_paths)
-    
+
     # Do a quality check on the qr code paths.
     if len(qrcode_paths) == 0:
         logger.info("No measurements found at \"{}\"!".format(all_path))
-    
+
     # This method is called in multiple processes.
     def process_qrcode_path(qrcode_path):
-        
+
         results_all = []
         scan_paths = glob.glob(os.path.join(qrcode_path, "measurements", "*"))
         scan_paths = [path for path in scan_paths if os.path.isdir(path) == True]
@@ -112,48 +112,48 @@ def process_all(all_path, output_path):
             #results_all.extend(results)
             for result in results:
                 logger.info(" ".join(result))
-        
+
         return results_all
-    
+
     # Run this in multiprocess mode.
     results = utils.multiprocess(
-        qrcode_paths, 
-        process_method=process_qrcode_path, 
-        process_individial_entries=True, 
+        qrcode_paths,
+        process_method=process_qrcode_path,
+        process_individial_entries=True,
         progressbar=False,
         number_of_workers=10,
         disable_gpu=True
     )
     return []
 
-    
+
 def process_scan(scan_path, output_path, show_progress=True):
     """
     Processes a single scan.
     """
-    
+
     # Check if we have a folder.
     if os.path.isdir(scan_path) == False:
-        logger.error("Must provide a folder!") 
+        logger.error("Must provide a folder!")
         raise Exception()
-    
+
     # See if we are really in a scan.
     paths = glob.glob(os.path.join(scan_path, "*"))
     if os.path.join(scan_path, "rgb") not in paths and os.path.join(scan_path, "pc") not in paths:
         logger.error("Direct subfolders rgb or pc not found in input folder!")
         raise Exception()
 
-    # Walk the scan path.    
+    # Walk the scan path.
     walker = os.walk(scan_path)
     if show_progress == True:
         walker = tqdm(walker)
     results = []
     for root_path, _, filenames in walker:
-        
+
         # Skip everything else.
         if root_path.endswith("rgb") == False and root_path.endswith("pc") == False:
             continue
-        
+
         # Go through all filenames.
         for filename in filenames:
             file_path = os.path.join(root_path, filename)
@@ -162,23 +162,23 @@ def process_scan(scan_path, output_path, show_progress=True):
 
     return results
 
-    
+
 def process_file(file_path, output_path):
     """
     Processes a single file.
     """
-    
+
     # Must be a file.
     if os.path.isfile(file_path) == False:
         logger.error("Must provide a file!")
         raise Exception()
-    
+
     # Must be an image.
     if (file_path.endswith("jpg") or file_path.endswith("png") or file_path.endswith("pcd") or file_path.endswith("ply") or file_path.endswith("vtk")) == False:
         logger.error("File extension of \"{}\" is not valid! Allowed: jpg/png/pcd/ply/vtk".format(file_path))
         raise Exception()
-            
-    # Check if the folder structure is correct.        
+
+    # Check if the folder structure is correct.
     file_path_split = file_path.split("/")
     if file_path_split[-6] != "qrcode":
         logger.error("Expected \"qrcode\" in path, got \"{}\"".format(file_path_split[-6]))
@@ -186,19 +186,19 @@ def process_file(file_path, output_path):
     if file_path_split[-2] != "rgb" and file_path_split[-2] != "pc":
         logger.error("Expected \"rgb\" or \"pc\" in path, got \"{}\"".format(file_path_split[-2]))
         raise Exception()
-      
+
     # Make sure the output folder exists.
     file_output_folder = os.path.join(output_path, *file_path_split[-5:-1])
     if os.path.exists(file_output_folder) == False:
         os.makedirs(file_output_folder)
 
-    # This is the output file name.    
+    # This is the output file name.
     file_output_path = os.path.join(output_path, *file_path_split[-5:])
-    
+
     # File already exists.
     if os.path.exists(file_output_path) == True:
         return (file_path, "skipped because already exists")
-    
+
     # Pointclouds are just copied.
     if file_path.endswith(".pcd"):
         shutil.copy(file_path, file_output_path)
@@ -206,113 +206,11 @@ def process_file(file_path, output_path):
     elif file_path.endswith(".jpg") or file_path.endswith(".png"):
         result = blur_faces_in_file(file_path, file_output_path)
         return (file_path, result)
-    
 
-def blur_faces_in_file(source_path, target_path):
 
-    # Read the image.
-    try:
-        image = cv2.imread(source_path)[:,:,::-1]
-    except:
-        return "file error"
-    
-    # Rotate image 90degress to the right.
-    image = np.swapaxes(image, 0, 1)
 
-    # Scale image down for faster prediction.
-    small_image = cv2.resize(image, (0, 0), fx=0.25, fy=0.25)
-    
-    # Find face locations.
-    face_locations = face_recognition.face_locations(small_image, model="cnn")
-    
-    # Check if image should be used.
-    reject_criterion = should_image_be_used(source_path, len(face_locations))
-    
-    # Skip the image?
-    if reject_criterion is not None:
-        return reject_criterion
-    
-    # Blur the image.
-    for top, right, bottom, left in face_locations:
-        # Scale back up face locations since the frame we detected in was scaled to 1/4 size
-        top *= 4
-        right *= 4
-        bottom *= 4
-        left *= 4
 
-        # Extract the region of the image that contains the face.
-        face_image = image[top:bottom, left:right]
 
-        # Blur the face image.
-        face_image = cv2.GaussianBlur(face_image, (99, 99), 30)
 
-        # Put the blurred face region back into the frame image.
-        image[top:bottom, left:right] = face_image
-
-    # Rotate image back.
-    image = np.swapaxes(image, 0, 1)
-    
-    # Write image to hard drive.
-    cv2.imwrite(target_path, image[:,:,::-1])
-    
-    return "{} faces blurred".format(len(face_locations))
-    
-
-def should_image_be_used(source_path, number_of_faces):
-    """
-    Determines if an image should be skipped or not.
-    """
-    
-    # Cases for front scan.
-    if "_100_" in source_path or "_200_" in source_path or "_104_" in source_path:
-        
-        # Artifact unusable.
-        if number_of_faces == 0:
-            return "artifact unusable"
-        
-        # Need to evaluate output of face recognition model.
-        elif number_of_faces == 1:
-            return None
-        
-        # Artifact can be ignored for now.
-        else:
-            return "artifact can be ignored for now"
-        
-    # Cases for 360 scan.
-    elif "_101_" in source_path or "_201_" in source_path or "_107_" in source_path:
-        
-        # Might be useful.
-        if number_of_faces == 0:
-            return None
-        
-        # Need to evaluate output of face recognition model.
-        elif number_of_faces == 1:
-            return None
-        
-        # Might be useful.
-        else:
-            return None
-
-    # Cases for back scan.
-    elif "_102_" in source_path or "_202_" in source_path or "_110_" in source_path:
-
-        # Might be useful based on child pose and number of people detected.
-        if number_of_faces == 0:
-            return None
-        
-        # Might be useful based on face blur outcome, child pose, number of people detected.
-        elif number_of_faces == 1:
-            return None
-        
-        # Might be useful
-        else:
-            return None
-    
-    assert False, "Should not happen! " + source_path
-
-    
-
-    
 if __name__ == '__main__':
     main()
-
