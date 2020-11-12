@@ -2,7 +2,7 @@ import logging
 
 import numpy
 import numpy as np
-from PIL import Image, ImageFilter, ImageFont
+from PIL import Image, ImageFont
 from PIL.ImageDraw import Draw
 from torchvision import transforms
 
@@ -48,10 +48,10 @@ def apply_mask(image, mask, color, alpha=0.5):
 def show(image, out, alpha=0.9999):
     """ display image with boxes, scores, names, masks """
     image = image.copy()
-    boxes = [b.astype(np.int32).tolist() for b in out["boxes"]]
-    names = out["names"]
+    # boxes = [b.astype(np.int32).tolist() for b in out["boxes"]]
+    # names = out["names"]
     masks = out.get("masks", [])
-    draw = Draw(image)
+    # draw = Draw(image)
 
 #     for i, box in enumerate(boxes):
 #         # box. different color for each class.

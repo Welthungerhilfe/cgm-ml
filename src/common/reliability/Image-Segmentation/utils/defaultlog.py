@@ -14,8 +14,8 @@ def getlog():
             from defaultlog import log
 
             return log
-    except:
-        pass
+    except Exception as ex:
+        print("Ignore", ex)
     fmt = Formatter(
         fmt="[{module}:{lineno}:{levelname}]:{message} (time={asctime} {processName})",
         datefmt="%b-%d %H:%M",
@@ -35,5 +35,6 @@ def getlog():
         getLogger(name).setLevel(logging.WARNING)
 
     return log
+
 
 log = getlog()

@@ -1,9 +1,6 @@
-import os
 import shlex
 import subprocess
 from pathlib import Path
-
-import azureml.core
 from azureml.core import Workspace
 from azureml.core.dataset import Dataset
 

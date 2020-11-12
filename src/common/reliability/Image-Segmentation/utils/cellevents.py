@@ -16,13 +16,13 @@ log = logging.getLogger("cellevents")
 log.setLevel(logging.INFO)
 
 def alert():
-    """ makes sound on client using javascript (works with remote server) """      
+    """ makes sound on client using javascript (works with remote server) """
     framerate = 44100
-    duration=.05
-    freq=300
-    t = np.linspace(0,duration,int(framerate*duration))
-    data = np.sin(2*np.pi*freq*t)
-    d(Audio(data,rate=framerate, autoplay=True))
+    duration = .05
+    freq = 300
+    t = np.linspace(0, duration, int(framerate * duration))
+    data = np.sin(2 * np.pi * freq * t)
+    d(Audio(data, rate=framerate, autoplay=True))
     hide_audio()
 
 def hide_audio():
@@ -43,16 +43,17 @@ class Cell(object):
         log.info("starting")
         self.start_time = time.time()
 
-    def post_run_cell(self):       
+    def post_run_cell(self):
         # show the elapsed time
         if self.start_time:
             diff = time.time() - self.start_time
             print('time: %s' % _format_time(diff))
-    
-            # alert finish if more than 30 seconds        
+
+            # alert finish if more than 30 seconds
             if diff > 30:
                 alert()
         self.start_time = None
+
 
 cell = Cell()
 
