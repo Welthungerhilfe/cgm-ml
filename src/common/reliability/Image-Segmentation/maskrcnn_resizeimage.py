@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 import sys
-sys.path.insert(0, "utils")
-from utils.ipstartup import *
+# from utils.ipstartup import *
 import numpy as np
 from imgseg.predict import predict, show
 from torchvision.models.detection import maskrcnn_resnet50_fpn
 from PIL import Image
 import time
 from IPython.display import display
+sys.path.insert(0, "utils")
 
 # In[427]:
 
@@ -29,7 +29,7 @@ model = maskrcnn_resnet50_fpn(pretrained=True)
 def predictByResize(image, flag=0, factor=10):
     print("Original Image Dimension: ", image.size)
     rimage = image
-    if flag == 1 :
+    if flag == 1:
         newsize = (int(image.size[0] / factor), int(image.size[1] / factor))
         rimage = image.resize(newsize)
     start_time = time.time()

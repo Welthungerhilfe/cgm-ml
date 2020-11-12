@@ -3,7 +3,7 @@ import logging
 import numpy
 import numpy as np
 from PIL import Image, ImageFont
-from PIL.ImageDraw import Draw
+# from PIL.ImageDraw import Draw
 from torchvision import transforms
 
 # coco class names

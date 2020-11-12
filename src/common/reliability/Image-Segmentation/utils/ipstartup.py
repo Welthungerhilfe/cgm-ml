@@ -9,7 +9,7 @@ import pickle
 from pathlib import Path
 
 # analysis
-from IPython import get_ipython
+# from IPython import get_ipython
 from IPython.core.display import HTML
 from IPython.display import display as d
 from defaultlog import getlog, log
