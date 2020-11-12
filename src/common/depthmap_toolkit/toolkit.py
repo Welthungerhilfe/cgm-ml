@@ -28,10 +28,8 @@ def convertAllPCDs(event):
     os.mkdir('output/depth')
     copyfile(input_dir + '/../camera_calibration.txt', 'output/camera_calibration.txt')
     for i in range(len(pcd)):
-        depthmap = pcd2depth.process(
-            input_dir + '/../camera_calibration.txt',
-            input_dir + '/' + pcd[i])
-        pcd2depth.write_depthmap('output/depth/' + pcd[i] + '.depth',depthmap)
+        depthmap = pcd2depth.process(input_dir + '/../camera_calibration.txt', input_dir + '/' + pcd[i])
+        pcd2depth.write_depthmap('output/depth/' + pcd[i] + '.depth', depthmap)
     print('Data exported into folder output')
 
 
