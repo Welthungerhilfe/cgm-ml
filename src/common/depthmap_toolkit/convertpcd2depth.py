@@ -25,5 +25,6 @@ if __name__ == "__main__":
     os.mkdir('output/depth')
     copyfile(pcd_dir + '/../camera_calibration.txt', 'output/camera_calibration.txt')
     for i in range(len(pcd)):
-        pcd2depth.process('camera_calibration.txt', pcd_dir + '/' + pcd[i], 'output/depth/' + pcd[i] + '.depth')
+       depthmap = pcd2depth.process('camera_calibration.txt', pcd_dir + '/' + pcd[i])
+       pcd2depth.write_depthmap('output/depth/' + pcd[i] + '.depth', depthmap)
     print('Data exported into folder output')
