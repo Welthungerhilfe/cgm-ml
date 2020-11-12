@@ -2,9 +2,9 @@ from pathlib import Path
 import pytest
 import sys
 
-sys.path.append(str(Path(__file__).parents[1]))
+sys.path.append(str(Path(__file__).parents[2]))  # common/ dir
 
-from preprocessing import sample_systematic_from_artifacts, sample_windows_from_artifacts, REGEX_PICKLE  # noqa: E402
+from model_utils.preprocessing import sample_systematic_from_artifacts, sample_windows_from_artifacts, REGEX_PICKLE  # noqa: E402
 
 
 def test_sample_windows_from_artifacts_multiple_results():
