@@ -145,6 +145,7 @@ def tf_flip(image):
     image = tf.image.random_flip_left_right(image)
     return image
 
+
 # Create dataset for training.
 paths = paths_training
 dataset = tf.data.Dataset.from_tensor_slices(paths)
