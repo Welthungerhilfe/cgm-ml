@@ -1,12 +1,8 @@
 import zipfile
-
 import numpy as np
-
 import utils
 
-
 ENCODING = 'charmap'
-
 utils.setWidth(int(240 * 0.75))
 utils.setHeight(int(180 * 0.75))
 width = utils.getWidth()
@@ -25,7 +21,6 @@ def process(calibration_fname: str, pcd_fpath: str):
             output[x][y][0] = p[3]
             output[x][y][2] = p[2]
     return output
-
 def write_depthmap(output_depth_fpath: str, depthmap):
     # Write depthmap
     with open('data', 'wb') as f:
@@ -45,8 +40,6 @@ def write_depthmap(output_depth_fpath: str, depthmap):
     with zipfile.ZipFile(output_depth_fpath, "w", zipfile.ZIP_DEFLATED) as f:
         f.write('data', 'data')
         f.close()
-
-
     # Visualsiation for debug
     #print str(width) + "x" + str(height)
     #plt.imshow(output)
