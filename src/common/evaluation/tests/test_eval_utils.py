@@ -5,7 +5,7 @@ import pandas as pd
 
 sys.path.append(str(Path(__file__).parents[2]))  # common/ dir
 
-from eval.eval_utils import avgerror, calculate_performance, extract_scantype, extract_qrcode  # noqa: E402
+from evaluation.eval_utils import avgerror, calculate_performance, extract_scantype, extract_qrcode  # noqa: E402
 
 
 QR_CODE_1 = "1585013006-yqwb95138e"
