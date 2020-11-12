@@ -2,6 +2,7 @@
 old/cgm_database/dbconnection.json
 *.ply
 *.png
+test-output.xml
 data/
 vandelay-py.js
 logs/

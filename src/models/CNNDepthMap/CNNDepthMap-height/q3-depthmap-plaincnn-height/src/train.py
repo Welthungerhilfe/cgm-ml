@@ -132,22 +132,18 @@ def tf_load_pickle(path, max_value):
         depthmap = preprocess_depthmap(depthmap)
         depthmap = depthmap / max_value
         depthmap = tf.image.resize(depthmap, (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH))
-        targets = preprocess_targets(targets, targets_indices)
+        targets = preprocess_targets(targets, CONFIG.TARGET_INDEXES)
         return depthmap, targets
 
     depthmap, targets = tf.py_function(py_load_pickle, [path, max_value], [tf.float32, tf.float32])
     depthmap.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1))
-    targets.set_shape((len(targets_indices,)))
+    targets.set_shape((len(CONFIG.TARGET_INDEXES,)))
     return depthmap, targets
 
 
 def tf_flip(image):
     image = tf.image.random_flip_left_right(image)
     return image
-
-
-# Parameters for dataset generation.
-targets_indices = [0]  # 0 is height, 1 is weight.
 
 # Create dataset for training.
 paths = paths_training
