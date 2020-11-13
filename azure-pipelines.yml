@@ -18,26 +18,35 @@ strategy:
 variables:
   PIP_CACHE_DIR: $(Pipeline.Workspace)/.pip
 
-steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '$(python.version)'
-  displayName: 'Use Python $(python.version)'
-- task: Cache@2
-  inputs:
-    key: 'python | "$(Agent.OS)" | requirements.txt'
-    restoreKeys: |
-      python | "$(Agent.OS)"
-      python
-    path: $(PIP_CACHE_DIR)
-  displayName: Cache pip packages
-- script: |
-    python -m pip install --upgrade pip
-    pip install -r requirements.txt
-  displayName: 'Install dependencies'
-- script: |
-    flake8 src/
-  displayName: 'flake8'
-- script: |
-    pytest --cov=src
-  displayName: 'pytest'
+stages:
+- stage: Dependencies
+  jobs:
+  - job: Install
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(python.version)'
+      displayName: 'Use Python $(python.version)'
+    - task: Cache@2
+      inputs:
+        key: 'python | "$(Agent.OS)" | requirements.txt'
+        restoreKeys: |
+          python | "$(Agent.OS)"
+          python
+        path: $(PIP_CACHE_DIR)
+      displayName: Cache pip packages
+    - script: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+      displayName: 'Install dependencies'
+
+stages:
+- stage: Verify
+  jobs:
+  - job: Style and unit test
+    - script: |
+        flake8 src/
+      displayName: 'flake8'
+    - script: |
+        pytest --cov=src
+      displayName: 'pytest'
