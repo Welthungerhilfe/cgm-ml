@@ -11,4 +11,5 @@ IMAGE_FNAME = "rgb_test.jpg"
 
 def test_maskrcnn_resizeimage():
     source_path = str(Path(__file__).parent / IMAGE_FNAME)
-    assert processImage(source_path) != None
+    res = processImage(source_path)
+    assert res is not None
