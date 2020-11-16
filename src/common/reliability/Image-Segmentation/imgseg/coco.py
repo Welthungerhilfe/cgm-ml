@@ -1,4 +1,4 @@
-names = [
+NAMES = [
     "__background__",
     "person",
     "bicycle",

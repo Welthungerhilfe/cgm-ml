@@ -1,9 +1,9 @@
 """To identify the child from the RGB images.
 
-Used the pytorch Mask R-CNN Resnet50 library to identify the child
-and then  using  the  mask, applied binary image-segmentation  to
-represent  the  child pixel as '1'  and  background pixel as '0'
-Further,  calculating  the  mask  area  and  the  percentage of
+Use the pytorch Mask R-CNN Resnet50 library to identify the child
+and then using the mask, applied binary image-segmentation to
+represent the child pixel as '1' and background pixel as '0'
+Further, calculating the mask area and the percentage of
 body pixels to total image pixels
 """
 import time
