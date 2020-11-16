@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# coding: utf-8
+"""Testcases for maskrcnn resize image file."""
 import sys
 from pathlib import Path
 
@@ -17,7 +16,7 @@ IMAGE_FNAME = "rgb_test.jpg"
 
 
 def test_maskrcnn_resizeimage():
-    """ testing maskrcnn on resized images """
+    """Testing maskrcnn on resized images."""
     source_path = str(Path(__file__).parent / IMAGE_FNAME)
 
     # Load Image

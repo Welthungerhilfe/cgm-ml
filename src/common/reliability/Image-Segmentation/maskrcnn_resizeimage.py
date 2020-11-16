@@ -1,5 +1,11 @@
-#!/usr/bin/env python
-# coding: utf-8
+"""To identify the child from the RGB images.
+
+Used the pytorch Mask R-CNN Resnet50 library to identify the child
+and then  using  the  mask, applied binary image-segmentation  to
+represent  the  child pixel as '1'  and  background pixel as '0'
+Further,  calculating  the  mask  area  and  the  percentage of
+body pixels to total image pixels
+"""
 import time
 
 from imgseg.predict import predict
@@ -12,7 +18,7 @@ model = maskrcnn_resnet50_fpn(pretrained=True)
 
 
 def predict_by_resize(image, factor=10):
-    """ Applies MaskRCNN on downscaled image, by default the factor is 10x """
+    """Applied MaskRCNN on downscaled image, by default the factor is 10x."""
     print("Resizing image by", factor, "x")
     newsize = (int(image.size[0] / factor), int(image.size[1] / factor))
     print("Resized Dimension", newsize)
@@ -30,8 +36,7 @@ def predict_by_resize(image, factor=10):
 
 
 def get_mask_information(segmented_image):
-    """ gets the information regarding mask like the mask area
-    & body percentage """
+    """Returning the mask information."""
     width = len(segmented_image['masks'][0][0][0])
     height = len(segmented_image['masks'][0][0])
 
