@@ -1,12 +1,10 @@
 import logging
 
-from PIL import Image, ImageFont
-
 import numpy as np
-
+from PIL import Image
 from torchvision import transforms
 
-from coco import NAMES
+from .coco import NAMES
 
 log = logging.getLogger()
 

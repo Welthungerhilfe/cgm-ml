@@ -8,11 +8,10 @@ body pixels to total image pixels
 """
 import time
 
-from imgseg.predict import predict
-
 import numpy as np
-
 from torchvision.models.detection import maskrcnn_resnet50_fpn
+
+from imgseg.predict import predict
 
 model = maskrcnn_resnet50_fpn(pretrained=True)
 
