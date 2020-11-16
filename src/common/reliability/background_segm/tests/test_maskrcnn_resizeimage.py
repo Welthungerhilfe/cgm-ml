@@ -2,13 +2,11 @@
 import sys
 from pathlib import Path
 
-import numpy as np
 from PIL import Image
 
 sys.path.append(str(Path(__file__).parents[1]))
 
-from imgseg.predict import show  # noqa: E402
-from maskrcnn_resizeimage import get_mask_information, predict_by_resize  # noqa: E402
+from maskrcnn_resizeimage import predict_by_resize  # noqa: E402
 
 IMAGE_FNAME = "rgb_test.jpg"
 
