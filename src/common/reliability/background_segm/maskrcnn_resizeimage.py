@@ -35,20 +35,18 @@ def predict_by_resize(image, factor=10):
 
 
 def get_mask_information(segmented_image):
-    """Returning the mask information."""
+    """Return the mask information."""
     width = len(segmented_image['masks'][0][0][0])
     height = len(segmented_image['masks'][0][0])
 
-    # Getting the masked area
+    # Get the masked area
     mask_area = int(np.reshape(
         segmented_image['masks'],
         (-1, segmented_image['masks'].shape[-1])).astype(np.float32).sum())
 
-    # Mask Stats like percentage of body coverage of total area & mask area
+    # Get mask stats like percentage of body coverage of total area & mask area
     perc_body_covered = (mask_area * 100) / (width * height)
     perc_body_covered = round(perc_body_covered, 2)
     print("Mask Area:", mask_area, "px")
-    print(
-        "Percentage of body pixels to total img pixels:",
-        perc_body_covered, "%")
-    return (mask_area, perc_body_covered)
+    print("Percentage of body pixels to total img pixels:", perc_body_covered, "%")
+    return mask_area, perc_body_covered
