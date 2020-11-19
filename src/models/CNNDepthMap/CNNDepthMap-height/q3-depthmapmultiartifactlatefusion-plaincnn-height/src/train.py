@@ -199,7 +199,7 @@ if CONFIG.EPOCHS_TUNE:
         layer.trainable = True
 
     # Adjust learning rate
-    optimizer = tf.keras.optimizers.Adam(learning_rate=CONFIG.LEARNING_RATE_TUNE)
+    optimizer = tf.keras.optimizers.Nadam(learning_rate=CONFIG.LEARNING_RATE_TUNE)
     model.compile(optimizer=optimizer, loss="mse", metrics=["mae"])
 
     print("Start fine-tuning")
