@@ -11,9 +11,9 @@ import utils
 
 def export(type, filename):
     if type == 'obj':
-        utils.exportOBJ('export/' + filename, triangulate=True)
+        utils.export_obj('export/' + filename, triangulate=True)
     if type == 'pcd':
-        utils.exportPCD('export/' + filename)
+        utils.export_pcd('export/' + filename)
 
 
 #click on data

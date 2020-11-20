@@ -51,7 +51,7 @@ def convert3Dto2D(intrisics: list, x: float, y: float, z: float) -> list:
     return [tx, ty, z]
 
 
-def exportOBJ(filename, triangulate):
+def export_obj(filename, triangulate):
     """
 
     triangulate=True generates OBJ of type mesh
@@ -94,7 +94,7 @@ def exportOBJ(filename, triangulate):
         print('Pointcloud exported into ' + filename)
 
 
-def exportPCD(filename):
+def export_pcd(filename):
     with open(filename, 'w') as file:
         count = str(getCount())
         file.write('# timestamp 1 1 float 0\n')
