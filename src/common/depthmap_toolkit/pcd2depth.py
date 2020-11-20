@@ -11,8 +11,8 @@ height = utils.getHeight()
 
 def process(calibration_fname: str, pcd_fpath: str):
     # Convert to depthmap
-    calibration = utils.parseCalibration(calibration_fname)
-    points = utils.parsePCD(pcd_fpath)
+    calibration = utils.parse_calibration(calibration_fname)
+    points = utils.parse_pcd(pcd_fpath)
     output = np.zeros((width, height, 3))
     for p in points:
         v = utils.convert_2d_to_3d(calibration[1], p[0], p[1], p[2])

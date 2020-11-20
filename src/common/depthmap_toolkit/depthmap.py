@@ -27,7 +27,7 @@ def onclick(event):
         x = int(event.ydata)
         y = height - int(event.xdata) - 1
         if x > 1 and y > 1 and x < width - 2 and y < height - 2:
-            depth = utils.parseDepth(x, y)
+            depth = utils.parse_depth(x, y)
             if depth:
                 res = utils.convert2Dto3D(calibration[1], x, y, depth)
                 if res:
@@ -48,7 +48,7 @@ def process(plt, dir, depth, rgb):
     #extract depthmap
     with zipfile.ZipFile(dir + '/depth/' + depth, 'r') as zip_ref:
         zip_ref.extractall('.')
-    utils.parseData('data')
+    utils.parse_data('data')
 
     #read rgb data
     global hasRGB
@@ -65,7 +65,7 @@ def process(plt, dir, depth, rgb):
 
     #parse calibration
     global calibration
-    calibration = utils.parseCalibration(dir + '/camera_calibration.txt')
+    calibration = utils.parse_calibration(dir + '/camera_calibration.txt')
 
 
 def showResult():
@@ -76,7 +76,7 @@ def showResult():
     output = np.zeros((width, height * 3, 3))
     for x in range(width):
         for y in range(height):
-            depth = utils.parseDepth(x, y)
+            depth = utils.parse_depth(x, y)
             if (depth):
                 #convert ToF coordinates into RGB coordinates
                 vec = utils.convert2Dto3D(calibration[1], x, y, depth)
@@ -87,7 +87,7 @@ def showResult():
 
                 #set output pixel
                 output[x][height - y - 1][:] = 1.0 - min(depth / 2.0, 1.0)  # depth data scaled to be visible
-                output[x][height + height - y - 1][:] = utils.parseConfidence(x, y)
+                output[x][height + height - y - 1][:] = utils.parse_confidence(x, y)
                 if vec[0] > 0 and vec[1] > 1 and vec[0] < width and vec[1] < height and hasRGB:
                     output[x][2 * height + height - y - 1][0] = im_array[int(vec[1])][int(vec[0])][0] / 255.0
                     output[x][2 * height + height - y - 1][1] = im_array[int(vec[1])][int(vec[0])][1] / 255.0

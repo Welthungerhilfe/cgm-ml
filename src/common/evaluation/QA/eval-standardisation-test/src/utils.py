@@ -155,7 +155,7 @@ def load_depth(filename):
     return data, width, height, depthScale, maxConfidence
 
 
-def parseDepth(tx, ty, data, depthScale):
+def parse_depth(tx, ty, data, depthScale):
     depth = data[(int(ty) * width + int(tx)) * 3 + 0] << 8
     depth += data[(int(ty) * width + int(tx)) * 3 + 1]
     depth *= depthScale
@@ -167,11 +167,11 @@ def prepare_depthmap(data, width, height, depthScale):
     output = np.zeros((width, height, 1))
     for cx in range(width):
         for cy in range(height):
-            #             output[cx][height - cy - 1][0] = parseConfidence(cx, cy)
+            #             output[cx][height - cy - 1][0] = parse_confidence(cx, cy)
             #             output[cx][height - cy - 1][1] = im_array[cy][cx][1] / 255.0 #test matching on RGB data
-            # output[cx][height - cy - 1][2] = 1.0 - min(parseDepth(cx, cy) / 2.0,
+            # output[cx][height - cy - 1][2] = 1.0 - min(parse_depth(cx, cy) / 2.0,
             # 1.0) #depth data scaled to be visible
-            output[cx][height - cy - 1] = parseDepth(cx, cy, data, depthScale)  # depth data scaled to be visible
+            output[cx][height - cy - 1] = parse_depth(cx, cy, data, depthScale)  # depth data scaled to be visible
     return (np.array(output, dtype='float32').reshape(width, height), height, width)
 
 
