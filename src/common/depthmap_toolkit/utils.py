@@ -208,15 +208,6 @@ def parsePCD(filepath):
     return data
 
 
-def parseValues(line):
-    """Parse line of values"""
-    output = []
-    values = line.split(' ')
-    for value in values:
-        output.append(value)
-    return output
-
-
 def getWidth():
     return width
 
