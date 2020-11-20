@@ -51,24 +51,24 @@ def process(plt, dir, depth, rgb):
     utils.parse_data('data')
 
     #read rgb data
-    global hasRGB
+    global has_rgb
     global im_array
     if rgb:
-        hasRGB = 1
+        has_rgb = 1
         width = utils.getWidth()
         height = utils.getHeight()
         pil_im = Image.open(dir + '/rgb/' + rgb)
         pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
         im_array = np.asarray(pil_im)
     else:
-        hasRGB = 0
+        has_rgb = 0
 
     #parse calibration
     global calibration
     calibration = utils.parse_calibration(dir + '/camera_calibration.txt')
 
 
-def showResult():
+def show_result():
     fig = plt.figure()
     fig.canvas.mpl_connect('button_press_event', onclick)
     width = utils.getWidth()
@@ -88,7 +88,7 @@ def showResult():
                 #set output pixel
                 output[x][height - y - 1][:] = 1.0 - min(depth / 2.0, 1.0)  # depth data scaled to be visible
                 output[x][height + height - y - 1][:] = utils.parse_confidence(x, y)
-                if vec[0] > 0 and vec[1] > 1 and vec[0] < width and vec[1] < height and hasRGB:
+                if vec[0] > 0 and vec[1] > 1 and vec[0] < width and vec[1] < height and has_rgb:
                     output[x][2 * height + height - y - 1][0] = im_array[int(vec[1])][int(vec[0])][0] / 255.0
                     output[x][2 * height + height - y - 1][1] = im_array[int(vec[1])][int(vec[0])][1] / 255.0
                     output[x][2 * height + height - y - 1][2] = im_array[int(vec[1])][int(vec[0])][2] / 255.0

@@ -65,7 +65,7 @@ def show(depthmap_dir):
     else:
         depthmap.process(plt, depthmap_dir, depth[index], 0)
 
-    depthmap.showResult()
+    depthmap.show_result()
     ax = plt.gca()
     ax.text(0.5, 1.075, depth[index], horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
     bprev = Button(plt.axes([0.0, 0.0, 0.1, 0.075]), '<<', color='gray')
