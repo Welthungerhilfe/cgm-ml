@@ -14,7 +14,7 @@ import pcd2depth
 DEPTHMAP_DIR = None
 
 
-def convertAllPCDs(event):
+def convert_all_pcds(event):
     input_dir = 'export'
     pcd = []
     for _, _, filenames in walk(input_dir):
@@ -77,7 +77,7 @@ def show(depthmap_dir):
     bexport_pcd = Button(plt.axes([0.4, 0.0, 0.2, 0.05]), 'Export PCD', color='gray')
     bexport_pcd.on_clicked(export_pcd)
     bconvertPCDs = Button(plt.axes([0.6, 0.0, 0.2, 0.05]), 'Convert all PCDs', color='gray')
-    bconvertPCDs.on_clicked(convertAllPCDs)
+    bconvertPCDs.on_clicked(convert_all_pcds)
     plt.show()
 
 

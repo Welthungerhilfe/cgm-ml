@@ -27,7 +27,7 @@ def convert2Dto3D(intrisics: list, x: float, y: float, z: float) -> list:
     return [tx, ty, z]
 
 
-def convert2Dto3DOriented(intrisics: list, x: float, y: float, z: float) -> list:
+def convert_2d_to_3d_oriented(intrisics: list, x: float, y: float, z: float) -> list:
     """Convert point in pixels into point in meters (applying rotation)"""
     res = convert2Dto3D(calibration[1], x, y, z)
     if res:
@@ -40,7 +40,7 @@ def convert2Dto3DOriented(intrisics: list, x: float, y: float, z: float) -> list
     return res
 
 
-def convert3Dto2D(intrisics: list, x: float, y: float, z: float) -> list:
+def convert_2d_to_3d(intrisics: list, x: float, y: float, z: float) -> list:
     """Convert point in meters into point in pixels"""
     fx = intrisics[0] * float(width)
     fy = intrisics[1] * float(height)
@@ -64,7 +64,7 @@ def export_obj(filename, triangulate):
             for y in range(2, height - 2):
                 depth = parseDepth(x, y)
                 if depth:
-                    res = convert2Dto3DOriented(calibration[1], x, y, depth)
+                    res = convert_2d_to_3d_oriented(calibration[1], x, y, depth)
                     if res:
                         count = count + 1
                         indices[x][y] = count  # add index of written vertex into array
