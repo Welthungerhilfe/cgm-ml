@@ -1,7 +1,6 @@
 import os
 import shutil
 import sys
-from os import walk
 
 import matplotlib.pyplot as plt
 
@@ -15,7 +14,7 @@ if __name__ == "__main__":
 
     depthmap_dir = sys.argv[1]
     depth = []
-    for (dirpath, dirnames, filenames) in walk(depthmap_dir + '/depth'):
+    for (dirpath, dirnames, filenames) in os.walk(depthmap_dir + '/depth'):
         depth = filenames
     depth.sort()
     try:
