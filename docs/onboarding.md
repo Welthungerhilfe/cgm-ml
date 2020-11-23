@@ -6,7 +6,7 @@ This folder quickly briefs about how to use the Azure ML to:
 - Submit a training job to a gpu-cluster
 
 ## Visualization
-In the [data_visualization/](../src/data_utils/data_visualisation) notebooks,
+In the [data_visualization/](../src/data_utils/data_visualisation) notebooks:
 
 1. Access the azure ML Workspace
 1. Access a dataset and mount it on your machine
