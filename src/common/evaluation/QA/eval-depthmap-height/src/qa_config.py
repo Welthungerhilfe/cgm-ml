@@ -27,7 +27,6 @@ EVAL_CONFIG = dotdict(dict(
 
     #Used for Debug the QA pipeline
     DEBUG_RUN=False,
-    #DEBUG_RUN = True,
 
     #Will run eval on specified # of scan instead of full dataset
     DEBUG_NUMBER_OF_SCAN=50,
