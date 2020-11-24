@@ -18,7 +18,7 @@ jobs:
     displayName: 'QA Pipeline for cgm-ml-service'
 
   - bash: |
-      cd src/common/eval/QA
+      cd src/common/evaluation/QA
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda env create -f environment.yml
       conda activate CGM_QA_Pipeline
@@ -32,14 +32,14 @@ jobs:
     displayName: 'Azure Login'
 
   - bash: |
-      cd src/common/eval/QA
+      cd src/common/evaluation/QA
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
       python auth.py -sid $(subscriptionid) -rg $(RESOURCE_GROUP) -wn $(WORKSPACE_NAME)
     displayName: 'Saving Workspace Config'
 
   - bash: |
-      cd src/common/eval/QA/eval-depthmap-height
+      cd src/common/evaluation/QA/eval-depthmap-height
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
       echo Executing eval_notebook.ipynb
@@ -49,7 +49,7 @@ jobs:
     displayName: 'Depthmap Height Model Evaluation'
 
   - bash: |
-      cd src/common/eval/QA/eval-standardisation-test
+      cd src/common/evaluation/QA/eval-standardisation-test
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
       echo Executing eval_notebook.ipynb
@@ -62,10 +62,10 @@ jobs:
     inputs:
       SourceFolder: '$(Build.SourcesDirectory)'
       Contents: |
-        src/common/eval/QA/eval-depthmap-height/depthmap-height_output.html
-        src/common/eval/QA/eval-depthmap-height/*.csv
-        src/common/eval/QA/eval-standardisation-test/standardisation-test_output.html
-        src/common/eval/QA/eval-standardisation-test/*.csv
+        src/common/evaluation/QA/eval-depthmap-height/depthmap-height_output.html
+        src/common/evaluation/QA/eval-depthmap-height/*.csv
+        src/common/evaluation/QA/eval-standardisation-test/standardisation-test_output.html
+        src/common/evaluation/QA/eval-standardisation-test/*.csv
       TargetFolder: '$(Build.ArtifactStagingDirectory)'
     displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
 
