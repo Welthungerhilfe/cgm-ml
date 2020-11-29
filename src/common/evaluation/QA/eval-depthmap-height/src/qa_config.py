@@ -19,7 +19,7 @@ MODEL_CONFIG = dotdict(dict(
 
 EVAL_CONFIG = dotdict(dict(
     #Name of evaluation
-    NAME='q3-depthmap-plaincnn-height-100-95k-run_17',
+    NAME='q3-depthmap-plaincnn-height-95k-run_03',
 
     #Experiment in Azure ML which will be used for evaluation
     EXPERIMENT_NAME="QA-pipeline",
@@ -38,7 +38,7 @@ EVAL_CONFIG = dotdict(dict(
 #Details of Evaluation Dataset
 DATA_CONFIG = dotdict(dict(
     #Name of evaluation dataset
-    NAME='anon-depthmap-testset',
+    NAME='anon-realtime-testdata',
 
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
