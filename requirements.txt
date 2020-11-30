@@ -1,4 +1,4 @@
-numpy==1.19.1
+numpy==1.18.5
 tensorflow==2.3.1
 tensorflow-addons==0.11.2
 azureml-sdk[notebooks,automl]==1.13.0
