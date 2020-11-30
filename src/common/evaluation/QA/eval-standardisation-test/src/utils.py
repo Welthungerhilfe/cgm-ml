@@ -1,6 +1,8 @@
 import math
 import os
 import pickle
+from pathlib import Path
+import sys
 import zipfile
 
 from azureml.core import Experiment, Run
@@ -9,7 +11,9 @@ import numpy as np
 import pandas as pd
 from skimage.transform import resize
 
-from .qa_config import DATA_CONFIG, EVAL_CONFIG, RESULT_CONFIG
+sys.path.append(str(Path(__file__).parents[0]))
+
+from qa_config import DATA_CONFIG, EVAL_CONFIG, RESULT_CONFIG  # noqa: E402
 
 image_target_height = 240
 image_target_width = 180
