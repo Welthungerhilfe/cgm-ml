@@ -6,7 +6,7 @@ import glob2 as glob
 import numpy as np
 import pandas as pd
 
-from .qa_config import DATA_CONFIG, RESULT_CONFIG
+from qa_config import DATA_CONFIG, RESULT_CONFIG
 
 
 def preprocess_depthmap(depthmap):
