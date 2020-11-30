@@ -48,25 +48,6 @@ class DataGenerator(tf.keras.utils.Sequence):
         return depthmaps_to_predict
 
 
-# Function for loading and processing depthmaps.
-def tf_load_pickle(path, max_value):
-    '''
-    Utility to load the depthmap pickle file
-    '''
-    def py_load_pickle(path, max_value):
-        depthmap, targets = pickle.load(open(path.numpy(), "rb"))
-        depthmap = utils.preprocess_depthmap(depthmap)
-        depthmap = depthmap / max_value
-        depthmap = tf.image.resize(depthmap, (DATA_CONFIG.IMAGE_TARGET_HEIGHT, DATA_CONFIG.IMAGE_TARGET_WIDTH))
-        targets = utils.preprocess_targets(targets, DATA_CONFIG.TARGET_INDEXES)
-        return depthmap, targets
-
-    depthmap, targets = tf.py_function(py_load_pickle, [path, max_value], [tf.float32, tf.float32])
-    depthmap.set_shape((DATA_CONFIG.IMAGE_TARGET_HEIGHT, DATA_CONFIG.IMAGE_TARGET_WIDTH, 1))
-    targets.set_shape((len(DATA_CONFIG.TARGET_INDEXES,)))
-    return depthmap, targets
-
-
 def get_height_prediction(MODEL_PATH, dataset_evaluation):
     '''
     Perform the height prediction on the dataset
