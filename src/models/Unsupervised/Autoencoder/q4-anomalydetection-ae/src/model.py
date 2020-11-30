@@ -213,10 +213,23 @@ class VariationalAutoencoder(tf.keras.Model):
         optimizer = tf.keras.optimizers.Adam(1e-4)
 
         # Create history object.
-        history = { key: [] for key in ["loss_train", "loss_validate", "loss_anomaly"]}
+        keys = [
+            "total_loss_train", 
+            "reconstruction_loss_train", 
+            "divergence_loss_train", 
+            "total_loss_validate", 
+            "reconstruction_loss_validate", 
+            "divergence_loss_validate", 
+            "total_loss_anomaly",
+            "reconstruction_loss_anomaly",
+            "divergence_loss_anomaly",
+        ]
+        history = { key: [] for key in keys}
         best_validation_loss = 1000000.0
+        del keys
 
         # Pick some samples from each set.
+        print("Picking some samples...")
         def pick_samples(dataset, number):
             for batch in dataset.batch(number).take(1):
                 return  batch[0:number]
@@ -225,12 +238,21 @@ class VariationalAutoencoder(tf.keras.Model):
         dataset_anomaly_samples = pick_samples(dataset_anomaly, 100)
         
         # Prepare datasets for training.
-        dataset_train = dataset_train.cache().prefetch(tf.data.experimental.AUTOTUNE).shuffle(shuffle_buffer_size).batch(batch_size)
-        dataset_validate = dataset_validate.cache().prefetch(tf.data.experimental.AUTOTUNE).batch(batch_size)
-        dataset_anomaly = dataset_anomaly.cache().prefetch(tf.data.experimental.AUTOTUNE).batch(batch_size)
+        print("Preparing datasets...")
+        dataset_train = dataset_train.cache()
+        #dataset_train = dataset_train.prefetch(tf.data.experimental.AUTOTUNE)
+        dataset_train = dataset_train.shuffle(shuffle_buffer_size)
+        dataset_train = dataset_train.batch(batch_size)
+        dataset_validate = dataset_validate.cache()
+        #dataset_validate = dataset_validate.prefetch(tf.data.experimental.AUTOTUNE)
+        dataset_validate = dataset_validate.batch(batch_size)
+        dataset_anomaly = dataset_anomaly.cache()
+        #dataset_anomaly = dataset_anomaly.prefetch(tf.data.experimental.AUTOTUNE)
+        dataset_anomaly = dataset_anomaly.batch(batch_size)
 
         # Render reconstructions and individual losses before training.
         if render:
+            print("Rendering reconstructions...")
             render_reconstructions(self, dataset_train_samples, dataset_validate_samples,  dataset_anomaly_samples, outputs_path=outputs_path, filename=f"reconstruction-0000.png")
             render_individual_losses(self, dataset_train_samples, dataset_validate_samples,  dataset_anomaly_samples, outputs_path=outputs_path, filename=f"losses-0000.png")
 
@@ -241,45 +263,66 @@ class VariationalAutoencoder(tf.keras.Model):
             start_time = time.time()
 
             # Train with training set and compute mean loss.
-            loss = tf.keras.metrics.Mean()
+            total_loss_train = tf.keras.metrics.Mean()
+            reconstruction_loss_train = tf.keras.metrics.Mean()
+            divergence_loss_train = tf.keras.metrics.Mean()
+            batch_index = 1
             for train_x in dataset_train:
-                loss(train_step(self, train_x, optimizer))
-            loss_train = loss.result()
+                print(f"Batch {batch_index}")
+                batch_index += 1
+                total_loss, reconstruction_loss, divergence_loss = train_step(self, train_x, optimizer)
+                total_loss_train(total_loss)
+                reconstruction_loss_train(reconstruction_loss)
+                divergence_loss_train(divergence_loss)
+            total_loss_train = total_loss_train.result()
+            reconstruction_loss_train = reconstruction_loss_train.result()
+            divergence_loss_train = divergence_loss_train.result()
 
             # Compute loss for validate and anomaly.
-            loss_validate = compute_mean_loss(self, dataset_validate)
-            loss_anomaly = compute_mean_loss(self, dataset_anomaly)
+            total_loss_validate, reconstruction_loss_validate, divergence_loss_validate = compute_mean_losses(self, dataset_validate)
+            total_loss_anomaly, reconstruction_loss_anomaly, divergence_loss_anomaly = compute_mean_losses(self, dataset_anomaly)
 
             # Convert.
-            loss_train = float(loss_train)
-            loss_validate = float(loss_validate)
-            loss_anomaly = float(loss_anomaly)
+            total_loss_train = float(total_loss_train)
+            reconstruction_loss_train = float(reconstruction_loss_train)
+            divergence_loss_train = float(divergence_loss_train)
+            total_loss_validate = float(total_loss_validate)
+            reconstruction_loss_validate = float(reconstruction_loss_validate)
+            divergence_loss_validate = float(divergence_loss_validate)
+            total_loss_anomaly = float(total_loss_anomaly)
+            reconstruction_loss_anomaly = float(reconstruction_loss_anomaly)
+            divergence_loss_anomaly = float(divergence_loss_anomaly)
 
-            # Update the history.            
-            history["loss_train"].append(loss_train)
-            history["loss_validate"].append(loss_validate)
-            history["loss_anomaly"].append(loss_anomaly)
-            
             # Save the best model.
-            if loss_validate < best_validation_loss:
-                print(f"Found new best model with validation loss {loss_validate}.")
+            if total_loss_validate < best_validation_loss:
+                print(f"Found new best model with validation loss {total_loss_validate}.")
                 self.save_weights(outputs_path=outputs_path, filename="model_best")
-                best_validation_loss = loss_validate
+                best_validation_loss = total_loss_validate
 
             end_time = time.time()
 
-            # Call back the callbacks.
+            # Update the history.            
             logs = {
-                "loss_train": loss_train,
-                "loss_validate": loss_validate,
-                "loss_anomaly": loss_anomaly
+                "total_loss_train": total_loss_train,
+                "reconstruction_loss_train": reconstruction_loss_train,
+                "divergence_loss_train": divergence_loss_train,
+                "total_loss_validate": total_loss_validate,
+                "reconstruction_loss_validate": reconstruction_loss_validate,
+                "divergence_loss_validate": divergence_loss_validate,
+                "total_loss_anomaly": total_loss_anomaly,
+                "reconstruction_loss_anomaly": reconstruction_loss_anomaly,
+                "divergence_loss_anomaly": divergence_loss_anomaly
             }
+            for loss_key, loss_value in logs.items():
+                history[loss_key] += [loss_value]
+
+            # Call back the callbacks.
             for callback in callbacks:
                 callback.on_epoch_end(epoch, logs=logs)
 
             # Print status.
             print('Epoch: {}, validate set loss: {}, time elapse for current epoch: {}'
-                    .format(epoch, loss_validate, end_time - start_time))
+                    .format(epoch, total_loss_validate, end_time - start_time))
 
             # Render reconstructions after every xth epoch.
             if render and (epoch % render_every) == 0:
@@ -314,17 +357,24 @@ def log_normal_pdf(sample, mean, logvar, raxis=1):
             -.5 * ((sample - mean) ** 2. * tf.exp(-logvar) + logvar + log2pi),
             axis=raxis)
 
+
 @tf.function
 def train_step(model, x, optimizer):
+    
+    # Get all losses.
     with tf.GradientTape() as tape:
-        loss = compute_loss(model, x)
-    gradients = tape.gradient(loss, model.trainable_variables)
+        total_loss, reconstruction_loss, divergence_loss = compute_loss(model, x)
+    
+    # Get gradient for the total loss and optimize.
+    gradients = tape.gradient(total_loss, model.trainable_variables)
     optimizer.apply_gradients(zip(gradients, model.trainable_variables))
-    return loss
+    
+    # Done.
+    return total_loss, reconstruction_loss, divergence_loss
 
 
-def compute_mean_loss(model, dataset):
-    """Computes the mean loss.
+def compute_mean_losses(model, dataset):
+    """Computes the mean losses.
 
     Args:
         model (model): A model.
@@ -333,11 +383,24 @@ def compute_mean_loss(model, dataset):
     Returns:
         float: The mean loss.
     """
-    loss = tf.keras.metrics.Mean()
+    total_loss_mean = tf.keras.metrics.Mean()
+    reconstruction_loss_mean = tf.keras.metrics.Mean()
+    divergence_loss_mean = tf.keras.metrics.Mean()
+    
+    # Go through the dataset.
     for validate_x in dataset:
-        loss(compute_loss(model, validate_x))
-    #elbo = -loss.result()
-    return loss.result()
+        total_loss, reconstruction_loss, divergence_loss = compute_loss(model, validate_x)
+        total_loss_mean(total_loss)
+        reconstruction_loss_mean(reconstruction_loss)
+        divergence_loss_mean(divergence_loss)
+
+    # Get the losses as numbers.
+    total_loss_mean = total_loss_mean.result()
+    reconstruction_loss_mean = reconstruction_loss_mean.result()
+    divergence_loss_mean = divergence_loss_mean.result()
+
+    # Done.
+    return total_loss_mean, reconstruction_loss_mean, divergence_loss_mean
 
 
 def compute_individual_losses(model, dataset):
@@ -350,7 +413,21 @@ def compute_individual_losses(model, dataset):
     Returns:
         list: A list of losses.
     """
-    return [compute_loss(model, np.array([x])) for x in dataset]
+
+    # Set up the losses.
+    total_losses = []
+    reconstruction_losses = []
+    divergence_losses = []
+
+    # Go through each sample.
+    for x in dataset:
+        total_loss, reconstruction_loss, divergence_loss = compute_loss(model, np.array([x]))
+        total_losses += [float(total_loss)]
+        reconstruction_losses += [float(reconstruction_loss)]
+        divergence_losses += [float(divergence_loss)]
+
+    # Done.
+    return total_losses, reconstruction_losses, divergence_losses
 
 
 def compute_loss(model, x):
@@ -365,12 +442,18 @@ def compute_loss(model, x):
     """
     mean, logvar = model.encode(x)
     z = model.reparameterize(mean, logvar)
+    
     x_logit = model.decode(z)
     cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(logits=x_logit, labels=x)
     logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
     logpz = log_normal_pdf(z, 0., 0.)
     logqz_x = log_normal_pdf(z, mean, logvar)
-    return -tf.reduce_mean(logpx_z + logpz - logqz_x)
+    
+    reconstruction_loss = logpx_z
+    divergence_loss = logpz - logqz_x
+    total_loss = -tf.reduce_mean(reconstruction_loss + divergence_loss)
+    
+    return total_loss, -reconstruction_loss, -divergence_loss
 
 
 def render_reconstructions(model, samples_train, samples_validate, samples_anomaly, outputs_path, filename, steps=10):
@@ -469,8 +552,12 @@ def render_history(history, outputs_path, filename):
         history (dict): History dictionary.
         filename (str): Filename of the image.
     """
-    for key, value in history.items():
-        plt.plot(value, label=key)
-    plt.legend()
+
+    fig, axes = plt.subplots(3, figsize=(8, 12))
+    for prefix, axis in zip(["total", "reconstruction", "divergence"], axes):
+        for key, value in history.items():
+            if key.startswith(prefix):
+                axis.plot(value, label=key)
+        axis.legend()
     plt.savefig(os.path.join(outputs_path, filename))
     plt.close()

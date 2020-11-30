@@ -10,15 +10,19 @@ import tensorflow_datasets as tfds
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 
-from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
+from config import CONFIG, CONFIG_DEV
+from config import DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
 
 from azureml.core.authentication import InteractiveLoginAuthentication
+
 
 # Get the current run.
 run = Run.get_context()
 
 if run.id.startswith("OfflineRun"):
+    CONFIG = CONFIG_DEV
+
     utils_dir_path = REPO_DIR / "src/common/model_utils"
     utils_paths = glob.glob(os.path.join(utils_dir_path, "*.py"))
     temp_model_util_dir = Path(__file__).parent / "tmp_model_util"
@@ -30,6 +34,9 @@ if run.id.startswith("OfflineRun"):
     os.system(f'touch {temp_model_util_dir}/__init__.py')
     for p in utils_paths:
         shutil.copy(p, temp_model_util_dir)
+
+print(f"Config: {CONFIG.NAME}")
+
 
 from model import VariationalAutoencoder 
 from tmp_model_util.preprocessing import preprocess_depthmap, preprocess_targets  # noqa: E402
@@ -108,11 +115,16 @@ print("\t" + "\n\t".join(qrcode_paths_validate))
 assert len(qrcode_paths_training) > 0 and len(qrcode_paths_validate) > 0
 
 
-# For mapping QR code paths to files.
-def get_files(paths, extension="jpg"):
+# For mapping scan paths to samples.
+# Files are shuffled per scan.
+# And restricted to a maximum of samples per scan.
+def get_files(scan_paths, extension="jpg"):
     result_paths = []
-    for path in paths:
-        result_paths.extend(glob.glob(os.path.join(path, "**", "*." + extension)))
+    for scan_path in scan_paths:
+        sample_paths = glob.glob(os.path.join(scan_path, "**", "*." + extension))
+        random.shuffle(sample_paths)
+        sample_paths = sample_paths[:CONFIG.DATASET_MAX_SAMPLES_PER_SCAN]
+        result_paths.extend(sample_paths)
     return result_paths
 
 
@@ -149,26 +161,24 @@ def tf_load_sample(path):
     return image
 
 # Create dataset for training.
+# Note: Model will do caching et cetera.
 paths = paths_training
 dataset = tf.data.Dataset.from_tensor_slices(paths)
 dataset_norm = dataset.map(lambda path: tf_load_sample(path))
-dataset_norm = dataset_norm.cache()
-dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
-dataset_norm = dataset_norm.shuffle(CONFIG.SHUFFLE_BUFFER_SIZE)
 dataset_train = dataset_norm
 del dataset_norm
 
 # Create dataset for validation.
 # Note: No shuffle necessary.
+# Note: Model will do caching et cetera.
 paths = paths_validate
 dataset = tf.data.Dataset.from_tensor_slices(paths)
 dataset_norm = dataset.map(lambda path: tf_load_sample(path))
-dataset_norm = dataset_norm.cache()
-dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
 dataset_validate = dataset_norm
 del dataset_norm
 
 # Create dataset for anomaly detection.
+# Note: Model will do caching et cetera.
 dataset_anomaly = tfds.load("cats_vs_dogs", split="train[:10%]")
 def tf_preprocess(image):
     image = tf.image.resize(image, (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH)) / 255.0
@@ -213,7 +223,7 @@ model.train(
     epochs=CONFIG.EPOCHS,
     batch_size=CONFIG.BATCH_SIZE,
     shuffle_buffer_size=CONFIG.SHUFFLE_BUFFER_SIZE,
-    render=True,
+    render=CONFIG.RENDER,
     render_every=5,
     callbacks=training_callbacks,
     outputs_path=outputs_path
