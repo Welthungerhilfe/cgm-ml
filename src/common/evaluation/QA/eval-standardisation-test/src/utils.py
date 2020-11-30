@@ -3,6 +3,7 @@ import os
 import pickle
 import zipfile
 
+from azureml.core import Experiment, Run
 import glob2 as glob
 import numpy as np
 import pandas as pd
@@ -193,3 +194,27 @@ def setWidth(value):
 def setHeight(value):
     global height
     height = value
+
+
+def download_model(ws, experiment_name, run_id, input_location, output_location):
+    '''
+    Download the pretrained model
+    Input:
+         ws: workspace to access the experiment
+         experiment_name: Name of the experiment in which model is saved
+         run_id: Run Id of the experiment in which model is pre-trained
+         input_location: Input location in a RUN Id
+         output_location: Location for saving the model
+    '''
+    experiment = Experiment(workspace=ws, name=experiment_name)
+    #Download the model on which evaluation need to be done
+    run = Run(experiment, run_id=run_id)
+    #run.get_details()
+
+    if input_location.endswith(".h5"):
+        run.download_file(input_location, output_location)
+    elif input_location.endswith(".ckpt"):
+        run.download_files(prefix=input_location, output_directory=output_location)
+    else:
+        raise NameError(f"{input_location}'s path extension not supported")
+    print("Successfully downloaded model")
