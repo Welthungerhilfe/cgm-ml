@@ -3,6 +3,11 @@ trigger:
     include:
     - releases/*
 
+strategy:
+  matrix:
+    Python37:
+      python.version: '3.7'
+
 jobs:
 - job: EvaluationJob
   timeoutInMinutes: 300
@@ -12,35 +17,40 @@ jobs:
     vmImage: 'Ubuntu-20.04'
 
   steps:
-  - script: echo Hello, QA Pipeline!
-    displayName: 'QA Pipeline for cgm-ml-service'
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '$(python.version)'
+    displayName: 'Use Python $(python.version)'
+  - task: Cache@2
+    inputs:
+      key: 'python | "$(Agent.OS)" | requirements.txt'
+      restoreKeys: |
+        python | "$(Agent.OS)"
+        python
+      path: $(PIP_CACHE_DIR)
+    displayName: Cache pip packages
+  - script: |
+      set -euox pipefail
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
+    displayName: 'Install dependencies'
 
   - bash: |
       set -euox pipefail
-      cd src/common/evaluation/QA
-      source /usr/share/miniconda/etc/profile.d/conda.sh
-      conda env create -f environment.yml
-      conda activate CGM_QA_Pipeline
-      jupyter kernelspec list
-    displayName: 'Environment Creation'
-
-  - bash: |
       echo Login Azure Account
       az login -t $(sptenent) --service-principal -u $(spidentity) --password $(spsecret)
       az account set --subscription $(subscriptionid)
     displayName: 'Azure Login'
 
   - bash: |
+      set -euox pipefail
       cd src/common/evaluation/QA
-      source /usr/share/miniconda/etc/profile.d/conda.sh
-      conda activate CGM_QA_Pipeline
       python auth.py -sid $(subscriptionid) -rg $(RESOURCE_GROUP) -wn $(WORKSPACE_NAME)
     displayName: 'Saving Workspace Config'
 
   - bash: |
+      set -euox pipefail
       cd src/common/evaluation/QA/eval-depthmap-height
-      source /usr/share/miniconda/etc/profile.d/conda.sh
-      conda activate CGM_QA_Pipeline
       echo Executing eval_notebook.ipynb
       papermill eval_notebook.ipynb depthmap-height_output.ipynb --log-output --no-progress-bar -k python3
       jupyter nbconvert --to html depthmap-height_output.ipynb
@@ -48,9 +58,8 @@ jobs:
     displayName: 'Depthmap Height Model Evaluation'
 
   - bash: |
+      set -euox pipefail
       cd src/common/evaluation/QA/eval-standardisation-test
-      source /usr/share/miniconda/etc/profile.d/conda.sh
-      conda activate CGM_QA_Pipeline
       echo Executing eval_notebook.ipynb
       papermill eval_notebook.ipynb standardisation-test_output.ipynb --log-output --no-progress-bar -k python3
       jupyter nbconvert --to html standardisation-test_output.ipynb
