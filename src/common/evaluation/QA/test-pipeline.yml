@@ -16,6 +16,7 @@ jobs:
     displayName: 'QA Pipeline for cgm-ml-service'
 
   - bash: |
+      set -euo pipefail
       cd src/common/evaluation/QA
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda env create -f environment.yml
