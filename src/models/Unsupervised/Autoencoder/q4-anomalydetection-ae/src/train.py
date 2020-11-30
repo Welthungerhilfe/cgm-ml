@@ -1,6 +1,5 @@
 from pathlib import Path
 import os
-import pickle
 import random
 import shutil
 
@@ -10,25 +9,24 @@ import tensorflow_datasets as tfds
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 
-from config import CONFIG, CONFIG_DEV
+from config import CONFIG
+#from config import CONFIG_DEV as CONFIG #  Only for development.
 from config import DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
-from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
-
-from azureml.core.authentication import InteractiveLoginAuthentication
-
+from constants import DATA_DIR_ONLINE_RUN
+from constants import REPO_DIR
 
 # Get the current run.
 run = Run.get_context()
 
 if run.id.startswith("OfflineRun"):
-    CONFIG = CONFIG_DEV
-
     utils_dir_path = REPO_DIR / "src/common/model_utils"
     utils_paths = glob.glob(os.path.join(utils_dir_path, "*.py"))
     temp_model_util_dir = Path(__file__).parent / "tmp_model_util"
+
     # Remove old temp_path
     if os.path.exists(temp_model_util_dir):
         shutil.rmtree(temp_model_util_dir)
+
     # Copy
     os.mkdir(temp_model_util_dir)
     os.system(f'touch {temp_model_util_dir}/__init__.py')
@@ -37,10 +35,8 @@ if run.id.startswith("OfflineRun"):
 
 print(f"Config: {CONFIG.NAME}")
 
-
-from model import Autoencoder 
-from tmp_model_util.preprocessing import preprocess_depthmap, preprocess_targets  # noqa: E402
-from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback  # noqa: E402
+from model import Autoencoder
+from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
@@ -183,15 +179,15 @@ dataset_anomaly = tfds.load("cats_vs_dogs", split="train[:10%]")
 def tf_preprocess(image):
     image = tf.image.resize(image, (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH)) / 255.0
     return image
-dataset_anomaly = dataset_anomaly.map(lambda sample: tf_preprocess(sample["image"]))
 
-# Note: Now the datasets are prepared.
+
+dataset_anomaly = dataset_anomaly.map(lambda sample: tf_preprocess(sample["image"]))
 
 # Create the model.
 model = Autoencoder(
     family=CONFIG.MODEL_FAMILY,
-    input_shape=(CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, CONFIG.IMAGE_TARGET_DEPTH), 
-    filters=CONFIG.FILTERS, 
+    input_shape=(CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, CONFIG.IMAGE_TARGET_DEPTH),
+    filters=CONFIG.FILTERS,
     latent_dim=CONFIG.LATENT_DIM,
     size=CONFIG.MODEL_SIZE
 )
@@ -212,15 +208,13 @@ if not os.path.exists(outputs_path):
 #)
 training_callbacks = [
     AzureLogCallback(run)
-#    create_tensorboard_callback(),
-#    checkpoint_callback,
 ]
 
 # Train the model.
 model.train(
-    dataset_train, 
+    dataset_train,
     dataset_validate,
-    dataset_anomaly, 
+    dataset_anomaly,
     epochs=CONFIG.EPOCHS,
     batch_size=CONFIG.BATCH_SIZE,
     shuffle_buffer_size=CONFIG.SHUFFLE_BUFFER_SIZE,

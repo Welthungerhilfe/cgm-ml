@@ -2,7 +2,6 @@ import glob
 import imageio
 import matplotlib.pyplot as plt
 import numpy as np
-import PIL
 import tensorflow as tf
 import time
 from PIL import Image
@@ -43,7 +42,6 @@ class Autoencoder(tf.keras.Model):
         elif self.family == "vae":
             output_size = 2 * latent_dim
         if self.size == "tiny":
-           
             self.encoder = tf.keras.models.Sequential([
                 tf.keras.layers.InputLayer(input_shape=input_shape),
                 tf.keras.layers.Conv2D(filters=filters[0], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
@@ -59,9 +57,7 @@ class Autoencoder(tf.keras.Model):
                 tf.keras.layers.Conv2DTranspose(filters=filters[0], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
                 tf.keras.layers.Conv2DTranspose(filters=input_shape[-1], kernel_size=3, strides=(2, 2), padding="same", activation="linear")
             ])
-        
         elif self.size == "small":
-            
             self.encoder = tf.keras.models.Sequential([
                 tf.keras.layers.InputLayer(input_shape=input_shape),
                 tf.keras.layers.Conv2D(filters=filters[0], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
@@ -81,9 +77,7 @@ class Autoencoder(tf.keras.Model):
                 tf.keras.layers.Conv2DTranspose(filters=filters[0], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
                 tf.keras.layers.Conv2DTranspose(filters=input_shape[-1], kernel_size=3, strides=(2, 2), padding="same", activation="linear")
             ])
-        
         elif self.size == "big":
-            
             self.encoder = tf.keras.models.Sequential([
                 tf.keras.layers.InputLayer(input_shape=input_shape),
                 tf.keras.layers.Conv2D(filters=filters[0], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
@@ -109,7 +103,6 @@ class Autoencoder(tf.keras.Model):
                 tf.keras.layers.Conv2DTranspose(filters=filters[0], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
                 tf.keras.layers.Conv2DTranspose(filters=input_shape[-1], kernel_size=3, strides=(2, 2), padding="same", activation="linear")
             ])
-        
         # Should not happen.
         else:
             assert False, self.size
@@ -121,7 +114,6 @@ class Autoencoder(tf.keras.Model):
         elif self.family == "vae":
             self.loss_names = ["total", "reconstruction", "divergence"]
         self.number_of_losses = len(self.loss_names)
-
 
     def call(self, x):
         """ Calls the model on some input.
@@ -157,7 +149,6 @@ class Autoencoder(tf.keras.Model):
 
             return y
 
-    
     @tf.function
     def sample(self, eps=None):
         """Decodes some samples from latent-space.
@@ -172,7 +163,6 @@ class Autoencoder(tf.keras.Model):
             eps = tf.random.normal(shape=(100, self.latent_dim))
         return self.decode(eps, apply_sigmoid=True)
 
-    
     def encode(self, x):
         """Encodes some samples into latent space.
 
@@ -193,7 +183,6 @@ class Autoencoder(tf.keras.Model):
             mean, logvar = tf.split(self.encoder(x), num_or_size_splits=2, axis=1)
             return mean, logvar
 
-    
     def reparameterize(self, mean, logvar):
         """Reparametrization trick. Computes mean and logvar and
         then samples some latent vectors from that distribution.
@@ -212,7 +201,6 @@ class Autoencoder(tf.keras.Model):
         eps = tf.random.normal(shape=mean.shape)
         return eps * tf.exp(logvar * .5) + mean
 
-    
     def decode(self, z, apply_sigmoid=False):
         """Decodes some latent vectors.
 
@@ -229,7 +217,6 @@ class Autoencoder(tf.keras.Model):
             return probs
         return logits
 
-    
     def train(self, dataset_train, dataset_validate, dataset_anomaly, epochs, batch_size, shuffle_buffer_size, render=False, render_every=1, callbacks=[], outputs_path="."):
         """Trains the model.
 
@@ -256,20 +243,21 @@ class Autoencoder(tf.keras.Model):
         # Create history object.
         dataset_names = ["train", "validate", "anomaly"]
         keys = [f"{loss_name}_{dataset_name}" for dataset_name, loss_name in itertools.product(dataset_names, self.loss_names)]
-        history = { key: [] for key in keys}
+        history = {key: [] for key in keys}
         best_validation_loss = 1000000.0
         del dataset_names
         del keys
 
         # Pick some samples from each set.
         print("Picking some samples...")
+
         def pick_samples(dataset, number):
             for batch in dataset.batch(number).take(1):
-                return  batch[0:number]
+                return batch[0:number]
         dataset_train_samples = pick_samples(dataset_train, 100)
         dataset_validate_samples = pick_samples(dataset_validate, 100)
         dataset_anomaly_samples = pick_samples(dataset_anomaly, 100)
-        
+
         # Prepare datasets for training.
         # TODO Do we need prefetch?
         print("Preparing datasets...")
@@ -287,9 +275,8 @@ class Autoencoder(tf.keras.Model):
         # Render reconstructions and individual losses before training.
         if render:
             print("Rendering reconstructions...")
-            render_reconstructions(self, dataset_train_samples, dataset_validate_samples,  dataset_anomaly_samples, outputs_path=outputs_path, filename=f"reconstruction-0000.png")
-            render_individual_losses(self, dataset_train_samples, dataset_validate_samples,  dataset_anomaly_samples, outputs_path=outputs_path, filename=f"losses-0000.png")
-        
+            render_reconstructions(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename="reconstruction-0000.png")
+            render_individual_losses(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename="losses-0000.png")
 
         # Train.
         print("Train...")
@@ -333,7 +320,7 @@ class Autoencoder(tf.keras.Model):
             for loss_name, mean_loss in zip(self.loss_names, mean_losses_validate):
                 logs[loss_name + "_validate"] = mean_loss
             for loss_name, mean_loss in zip(self.loss_names, mean_losses_anomaly):
-                logs[loss_name + "_anomaly"] = mean_loss       
+                logs[loss_name + "_anomaly"] = mean_loss
             for loss_key, loss_value in logs.items():
                 history[loss_key] += [loss_value]
 
@@ -342,14 +329,13 @@ class Autoencoder(tf.keras.Model):
                 callback.on_epoch_end(epoch, logs=logs)
 
             # Print status.
-            print('Epoch: {}, validate set loss: {}, time elapse for current epoch: {}'
-                    .format(epoch, mean_losses_validate[0], end_time - start_time))
+            print('Epoch: {}, validate set loss: {}, time elapse for current epoch: {}'.format(epoch, mean_losses_validate[0], end_time - start_time))
 
             # Render reconstructions after every xth epoch.
             if render and (epoch % render_every) == 0:
-                render_reconstructions(self, dataset_train_samples, dataset_validate_samples,  dataset_anomaly_samples, outputs_path=outputs_path, filename=f"reconstruction-{epoch:04d}.png")
-                render_individual_losses(self, dataset_train_samples, dataset_validate_samples,  dataset_anomaly_samples, outputs_path=outputs_path, filename=f"losses-{epoch:04d}.png")
-        
+                render_reconstructions(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename=f"reconstruction-{epoch:04d}.png")
+                render_individual_losses(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename=f"losses-{epoch:04d}.png")
+
         # Merge reconstructions into an animation.
         if render:
             create_animation("reconstruction-*", outputs_path=outputs_path, filename="reconstruction-animation.gif", delete_originals=True)
@@ -360,7 +346,6 @@ class Autoencoder(tf.keras.Model):
 
         # Done.
         return history
-
 
     def save_weights(self, outputs_path, filename):
         """Saves the weights of the encoder and the decoder.
@@ -375,24 +360,24 @@ class Autoencoder(tf.keras.Model):
 def log_normal_pdf(sample, mean, logvar, raxis=1):
     log2pi = tf.math.log(2. * np.pi)
     return tf.reduce_sum(
-            -.5 * ((sample - mean) ** 2. * tf.exp(-logvar) + logvar + log2pi),
-            axis=raxis)
+        -.5 * ((sample - mean) ** 2. * tf.exp(-logvar) + logvar + log2pi),
+        axis=raxis
+    )
 
 
 @tf.function
 def train_step(model, x, optimizer):
-    
     # Get all losses.
     with tf.GradientTape() as tape:
         if model.family == "ae":
             losses = compute_losses_ae(model, x)
         elif model.family == "vae":
             losses = compute_losses_vae(model, x)
-    
+
     # Get gradient for the total loss and optimize.
     gradients = tape.gradient(losses[0], model.trainable_variables)
     optimizer.apply_gradients(zip(gradients, model.trainable_variables))
-    
+
     # Done.
     return losses
 
@@ -408,7 +393,7 @@ def compute_mean_losses(model, dataset):
         float: The mean loss.
     """
     mean_losses = [tf.keras.metrics.Mean() for _ in range(model.number_of_losses)]
-    
+
     # Go through the dataset.
     for validate_x in dataset:
         if model.family == "ae":
@@ -469,7 +454,7 @@ def compute_losses_ae(model, x):
     logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
     reconstruction_loss = logpx_z
     total_loss = -tf.reduce_mean(reconstruction_loss)
-    
+
     return [total_loss]
 
 
@@ -485,17 +470,17 @@ def compute_losses_vae(model, x):
     """
     mean, logvar = model.encode(x)
     z = model.reparameterize(mean, logvar)
-    
+
     x_logit = model.decode(z)
     cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(logits=x_logit, labels=x)
     logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
     logpz = log_normal_pdf(z, 0., 0.)
     logqz_x = log_normal_pdf(z, mean, logvar)
-    
+
     reconstruction_loss = logpx_z
     divergence_loss = logpz - logqz_x
     total_loss = -tf.reduce_mean(reconstruction_loss + divergence_loss)
-    
+
     return total_loss, -reconstruction_loss, -divergence_loss
 
 
@@ -515,10 +500,10 @@ def render_reconstructions(model, samples_train, samples_validate, samples_anoma
     reconstructions_train = model.predict(samples_train[:steps], steps=steps)
     reconstructions_validate = model.predict(samples_validate[:steps], steps=steps)
     reconstructions_anomaly = model.predict(samples_anomaly[:steps], steps=steps)
-    
+
     # This will be the result image.
-    image = np.zeros((6 * samples_train.shape[1], steps  * samples_train.shape[1], 3))
-    
+    image = np.zeros((6 * samples_train.shape[1], steps * samples_train.shape[1], 3))
+
     # Render all samples and their reconstructions.
     def render(samples, reconstructions, offset):
         for sample_index, (sample, reconstruction) in enumerate(zip(samples, reconstructions)):
@@ -535,7 +520,7 @@ def render_reconstructions(model, samples_train, samples_validate, samples_anoma
     render(samples_train, reconstructions_train, 0)
     render(samples_validate, reconstructions_validate, 2)
     render(samples_anomaly, reconstructions_anomaly, 4)
-    
+
     # Convert and save the image.
     image = (image * 255).astype(np.uint8)
     image = Image.fromarray(image)
