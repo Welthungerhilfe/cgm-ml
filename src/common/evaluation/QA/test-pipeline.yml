@@ -3,8 +3,6 @@ trigger:
     include:
     - releases/*
 
-
-
 jobs:
 - job: EvaluationJob
   timeoutInMinutes: 300
@@ -12,16 +10,11 @@ jobs:
 
   pool:
     vmImage: 'Ubuntu-20.04'
-  strategy:
-    matrix:
-      Python37:
-        python.version: '3.7'
 
   steps:
   - task: UsePythonVersion@0
     inputs:
-      versionSpec: '$(python.version)'
-    displayName: 'Use Python $(python.version)'
+      versionSpec: '3.7'
   - task: Cache@2
     inputs:
       key: 'python | "$(Agent.OS)" | requirements.txt'
