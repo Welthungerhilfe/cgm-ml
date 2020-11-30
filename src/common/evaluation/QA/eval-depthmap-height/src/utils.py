@@ -1,12 +1,16 @@
 import os
 import pickle
+import sys
+from pathlib import Path
 
 from azureml.core import Experiment, Run
 import glob2 as glob
 import numpy as np
 import pandas as pd
 
-from qa_config import DATA_CONFIG, RESULT_CONFIG
+sys.path.append(str(Path(__file__).parents[0]))
+
+from qa_config import DATA_CONFIG, RESULT_CONFIG  # noqa: E402
 
 
 def preprocess_depthmap(depthmap):
