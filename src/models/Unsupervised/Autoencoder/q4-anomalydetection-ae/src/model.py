@@ -7,14 +7,16 @@ import tensorflow as tf
 import time
 from PIL import Image
 import os
+import itertools
 
 
-class VariationalAutoencoder(tf.keras.Model):
+class Autoencoder(tf.keras.Model):
 
-    def __init__(self, input_shape, filters, latent_dim, size):
+    def __init__(self, family, input_shape, filters, latent_dim, size):
         """ Creates an instance of the model.
 
         Args:
+            family (string): Autoencoder family. Either "ae" or "vae".
             input_shape (tuple): Input and output shape of the model.
             filters (list): The convolution filters.
             latent_dim (int): Size of the latent space.
@@ -23,9 +25,11 @@ class VariationalAutoencoder(tf.keras.Model):
 
         super().__init__()
 
+        assert family in ["ae", "vae"], family
         assert size in ["tiny", "small", "big"]
 
         # Save some parameters.
+        self.family = family
         self.filters = []
         self.latent_dim = latent_dim
         self.size = size
@@ -34,6 +38,10 @@ class VariationalAutoencoder(tf.keras.Model):
         bridge_shape = (input_shape[0] // 2**len(filters), input_shape[1] // 2**len(filters), filters[-1])
 
         # Create encoder and decoder.
+        if self.family == "ae":
+            output_size = latent_dim
+        elif self.family == "vae":
+            output_size = 2 * latent_dim
         if self.size == "tiny":
            
             self.encoder = tf.keras.models.Sequential([
@@ -41,7 +49,7 @@ class VariationalAutoencoder(tf.keras.Model):
                 tf.keras.layers.Conv2D(filters=filters[0], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
                 tf.keras.layers.Conv2D(filters=filters[1], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
                 tf.keras.layers.Flatten(),
-                tf.keras.layers.Dense(latent_dim + latent_dim),
+                tf.keras.layers.Dense(output_size),
             ])
 
             self.decoder = tf.keras.models.Sequential([
@@ -61,7 +69,7 @@ class VariationalAutoencoder(tf.keras.Model):
                 tf.keras.layers.Conv2D(filters=filters[2], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
                 tf.keras.layers.Conv2D(filters=filters[3], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
                 tf.keras.layers.Flatten(),
-                tf.keras.layers.Dense(latent_dim + latent_dim),
+                tf.keras.layers.Dense(output_size),
             ])
 
             self.decoder = tf.keras.models.Sequential([
@@ -86,7 +94,7 @@ class VariationalAutoencoder(tf.keras.Model):
                 tf.keras.layers.Conv2D(filters=filters[5], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
                 tf.keras.layers.Conv2D(filters=filters[6], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
                 tf.keras.layers.Flatten(),
-                tf.keras.layers.Dense(latent_dim + latent_dim),
+                tf.keras.layers.Dense(output_size),
             ])
 
             self.decoder = tf.keras.models.Sequential([
@@ -106,6 +114,14 @@ class VariationalAutoencoder(tf.keras.Model):
         else:
             assert False, self.size
 
+        # Prepare losses.
+        self.loss_names = []
+        if self.family == "ae":
+            self.loss_names = ["reconstruction"]
+        elif self.family == "vae":
+            self.loss_names = ["total", "reconstruction", "divergence"]
+        self.number_of_losses = len(self.loss_names)
+
 
     def call(self, x):
         """ Calls the model on some input.
@@ -117,16 +133,29 @@ class VariationalAutoencoder(tf.keras.Model):
             ndarray or tensor: The result.
         """
 
-        # Encode. Compute mean and variance.
-        mean, logvar = self.encode(x)
+        # Autoencoder.
+        if self.family == "ae":
+            # Encode. Compute z.
+            z = self.encode(x)
 
-        # Get latent vector.
-        z = self.reparameterize(mean, logvar)
+            # Decode.
+            y = self.decode(z, apply_sigmoid=True)
 
-        # Decode.
-        y = self.decode(z, apply_sigmoid=True)
+            return y
 
-        return y
+        # Variational autoencoder.
+        elif self.family == "vae":
+
+            # Encode. Compute mean and variance.
+            mean, logvar = self.encode(x)
+
+            # Get latent vector.
+            z = self.reparameterize(mean, logvar)
+
+            # Decode.
+            y = self.decode(z, apply_sigmoid=True)
+
+            return y
 
     
     @tf.function
@@ -153,8 +182,16 @@ class VariationalAutoencoder(tf.keras.Model):
         Returns:
             ndarray or tensor: Mean and logvar of the samples.
         """
-        mean, logvar = tf.split(self.encoder(x), num_or_size_splits=2, axis=1)
-        return mean, logvar
+
+        # Autoencoder.
+        if self.family == "ae":
+            z = self.encoder(x)
+            return z
+
+        # Variational autoencoder.
+        elif self.family == "vae":
+            mean, logvar = tf.split(self.encoder(x), num_or_size_splits=2, axis=1)
+            return mean, logvar
 
     
     def reparameterize(self, mean, logvar):
@@ -168,6 +205,10 @@ class VariationalAutoencoder(tf.keras.Model):
         Returns:
             ndarray or tensor: Latent space vectors.
         """
+
+        # Only in VAE.
+        assert self.family == "vae"
+
         eps = tf.random.normal(shape=mean.shape)
         return eps * tf.exp(logvar * .5) + mean
 
@@ -213,19 +254,11 @@ class VariationalAutoencoder(tf.keras.Model):
         optimizer = tf.keras.optimizers.Adam(1e-4)
 
         # Create history object.
-        keys = [
-            "total_loss_train", 
-            "reconstruction_loss_train", 
-            "divergence_loss_train", 
-            "total_loss_validate", 
-            "reconstruction_loss_validate", 
-            "divergence_loss_validate", 
-            "total_loss_anomaly",
-            "reconstruction_loss_anomaly",
-            "divergence_loss_anomaly",
-        ]
+        dataset_names = ["train", "validate", "anomaly"]
+        keys = [f"{loss_name}_{dataset_name}" for dataset_name, loss_name in itertools.product(dataset_names, self.loss_names)]
         history = { key: [] for key in keys}
         best_validation_loss = 1000000.0
+        del dataset_names
         del keys
 
         # Pick some samples from each set.
@@ -238,6 +271,7 @@ class VariationalAutoencoder(tf.keras.Model):
         dataset_anomaly_samples = pick_samples(dataset_anomaly, 100)
         
         # Prepare datasets for training.
+        # TODO Do we need prefetch?
         print("Preparing datasets...")
         dataset_train = dataset_train.cache()
         #dataset_train = dataset_train.prefetch(tf.data.experimental.AUTOTUNE)
@@ -255,6 +289,7 @@ class VariationalAutoencoder(tf.keras.Model):
             print("Rendering reconstructions...")
             render_reconstructions(self, dataset_train_samples, dataset_validate_samples,  dataset_anomaly_samples, outputs_path=outputs_path, filename=f"reconstruction-0000.png")
             render_individual_losses(self, dataset_train_samples, dataset_validate_samples,  dataset_anomaly_samples, outputs_path=outputs_path, filename=f"losses-0000.png")
+        
 
         # Train.
         print("Train...")
@@ -262,57 +297,43 @@ class VariationalAutoencoder(tf.keras.Model):
 
             start_time = time.time()
 
-            # Train with training set and compute mean loss.
-            total_loss_train = tf.keras.metrics.Mean()
-            reconstruction_loss_train = tf.keras.metrics.Mean()
-            divergence_loss_train = tf.keras.metrics.Mean()
+            # Train with training set and compute mean losses.
+            mean_losses_train = [tf.keras.metrics.Mean() for _ in range(self.number_of_losses)]
             batch_index = 1
             for train_x in dataset_train:
                 print(f"Batch {batch_index}")
                 batch_index += 1
-                total_loss, reconstruction_loss, divergence_loss = train_step(self, train_x, optimizer)
-                total_loss_train(total_loss)
-                reconstruction_loss_train(reconstruction_loss)
-                divergence_loss_train(divergence_loss)
-            total_loss_train = total_loss_train.result()
-            reconstruction_loss_train = reconstruction_loss_train.result()
-            divergence_loss_train = divergence_loss_train.result()
+                losses = train_step(self, train_x, optimizer)
+                assert len(losses) == self.number_of_losses
+                for loss, mean_loss in zip(losses, mean_losses_train):
+                    mean_loss(loss)
+            mean_losses_train = [mean_loss.result() for mean_loss in mean_losses_train]
 
             # Compute loss for validate and anomaly.
-            total_loss_validate, reconstruction_loss_validate, divergence_loss_validate = compute_mean_losses(self, dataset_validate)
-            total_loss_anomaly, reconstruction_loss_anomaly, divergence_loss_anomaly = compute_mean_losses(self, dataset_anomaly)
+            mean_losses_validate = compute_mean_losses(self, dataset_validate)
+            mean_losses_anomaly = compute_mean_losses(self, dataset_anomaly)
 
-            # Convert.
-            total_loss_train = float(total_loss_train)
-            reconstruction_loss_train = float(reconstruction_loss_train)
-            divergence_loss_train = float(divergence_loss_train)
-            total_loss_validate = float(total_loss_validate)
-            reconstruction_loss_validate = float(reconstruction_loss_validate)
-            divergence_loss_validate = float(divergence_loss_validate)
-            total_loss_anomaly = float(total_loss_anomaly)
-            reconstruction_loss_anomaly = float(reconstruction_loss_anomaly)
-            divergence_loss_anomaly = float(divergence_loss_anomaly)
+            # Convert mean losses to float..
+            mean_losses_train = [float(mean_loss) for mean_loss in mean_losses_train]
+            mean_losses_validate = [float(mean_loss) for mean_loss in mean_losses_validate]
+            mean_losses_anomaly = [float(mean_loss) for mean_loss in mean_losses_anomaly]
 
             # Save the best model.
-            if total_loss_validate < best_validation_loss:
-                print(f"Found new best model with validation loss {total_loss_validate}.")
+            if mean_losses_validate[0] < best_validation_loss:
+                print(f"Found new best model with validation loss {mean_losses_validate[0]}.")
                 self.save_weights(outputs_path=outputs_path, filename="model_best")
-                best_validation_loss = total_loss_validate
+                best_validation_loss = mean_losses_validate[0]
 
             end_time = time.time()
 
-            # Update the history.            
-            logs = {
-                "total_loss_train": total_loss_train,
-                "reconstruction_loss_train": reconstruction_loss_train,
-                "divergence_loss_train": divergence_loss_train,
-                "total_loss_validate": total_loss_validate,
-                "reconstruction_loss_validate": reconstruction_loss_validate,
-                "divergence_loss_validate": divergence_loss_validate,
-                "total_loss_anomaly": total_loss_anomaly,
-                "reconstruction_loss_anomaly": reconstruction_loss_anomaly,
-                "divergence_loss_anomaly": divergence_loss_anomaly
-            }
+            # Update the history.
+            logs = {}
+            for loss_name, mean_loss in zip(self.loss_names, mean_losses_train):
+                logs[loss_name + "_train"] = mean_loss
+            for loss_name, mean_loss in zip(self.loss_names, mean_losses_validate):
+                logs[loss_name + "_validate"] = mean_loss
+            for loss_name, mean_loss in zip(self.loss_names, mean_losses_anomaly):
+                logs[loss_name + "_anomaly"] = mean_loss       
             for loss_key, loss_value in logs.items():
                 history[loss_key] += [loss_value]
 
@@ -322,7 +343,7 @@ class VariationalAutoencoder(tf.keras.Model):
 
             # Print status.
             print('Epoch: {}, validate set loss: {}, time elapse for current epoch: {}'
-                    .format(epoch, total_loss_validate, end_time - start_time))
+                    .format(epoch, mean_losses_validate[0], end_time - start_time))
 
             # Render reconstructions after every xth epoch.
             if render and (epoch % render_every) == 0:
@@ -335,7 +356,7 @@ class VariationalAutoencoder(tf.keras.Model):
             create_animation("losses-*", outputs_path=outputs_path, filename="losses-animation.gif", delete_originals=True)
 
         # Render the history.
-        render_history(history, outputs_path=outputs_path, filename="history.png")
+        render_history(history, self.loss_names, outputs_path=outputs_path, filename="history.png")
 
         # Done.
         return history
@@ -363,14 +384,17 @@ def train_step(model, x, optimizer):
     
     # Get all losses.
     with tf.GradientTape() as tape:
-        total_loss, reconstruction_loss, divergence_loss = compute_loss(model, x)
+        if model.family == "ae":
+            losses = compute_losses_ae(model, x)
+        elif model.family == "vae":
+            losses = compute_losses_vae(model, x)
     
     # Get gradient for the total loss and optimize.
-    gradients = tape.gradient(total_loss, model.trainable_variables)
+    gradients = tape.gradient(losses[0], model.trainable_variables)
     optimizer.apply_gradients(zip(gradients, model.trainable_variables))
     
     # Done.
-    return total_loss, reconstruction_loss, divergence_loss
+    return losses
 
 
 def compute_mean_losses(model, dataset):
@@ -383,24 +407,22 @@ def compute_mean_losses(model, dataset):
     Returns:
         float: The mean loss.
     """
-    total_loss_mean = tf.keras.metrics.Mean()
-    reconstruction_loss_mean = tf.keras.metrics.Mean()
-    divergence_loss_mean = tf.keras.metrics.Mean()
+    mean_losses = [tf.keras.metrics.Mean() for _ in range(model.number_of_losses)]
     
     # Go through the dataset.
     for validate_x in dataset:
-        total_loss, reconstruction_loss, divergence_loss = compute_loss(model, validate_x)
-        total_loss_mean(total_loss)
-        reconstruction_loss_mean(reconstruction_loss)
-        divergence_loss_mean(divergence_loss)
+        if model.family == "ae":
+            losses = compute_losses_ae(model, validate_x)
+        if model.family == "vae":
+            losses = compute_losses_vae(model, validate_x)
+        for loss, mean_loss in zip(losses, mean_losses):
+            mean_loss(loss)
 
     # Get the losses as numbers.
-    total_loss_mean = total_loss_mean.result()
-    reconstruction_loss_mean = reconstruction_loss_mean.result()
-    divergence_loss_mean = divergence_loss_mean.result()
+    mean_losses = [mean_loss.result() for mean_loss in mean_losses]
 
     # Done.
-    return total_loss_mean, reconstruction_loss_mean, divergence_loss_mean
+    return mean_losses
 
 
 def compute_individual_losses(model, dataset):
@@ -415,22 +437,43 @@ def compute_individual_losses(model, dataset):
     """
 
     # Set up the losses.
-    total_losses = []
-    reconstruction_losses = []
-    divergence_losses = []
+    all_losses = [[] for _ in range(model.number_of_losses)]
 
     # Go through each sample.
     for x in dataset:
-        total_loss, reconstruction_loss, divergence_loss = compute_loss(model, np.array([x]))
-        total_losses += [float(total_loss)]
-        reconstruction_losses += [float(reconstruction_loss)]
-        divergence_losses += [float(divergence_loss)]
+        if model.family == "ae":
+            losses = compute_losses_ae(model, np.array([x]))
+        elif model.family == "vae":
+            losses = compute_losses_vae(model, np.array([x]))
+        for loss, loss_list in zip(losses, all_losses):
+            loss_list += [float(loss)]
 
     # Done.
-    return total_losses, reconstruction_losses, divergence_losses
+    return all_losses
 
 
-def compute_loss(model, x):
+def compute_losses_ae(model, x):
+    """Computes the loss of a sample.
+
+    Args:
+        model (model): A model.
+        x (ndarray or tensor): A sample.
+
+    Returns:
+        float: The loss of the sample.
+    """
+    z = model.encode(x)
+    x_logit = model.decode(z)
+
+    cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(logits=x_logit, labels=x)
+    logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
+    reconstruction_loss = logpx_z
+    total_loss = -tf.reduce_mean(reconstruction_loss)
+    
+    return [total_loss]
+
+
+def compute_losses_vae(model, x):
     """Computes the loss of a sample.
 
     Args:
@@ -545,7 +588,7 @@ def create_animation(glob_search_path, outputs_path, filename, delete_originals=
                 os.remove(path)
 
 
-def render_history(history, outputs_path, filename):
+def render_history(history, loss_names, outputs_path, filename):
     """Renders the training history.
 
     Args:
@@ -553,10 +596,12 @@ def render_history(history, outputs_path, filename):
         filename (str): Filename of the image.
     """
 
-    fig, axes = plt.subplots(3, figsize=(8, 12))
-    for prefix, axis in zip(["total", "reconstruction", "divergence"], axes):
+    fig, axes = plt.subplots(len(loss_names), figsize=(8, 12))
+    if not isinstance(axes, np.ndarray):
+        axes = [axes]
+    for loss_name, axis in zip(loss_names, axes):
         for key, value in history.items():
-            if key.startswith(prefix):
+            if key.startswith(loss_name):
                 axis.plot(value, label=key)
         axis.legend()
     plt.savefig(os.path.join(outputs_path, filename))

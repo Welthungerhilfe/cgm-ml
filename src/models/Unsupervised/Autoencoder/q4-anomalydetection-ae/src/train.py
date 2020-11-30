@@ -38,7 +38,7 @@ if run.id.startswith("OfflineRun"):
 print(f"Config: {CONFIG.NAME}")
 
 
-from model import VariationalAutoencoder 
+from model import Autoencoder 
 from tmp_model_util.preprocessing import preprocess_depthmap, preprocess_targets  # noqa: E402
 from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback  # noqa: E402
 
@@ -188,7 +188,8 @@ dataset_anomaly = dataset_anomaly.map(lambda sample: tf_preprocess(sample["image
 # Note: Now the datasets are prepared.
 
 # Create the model.
-model = VariationalAutoencoder(
+model = Autoencoder(
+    family=CONFIG.MODEL_FAMILY,
     input_shape=(CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, CONFIG.IMAGE_TARGET_DEPTH), 
     filters=CONFIG.FILTERS, 
     latent_dim=CONFIG.LATENT_DIM,
