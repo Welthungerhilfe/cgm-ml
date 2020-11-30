@@ -27,14 +27,10 @@ jobs:
       set -euox pipefail
       python -m pip install --upgrade pip
       pip install -r requirements.txt
-    displayName: 'Install dependencies'
-
-  - bash: |
-      set -euox pipefail
       echo Login Azure Account
       az login -t $(sptenent) --service-principal -u $(spidentity) --password $(spsecret)
       az account set --subscription $(subscriptionid)
-    displayName: 'Azure Login'
+    displayName: 'Install dependencies and Azure Login'
 
   - bash: |
       set -euox pipefail
