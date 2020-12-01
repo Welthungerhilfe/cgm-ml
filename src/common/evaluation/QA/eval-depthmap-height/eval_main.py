@@ -72,11 +72,7 @@ if __name__ == "__main__":
     print("TF supported versions:", TensorFlow.get_supported_versions())
 
     #parameters used in the evaluation
-    script_params = {}
-    script_params.update({f"--MODEL_{k}": v for k, v in MODEL_CONFIG.items()})
-    script_params.update({f"--EVAL_{k}": v for k, v in EVAL_CONFIG.items()})
-    script_params.update({f"--DATA_{k}": v for k, v in DATA_CONFIG.items()})
-    script_params.update({f"--RESULT_{k}": v for k, v in RESULT_CONFIG.items()})
+    script_params = {"--qa_config_module": args.qa_config_module}
     print("script_params:", script_params)
 
     start = time.time()

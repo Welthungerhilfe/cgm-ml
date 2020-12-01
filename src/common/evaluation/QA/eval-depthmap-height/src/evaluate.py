@@ -1,3 +1,5 @@
+import argparse
+from importlib import import_module
 import os
 import random
 import pickle
@@ -12,7 +14,16 @@ from azureml.core.run import Run
 
 import utils
 from constants import REPO_DIR
-from qa_config import MODEL_CONFIG, EVAL_CONFIG, DATA_CONFIG, RESULT_CONFIG
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--qa_config_module", default="qa_config_height", help="Configuration file")
+args = parser.parse_args()
+
+qa_config = import_module(args.qa_config_module)
+MODEL_CONFIG = qa_config.MODEL_CONFIG
+EVAL_CONFIG = qa_config.EVAL_CONFIG
+DATA_CONFIG = qa_config.DATA_CONFIG
+RESULT_CONFIG = qa_config.RESULT_CONFIG
 
 
 # Function for loading and processing depthmaps.
@@ -62,6 +73,7 @@ if __name__ == "__main__":
         print("Running in offline mode...")
 
         # Access workspace.
+        import ipdb; ipdb.set_trace()
         print("Accessing workspace...")
         workspace = Workspace.from_config()
         experiment = Experiment(workspace, EVAL_CONFIG.EXPERIMENT_NAME)
@@ -129,7 +141,7 @@ if __name__ == "__main__":
     print(prediction_list_one)
 
     qrcode_list, scantype_list, artifact_list, prediction_list, target_list = utils.get_column_list(
-        paths_evaluation, prediction_list_one)
+        paths_evaluation, prediction_list_one, DATA_CONFIG)
 
     df = pd.DataFrame({
         'qrcode': qrcode_list,
@@ -148,7 +160,7 @@ if __name__ == "__main__":
     MAE['error'] = MAE.apply(utils.avgerror, axis=1)
 
     print("Saving the results")
-    utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, RESULT_CONFIG.SAVE_PATH)
+    utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, RESULT_CONFIG.SAVE_PATH, DATA_CONFIG, RESULT_CONFIG)
 
     # Done.
     run.complete()

@@ -8,10 +8,6 @@ import glob2 as glob
 import numpy as np
 import pandas as pd
 
-sys.path.append(str(Path(__file__).parents[0]))
-
-from qa_config import DATA_CONFIG, RESULT_CONFIG  # noqa: E402
-
 
 def preprocess_depthmap(depthmap):
     # TODO here be more code.
@@ -34,7 +30,7 @@ def get_depthmap_files(paths):
     return pickle_paths
 
 
-def get_column_list(depthmap_path_list, prediction):
+def get_column_list(depthmap_path_list, prediction, DATA_CONFIG):
     '''
     Prepare the list of all artifact with its corresponding scantype,
     qrcode, target and prediction
@@ -61,7 +57,7 @@ def avgerror(row):
     return difference
 
 
-def calculate_performance(code, df_mae):
+def calculate_performance(code, df_mae, RESULT_CONFIG):
     '''
     For each scantype, calculate the performance of the model
     across all error margin
@@ -82,14 +78,14 @@ def calculate_performance(code, df_mae):
     return df_out
 
 
-def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH):
+def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH, DATA_CONFIG, RESULT_CONFIG):
     '''
     Calculate accuracies across the scantypes and
     save the final results table to the CSV file
     '''
     dfs = []
     for code in DATA_CONFIG.CODE_TO_SCANTYPE.keys():
-        df = calculate_performance(code, MAE)
+        df = calculate_performance(code, MAE, RESULT_CONFIG)
         full_model_name = complete_name + DATA_CONFIG.CODE_TO_SCANTYPE[code]
         df.rename(index={0: full_model_name}, inplace=True)
         #display(HTML(df.to_html()))
