@@ -7,7 +7,7 @@ open3d==0.8.0.0
 opencv-python==4.4.0.46
 matplotlib==2.2.2
 importlib2==3.5.0.2
-psycopg2==2.7.5
+psycopg2-binary==2.8.6
 tqdm==4.31.1
 pandas==0.23.4
 ipywidgets==7.2.1
