@@ -29,7 +29,6 @@ if run.id.startswith("OfflineRun"):
     for p in utils_paths:
         shutil.copy(p, temp_model_util_dir)
 
-from model import create_cnn  # noqa: E402
 from tmp_model_util.preprocessing import preprocess_depthmap, preprocess_targets  # noqa: E402
 from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, create_base_cnn, create_head  # noqa: E402
 
