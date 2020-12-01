@@ -12,8 +12,6 @@ jobs:
     vmImage: 'Ubuntu-20.04'
 
   steps:
-  - script: echo Hello, QA Pipeline!
-    displayName: 'QA Pipeline for cgm-ml-service'
 
   - bash: |
       set -euox pipefail
@@ -25,7 +23,6 @@ jobs:
     displayName: 'Environment Creation'
 
   - bash: |
-      echo Login Azure Account
       az login -t $(sptenent) --service-principal -u $(spidentity) --password $(spsecret)
       az account set --subscription $(subscriptionid)
     displayName: 'Azure Login'
@@ -43,7 +40,6 @@ jobs:
       cd src/common/evaluation/QA/eval-depthmap-height
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
-      echo Executing eval_notebook.ipynb
       papermill eval_notebook.ipynb depthmap-height_output.ipynb --log-output --no-progress-bar -k python3
       jupyter nbconvert --to html depthmap-height_output.ipynb
       ls -l
@@ -54,7 +50,6 @@ jobs:
       cd src/common/evaluation/QA/eval-standardisation-test
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
-      echo Executing eval_notebook.ipynb
       papermill eval_notebook.ipynb standardisation-test_output.ipynb --log-output --no-progress-bar -k python3
       jupyter nbconvert --to html standardisation-test_output.ipynb
       ls -l
