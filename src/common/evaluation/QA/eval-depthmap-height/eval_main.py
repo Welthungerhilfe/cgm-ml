@@ -7,7 +7,6 @@ import shutil
 from azureml.core import Workspace, Experiment, Run
 from azureml.core.compute import ComputeTarget, AmlCompute
 from azureml.core.compute_target import ComputeTargetException
-from azureml.core.runconfig import MpiConfiguration
 from azureml.train.dnn import TensorFlow
 import pandas as pd
 
@@ -40,10 +39,10 @@ if __name__ == "__main__":
 
     # Copy model to temp folder
     download_model(ws=ws,
-                experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
-                run_id=MODEL_CONFIG.RUN_ID,
-                input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
-                output_location=temp_path)
+                   experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
+                   run_id=MODEL_CONFIG.RUN_ID,
+                   input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
+                   output_location=temp_path)
 
     experiment = Experiment(workspace=ws, name=EVAL_CONFIG.EXPERIMENT_NAME)
 
@@ -54,9 +53,9 @@ if __name__ == "__main__":
         print("Found existing compute target.")
     except ComputeTargetException:
         print("Creating a new compute target...")
-        compute_config = AmlCompute.provisioning_configuration(vm_size = 'Standard_NC6', max_nodes = 4)
+        compute_config = AmlCompute.provisioning_configuration(vm_size='Standard_NC6', max_nodes=4)
         compute_target = ComputeTarget.create(ws, EVAL_CONFIG.CLUSTER_NAME, compute_config)
-        compute_target.wait_for_completion(show_output = True, min_node_count = None, timeout_in_minutes = 20)
+        compute_target.wait_for_completion(show_output=True, min_node_count=None, timeout_in_minutes=20)
     print("Compute target:", compute_target)
 
     dataset = ws.datasets[DATA_CONFIG.NAME]
@@ -109,7 +108,7 @@ if __name__ == "__main__":
     print("Run status:", run.get_status())
 
     end = time.time()
-    print("Total time for evaluation experiment: {} sec".format(end-start))
+    print("Total time for evaluation experiment: {} sec".format(end - start))
 
     #Download the evaluation results of the model
     GET_CSV_FROM_EXPERIMENT_PATH = '.'
