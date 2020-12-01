@@ -3,7 +3,6 @@ import time
 import glob
 from pathlib import Path
 import shutil
-import tempfile
 
 from azureml.core import Workspace, Experiment, Run
 from azureml.core.compute import ComputeTarget, AmlCompute
@@ -16,16 +15,18 @@ from auth import get_auth
 from src.qa_config import MODEL_CONFIG, EVAL_CONFIG, DATA_CONFIG, RESULT_CONFIG
 from src.utils import download_model
 
-cwd = Path(__file__).parent
+CWD = Path(__file__).parent
+TAGS = {}
+
 
 if __name__ == "__main__":
 
     # Create a temp folder
-    code_dir = cwd / "src"
+    code_dir = CWD / "src"
     paths = glob.glob(os.path.join(code_dir, "*.py"))
     print("paths:", paths)
     print("Creating temp folder...")
-    temp_path = cwd / "tmp_eval"
+    temp_path = CWD / "tmp_eval"
     if os.path.exists(temp_path):
         shutil.rmtree(temp_path)
     os.mkdir(temp_path)
@@ -44,22 +45,18 @@ if __name__ == "__main__":
                 input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
                 output_location=temp_path)
 
-    experiment = Experiment(workspace = ws, name = EVAL_CONFIG.EXPERIMENT_NAME)
+    experiment = Experiment(workspace=ws, name=EVAL_CONFIG.EXPERIMENT_NAME)
 
-    #Find/create a compute target.
+    # Find/create a compute target.
     try:
         # Compute cluster exists. Just connect to it.
-        compute_target = ComputeTarget(workspace = ws, name = EVAL_CONFIG.CLUSTER_NAME)
+        compute_target = ComputeTarget(workspace=ws, name=EVAL_CONFIG.CLUSTER_NAME)
         print("Found existing compute target.")
     except ComputeTargetException:
         print("Creating a new compute target...")
-        compute_config = AmlCompute.provisioning_configuration(
-            vm_size = 'Standard_NC6',
-            max_nodes = 4
-        )
-        compute_target = ComputeTarget.create(workspace, cluster_name, compute_config)
+        compute_config = AmlCompute.provisioning_configuration(vm_size = 'Standard_NC6', max_nodes = 4)
+        compute_target = ComputeTarget.create(ws, EVAL_CONFIG.CLUSTER_NAME, compute_config)
         compute_target.wait_for_completion(show_output = True, min_node_count = None, timeout_in_minutes = 20)
-
     print("Compute target:", compute_target)
 
     dataset = ws.datasets[DATA_CONFIG.NAME]
@@ -75,7 +72,6 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    tags= {}
     # Specify pip packages here.
     pip_packages = [
         "azureml-dataprep[fuse,pandas]",
@@ -101,7 +97,7 @@ if __name__ == "__main__":
     estimator.run_config.target = compute_target
 
     # Run the experiment.
-    run = experiment.submit(estimator, tags=tags)
+    run = experiment.submit(estimator, tags=TAGS)
 
     # Show run.
     print("Run:", run)
