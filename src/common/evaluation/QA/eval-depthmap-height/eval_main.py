@@ -1,3 +1,5 @@
+import argparse
+from importlib import import_module
 import os
 import time
 import glob
@@ -11,14 +13,21 @@ from azureml.train.dnn import TensorFlow
 import pandas as pd
 
 from auth import get_auth
-from src.qa_config import MODEL_CONFIG, EVAL_CONFIG, DATA_CONFIG, RESULT_CONFIG
 from src.utils import download_model
 
 CWD = Path(__file__).parent
 TAGS = {}
 
-
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--qa_config_module", default="qa_config_height", help="Configuration file")
+    args = parser.parse_args()
+
+    qa_config = import_module(args.qa_config_module, 'src')
+    MODEL_CONFIG = qa_config.MODEL_CONFIG
+    EVAL_CONFIG = qa_config.EVAL_CONFIG
+    DATA_CONFIG = qa_config.DATA_CONFIG
+    RESULT_CONFIG = qa_config.RESULT_CONFIG
 
     # Create a temp folder
     code_dir = CWD / "src"
@@ -115,7 +124,7 @@ if __name__ == "__main__":
     run.download_file(RESULT_CONFIG.SAVE_PATH, GET_CSV_FROM_EXPERIMENT_PATH)
     print("Downloaded the result.csv")
 
-    result = pd.read_csv('result.csv')
+    result = pd.read_csv(CWD / 'result.csv')
     print("Result:", result)
 
     #Delete temp folder

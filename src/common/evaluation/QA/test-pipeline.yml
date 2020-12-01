@@ -40,8 +40,8 @@ jobs:
       cd src/common/evaluation/QA/eval-depthmap-height
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
-      papermill eval_notebook.ipynb depthmap-height_output.ipynb --log-output --no-progress-bar -k python3
-      jupyter nbconvert --to html depthmap-height_output.ipynb
+      python eval_main.py --qa_config_module qa_config_height
+      python eval_main.py --qa_config_module qa_config_weight
       ls -l
     displayName: 'Depthmap Height Model Evaluation'
 
@@ -69,9 +69,9 @@ jobs:
   - task: PublishPipelineArtifact@1
     inputs:
       targetPath: '$(Build.ArtifactStagingDirectory)'
-      artifact: 'Output Notebook'
+      artifact: 'Output Results'
       publishLocation: 'pipeline'
-    displayName: 'Publish Results and Output Notebook'
+    displayName: 'Publish Results and Output Results'
 
   - bash: |
       az logout
