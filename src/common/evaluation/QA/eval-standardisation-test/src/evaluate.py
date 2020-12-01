@@ -75,7 +75,7 @@ def get_height_prediction(MODEL_PATH, dataset_evaluation):
         dataset_evaluation : dataset in which Evaluation
         need to performed
     '''
-    model = load_model(MODEL_PATH)
+    model = load_model(MODEL_PATH, compile=False)
     predictions = model.predict(DataGenerator(depthmap_path_list, DATA_CONFIG.BATCH_SIZE))
     prediction_list = np.squeeze(predictions)
     return prediction_list
@@ -273,8 +273,15 @@ if __name__ == "__main__":
     print("\t" + "\n\t".join(depthmap_path_list))
     print("Using {} artifact files for evaluation.".format(len(depthmap_path_list)))
 
-    #Get the prediction on the artifact
-    prediction_list = get_height_prediction(MODEL_CONFIG.NAME, depthmap_path_list)
+    # Get the prediction on the artifact
+    if MODEL_CONFIG.NAME.endswith(".h5"):
+        model_path = MODEL_CONFIG.NAME
+    elif MODEL_CONFIG.NAME.endswith(".ckpt"):
+        model_path = f"{MODEL_CONFIG.INPUT_LOCATION}/{MODEL_CONFIG.NAME}"
+    else:
+        raise NameError(f"{MODEL_CONFIG.NAME}'s path extension not supported")
+    prediction_list = get_height_prediction(model_path, depthmap_path_list)
+
     depthmap_measure_table = prepare_depthmap_measure_table(depthmap_path_list, prediction_list)
 
     data_path = Path(dataset_path)

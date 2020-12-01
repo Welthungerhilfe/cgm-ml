@@ -7,8 +7,7 @@ from typing import Iterator, List
 import glob2 as glob
 import numpy as np
 
-from .model_utils_constants import (SAMPLING_STRATEGY_SYSTEMATIC,
-                                    SAMPLING_STRATEGY_WINDOW)
+from .model_utils_constants import SAMPLING_STRATEGY_SYSTEMATIC, SAMPLING_STRATEGY_WINDOW
 
 REGEX_PICKLE = re.compile(
     r"pc_(?P<qrcode>[a-zA-Z0-9]+-[a-zA-Z0-9]+)_(?P<unixepoch>\d+)_(?P<code>\d{3})_(?P<idx>\d{3}).p$"

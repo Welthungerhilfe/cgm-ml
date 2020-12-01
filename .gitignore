@@ -13,6 +13,7 @@ src/common/depthmap_toolkit/honor/
 src/common/depthmap_toolkit/output/
 src/common/depthmap_toolkit/export/
 tmp_model_util/
+tmp_eval/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

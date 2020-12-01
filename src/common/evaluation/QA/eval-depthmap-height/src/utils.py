@@ -1,11 +1,16 @@
 import os
 import pickle
+import sys
+from pathlib import Path
 
+from azureml.core import Experiment, Run
 import glob2 as glob
 import numpy as np
 import pandas as pd
 
-from qa_config import DATA_CONFIG, RESULT_CONFIG
+sys.path.append(str(Path(__file__).parents[0]))
+
+from qa_config import DATA_CONFIG, RESULT_CONFIG  # noqa: E402
 
 
 def preprocess_depthmap(depthmap):
@@ -97,3 +102,27 @@ def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH):
 
     # Save the model results in csv file
     result.to_csv(CSV_OUT_PATH, index=True)
+
+
+def download_model(ws, experiment_name, run_id, input_location, output_location):
+    '''
+    Download the pretrained model
+    Input:
+         ws: workspace to access the experiment
+         experiment_name: Name of the experiment in which model is saved
+         run_id: Run Id of the experiment in which model is pre-trained
+         input_location: Input location in a RUN Id
+         output_location: Location for saving the model
+    '''
+    experiment = Experiment(workspace=ws, name=experiment_name)
+    #Download the model on which evaluation need to be done
+    run = Run(experiment, run_id=run_id)
+    #run.get_details()
+
+    if input_location.endswith(".h5"):
+        run.download_file(input_location, output_location)
+    elif input_location.endswith(".ckpt"):
+        run.download_files(prefix=input_location, output_directory=output_location)
+    else:
+        raise NameError(f"{input_location}'s path extension not supported")
+    print("Successfully downloaded model")

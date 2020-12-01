@@ -1,14 +1,19 @@
 import math
 import os
 import pickle
+from pathlib import Path
+import sys
 import zipfile
 
+from azureml.core import Experiment, Run
 import glob2 as glob
 import numpy as np
 import pandas as pd
 from skimage.transform import resize
 
-from qa_config import DATA_CONFIG, EVAL_CONFIG, RESULT_CONFIG
+sys.path.append(str(Path(__file__).parents[0]))
+
+from qa_config import DATA_CONFIG, EVAL_CONFIG, RESULT_CONFIG  # noqa: E402
 
 image_target_height = 240
 image_target_width = 180
@@ -155,7 +160,7 @@ def load_depth(filename):
     return data, width, height, depthScale, maxConfidence
 
 
-def parseDepth(tx, ty, data, depthScale):
+def parse_depth(tx, ty, data, depthScale):
     depth = data[(int(ty) * width + int(tx)) * 3 + 0] << 8
     depth += data[(int(ty) * width + int(tx)) * 3 + 1]
     depth *= depthScale
@@ -167,11 +172,11 @@ def prepare_depthmap(data, width, height, depthScale):
     output = np.zeros((width, height, 1))
     for cx in range(width):
         for cy in range(height):
-            #             output[cx][height - cy - 1][0] = parseConfidence(cx, cy)
+            #             output[cx][height - cy - 1][0] = parse_confidence(cx, cy)
             #             output[cx][height - cy - 1][1] = im_array[cy][cx][1] / 255.0 #test matching on RGB data
-            # output[cx][height - cy - 1][2] = 1.0 - min(parseDepth(cx, cy) / 2.0,
+            # output[cx][height - cy - 1][2] = 1.0 - min(parse_depth(cx, cy) / 2.0,
             # 1.0) #depth data scaled to be visible
-            output[cx][height - cy - 1] = parseDepth(cx, cy, data, depthScale)  # depth data scaled to be visible
+            output[cx][height - cy - 1] = parse_depth(cx, cy, data, depthScale)  # depth data scaled to be visible
     return (np.array(output, dtype='float32').reshape(width, height), height, width)
 
 
@@ -186,14 +191,34 @@ def preprocess(depthmap):
     return depthmap
 
 
-#setter
 def setWidth(value):
     global width
     width = value
 
-#setter
-
-
 def setHeight(value):
     global height
     height = value
+
+
+def download_model(ws, experiment_name, run_id, input_location, output_location):
+    '''
+    Download the pretrained model
+    Input:
+         ws: workspace to access the experiment
+         experiment_name: Name of the experiment in which model is saved
+         run_id: Run Id of the experiment in which model is pre-trained
+         input_location: Input location in a RUN Id
+         output_location: Location for saving the model
+    '''
+    experiment = Experiment(workspace=ws, name=experiment_name)
+    #Download the model on which evaluation need to be done
+    run = Run(experiment, run_id=run_id)
+    #run.get_details()
+
+    if input_location.endswith(".h5"):
+        run.download_file(input_location, output_location)
+    elif input_location.endswith(".ckpt"):
+        run.download_files(prefix=input_location, output_directory=output_location)
+    else:
+        raise NameError(f"{input_location}'s path extension not supported")
+    print("Successfully downloaded model")
