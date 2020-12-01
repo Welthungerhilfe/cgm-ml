@@ -4,6 +4,7 @@ channels:
 dependencies:
   - python=3.6
   - nb_conda_kernels==2.2.1
+  - scikit-image
   - pip:
     - azure-cli==2.0.69
     - azureml-sdk[notebooks,automl]==1.13.0
