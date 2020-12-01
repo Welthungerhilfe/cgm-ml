@@ -23,7 +23,7 @@ if __name__ == "__main__":
     parser.add_argument("--qa_config_module", default="qa_config_height", help="Configuration file")
     args = parser.parse_args()
 
-    qa_config = import_module(args.qa_config_module, 'src')
+    qa_config = import_module(f'src.{args.qa_config_module}')
     MODEL_CONFIG = qa_config.MODEL_CONFIG
     EVAL_CONFIG = qa_config.EVAL_CONFIG
     DATA_CONFIG = qa_config.DATA_CONFIG
