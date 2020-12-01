@@ -1,22 +1,31 @@
 import os
 import time
 import glob
+from pathlib import Path
 import shutil
 import tempfile
+
 from azureml.core import Workspace, Experiment, Run
+from azureml.core.compute import ComputeTarget, AmlCompute
+from azureml.core.compute_target import ComputeTargetException
+from azureml.core.runconfig import MpiConfiguration
+from azureml.train.dnn import TensorFlow
+import pandas as pd
 
 from auth import get_auth
 from src.qa_config import MODEL_CONFIG, EVAL_CONFIG, DATA_CONFIG, RESULT_CONFIG
 from src.utils import download_model
 
-code_dir = "src"
+cwd = Path(__file__).parent
+
+code_dir = cwd / "src"
 paths = glob.glob(os.path.join(code_dir, "*.py"))
-paths
+print("paths:", paths)
 
 #create a temp folder and copy code, model and dataset
 
 print("Creating temp folder...")
-temp_path = "tmp_eval"
+temp_path = cwd / "tmp_eval"
 if os.path.exists(temp_path):
     shutil.rmtree(temp_path)
 os.mkdir(temp_path)
@@ -38,16 +47,10 @@ download_model(ws=ws,
 experiment = Experiment(workspace = ws, name = EVAL_CONFIG.EXPERIMENT_NAME)
 
 #Find/create a compute target.
-
-from azureml.core.compute import ComputeTarget, AmlCompute
-from azureml.core.compute_target import ComputeTargetException
-
-# Compute cluster exists. Just connect to it.
 try:
+    # Compute cluster exists. Just connect to it.
     compute_target = ComputeTarget(workspace = ws, name = EVAL_CONFIG.CLUSTER_NAME)
     print("Found existing compute target.")
-
-# Compute cluster does not exist. Create one.
 except ComputeTargetException:
     print("Creating a new compute target...")
     compute_config = AmlCompute.provisioning_configuration(
@@ -57,22 +60,18 @@ except ComputeTargetException:
     compute_target = ComputeTarget.create(workspace, cluster_name, compute_config)
     compute_target.wait_for_completion(show_output = True, min_node_count = None, timeout_in_minutes = 20)
 
-print(compute_target)
+print("Compute target:", compute_target)
 
 dataset = ws.datasets[DATA_CONFIG.NAME]
-print(dataset)
-
-
-from azureml.core.runconfig import MpiConfiguration
-from azureml.train.dnn import TensorFlow
-print(TensorFlow.get_supported_versions())
+print("dataset:", dataset)
+print("TF supported versions:", TensorFlow.get_supported_versions())
 
 #parameters used in the evaluation
 script_params = {f"--MODEL_{k}": v for k, v in MODEL_CONFIG.items()}
 script_params.update({f"--EVAL_{k}": v for k, v in EVAL_CONFIG.items()})
 script_params.update({f"--DATA_{k}": v for k, v in DATA_CONFIG.items()})
 script_params.update({f"--RESULT_{k}": v for k, v in RESULT_CONFIG.items()})
-print(script_params)
+print("script_params:", script_params)
 
 start = time.time()
 
@@ -105,13 +104,13 @@ estimator.run_config.target = compute_target
 run = experiment.submit(estimator, tags=tags)
 
 # Show run.
-print(run)
+print("Run:", run)
 
 #Check the logs of the current run until is complete
 run.wait_for_completion(show_output=True)
 
 #Print Completed when run is completed
-print(run.get_status())
+print("Run status:", run.get_status())
 
 end = time.time()
 print("Total time for evaluation experiment: {} sec".format(end-start))
@@ -121,12 +120,8 @@ GET_CSV_FROM_EXPERIMENT_PATH = '.'
 run.download_file(RESULT_CONFIG.SAVE_PATH, GET_CSV_FROM_EXPERIMENT_PATH)
 print("Downloaded the result.csv")
 
-#Display the evaluation results
-from IPython.display import display, HTML
-import pandas as pd
-
 result = pd.read_csv('result.csv')
-print(result)
+print("Result:", result)
 
 #Delete temp folder
 shutil.rmtree(temp_path)
