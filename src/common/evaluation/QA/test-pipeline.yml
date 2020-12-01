@@ -35,15 +35,15 @@ jobs:
       python auth.py -sid $(subscriptionid) -rg $(RESOURCE_GROUP) -wn $(WORKSPACE_NAME)
     displayName: 'Saving Workspace Config'
 
-  # - bash: |
-  #     set -euox pipefail
-  #     cd src/common/evaluation/QA/eval-depthmap-height
-  #     source /usr/share/miniconda/etc/profile.d/conda.sh
-  #     conda activate CGM_QA_Pipeline
-  #     papermill eval_notebook.ipynb depthmap-height_output.ipynb --log-output --no-progress-bar -k python3
-  #     jupyter nbconvert --to html depthmap-height_output.ipynb
-  #     ls -l
-  #   displayName: 'Depthmap Height Model Evaluation'
+  - bash: |
+      set -euox pipefail
+      cd src/common/evaluation/QA/eval-depthmap-height
+      source /usr/share/miniconda/etc/profile.d/conda.sh
+      conda activate CGM_QA_Pipeline
+      papermill eval_notebook.ipynb depthmap-height_output.ipynb --log-output --no-progress-bar -k python3
+      jupyter nbconvert --to html depthmap-height_output.ipynb
+      ls -l
+    displayName: 'Depthmap Height Model Evaluation'
 
   - bash: |
       set -euox pipefail
