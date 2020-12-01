@@ -6,7 +6,7 @@ import shutil
 
 import glob2 as glob
 import tensorflow as tf
-from tensorflow.keras import callbacks, layers, models, Model
+from tensorflow.keras import layers, Model
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 

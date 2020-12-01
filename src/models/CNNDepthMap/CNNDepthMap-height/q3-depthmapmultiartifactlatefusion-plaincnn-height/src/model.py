@@ -3,10 +3,11 @@ from pathlib import Path
 
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
-from tensorflow.keras import models, layers
+from tensorflow.keras import models
 
 from config import CONFIG
 from constants import MODEL_H5_FILENAME
+from tmp_model_util.utils import create_base_cnn
 
 
 def get_base_model(workspace: Workspace, data_dir: Path) -> models.Sequential:
