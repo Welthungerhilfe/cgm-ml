@@ -1,7 +1,5 @@
 import os
 import pickle
-import sys
-from pathlib import Path
 
 from azureml.core import Experiment, Run
 import glob2 as glob

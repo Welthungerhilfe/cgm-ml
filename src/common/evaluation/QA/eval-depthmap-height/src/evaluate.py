@@ -73,7 +73,6 @@ if __name__ == "__main__":
         print("Running in offline mode...")
 
         # Access workspace.
-        import ipdb; ipdb.set_trace()
         print("Accessing workspace...")
         workspace = Workspace.from_config()
         experiment = Experiment(workspace, EVAL_CONFIG.EXPERIMENT_NAME)
