@@ -31,6 +31,7 @@ jobs:
     displayName: 'Azure Login'
 
   - bash: |
+      set -euox pipefail
       cd src/common/evaluation/QA
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
@@ -38,6 +39,7 @@ jobs:
     displayName: 'Saving Workspace Config'
 
   - bash: |
+      set -euox pipefail
       cd src/common/evaluation/QA/eval-depthmap-height
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
@@ -48,6 +50,7 @@ jobs:
     displayName: 'Depthmap Height Model Evaluation'
 
   - bash: |
+      set -euox pipefail
       cd src/common/evaluation/QA/eval-standardisation-test
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
