@@ -15,7 +15,7 @@ CONFIG = dotdict(dict(
     SPLIT_SEED=0,
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
-    EPOCHS=500,
+    EPOCHS=1000,
     BATCH_SIZE=256,
     SHUFFLE_BUFFER_SIZE=2560,
     NORMALIZATION_VALUE=7.5,
@@ -23,7 +23,5 @@ CONFIG = dotdict(dict(
     USE_ONE_CYCLE=True,
 
     # Parameters for dataset generation.
-    TARGET_INDEXES=[0, 1],  # 0 is height, 1 is weight.
-    HEIGHT_IMPORTANCE=0.2,
-    WEIGHT_IMPORTANCE=0.8,
+    TARGET_INDEXES=[0],  # 0 is height, 1 is weight.
 ))
