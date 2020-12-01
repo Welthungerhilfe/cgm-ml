@@ -45,9 +45,9 @@ def tf_load_pickle(path, max_value):
     return depthmap, targets
 
 
-def get_height_prediction(MODEL_PATH, dataset_evaluation):
+def get_prediction(MODEL_PATH, dataset_evaluation):
     '''
-    Perform the height prediction on the dataset
+    Perform the prediction on the dataset with the given model
     Input:
         MODEL_PATH : Path of the trained model
         dataset_evaluation : dataset in which Evaluation
@@ -135,7 +135,7 @@ if __name__ == "__main__":
         model_path = f"{MODEL_CONFIG.INPUT_LOCATION}/{MODEL_CONFIG.NAME}"
     else:
         raise NameError(f"{MODEL_CONFIG.NAME}'s path extension not supported")
-    prediction_list_one = get_height_prediction(model_path, dataset_evaluation)
+    prediction_list_one = get_prediction(model_path, dataset_evaluation)
 
     print("Prediction made by model on the depthmaps...")
     print(prediction_list_one)
