@@ -66,6 +66,8 @@ def get_prediction(MODEL_PATH, dataset_evaluation):
 
 
     print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
+    from tensorflow.python.client import device_lib
+    print(device_lib.list_local_devices())
 
     prediction_list = np.squeeze(predictions)
     return prediction_list
