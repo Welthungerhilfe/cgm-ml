@@ -6,6 +6,7 @@ import pickle
 import numpy as np
 import pandas as pd
 import glob2 as glob
+import time
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 
@@ -54,7 +55,15 @@ def get_prediction(MODEL_PATH, dataset_evaluation):
         need to performed
     '''
     model = load_model(MODEL_PATH, compile=False)
-    predictions = model.predict(dataset_evaluation.batch(DATA_CONFIG.BATCH_SIZE))
+
+    aaa = dataset_evaluation.batch(DATA_CONFIG.BATCH_SIZE)
+
+    print("starting predicting")
+    start = time.time()
+    predictions = model.predict(aaa, batch_size=DATA_CONFIG.BATCH_SIZE)  # Takes long
+    end = time.time()
+    print("Total time for prediction experiment: {} sec".format(end - start))
+
     prediction_list = np.squeeze(predictions)
     return prediction_list
 
@@ -118,14 +127,19 @@ if __name__ == "__main__":
 
     print("Using {} artifact files for evaluation.".format(len(paths_evaluation)))
 
-    # Create dataset for training.
     paths = paths_evaluation
     dataset = tf.data.Dataset.from_tensor_slices(paths)
+    print("1.")
     dataset_norm = dataset.map(lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE))
+    print("2.")
     dataset_norm = dataset_norm.cache()
+    print("3.")
     dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
+    print("4.")
     dataset_evaluation = dataset_norm
+    print("5.")
     del dataset_norm
+    print("Created dataset for training.")
 
     # Get the prediction
     if MODEL_CONFIG.NAME.endswith(".h5"):

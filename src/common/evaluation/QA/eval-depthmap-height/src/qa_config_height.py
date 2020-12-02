@@ -26,7 +26,7 @@ EVAL_CONFIG = dotdict(dict(
     CLUSTER_NAME="gpu-cluster",
 
     #Used for Debug the QA pipeline
-    DEBUG_RUN=False,
+    DEBUG_RUN=True,
 
     #Will run eval on specified # of scan instead of full dataset
     DEBUG_NUMBER_OF_SCAN=50,
@@ -43,7 +43,7 @@ DATA_CONFIG = dotdict(dict(
     IMAGE_TARGET_WIDTH=180,
 
     #Batch size for evaluation
-    BATCH_SIZE=256,
+    BATCH_SIZE=512,
     NORMALIZATION_VALUE=7.5,
 
     # Parameters for dataset generation.
