@@ -64,6 +64,9 @@ def get_prediction(MODEL_PATH, dataset_evaluation):
     end = time.time()
     print("Total time for prediction experiment: {} sec".format(end - start))
 
+
+    print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
+
     prediction_list = np.squeeze(predictions)
     return prediction_list
 
