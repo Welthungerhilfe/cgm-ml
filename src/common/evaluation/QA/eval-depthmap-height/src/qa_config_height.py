@@ -37,7 +37,7 @@ EVAL_CONFIG = dotdict(dict(
 #Details of Evaluation Dataset
 DATA_CONFIG = dotdict(dict(
     #Name of evaluation dataset
-    NAME='anon-depthmap-testset',
+    NAME='anon-depthmap-mini',
 
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
