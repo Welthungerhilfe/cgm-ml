@@ -92,7 +92,7 @@ if __name__ == "__main__":
         compute_target=compute_target,
         entry_script="evaluate.py",
         use_gpu=True,
-        framework_version="2.2",
+        framework_version="2.3",
         inputs=[dataset.as_named_input("dataset").as_mount()],
         pip_packages=pip_packages,
         script_params=script_params
