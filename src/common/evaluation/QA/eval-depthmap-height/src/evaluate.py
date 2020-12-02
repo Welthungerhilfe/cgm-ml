@@ -56,18 +56,13 @@ def get_prediction(MODEL_PATH, dataset_evaluation):
     '''
     model = load_model(MODEL_PATH, compile=False)
 
-    aaa = dataset_evaluation.batch(DATA_CONFIG.BATCH_SIZE)
+    dataset = dataset_evaluation.batch(DATA_CONFIG.BATCH_SIZE)
 
     print("starting predicting")
     start = time.time()
-    predictions = model.predict(aaa, batch_size=DATA_CONFIG.BATCH_SIZE)  # Takes long
+    predictions = model.predict(dataset, batch_size=DATA_CONFIG.BATCH_SIZE)
     end = time.time()
     print("Total time for prediction experiment: {} sec".format(end - start))
-
-
-    print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
-    from tensorflow.python.client import device_lib
-    print(device_lib.list_local_devices())
 
     prediction_list = np.squeeze(predictions)
     return prediction_list
@@ -132,17 +127,13 @@ if __name__ == "__main__":
 
     print("Using {} artifact files for evaluation.".format(len(paths_evaluation)))
 
+    print("Creating dataset for training.")
     paths = paths_evaluation
     dataset = tf.data.Dataset.from_tensor_slices(paths)
-    print("1.")
     dataset_norm = dataset.map(lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE))
-    print("2.")
     dataset_norm = dataset_norm.cache()
-    print("3.")
     dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
-    print("4.")
     dataset_evaluation = dataset_norm
-    print("5.")
     del dataset_norm
     print("Created dataset for training.")
 
