@@ -41,19 +41,8 @@ jobs:
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
       python eval_main.py --qa_config_module qa_config_height
-      python eval_main.py --qa_config_module qa_config_weight
       ls -l
     displayName: 'Depthmap Height Model Evaluation'
-
-  - bash: |
-      set -euox pipefail
-      cd src/common/evaluation/QA/eval-standardisation-test
-      source /usr/share/miniconda/etc/profile.d/conda.sh
-      conda activate CGM_QA_Pipeline
-      papermill eval_notebook.ipynb standardisation-test_output.ipynb --log-output --no-progress-bar -k python3
-      jupyter nbconvert --to html standardisation-test_output.ipynb
-      ls -l
-    displayName: 'Standardisation Test Model Evaluation'
 
   - task: CopyFiles@2
     inputs:
