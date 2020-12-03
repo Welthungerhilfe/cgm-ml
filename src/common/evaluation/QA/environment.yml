@@ -4,12 +4,12 @@ channels:
 dependencies:
   - python=3.7
   - nb_conda_kernels==2.2.1
-  - scikit-image
+  - scikit-image==0.17.2
+  - matplotlib==3.3.3
+  - glob2==0.7
+  - papermill==2.2.2
+  - nbcovert==6.0.7
   - pip:
     - azure-cli==2.0.69
     - azureml-sdk[notebooks,automl]==1.18.0
-    - papermill==1.0.1
-    - nbconvert==5.6.0
-    - matplotlib==3.2.1
-    - glob2==0.7
     - tensorflow-addons==0.11.2
