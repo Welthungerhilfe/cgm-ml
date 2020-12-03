@@ -42,9 +42,7 @@ if __name__ == "__main__":
         shutil.copy(p, temp_path)
     print("Done.")
 
-    auth = None if Run.get_context().id.startswith("OfflineRun") else get_auth()
-    print("auth:", auth)
-    ws = Workspace.from_config(auth=auth)
+    ws = Workspace.from_config()
 
     # Copy model to temp folder
     download_model(ws=ws,
