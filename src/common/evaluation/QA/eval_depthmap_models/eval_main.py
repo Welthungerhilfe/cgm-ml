@@ -6,13 +6,12 @@ import glob
 from pathlib import Path
 import shutil
 
-from azureml.core import Workspace, Experiment, Run
+from azureml.core import Workspace, Experiment
 from azureml.core.compute import ComputeTarget, AmlCompute
 from azureml.core.compute_target import ComputeTargetException
 from azureml.train.dnn import TensorFlow
 import pandas as pd
 
-from auth import get_auth
 from src.utils import download_model
 
 CWD = Path(__file__).parent
