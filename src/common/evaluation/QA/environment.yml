@@ -5,10 +5,10 @@ dependencies:
   - python=3.7
   - pip
   - nb_conda_kernels==2.2.1
-  - scikit-image==0.17.2
+  - scikit-image
   - matplotlib==3.3.3
   - glob2==0.7
-  - papermill==2.2.2
+  - papermill==1.2.1
   - pip:
     - azure-cli==2.0.69
     - azureml-sdk[notebooks,automl]==1.18.0
