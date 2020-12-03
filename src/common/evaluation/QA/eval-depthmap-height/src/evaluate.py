@@ -1,5 +1,7 @@
 import argparse
+import datetime
 from importlib import import_module
+from pathlib import Path
 import os
 import random
 import pickle
@@ -68,6 +70,23 @@ def get_prediction(MODEL_PATH, dataset_evaluation):
     return prediction_list
 
 
+def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
+    print("Accessing dataset...")
+    if os.path.exists(dataset_path):
+        return
+    dataset = workspace.datasets[dataset_name]
+    print("Downloading dataset.. Current date and time: ", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    dataset.download(target_path=dataset_path, overwrite=False)
+    print("Finished downloading, Current date and time: ", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
+
+def get_dataset_path(data_dir: Path, dataset_name: str):
+    return str(data_dir / dataset_name)
+
+
+DATA_DIR_ONLINE_RUN = Path("/tmp/data/")
+
+
 if __name__ == "__main__":
 
     # Make experiment reproducible
@@ -100,7 +119,12 @@ if __name__ == "__main__":
         print("Running in online mode...")
         experiment = run.experiment
         workspace = experiment.workspace
-        dataset_path = run.input_datasets["dataset"]
+
+        dataset_name = DATA_CONFIG.NAME
+
+        # Download
+        dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
+        download_dataset(workspace, dataset_name, dataset_path)
 
     # Get the QR-code paths.
     dataset_path = os.path.join(dataset_path, "scans")
