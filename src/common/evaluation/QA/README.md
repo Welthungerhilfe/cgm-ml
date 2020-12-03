@@ -20,7 +20,7 @@ It contains logic to evaluate acceptability of enumerators and our model based o
 
 ## Steps to perform evaluation
 
-Each evaluation contains the [test_config.py](./eval-depthmap-height/src/qa_config.py) in src directory.
+Each evaluation contains the [test_config.py](./eval_depthmap_models/src/qa_config.py) in src directory.
 
 test_config.py mainly contains below parameters:
 
@@ -35,7 +35,7 @@ You can run the evaluation by triggering the pipeline [test-pipeline.yml](./test
 
 Make necessary changes and commit the code to run the evaluation.
 
-For more details one can look the [test_config.py](./eval-depthmap-height/src/qa_config.py)
+For more details one can look the [test_config.py](./eval_depthmap_models/src/qa_config.py)
 
 ## Run without pipeline
 
