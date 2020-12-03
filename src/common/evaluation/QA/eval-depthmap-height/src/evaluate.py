@@ -1,22 +1,21 @@
 import argparse
-import datetime
 from importlib import import_module
-from pathlib import Path
 import os
 import random
 import pickle
-import numpy as np
-import pandas as pd
 import glob2 as glob
 import time
+
+import numpy as np
+import pandas as pd
 import tensorflow as tf
 from tensorflow.keras.models import load_model
-
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 
 import utils
-from constants import REPO_DIR
+from utils import download_dataset, get_dataset_path
+from constants import REPO_DIR, DATA_DIR_ONLINE_RUN
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--qa_config_module", default="qa_config_height", help="Configuration file")
@@ -68,23 +67,6 @@ def get_prediction(MODEL_PATH, dataset_evaluation):
 
     prediction_list = np.squeeze(predictions)
     return prediction_list
-
-
-def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
-    print("Accessing dataset...")
-    if os.path.exists(dataset_path):
-        return
-    dataset = workspace.datasets[dataset_name]
-    print("Downloading dataset.. Current date and time: ", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    dataset.download(target_path=dataset_path, overwrite=False)
-    print("Finished downloading, Current date and time: ", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-
-
-def get_dataset_path(data_dir: Path, dataset_name: str):
-    return str(data_dir / dataset_name)
-
-
-DATA_DIR_ONLINE_RUN = Path("/tmp/data/")
 
 
 if __name__ == "__main__":
