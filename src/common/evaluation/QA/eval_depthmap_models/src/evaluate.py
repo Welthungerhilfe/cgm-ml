@@ -5,14 +5,12 @@ import random
 import pickle
 import glob2 as glob
 import time
-
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
-
 import utils
 from utils import download_dataset, get_dataset_path
 from constants import REPO_DIR, DATA_DIR_ONLINE_RUN
@@ -101,9 +99,8 @@ if __name__ == "__main__":
         print("Running in online mode...")
         experiment = run.experiment
         workspace = experiment.workspace
-
         dataset_name = DATA_CONFIG.NAME
-
+        
         # Download
         dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
         download_dataset(workspace, dataset_name, dataset_path)
@@ -175,7 +172,7 @@ if __name__ == "__main__":
     MAE['error'] = MAE.apply(utils.avgerror, axis=1)
 
     print("Saving the results")
-    utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, RESULT_CONFIG.SAVE_PATH, DATA_CONFIG, RESULT_CONFIG)
+    utils.calculate_and_save_results(MAE,EVAL_CONFIG.NAME,RESULT_CONFIG.SAVE_PATH, DATA_CONFIG,RESULT_CONFIG,MODEL_CONFIG.RUN_ID)
 
     # Done.
     run.complete()

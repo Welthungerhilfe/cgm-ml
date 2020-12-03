@@ -92,7 +92,7 @@ def calculate_performance(code, df_mae, RESULT_CONFIG):
     return df_out
 
 
-def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH, DATA_CONFIG, RESULT_CONFIG):
+def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH, DATA_CONFIG, RESULT_CONFIG,RUN_ID):
     '''
     Calculate accuracies across the scantypes and
     save the final results table to the CSV file
@@ -109,9 +109,9 @@ def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH, DATA_CONFIG, RE
     result.index.name = 'Model_Scantype'
     result = result.round(2)
     print(result)
-
     # Save the model results in csv file
-    result.to_csv(CSV_OUT_PATH, index=True)
+    csv_file = CSV_OUT_PATH+RUN_ID+'.csv'
+    result.to_csv(csv_file, index=True)
 
 
 def download_model(ws, experiment_name, run_id, input_location, output_location):

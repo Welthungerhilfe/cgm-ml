@@ -68,5 +68,5 @@ RESULT_CONFIG = dotdict(dict(
     COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],
 
     #path of csv file in the experiment which final result is stored
-    SAVE_PATH='./outputs/result.csv',
+    SAVE_PATH='./outputs/',
 ))

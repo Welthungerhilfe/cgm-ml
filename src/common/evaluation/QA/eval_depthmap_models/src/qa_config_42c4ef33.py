@@ -38,14 +38,11 @@ EVAL_CONFIG = dotdict(dict(
 DATA_CONFIG = dotdict(dict(
     #Name of evaluation dataset
     NAME='anon-depthmap-testset',
-
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
-
     #Batch size for evaluation
     BATCH_SIZE=512,
     NORMALIZATION_VALUE=7.5,
-
     # Parameters for dataset generation.
     TARGET_INDEXES=[0],  # 0 is height, 1 is weight.
 
@@ -59,7 +56,6 @@ DATA_CONFIG = dotdict(dict(
     }
 ))
 
-
 #Result configuration for result generation after evaluation is done
 RESULT_CONFIG = dotdict(dict(
     # Error margin on various ranges
@@ -68,5 +64,5 @@ RESULT_CONFIG = dotdict(dict(
     COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],
 
     #path of csv file in the experiment which final result is stored
-    SAVE_PATH='./outputs/result.csv',
+    SAVE_PATH='./outputs/',
 ))
