@@ -9,3 +9,5 @@ data:
 paths:
     source_path: '/mnt/bmzdata/cgminbmzprod_v5.0/'
     target_path: 'src/data_utils/create_dataset/realtime_evaluation_updated/'
+debug: 
+    debug : True

@@ -1,5 +1,4 @@
 import numpy as np
-import importlib.util
 import yaml
 import logging
 import pickle
@@ -13,7 +12,6 @@ sys.path.append('../../common/depthmap_toolkit')
 sys.path.append(str(Path(__file__).parents[1]))
 from data_utils import QRCodeCollector  # noqa: E402
 from src.common.depthmap_toolkit import pcd2depth  # noqa: E402
-from src.common.depthmap_toolkit import utils  # noqa: E402
 
 
 # Load the yaml file
@@ -28,7 +26,7 @@ CALIBRATION_FILE = cfg['calibration']['calibration_file']
 SCANGROUP = cfg['data']['scangroup']
 TARGET_FOLDER = cfg['paths']['target_path']
 SOURCE = cfg['paths']['source_path']
-DEBUG = True
+DEBUG = cfg['debug']['debug']
 
 pcd_path = TARGET_FOLDER + 'pointclouds'
 if not os.path.exists(pcd_path):
@@ -64,15 +62,11 @@ get_rgb_qrcodedata = dataset.merge_data_artifacts(full_dataset, get_rgb_artifact
 get_posenet_results = dataset.merge_data_posenet(full_dataset, get_posenet_data)
 
 get_posenet_results.to_csv("RGB_poseresults.csv", index=False)
-# get_posenet_results = pd.read_csv('src/data_utils/create_dataset/RGB_pose1.csv')
 
-#Read the Calibration file and set the required shape fro height and width
-Width = utils.setWidth(int(240 * 0.75))
-Height = utils.setHeight(int(180 * 0.75))
 
 def process_depthmap_pcd(data):
     """
-    Functions to process the pointclouds to depthmaps, store the pointclouds and depthmaps in 
+    Functions to process the pointclouds to depthmaps, store the pointclouds and depthmaps in
     corresponding folder structre.
 
     Args:
@@ -106,7 +100,7 @@ def process_depthmap_pcd(data):
 
 def process_RGB(data):
     """
-    Function to process the RGB images, store them in 
+    Function to process the RGB images, store them in
     corresponding folder structre
 
     Args:
@@ -120,6 +114,7 @@ def process_RGB(data):
     rgb_complete_path = os.path.join(rgb_target_path, scantype)
     Path(rgb_complete_path).mkdir(parents=True, exist_ok=True)
     shutil.copy(source_path, rgb_complete_path)
+
 
 if DEBUG:
     for index, row in full_dataset.iterrows():
@@ -150,4 +145,4 @@ for index, row in get_posenet_results.iterrows():
 proc.close()
 proc.join()
 
-dataset.update_database(full_dataset, scangroup)
+dataset.update_database(full_dataset, SCANGROUP)

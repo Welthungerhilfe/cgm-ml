@@ -2,6 +2,7 @@ import dbutils
 import pandas as pd
 import logging
 
+
 def extract_qrcode(row):
     """
     get the qrcode from the artifacts
@@ -19,6 +20,7 @@ class QRCodeCollector:
     """
     class to gather a qrcodes from backend to prepare dataset for model training and evaluation.
     """
+
     def __init__(self, db_connector):
         """
         Args:
@@ -69,7 +71,7 @@ class QRCodeCollector:
 
     def get_usable_data(self, df, amount, scangroup='train'):
         """
-        Function that return dataframe having all the data and labels that can be used for dataset preparation. 
+        Function that return dataframe having all the data and labels that can be used for dataset preparation.
         Args:
             df (datframe): dataframe having all the data from database which has to be filtered.
             amount (int): no. of scans required to prepare the data.
@@ -94,7 +96,7 @@ class QRCodeCollector:
             qrcodes (dataframe): dataframe containing unique qrcodes
             dataset (dataframe): dataframe containing all the data from the database
         Return:
-            dataframe with qrcodes 
+            dataframe with qrcodes
         """
         qrcodes = qrcodes['qrcode']
         full_dataset = pd.merge(qrcodes, dataset, on='qrcode', how='left')
@@ -129,7 +131,7 @@ class QRCodeCollector:
             data (dataframe):  dataframe with  qrcodes and all the other labels.
             artifacts (dataframe): dataframe with artifacts information like artifacts id.
         Return:
-            merge the prepared dataframe with collected RGb dataframe to obtained the required ids 
+            merge the prepared dataframe with collected RGb dataframe to obtained the required ids
         """
         rgb_data = pd.merge(data[['qrcode']], artifacts, on='qrcode', how='left')
         results = rgb_data.drop_duplicates(subset='storage_path', keep='first', inplace=False)
@@ -165,11 +167,11 @@ class QRCodeCollector:
             select_statement = "SELECT id FROM measure WHERE type like 'v%' AND id like '%version_5.0%' AND qr_code = '{}';".format(
                 qrcode)
             artifact_id = self.ml_connector.execute(select_statement, fetch_all=True)
-            if len(artifact_id ) == 1:
+            if len(artifact_id) == 1:
                 final_training_qrcodes.append(qrcode)
             else:
                 ignored_training_qrcodes.append(qrcode)
-        for artifact_id  in final_training_qrcodes:
+        for artifact_id in final_training_qrcodes:
             update_statement = "UPDATE measure SET scan_group ='{}' WHERE qr_code = '{}';".format(scan_group, id)
             try:
                 self.ml_connector.execute(update_statement)
