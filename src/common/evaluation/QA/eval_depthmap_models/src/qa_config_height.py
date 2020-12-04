@@ -43,7 +43,7 @@ DATA_CONFIG = dotdict(dict(
     IMAGE_TARGET_WIDTH=180,
 
     #Batch size for evaluation
-    BATCH_SIZE=256,
+    BATCH_SIZE=512,
     NORMALIZATION_VALUE=7.5,
 
     # Parameters for dataset generation.

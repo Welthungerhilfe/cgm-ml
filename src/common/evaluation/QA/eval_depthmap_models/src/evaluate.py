@@ -3,17 +3,19 @@ from importlib import import_module
 import os
 import random
 import pickle
+import glob2 as glob
+import time
+
 import numpy as np
 import pandas as pd
-import glob2 as glob
 import tensorflow as tf
 from tensorflow.keras.models import load_model
-
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 
 import utils
-from constants import REPO_DIR
+from utils import download_dataset, get_dataset_path
+from constants import REPO_DIR, DATA_DIR_ONLINE_RUN
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--qa_config_module", default="qa_config_height", help="Configuration file")
@@ -54,7 +56,15 @@ def get_prediction(MODEL_PATH, dataset_evaluation):
         need to performed
     '''
     model = load_model(MODEL_PATH, compile=False)
-    predictions = model.predict(dataset_evaluation.batch(DATA_CONFIG.BATCH_SIZE))
+
+    dataset = dataset_evaluation.batch(DATA_CONFIG.BATCH_SIZE)
+
+    print("starting predicting")
+    start = time.time()
+    predictions = model.predict(dataset, batch_size=DATA_CONFIG.BATCH_SIZE)
+    end = time.time()
+    print("Total time for prediction experiment: {} sec".format(end - start))
+
     prediction_list = np.squeeze(predictions)
     return prediction_list
 
@@ -91,7 +101,12 @@ if __name__ == "__main__":
         print("Running in online mode...")
         experiment = run.experiment
         workspace = experiment.workspace
-        dataset_path = run.input_datasets["dataset"]
+
+        dataset_name = DATA_CONFIG.NAME
+
+        # Download
+        dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
+        download_dataset(workspace, dataset_name, dataset_path)
 
     # Get the QR-code paths.
     dataset_path = os.path.join(dataset_path, "scans")
@@ -118,7 +133,7 @@ if __name__ == "__main__":
 
     print("Using {} artifact files for evaluation.".format(len(paths_evaluation)))
 
-    # Create dataset for training.
+    print("Creating dataset for training.")
     paths = paths_evaluation
     dataset = tf.data.Dataset.from_tensor_slices(paths)
     dataset_norm = dataset.map(lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE))
@@ -126,6 +141,7 @@ if __name__ == "__main__":
     dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
     dataset_evaluation = dataset_norm
     del dataset_norm
+    print("Created dataset for training.")
 
     # Get the prediction
     if MODEL_CONFIG.NAME.endswith(".h5"):

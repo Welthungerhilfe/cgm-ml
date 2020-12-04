@@ -10,19 +10,17 @@ Inside QA, we have implemented logic to evaluate various different models and to
 - the jupyter notebook spins up a node on an AzureML cluster evaluate
 - once the job on the cluster is done, this gets the resulting model evaluation results (CSV) and displays it in a notebook cell
 
-## Evaluation on Depthmap Height Model
+## Evaluation on Depthmap Model
 
-It contains logic to perform evaluation of models trained on single artifacts architecture.
+It contains logic to perform model evaluations trained on single artifacts architecture.
 
 ## Evaluate the measure of Standardisation Test
 
 It contains logic to evaluate acceptability of enumerators and our model based on measurement performed while standardisation Test.
 
-## Steps to perform evaluation
+## Steps to add a model evaluation
 
-Each evaluation contains the [test_config.py](./eval-depthmap-height/src/qa_config.py) in src directory.
-
-test_config.py mainly contains below parameters:
+Each model evaluation contains a configuration (e.g. [qa_config_height.py](./eval_depthmap_models/src/qa_config_height.py)). It contains the following parameters:
 
     1. `MODEL_CONFIG` : Model specific parameters
         e.g. specify model to use for evaluation
@@ -31,16 +29,20 @@ test_config.py mainly contains below parameters:
     3. `DATA_CONFIG` : Dataset specific parameters
         e.g. dataset name registered in datastore for evaluation
 
+If you want to add a model evaluation, do the following:
+- provide a new config file `my_new_config.py`
+- add a new step in [test-pipeline.yml](./test-pipeline.yml): Look for `python eval_main.py --qa_config_module my_new_config`
+
+## Run a model evaluation
+
 You can run the evaluation by triggering the pipeline [test-pipeline.yml](./test-pipeline.yml)
 
 Make necessary changes and commit the code to run the evaluation.
 
-For more details one can look the [test_config.py](./eval-depthmap-height/src/qa_config.py)
-
 ## Run without pipeline
 
 For debugging purposes, you might want to run this without the pipeline.
-To do so, execute the cells in `eval_notebook.ipynb`.
-This will still use the GPU cluster to do the heavy processing.
+To do so, execute `eval_main.py`.
+This will still use a node in the GPU cluster to do the heavy processing.
 
 Also it is useful to set `DATA_CONFIG.NAME='anon-depthmap-mini'` for debugging purposes.

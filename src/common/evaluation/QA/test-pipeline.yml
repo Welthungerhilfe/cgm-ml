@@ -39,13 +39,21 @@ jobs:
 
   - bash: |
       set -euox pipefail
-      cd src/common/evaluation/QA/eval-depthmap-height
+      cd src/common/evaluation/QA/eval_depthmap_models
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
       python eval_main.py --qa_config_module qa_config_height
-      python eval_main.py --qa_config_module qa_config_weight
       ls -l
     displayName: 'Depthmap Height Model Evaluation'
+
+  - bash: |
+      set -euox pipefail
+      cd src/common/evaluation/QA/eval_depthmap_models
+      source /usr/share/miniconda/etc/profile.d/conda.sh
+      conda activate CGM_QA_Pipeline
+      python eval_main.py --qa_config_module qa_config_weight
+      ls -l
+    displayName: 'Depthmap Weight Model Evaluation'
 
   - bash: |
       set -euox pipefail
@@ -61,8 +69,8 @@ jobs:
     inputs:
       SourceFolder: '$(Build.SourcesDirectory)'
       Contents: |
-        src/common/evaluation/QA/eval-depthmap-height/depthmap-height_output.html
-        src/common/evaluation/QA/eval-depthmap-height/*.csv
+        src/common/evaluation/QA/eval_depthmap_models/depthmap-*_output.html
+        src/common/evaluation/QA/eval_depthmap_models/*.csv
         src/common/evaluation/QA/eval-standardisation-test/standardisation-test_output.html
         src/common/evaluation/QA/eval-standardisation-test/*.csv
       TargetFolder: '$(Build.ArtifactStagingDirectory)'

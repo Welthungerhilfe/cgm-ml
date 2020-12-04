@@ -6,13 +6,12 @@ import glob
 from pathlib import Path
 import shutil
 
-from azureml.core import Workspace, Experiment, Run
+from azureml.core import Workspace, Experiment
 from azureml.core.compute import ComputeTarget, AmlCompute
 from azureml.core.compute_target import ComputeTargetException
 from azureml.train.dnn import TensorFlow
 import pandas as pd
 
-from auth import get_auth
 from src.utils import download_model
 
 CWD = Path(__file__).parent
@@ -42,9 +41,7 @@ if __name__ == "__main__":
         shutil.copy(p, temp_path)
     print("Done.")
 
-    auth = None if Run.get_context().id.startswith("OfflineRun") else get_auth()
-    print("auth:", auth)
-    ws = Workspace.from_config(auth=auth)
+    ws = Workspace.from_config()
 
     # Copy model to temp folder
     download_model(ws=ws,
