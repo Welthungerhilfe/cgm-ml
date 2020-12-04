@@ -1,11 +1,6 @@
-class dotdict(dict):
-    """dot.notation access to dictionary attributes"""
-    __getattr__ = dict.get
-    __setattr__ = dict.__setitem__
-    __delattr__ = dict.__delitem__
+from bunch import Bunch
 
-
-CONFIG = dotdict(dict(
+CONFIG = Bunch(dict(
     SPLIT_SEED=0,
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
