@@ -6,12 +6,6 @@ import os
 OUTPUT_FILE_NAME ='evaluated_models_result.csv'
 CSV_PATH  = '*.csv'
 
-print("Files present")
-print(glob(CSV_PATH))
-
-cwd = os.getcwd()
-print("cwd:",cwd)
-
 def combine_model_results(csv_file_list):
     """
     Function to combine the models resultant csv files into a single file
