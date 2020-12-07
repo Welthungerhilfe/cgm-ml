@@ -19,14 +19,14 @@ MODEL_CONFIG = dotdict(dict(
 
 EVAL_CONFIG = dotdict(dict(
     #Name of evaluation
-    NAME='q3-depthmap-plaincnn-height-100-95k-run_17',
+    NAME='q3-depthmap-plaincnn-height-95k_03',
 
     #Experiment in Azure ML which will be used for evaluation
     EXPERIMENT_NAME="QA-pipeline",
     CLUSTER_NAME="gpu-cluster",
 
     #Used for Debug the QA pipeline
-    DEBUG_RUN=False,
+    DEBUG_RUN=True,
 
     #Will run eval on specified # of scan instead of full dataset
     DEBUG_NUMBER_OF_SCAN=20,

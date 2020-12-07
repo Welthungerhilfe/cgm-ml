@@ -99,6 +99,7 @@ def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH, DATA_CONFIG, RE
     '''
     dfs = []
     for code in DATA_CONFIG.CODE_TO_SCANTYPE.keys():
+        print("complete_name:",complete_name)
         df = calculate_performance(code, MAE, RESULT_CONFIG)
         full_model_name = complete_name + DATA_CONFIG.CODE_TO_SCANTYPE[code]
         df.rename(index={0: full_model_name}, inplace=True)
