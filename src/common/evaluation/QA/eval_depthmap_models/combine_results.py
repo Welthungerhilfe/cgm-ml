@@ -4,7 +4,7 @@ import logging
 import os
 
 OUTPUT_FILE_NAME ='evaluated_models_result.csv'
-CSV_PATH  = 'src/common/evaluation/QA/eval-depthmap-height/outputs/*.csv'
+CSV_PATH  = '*.csv'
 
 print("Files present")
 print(glob(CSV_PATH))
