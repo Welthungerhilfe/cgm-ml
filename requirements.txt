@@ -18,5 +18,6 @@ pytest-cov==2.10.1
 pytest-azurepipelines==0.8.0
 xmltodict==0.12.0
 pyntcloud==0.1.3
+setuptools==50.3.2
 torch==1.7.0
 torchvision==0.8.1
