@@ -32,9 +32,11 @@ steps:
     path: $(PIP_CACHE_DIR)
   displayName: Cache pip packages
 - script: |
-    apt-get update
-    apt install -y build-essential cmake
+    set -euox pipefail
+    sudo apt-get update
+    sudo apt install -y build-essential cmake
 - script: |
+    set -euox pipefail
     python -m pip install --upgrade pip
     pip install -r requirements.txt
   displayName: 'Install dependencies'
