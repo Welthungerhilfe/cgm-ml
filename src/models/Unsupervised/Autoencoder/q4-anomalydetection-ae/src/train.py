@@ -91,7 +91,7 @@ assert len(qrcode_paths) != 0
 print("Slicing scans...")
 qrcode_paths = qrcode_paths[:CONFIG.DATASET_MAX_SCANS]
 print("qrcode_paths: ", len(qrcode_paths))
-assert len(qrcode_paths) == CONFIG.DATASET_MAX_SCANS
+#assert len(qrcode_paths) == CONFIG.DATASET_MAX_SCANS
 
 # Shuffle and split into train and validate.
 random.shuffle(qrcode_paths)

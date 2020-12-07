@@ -7,6 +7,10 @@ import time
 from PIL import Image
 import os
 import itertools
+from sklearn.manifold import TSNE
+from matplotlib.pyplot import cm
+from matplotlib.colors import rgb2hex
+from matplotlib.lines import Line2D
 
 
 class Autoencoder(tf.keras.Model):
@@ -149,6 +153,34 @@ class Autoencoder(tf.keras.Model):
 
             return y
 
+    def embed(self, x):
+        """ Embeds samples into latent space.
+
+        Args:
+            x (ndarray or tensor): A sample.
+
+        Returns:
+            ndarray or tensor: The result.
+        """
+
+        # Autoencoder.
+        if self.family == "ae":
+            # Encode. Compute z.
+            z = self.encode(x)
+
+            return z
+
+        # Variational autoencoder.
+        elif self.family == "vae":
+
+            # Encode. Compute mean and variance.
+            mean, logvar = self.encode(x)
+
+            # Get latent vector.
+            z = self.reparameterize(mean, logvar)
+
+            return z
+
     @tf.function
     def sample(self, eps=None):
         """Decodes some samples from latent-space.
@@ -274,9 +306,9 @@ class Autoencoder(tf.keras.Model):
 
         # Render reconstructions and individual losses before training.
         if render:
-            print("Rendering reconstructions...")
             render_reconstructions(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename="reconstruction-0000.png")
-            render_individual_losses(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename="losses-0000.png")
+            #render_individual_losses(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename="losses-0000.png")
+            render_embeddings(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename="embeddings-0000.png")
 
         # Train.
         print("Train...")
@@ -334,12 +366,17 @@ class Autoencoder(tf.keras.Model):
             # Render reconstructions after every xth epoch.
             if render and (epoch % render_every) == 0:
                 render_reconstructions(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename=f"reconstruction-{epoch:04d}.png")
-                render_individual_losses(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename=f"losses-{epoch:04d}.png")
+                #render_individual_losses(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename=f"losses-{epoch:04d}.png")
+                render_embeddings(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename="embeddings-{epoch:04d}.png")
 
         # Merge reconstructions into an animation.
         if render:
+            render_reconstructions(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename=f"reconstruction-{epoch:04d}.png")
+            #render_individual_losses(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename=f"losses-{epoch:04d}.png")
+            render_embeddings(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename="embeddings-{epoch:04d}.png")
             create_animation("reconstruction-*", outputs_path=outputs_path, filename="reconstruction-animation.gif", delete_originals=True)
-            create_animation("losses-*", outputs_path=outputs_path, filename="losses-animation.gif", delete_originals=True)
+            #create_animation("losses-*", outputs_path=outputs_path, filename="losses-animation.gif", delete_originals=True)
+            create_animation("embeddings-*", outputs_path=outputs_path, filename="embeddings-animation.gif", delete_originals=True)
 
         # Render the history.
         render_history(history, self.loss_names, outputs_path=outputs_path, filename="history.png")
@@ -496,6 +533,9 @@ def render_reconstructions(model, samples_train, samples_validate, samples_anoma
         steps (int, optional): How many samples to reconstruct. Defaults to 10.
     """
 
+    print("Rendering reconstructions...")
+
+
     # Reconstruct all samples.
     reconstructions_train = model.predict(samples_train[:steps], steps=steps)
     reconstructions_validate = model.predict(samples_validate[:steps], steps=steps)
@@ -537,6 +577,9 @@ def render_individual_losses(model, samples_train, samples_validate, samples_ano
         samples_anomaly (ndarray): Some anomaly samples.
         filename (str): Filename of the image.
     """
+
+    print("Rendering individual losses...")
+
     losses_train = compute_individual_losses(model, samples_train)
     losses_validate = compute_individual_losses(model, samples_validate)
     losses_anomaly = compute_individual_losses(model, samples_anomaly)
@@ -581,6 +624,8 @@ def render_history(history, loss_names, outputs_path, filename):
         filename (str): Filename of the image.
     """
 
+    print("Rendering history...")
+
     fig, axes = plt.subplots(len(loss_names), figsize=(8, 12))
     if not isinstance(axes, np.ndarray):
         axes = [axes]
@@ -589,5 +634,67 @@ def render_history(history, loss_names, outputs_path, filename):
             if key.startswith(loss_name):
                 axis.plot(value, label=key)
         axis.legend()
+    plt.savefig(os.path.join(outputs_path, filename))
+    plt.close()
+
+
+def render_embeddings(model, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path, filename):
+    """Renders the embeddings.
+
+    Args:
+        model (model): A model to embed the samples.
+        dataset_train_samples (list or ndarray): Training samples.
+        dataset_validate_samples (list or ndarray): Validation samples.
+        dataset_anomaly_samples (list or ndarray): Anomaly samples.
+        outputs_path (string): Path where to store the rendering.
+        filename (string): Filename of the rendering.
+    """
+
+    print("Rendering embeddings...")
+
+    # Embed the samples.
+    embeddings_train_samples = model.embed(dataset_train_samples)
+    embeddings_validate_samples = model.embed(dataset_validate_samples)
+    embeddings_anomaly_samples = model.embed(dataset_anomaly_samples)
+
+    # Apply tsne.
+    all_latent_points = []
+    all_latent_points += list(embeddings_train_samples)
+    all_latent_points += list(embeddings_validate_samples)
+    all_latent_points += list(embeddings_anomaly_samples)
+    tsne = TSNE(n_components=2, verbose=1, perplexity=40, n_iter=1000)
+    tsne_results = tsne.fit_transform(all_latent_points)
+
+    # Class names.
+    names = ["train", "validate", "anomaly"]
+
+    # Get the base colors.
+    cmap = cm.get_cmap("inferno")
+    color_lookup = cmap(np.linspace(0, 1, 1 + len(set(names))))
+    color_lookup = [rgb2hex(rgb) for rgb in color_lookup]
+
+    # Get the colors for the samples.
+    colors = []
+    colors += [color_lookup[0] for _ in embeddings_train_samples]
+    colors += [color_lookup[1] for _ in embeddings_validate_samples]
+    colors += [color_lookup[2] for _ in embeddings_anomaly_samples]
+
+    # Get the sizes.
+    sizes = []
+    sizes += [10 for _ in embeddings_train_samples]
+    sizes += [10 for _ in embeddings_validate_samples]
+    sizes += [10 for _ in embeddings_anomaly_samples]
+
+    # Render the TSNE results.
+    plt.figure(figsize=(12, 12))
+    plt.scatter(tsne_results[:, 0], tsne_results[:, 1], s=sizes, c=colors)
+
+    # Rendeer the legend-
+    legend_elements = []
+    for name, color in zip(set(names), color_lookup):
+        legend_elements.append(Line2D([0], [0], marker='o', color=color, label=name, markerfacecolor=color, markersize=15))
+    plt.legend(handles=legend_elements, loc='center left', bbox_to_anchor=(1, 0.5))
+
+    # Save the figure.
     plt.savefig(os.path.join(outputs_path, filename))
     plt.close()
