@@ -3,7 +3,10 @@ from glob2 import glob
 import logging
 
 OUTPUT_FILE_NAME ='evaluated_models_result.csv'
-CSV_PATH  = '/common/evaluation/QA/eval_depthmap_models/*.csv'
+CSV_PATH  = 'src/common/evaluation/QA/eval-depthmap-height/outputs/*.csv'
+
+print("Files present")
+print(glob(CSV_PATH))
 
 def combine_model_results(csv_file_list):
     """
