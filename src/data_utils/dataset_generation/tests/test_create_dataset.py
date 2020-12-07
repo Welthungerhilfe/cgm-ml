@@ -1,5 +1,3 @@
-# import unittest
-# import pytest
 import numpy as np
 import yaml
 import pandas as pd
@@ -8,8 +6,8 @@ import sys
 sys.path.append(str(Path(__file__).parents[1]))
 from data_utils import QRCodeCollector  # noqa: E402
 
-PARAMETERS = 'src/data_utils/create_dataset/parameters.yml'
-DB_CONNECTION = 'src/data_utils/create_dataset/dbconnection.json'
+PARAMETERS = 'src/data_utils/dataset_generation/parameters.yml'
+DB_CONNECTION = 'src/data_utils/dataset_generation/dbconnection.json'
 
 with open(PARAMETERS, "r") as ymlfile:
     cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
