@@ -10,7 +10,7 @@ MODEL_CONFIG = dotdict(dict(
     EXPERIMENT_NAME='q3-depthmap-plaincnn-height-95k',
 
     # RUN_ID='q3-depthmap-plaincnn-height-95k_1597988908_42c4ef33',  # Run 3
-    RUN_ID = 'q3-depthmap-plaincnn-height-95k_1600451633_cb44f6db',     #Run 17
+    RUN_ID='q3-depthmap-plaincnn-height-95k_1600451633_cb44f6db',  # Run 17
 
     INPUT_LOCATION='outputs',
     NAME='best_model.h5',

@@ -14,9 +14,11 @@ def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str)
     if os.path.exists(dataset_path):
         return
     dataset = workspace.datasets[dataset_name]
-    print(f"Downloading dataset {dataset_name}.. Current date and time: ", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    print(f"Downloading dataset {dataset_name}.. Current date and time: ",
+          datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     dataset.download(target_path=dataset_path, overwrite=False)
-    print(f"Finished downloading {dataset_name}, Current date and time: ", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    print(f"Finished downloading {dataset_name}, Current date and time: ",
+          datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
 
 def get_dataset_path(data_dir: Path, dataset_name: str):
@@ -92,14 +94,14 @@ def calculate_performance(code, df_mae, RESULT_CONFIG):
     return df_out
 
 
-def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH, DATA_CONFIG, RESULT_CONFIG,RUN_ID):
+def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH, DATA_CONFIG, RESULT_CONFIG, RUN_ID):
     '''
     Calculate accuracies across the scantypes and
     save the final results table to the CSV file
     '''
     dfs = []
     for code in DATA_CONFIG.CODE_TO_SCANTYPE.keys():
-        print("complete_name:",complete_name)
+        print("complete_name:", complete_name)
         df = calculate_performance(code, MAE, RESULT_CONFIG)
         full_model_name = complete_name + DATA_CONFIG.CODE_TO_SCANTYPE[code]
         df.rename(index={0: full_model_name}, inplace=True)
@@ -111,7 +113,7 @@ def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH, DATA_CONFIG, RE
     result = result.round(2)
     print(result)
     # Save the model results in csv file
-    csv_file = CSV_OUT_PATH+RUN_ID+'.csv'
+    csv_file = CSV_OUT_PATH + RUN_ID + '.csv'
     result.to_csv(csv_file, index=True)
 
 
