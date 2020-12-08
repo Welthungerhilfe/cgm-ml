@@ -1,7 +1,6 @@
 import pandas as pd
 from glob2 import glob
 import logging
-import os
 
 OUTPUT_FILE_NAME = 'evaluated_models_result.csv'
 CSV_PATH = '*.csv'
