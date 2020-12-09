@@ -1,8 +1,8 @@
 import os
 import shutil
 import sys
-from os import walk
 from shutil import copyfile
+
 import pcd2depth
 
 if __name__ == "__main__":
@@ -12,7 +12,7 @@ if __name__ == "__main__":
         sys.exit(1)
     pcd_dir = sys.argv[1]
     pcd = []
-    for (dirpath, dirnames, filenames) in walk(pcd_dir):
+    for (dirpath, dirnames, filenames) in os.walk(pcd_dir):
         pcd = filenames
     pcd.sort()
     try:

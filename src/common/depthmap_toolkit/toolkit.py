@@ -14,7 +14,7 @@ import pcd2depth
 DEPTHMAP_DIR = None
 
 
-def convertAllPCDs(event):
+def convert_all_pcds(event):
     input_dir = 'export'
     pcd = []
     for _, _, filenames in walk(input_dir):
@@ -33,11 +33,11 @@ def convertAllPCDs(event):
     print('Data exported into folder output')
 
 
-def exportOBJ(event):
+def export_obj(event):
     depthmap.export('obj', 'output' + str(index) + '.obj')
 
 
-def exportPCD(event):
+def export_pcd(event):
     depthmap.export('pcd', 'output' + str(index) + '.pcd')
 
 
@@ -65,19 +65,19 @@ def show(depthmap_dir):
     else:
         depthmap.process(plt, depthmap_dir, depth[index], 0)
 
-    depthmap.showResult()
+    depthmap.show_result()
     ax = plt.gca()
     ax.text(0.5, 1.075, depth[index], horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
     bprev = Button(plt.axes([0.0, 0.0, 0.1, 0.075]), '<<', color='gray')
     bprev.on_clicked(prev)
     bnext = Button(plt.axes([0.9, 0.0, 0.1, 0.075]), '>>', color='gray')
     bnext.on_clicked(next)
-    bexportOBJ = Button(plt.axes([0.2, 0.0, 0.2, 0.05]), 'Export OBJ', color='gray')
-    bexportOBJ.on_clicked(exportOBJ)
-    bexportPCD = Button(plt.axes([0.4, 0.0, 0.2, 0.05]), 'Export PCD', color='gray')
-    bexportPCD.on_clicked(exportPCD)
+    bexport_obj = Button(plt.axes([0.2, 0.0, 0.2, 0.05]), 'Export OBJ', color='gray')
+    bexport_obj.on_clicked(export_obj)
+    bexport_pcd = Button(plt.axes([0.4, 0.0, 0.2, 0.05]), 'Export PCD', color='gray')
+    bexport_pcd.on_clicked(export_pcd)
     bconvertPCDs = Button(plt.axes([0.6, 0.0, 0.2, 0.05]), 'Convert all PCDs', color='gray')
-    bconvertPCDs.on_clicked(convertAllPCDs)
+    bconvertPCDs.on_clicked(convert_all_pcds)
     plt.show()
 
 

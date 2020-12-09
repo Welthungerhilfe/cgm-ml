@@ -24,5 +24,6 @@ exclude =
     src/models/CNNDepthMap/CNNDepthMap-height/q2milestone-cnndepthmap-height,
     src/models/CNNDepthMap/CNNDepthMap-height/s5-cnndepthmap-height,
     src/models/CNNDepthMap/CNNDepthMap-height/s4-cnndepthmap-height,
-    src/models/CNNDepthMap/CNNDepthMap-height/q2s1-cnndepthmap-height
-    */tmp_model_util
+    src/models/CNNDepthMap/CNNDepthMap-height/q2s1-cnndepthmap-height,
+    */tmp_model_util,
+    */tmp_eval

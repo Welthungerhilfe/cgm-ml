@@ -1,9 +1,11 @@
-import glob2 as glob
-from functools import partial
-from itertools import groupby, islice
 import os
 import re
+from functools import partial
+from itertools import groupby, islice
 from typing import Iterator, List
+
+import glob2 as glob
+import numpy as np
 
 from .model_utils_constants import SAMPLING_STRATEGY_SYSTEMATIC, SAMPLING_STRATEGY_WINDOW
 
@@ -90,12 +92,12 @@ def _get_epoch(fname: str) -> str:
     return match_result.group("unixepoch")
 
 
-def preprocess_depthmap(depthmap):
+def preprocess_depthmap(depthmap: np.array) -> np.array:
     # TODO here be more code.
     return depthmap.astype("float32")
 
 
-def preprocess_targets(targets, targets_indices):
+def preprocess_targets(targets: np.array, targets_indices: list) -> np.array:
     if targets_indices is not None:
         targets = targets[targets_indices]
     return targets.astype("float32")

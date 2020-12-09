@@ -1,11 +1,26 @@
+import datetime
 import os
+from pathlib import Path
 import pickle
 
+from azureml.core import Experiment, Run, Workspace
 import glob2 as glob
 import numpy as np
 import pandas as pd
 
-from qa_config import DATA_CONFIG, RESULT_CONFIG
+
+def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
+    print("Accessing dataset...")
+    if os.path.exists(dataset_path):
+        return
+    dataset = workspace.datasets[dataset_name]
+    print(f"Downloading dataset {dataset_name}.. Current date and time: ", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    dataset.download(target_path=dataset_path, overwrite=False)
+    print(f"Finished downloading {dataset_name}, Current date and time: ", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
+
+def get_dataset_path(data_dir: Path, dataset_name: str):
+    return str(data_dir / dataset_name)
 
 
 def preprocess_depthmap(depthmap):
@@ -29,7 +44,7 @@ def get_depthmap_files(paths):
     return pickle_paths
 
 
-def get_column_list(depthmap_path_list, prediction):
+def get_column_list(depthmap_path_list, prediction, DATA_CONFIG):
     '''
     Prepare the list of all artifact with its corresponding scantype,
     qrcode, target and prediction
@@ -56,7 +71,7 @@ def avgerror(row):
     return difference
 
 
-def calculate_performance(code, df_mae):
+def calculate_performance(code, df_mae, RESULT_CONFIG):
     '''
     For each scantype, calculate the performance of the model
     across all error margin
@@ -77,14 +92,14 @@ def calculate_performance(code, df_mae):
     return df_out
 
 
-def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH):
+def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH, DATA_CONFIG, RESULT_CONFIG):
     '''
     Calculate accuracies across the scantypes and
     save the final results table to the CSV file
     '''
     dfs = []
     for code in DATA_CONFIG.CODE_TO_SCANTYPE.keys():
-        df = calculate_performance(code, MAE)
+        df = calculate_performance(code, MAE, RESULT_CONFIG)
         full_model_name = complete_name + DATA_CONFIG.CODE_TO_SCANTYPE[code]
         df.rename(index={0: full_model_name}, inplace=True)
         #display(HTML(df.to_html()))
@@ -97,3 +112,27 @@ def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH):
 
     # Save the model results in csv file
     result.to_csv(CSV_OUT_PATH, index=True)
+
+
+def download_model(ws, experiment_name, run_id, input_location, output_location):
+    '''
+    Download the pretrained model
+    Input:
+         ws: workspace to access the experiment
+         experiment_name: Name of the experiment in which model is saved
+         run_id: Run Id of the experiment in which model is pre-trained
+         input_location: Input location in a RUN Id
+         output_location: Location for saving the model
+    '''
+    experiment = Experiment(workspace=ws, name=experiment_name)
+    #Download the model on which evaluation need to be done
+    run = Run(experiment, run_id=run_id)
+    #run.get_details()
+
+    if input_location.endswith(".h5"):
+        run.download_file(input_location, output_location)
+    elif input_location.endswith(".ckpt"):
+        run.download_files(prefix=input_location, output_directory=output_location)
+    else:
+        raise NameError(f"{input_location}'s path extension not supported")
+    print("Successfully downloaded model")

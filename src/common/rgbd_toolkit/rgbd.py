@@ -122,6 +122,14 @@ def process_pcd(paths, process_index=0):
 
 
 def get_files(norm_rgb_time, rgb_path, norm_pcd_time, pcd_path):
+    rgb_dict = {}
+
+    for time, path in zip(norm_rgb_time, rgb_path):
+        rgb_dict[time] = path
+    sorted_rgb_dict = dict(sorted(rgb_dict.items()))
+    norm_rgb_time = list(sorted_rgb_dict.keys())
+    rgb_path = list(sorted_rgb_dict.values())
+    norm_rgb_time = np.asarray(norm_rgb_time)
     files = []
     if len(norm_rgb_time) == 0:
         print("no rgb images found")
@@ -162,6 +170,9 @@ if __name__ == "__main__":
                         type=int,
                         default=None,
                         help="no. of cpu workers you want to process with")
+    parser.add_argument("--debug",
+                        action='store_true',
+                        help="Flag to enable debug mode")
     parser.add_argument(
         "--pickled",
         action='store_true',
@@ -219,10 +230,16 @@ if __name__ == "__main__":
         paths = get_files(norm_rgb_time, rgb_path, norm_pcd_time, pcd_path)
 
         #processing every pcd file with its nearest rgb using multiprocessing workers
-        with concurrent.futures.ProcessPoolExecutor(
-                max_workers=args.num_workers) as executor:
-            res = list(tqdm(executor.map(process_pcd, paths),
-                            total=len(paths)))
+        if args.debug:
+            print("Debug")
+            for path in paths:
+                process_pcd(path)
+        else:
+            print("Multiprocessing")
+            with concurrent.futures.ProcessPoolExecutor(
+                    max_workers=args.num_workers) as executor:
+                res = list(tqdm(executor.map(process_pcd, paths),
+                                total=len(paths)))
 
     end = datetime.datetime.now()
     diff = end - start

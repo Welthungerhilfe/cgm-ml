@@ -27,7 +27,7 @@ def convert2Dto3D(intrisics: list, x: float, y: float, z: float) -> list:
     return [tx, ty, z]
 
 
-def convert2Dto3DOriented(intrisics: list, x: float, y: float, z: float) -> list:
+def convert_2d_to_3d_oriented(intrisics: list, x: float, y: float, z: float) -> list:
     """Convert point in pixels into point in meters (applying rotation)"""
     res = convert2Dto3D(calibration[1], x, y, z)
     if res:
@@ -40,7 +40,7 @@ def convert2Dto3DOriented(intrisics: list, x: float, y: float, z: float) -> list
     return res
 
 
-def convert3Dto2D(intrisics: list, x: float, y: float, z: float) -> list:
+def convert_2d_to_3d(intrisics: list, x: float, y: float, z: float) -> list:
     """Convert point in meters into point in pixels"""
     fx = intrisics[0] * float(width)
     fy = intrisics[1] * float(height)
@@ -51,7 +51,7 @@ def convert3Dto2D(intrisics: list, x: float, y: float, z: float) -> list:
     return [tx, ty, z]
 
 
-def exportOBJ(filename, triangulate):
+def export_obj(filename, triangulate):
     """
 
     triangulate=True generates OBJ of type mesh
@@ -62,9 +62,9 @@ def exportOBJ(filename, triangulate):
     with open(filename, 'w') as file:
         for x in range(2, width - 2):
             for y in range(2, height - 2):
-                depth = parseDepth(x, y)
+                depth = parse_depth(x, y)
                 if depth:
-                    res = convert2Dto3DOriented(calibration[1], x, y, depth)
+                    res = convert_2d_to_3d_oriented(calibration[1], x, y, depth)
                     if res:
                         count = count + 1
                         indices[x][y] = count  # add index of written vertex into array
@@ -75,10 +75,10 @@ def exportOBJ(filename, triangulate):
             for x in range(2, width - 2):
                 for y in range(2, height - 2):
                     #get depth of all points of 2 potential triangles
-                    d00 = parseDepth(x, y)
-                    d10 = parseDepth(x + 1, y)
-                    d01 = parseDepth(x, y + 1)
-                    d11 = parseDepth(x + 1, y + 1)
+                    d00 = parse_depth(x, y)
+                    d10 = parse_depth(x + 1, y)
+                    d01 = parse_depth(x, y + 1)
+                    d11 = parse_depth(x + 1, y + 1)
 
                     #check if first triangle points have existing indices
                     if indices[x][y] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
@@ -94,9 +94,9 @@ def exportOBJ(filename, triangulate):
         print('Pointcloud exported into ' + filename)
 
 
-def exportPCD(filename):
+def export_pcd(filename):
     with open(filename, 'w') as file:
-        count = str(getCount())
+        count = str(_get_count())
         file.write('# timestamp 1 1 float 0\n')
         file.write('# .PCD v.7 - Point Cloud Data file format\n')
         file.write('VERSION .7\n')
@@ -111,20 +111,20 @@ def exportPCD(filename):
         file.write('DATA ascii\n')
         for x in range(2, width - 2):
             for y in range(2, height - 2):
-                depth = parseDepth(x, y)
+                depth = parse_depth(x, y)
                 if depth:
                     res = convert2Dto3D(calibration[1], x, y, depth)
                     if res:
                         file.write(str(-res[0]) + ' ' + str(res[1]) + ' '
-                                   + str(res[2]) + ' ' + str(parseConfidence(x, y)) + '\n')
+                                   + str(res[2]) + ' ' + str(parse_confidence(x, y)) + '\n')
         print('Pointcloud exported into ' + filename)
 
 
-def getCount():
+def _get_count():
     count = 0
     for x in range(2, width - 2):
         for y in range(2, height - 2):
-            depth = parseDepth(x, y)
+            depth = parse_depth(x, y)
             if depth:
                 res = convert2Dto3D(calibration[1], x, y, depth)
                 if res:
@@ -132,30 +132,30 @@ def getCount():
     return count
 
 
-def parseCalibration(filepath):
+def parse_calibration(filepath):
     """Parse calibration file"""
     global calibration
     with open(filepath, 'r') as file:
         calibration = []
         file.readline()[:-1]
-        calibration.append(parseNumbers(file.readline()))
+        calibration.append(parse_numbers(file.readline()))
         #print(str(calibration[0]) + '\n') #color camera intrinsics - fx, fy, cx, cy
         file.readline()[:-1]
-        calibration.append(parseNumbers(file.readline()))
+        calibration.append(parse_numbers(file.readline()))
         #print(str(calibration[1]) + '\n') #depth camera intrinsics - fx, fy, cx, cy
         file.readline()[:-1]
-        calibration.append(parseNumbers(file.readline()))
+        calibration.append(parse_numbers(file.readline()))
         #print(str(calibration[2]) + '\n') #depth camera position relativelly to color camera in meters
         calibration[2][1] *= 8.0  # workaround for wrong calibration data
     return calibration
 
 
-def parseConfidence(tx, ty):
+def parse_confidence(tx, ty):
     """Get confidence of the point in scale 0-1"""
     return data[(int(ty) * width + int(tx)) * 3 + 2] / maxConfidence
 
 
-def parseData(filename):
+def parse_data(filename):
     """Parse depth data"""
     global width, height, depthScale, maxConfidence, data, position, rotation
     with open('data', 'rb') as file:
@@ -173,7 +173,7 @@ def parseData(filename):
         file.close()
 
 
-def parseDepth(tx, ty):
+def parse_depth(tx, ty):
     """Get depth of the point in meters"""
     depth = data[(int(ty) * width + int(tx)) * 3 + 0] << 8
     depth += data[(int(ty) * width + int(tx)) * 3 + 1]
@@ -181,7 +181,7 @@ def parseDepth(tx, ty):
     return depth
 
 
-def parseNumbers(line):
+def parse_numbers(line):
     """Parse line of numbers"""
     output = []
     values = line.split(' ')
@@ -190,7 +190,7 @@ def parseNumbers(line):
     return output
 
 
-def parsePCD(filepath):
+def parse_pcd(filepath):
     with open(filepath, 'r') as file:
         data = []
         while True:
@@ -203,18 +203,9 @@ def parsePCD(filepath):
             if not line:
                 break
             else:
-                values = parseNumbers(line)
+                values = parse_numbers(line)
                 data.append(values)
     return data
-
-
-def parseValues(line):
-    """Parse line of values"""
-    output = []
-    values = line.split(' ')
-    for value in values:
-        output.append(value)
-    return output
 
 
 def getWidth():

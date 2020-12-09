@@ -1,7 +1,6 @@
 trigger:
   branches:
     include:
-    - master
     - releases/*
 
 pr: none
@@ -15,11 +14,10 @@ jobs:
     vmImage: 'Ubuntu-20.04'
 
   steps:
-  - script: echo Hello, QA Pipeline!
-    displayName: 'QA Pipeline for cgm-ml-service'
 
   - bash: |
-      cd src/common/eval/QA
+      set -euox pipefail
+      cd src/common/evaluation/QA
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda env create -f environment.yml
       conda activate CGM_QA_Pipeline
@@ -27,33 +25,41 @@ jobs:
     displayName: 'Environment Creation'
 
   - bash: |
-      echo Login Azure Account
       az login -t $(sptenent) --service-principal -u $(spidentity) --password $(spsecret)
       az account set --subscription $(subscriptionid)
     displayName: 'Azure Login'
 
   - bash: |
-      cd src/common/eval/QA
+      set -euox pipefail
+      cd src/common/evaluation/QA
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
       python auth.py -sid $(subscriptionid) -rg $(RESOURCE_GROUP) -wn $(WORKSPACE_NAME)
     displayName: 'Saving Workspace Config'
 
   - bash: |
-      cd src/common/eval/QA/eval-depthmap-height
+      set -euox pipefail
+      cd src/common/evaluation/QA/eval_depthmap_models
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
-      echo Executing eval_notebook.ipynb
-      papermill eval_notebook.ipynb depthmap-height_output.ipynb --log-output --no-progress-bar -k python3
-      jupyter nbconvert --to html depthmap-height_output.ipynb
+      python eval_main.py --qa_config_module qa_config_height
       ls -l
     displayName: 'Depthmap Height Model Evaluation'
 
   - bash: |
-      cd src/common/eval/QA/eval-standardisation-test
+      set -euox pipefail
+      cd src/common/evaluation/QA/eval_depthmap_models
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
-      echo Executing eval_notebook.ipynb
+      python eval_main.py --qa_config_module qa_config_weight
+      ls -l
+    displayName: 'Depthmap Weight Model Evaluation'
+
+  - bash: |
+      set -euox pipefail
+      cd src/common/evaluation/QA/eval-standardisation-test
+      source /usr/share/miniconda/etc/profile.d/conda.sh
+      conda activate CGM_QA_Pipeline
       papermill eval_notebook.ipynb standardisation-test_output.ipynb --log-output --no-progress-bar -k python3
       jupyter nbconvert --to html standardisation-test_output.ipynb
       ls -l
@@ -63,19 +69,19 @@ jobs:
     inputs:
       SourceFolder: '$(Build.SourcesDirectory)'
       Contents: |
-        src/common/eval/QA/eval-depthmap-height/depthmap-height_output.html
-        src/common/eval/QA/eval-depthmap-height/*.csv
-        src/common/eval/QA/eval-standardisation-test/standardisation-test_output.html
-        src/common/eval/QA/eval-standardisation-test/*.csv
+        src/common/evaluation/QA/eval_depthmap_models/depthmap-*_output.html
+        src/common/evaluation/QA/eval_depthmap_models/*.csv
+        src/common/evaluation/QA/eval-standardisation-test/standardisation-test_output.html
+        src/common/evaluation/QA/eval-standardisation-test/*.csv
       TargetFolder: '$(Build.ArtifactStagingDirectory)'
     displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
 
   - task: PublishPipelineArtifact@1
     inputs:
       targetPath: '$(Build.ArtifactStagingDirectory)'
-      artifact: 'Output Notebook'
+      artifact: 'Output Results'
       publishLocation: 'pipeline'
-    displayName: 'Publish Results and Output Notebook'
+    displayName: 'Publish Results and Output Results'
 
   - bash: |
       az logout

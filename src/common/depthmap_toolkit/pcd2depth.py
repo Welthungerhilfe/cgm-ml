@@ -1,5 +1,7 @@
 import zipfile
+
 import numpy as np
+
 import utils
 
 ENCODING = 'charmap'
@@ -8,19 +10,22 @@ utils.setHeight(int(180 * 0.75))
 width = utils.getWidth()
 height = utils.getHeight()
 
+
 def process(calibration_fname: str, pcd_fpath: str):
     # Convert to depthmap
-    calibration = utils.parseCalibration(calibration_fname)
-    points = utils.parsePCD(pcd_fpath)
+    calibration = utils.parse_calibration(calibration_fname)
+    points = utils.parse_pcd(pcd_fpath)
     output = np.zeros((width, height, 3))
     for p in points:
-        v = utils.convert3Dto2D(calibration[1], p[0], p[1], p[2])
+        v = utils.convert_2d_to_3d(calibration[1], p[0], p[1], p[2])
         x = int(width - v[0] - 1)
         y = int(height - v[1] - 1)
         if x >= 0 and y >= 0 and x < width and y < height:
             output[x][y][0] = p[3]
             output[x][y][2] = p[2]
     return output
+
+
 def write_depthmap(output_depth_fpath: str, depthmap):
     # Write depthmap
     with open('data', 'wb') as f:
