@@ -1,12 +1,6 @@
 [flake8]
 ignore =
-  # I100, I101: Import statements are in the wrong order. Too much a hazzle for now
-  I100, I101,
-  # W503 line break before binary operator. Deactivated because of incompatibility with black
-  W503,
-  # Personal taste
-  E701,
-  # Don't be too strict
+  W503,  # line break before binary operator. Deactivated because of incompatibility with black
   E265,  # Block comment should start with '# '
   E501,  # long lines
   E302  # Expected 2 blank lines, found 0
