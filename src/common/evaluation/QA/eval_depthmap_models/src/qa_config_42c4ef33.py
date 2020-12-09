@@ -29,7 +29,7 @@ EVAL_CONFIG = dotdict(dict(
     DEBUG_RUN=True,
 
     #Will run eval on specified # of scan instead of full dataset
-    DEBUG_NUMBER_OF_SCAN=20,
+    DEBUG_NUMBER_OF_SCAN=5,
 
     SPLIT_SEED=0,
 ))
@@ -64,5 +64,5 @@ RESULT_CONFIG = dotdict(dict(
     COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],
 
     #path of csv file in the experiment which final result is stored
-    SAVE_PATH='./outputs/',
+    SAVE_PATH='./outputs/height',
 ))
