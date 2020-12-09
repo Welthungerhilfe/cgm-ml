@@ -5,7 +5,6 @@ ignore =
   # W503 line break before binary operator. Deactivated because of incompatibility with black
   W503,
   # Personal taste
-  E252,
   E701,
   # Don't be too strict
   E265,  # Block comment should start with '# '

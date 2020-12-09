@@ -30,7 +30,7 @@ def download_pretrained_model(workspace: Workspace, output_model_fpath: str):
     previous_run.download_file(f"outputs/{MODEL_H5_FILENAME}", output_model_fpath)
 
 
-def load_base_cgm_model(model_fpath: str, should_freeze: bool=False) -> models.Sequential:
+def load_base_cgm_model(model_fpath: str, should_freeze: bool = False) -> models.Sequential:
     # load model
     loaded_model = models.load_model(model_fpath)
 
