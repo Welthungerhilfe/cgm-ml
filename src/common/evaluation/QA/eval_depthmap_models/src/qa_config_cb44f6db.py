@@ -26,7 +26,7 @@ EVAL_CONFIG = dotdict(dict(
     CLUSTER_NAME="gpu-cluster",
 
     #Used for Debug the QA pipeline
-    DEBUG_RUN=False,
+    DEBUG_RUN=True,
 
     #Will run eval on specified # of scan instead of full dataset
     DEBUG_NUMBER_OF_SCAN=20,
@@ -68,5 +68,5 @@ RESULT_CONFIG = dotdict(dict(
     COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],
 
     #path of csv file in the experiment which final result is stored
-    SAVE_PATH='./outputs/height/',
+    SAVE_PATH='./outputs/',
 ))
