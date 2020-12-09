@@ -115,12 +115,12 @@ if __name__ == "__main__":
 
     #Download the evaluation results of the model
     GET_CSV_FROM_EXPERIMENT_PATH = '.'
-    result_csv_path = "{} {} {}".format(RESULT_CONFIG.SAVE_PATH , MODEL_CONFIG.RUN_ID , '.csv')
+    result_csv_path = "{}{}{}".format(RESULT_CONFIG.SAVE_PATH,MODEL_CONFIG.RUN_ID ,'.csv')
     run.download_file(result_csv_path, GET_CSV_FROM_EXPERIMENT_PATH)
     print("Downloaded the result.csv")
 
-    result = pd.read_csv(CWD / 'result.csv')
-    print("Result:", result)
+    # result = pd.read_csv(CWD / 'result.csv')
+    # print("Result:", result)
 
     #Delete temp folder
     shutil.rmtree(temp_path)
