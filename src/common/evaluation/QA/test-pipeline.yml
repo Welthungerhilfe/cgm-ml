@@ -56,8 +56,7 @@ jobs:
       ls -l
     displayName: 'Combine results'
 
-
-  - bash: |
+    - bash: |
       set -euox pipefail
       cd src/common/evaluation/QA/eval_depthmap_models
       source /usr/share/miniconda/etc/profile.d/conda.sh
@@ -81,7 +80,7 @@ jobs:
       SourceFolder: '$(Build.SourcesDirectory)'
       Contents: |
         src/common/evaluation/QA/eval_depthmap_models/depthmap-*_output.html
-        src/common/evaluation/QA/eval_depthmap_models/*.csv
+        src/common/evaluation/QA/eval_depthmap_models/height/*.csv
         src/common/evaluation/QA/eval-standardisation-test/standardisation-test_output.html
         src/common/evaluation/QA/eval-standardisation-test/*.csv
       TargetFolder: '$(Build.ArtifactStagingDirectory)'

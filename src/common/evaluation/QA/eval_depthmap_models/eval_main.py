@@ -3,13 +3,14 @@ from importlib import import_module
 import os
 import time
 import glob
-from pathlib import Path
+import pandas as pd
 import shutil
+from pathlib import Path
+
 from azureml.core import Workspace, Experiment
 from azureml.core.compute import ComputeTarget, AmlCompute
 from azureml.core.compute_target import ComputeTargetException
 from azureml.train.dnn import TensorFlow
-import pandas as pd
 
 from src.utils import download_model
 
@@ -114,7 +115,7 @@ if __name__ == "__main__":
 
     #Download the evaluation results of the model
     GET_CSV_FROM_EXPERIMENT_PATH = '.'
-    result_csv_path = RESULT_CONFIG.SAVE_PATH + MODEL_CONFIG.RUN_ID + '.csv'
+    result_csv_path = "{} {} {}".format(RESULT_CONFIG.SAVE_PATH , MODEL_CONFIG.RUN_ID , '.csv')
     run.download_file(result_csv_path, GET_CSV_FROM_EXPERIMENT_PATH)
     print("Downloaded the result.csv")
 

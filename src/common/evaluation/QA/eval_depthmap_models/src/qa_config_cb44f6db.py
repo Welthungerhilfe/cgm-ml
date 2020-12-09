@@ -19,7 +19,7 @@ MODEL_CONFIG = dotdict(dict(
 
 EVAL_CONFIG = dotdict(dict(
     #Name of evaluation
-    NAME='q3-depthmap-plaincnn-height-95k_04',
+    NAME='q3-depthmap-plaincnn-height-95k_run_04',
 
     #Experiment in Azure ML which will be used for evaluation
     EXPERIMENT_NAME="QA-pipeline",
@@ -68,5 +68,5 @@ RESULT_CONFIG = dotdict(dict(
     COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],
 
     #path of csv file in the experiment which final result is stored
-    SAVE_PATH='./outputs/',
+    SAVE_PATH='./outputs/height/',
 ))

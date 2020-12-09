@@ -1,9 +1,12 @@
 import pandas as pd
 from glob2 import glob
 import logging
+import os
 
 OUTPUT_FILE_NAME = 'evaluated_models_result.csv'
-CSV_PATH = '*.csv'
+CSV_PATH = 'height/*.csv'
+arr = os.listdir()
+print(arr)
 
 
 def combine_model_results(csv_file_list):
