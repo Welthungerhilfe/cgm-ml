@@ -8,7 +8,7 @@ from glob2 import glob
 
 OUTPUT_FILE_NAME = 'evaluated_models_result.csv'
 arr = os.listdir()
-print(arr)
+print("arr",arr)
 
 
 def combine_model_results(csv_file_list,output_path):
@@ -41,5 +41,6 @@ if __name__ == "__main__":
     qa_config = import_module(f'src.{args.qa_config_module}')
     RESULT_CONFIG = qa_config.RESULT_CONFIG
     CSV_PATH = "{}{}".format(RESULT_CONFIG.SAVE_PATH,'/*.csv')
+    print("csv_path: ",CSV_PATH)
     csv_files = glob(CSV_PATH)
     combine_model_results(csv_files,RESULT_CONFIG.SAVE_PATH)
