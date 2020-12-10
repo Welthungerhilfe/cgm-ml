@@ -22,7 +22,7 @@ with open("src/data_utils/create_dataset/parameters.yml", "r") as ymlfile:
 
 DB_FILE = cfg["database"]['db_connection_file']
 NUMBER_OF_SCANS = cfg['scans']['scan_amount']
-CALIBRATION_FILE = cfg['calibration']['calibration_file']
+CALIBRATION_FILE = cfg['calibration']['Lenovo']
 SCANGROUP = cfg['data']['scangroup']
 TARGET_FOLDER = cfg['paths']['target_path']
 SOURCE = cfg['paths']['source_path']

@@ -3,7 +3,8 @@ database:
 scans:
     scan_amount : 3000
 calibration:
-    calibration_file: 'src/common/depthmap_toolkit/camera_calibration.txt'
+    {'Lenovo': 'src/common/depthmap_toolkit/camera_calibration.txt',
+                       'Huawei': 'file not found'}
 data:
     scangroup: 'test' 
 paths:
