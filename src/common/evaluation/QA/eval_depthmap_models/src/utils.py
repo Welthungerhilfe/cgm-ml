@@ -111,7 +111,7 @@ def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH, DATA_CONFIG, RE
     result = result.round(2)
     # Save the model results in csv file
     pathlib.Path(CSV_OUT_PATH).mkdir(parents=True, exist_ok=True)
-    csv_file = "{}{}{}".format(CSV_OUT_PATH,RUN_ID,'.csv')
+    csv_file = "{}{}{}{}".format(CSV_OUT_PATH,'/',RUN_ID,'.csv')
     result.to_csv(csv_file, index=True)
 
 
