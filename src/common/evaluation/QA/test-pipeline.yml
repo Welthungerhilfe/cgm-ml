@@ -80,7 +80,7 @@ jobs:
       SourceFolder: '$(Build.SourcesDirectory)'
       Contents: |
         src/common/evaluation/QA/eval_depthmap_models/depthmap-*_output.html
-        src/common/evaluation/QA/eval_depthmap_models/height/*.csv
+        src/common/evaluation/QA/eval_depthmap_models/outputs/height/*.csv
         src/common/evaluation/QA/eval-standardisation-test/standardisation-test_output.html
         src/common/evaluation/QA/eval-standardisation-test/*.csv
       TargetFolder: '$(Build.ArtifactStagingDirectory)'
