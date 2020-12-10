@@ -3,7 +3,6 @@ from importlib import import_module
 import os
 import time
 import glob
-import pandas as pd
 import shutil
 from pathlib import Path
 
@@ -117,7 +116,7 @@ if __name__ == "__main__":
     GET_CSV_FROM_EXPERIMENT_PATH = '.'
     # result_csv_path = "{}{}{}".format(RESULT_CONFIG.SAVE_PATH,MODEL_CONFIG.RUN_ID ,'.csv')
     # print("result csv path",result_csv_path)
-    run.download_files(RESULT_CONFIG.SAVE_PATH,GET_CSV_FROM_EXPERIMENT_PATH)
+    run.download_files(RESULT_CONFIG.SAVE_PATH, GET_CSV_FROM_EXPERIMENT_PATH)
     # run.download_file(result_csv_path, GET_CSV_FROM_EXPERIMENT_PATH)
     print("Downloaded the result.csv")
 
