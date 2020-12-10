@@ -52,7 +52,8 @@ jobs:
       cd src/common/evaluation/QA/eval_depthmap_models
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
-      python combine_results.py --model_measurement height_
+      python combine_results.py --model_measurement height
+      ls -l outputs/
       ls -l
     displayName: 'Combine results'
 
