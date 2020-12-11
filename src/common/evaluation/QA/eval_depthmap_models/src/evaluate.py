@@ -168,6 +168,15 @@ if __name__ == "__main__":
         'predicted': prediction_list
     }, columns=RESULT_CONFIG.COLUMNS)
 
+    # DAYS_IN_YEAR = 365
+    # buckets_smaller_than = [
+    #     1 * DAYS_IN_YEAR,
+    #     2 * DAYS_IN_YEAR,
+    #     3 * DAYS_IN_YEAR,
+    #     4 * DAYS_IN_YEAR,
+    #     5 * DAYS_IN_YEAR,
+    # ]
+
     df['GT'] = df['GT'].astype('float64')
     df['predicted'] = df['predicted'].astype('float64')
 
