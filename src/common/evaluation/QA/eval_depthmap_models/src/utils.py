@@ -1,7 +1,9 @@
+from bunch import Bunch
 import datetime
 import os
 from pathlib import Path
 import pickle
+from typing import List
 
 from azureml.core import Experiment, Run, Workspace
 import glob2 as glob
@@ -34,7 +36,7 @@ def preprocess_targets(targets, targets_indices):
     return targets.astype("float32")
 
 
-def get_depthmap_files(paths):
+def get_depthmap_files(paths: List[str]) -> List[str]:
     '''
     Prepare the list of all the depthmap pickle files in dataset
     '''
@@ -44,11 +46,8 @@ def get_depthmap_files(paths):
     return pickle_paths
 
 
-def get_column_list(depthmap_path_list, prediction, DATA_CONFIG):
-    '''
-    Prepare the list of all artifact with its corresponding scantype,
-    qrcode, target and prediction
-    '''
+def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CONFIG: Bunch):
+    """Prepare the list of all artifact with its corresponding scantype, qrcode, target and prediction"""
     qrcode_list, scan_type_list, artifact_list, prediction_list, target_list = [], [], [], [], []
 
     for idx, path in enumerate(depthmap_path_list):
@@ -71,11 +70,17 @@ def avgerror(row):
     return difference
 
 
-def calculate_performance(code, df_mae, RESULT_CONFIG):
-    '''
-    For each scantype, calculate the performance of the model
-    across all error margin
-    '''
+def calculate_performance(code: str, df_mae: pd.DataFrame, RESULT_CONFIG: Bunch) -> pd.DataFrame:
+    """For each scantype, calculate the performance of the model across all error margin
+
+    Args:
+        code: e.g. '100'
+        df_mae: [description]
+        RESULT_CONFIG: [description]
+
+    Returns:
+        [description]
+    """
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
     accuracy_list = []
     for acc in RESULT_CONFIG.ACCURACIES:
@@ -92,11 +97,16 @@ def calculate_performance(code, df_mae, RESULT_CONFIG):
     return df_out
 
 
-def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH, DATA_CONFIG, RESULT_CONFIG):
-    '''
-    Calculate accuracies across the scantypes and
-    save the final results table to the CSV file
-    '''
+def calculate_and_save_results(MAE: pd.DataFrame, complete_name: str, CSV_OUT_PATH: str, DATA_CONFIG: Bunch, RESULT_CONFIG: Bunch):
+    """Calculate accuracies across the scantypes and save the final results table to the CSV file
+
+    Args:
+        MAE: [description]
+        complete_name: e.g. 'q3-depthmap-plaincnn-height-100-95k-run_17'
+        CSV_OUT_PATH: [description]
+        DATA_CONFIG: [description]
+        RESULT_CONFIG: [description]
+    """
     dfs = []
     for code in DATA_CONFIG.CODE_TO_SCANTYPE.keys():
         df = calculate_performance(code, MAE, RESULT_CONFIG)
