@@ -36,12 +36,12 @@ if __name__ == "__main__":
         'weight': 'outputs/weight'
     }
 
-    def validate_arg(arg_string):
+    def validate_arg(args_string):
         """
         Function to validate the passing args
 
         Args:
-            arg_string (string): input argument 
+            arg_string (string): input argument
 
         Raises:
             argparse.ArgumentTypeError: error to throw if the value is not valid
@@ -49,7 +49,7 @@ if __name__ == "__main__":
         value = args_string.lower()
         if value not in paths.keys():
             raise argparse.ArgumentTypeError("%s is an invalid argument value" % args_string)
-        
+
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
