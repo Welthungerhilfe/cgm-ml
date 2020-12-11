@@ -50,13 +50,12 @@ if __name__ == "__main__":
         if value not in paths.keys():
             raise argparse.ArgumentTypeError("%s is an invalid argument value" % args_string)
 
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--model_measurement",
         default="height",
-        type = validate_arg,
-        help="defining models usage for the measuring height or weight ")
+        type=validate_arg,
+        help="defining models usage for the measuring height or weight")
     args = parser.parse_args()
     model_measurement_type = args.model_measurement
     model_measurement_type = model_measurement_type.lower()
