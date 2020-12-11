@@ -98,15 +98,16 @@ def calculate_performance(code: str, df_mae: pd.DataFrame, RESULT_CONFIG: Bunch)
     return df_out
 
 
-def calculate_and_save_results(MAE: pd.DataFrame, complete_name: str, CSV_OUT_PATH: str, DATA_CONFIG: Bunch, RESULT_CONFIG: Bunch, RUN_ID):
+def calculate_and_save_results(MAE: pd.DataFrame, complete_name: str, CSV_OUT_PATH: str, DATA_CONFIG: Bunch, RESULT_CONFIG: Bunch, RUN_ID: str):
     """Calculate accuracies across the scantypes and save the final results table to the CSV file
 
     Args:
-        MAE: [description]
+        MAE: dataframe
         complete_name: e.g. 'q3-depthmap-plaincnn-height-100-95k-run_17'
-        CSV_OUT_PATH: [description]
-        DATA_CONFIG: [description]
-        RESULT_CONFIG: [description]
+        CSV_OUT_PATH: CSV output path
+        DATA_CONFIG: bunch containing data config
+        RESULT_CONFIG: bunch containing result config
+        RUN_ID: e.g. 'q3-depthmap-plaincnn-height-95k_1597988908_42c4ef33'
     """
     dfs = []
     for code in DATA_CONFIG.CODE_TO_SCANTYPE.keys():
