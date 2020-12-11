@@ -39,9 +39,7 @@ def preprocess_targets(targets, targets_indices):
 
 
 def get_depthmap_files(paths: List[str]) -> List[str]:
-    '''
-    Prepare the list of all the depthmap pickle files in dataset
-    '''
+    """Prepare the list of all the depthmap pickle files in dataset"""
     pickle_paths = []
     for path in paths:
         pickle_paths.extend(glob.glob(os.path.join(path, "**", "*.p")))
@@ -73,15 +71,17 @@ def avgerror(row):
 
 
 def calculate_performance(code: str, df_mae: pd.DataFrame, RESULT_CONFIG: Bunch) -> pd.DataFrame:
-    """For each scantype, calculate the performance of the model across all error margin
+    """For a specific scantype, calculate the performance of the model on each error margin
 
     Args:
         code: e.g. '100'
-        df_mae: [description]
-        RESULT_CONFIG: [description]
+        df_mae: dataframe
+        RESULT_CONFIG: bunch containing result config
 
     Returns:
-        [description]
+        dataframe, where each column describes a differnt accuracy, e.g.
+                            0.2   0.4   0.6   1.0   1.2    2.0    2.5    3.0    4.0    5.0    6.0
+                           20.0  20.0  40.0  80.0  80.0  100.0  100.0  100.0  100.0  100.0  100.0
     """
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
     accuracy_list = []
@@ -126,15 +126,15 @@ def calculate_and_save_results(MAE: pd.DataFrame, complete_name: str, CSV_OUT_PA
 
 
 def download_model(ws, experiment_name, run_id, input_location, output_location):
-    '''
-    Download the pretrained model
-    Input:
+    """Download the pretrained model
+
+    Args:
          ws: workspace to access the experiment
          experiment_name: Name of the experiment in which model is saved
          run_id: Run Id of the experiment in which model is pre-trained
          input_location: Input location in a RUN Id
          output_location: Location for saving the model
-    '''
+    """
     experiment = Experiment(workspace=ws, name=experiment_name)
     #Download the model on which evaluation need to be done
     run = Run(experiment, run_id=run_id)
