@@ -5,6 +5,7 @@ import random
 import pickle
 import glob2 as glob
 import time
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -55,7 +56,7 @@ def get_prediction(MODEL_PATH, dataset_evaluation):
         dataset_evaluation : dataset in which Evaluation
         need to performed
     '''
-    model = load_model(MODEL_PATH, compile=False)
+    model = load_model(Path(__file__).parent / MODEL_PATH, compile=False)
 
     dataset = dataset_evaluation.batch(DATA_CONFIG.BATCH_SIZE)
 
@@ -162,7 +163,8 @@ if __name__ == "__main__":
         'qrcode': qrcode_list,
         'artifact': artifact_list,
         'scantype': scantype_list,
-        'GT': target_list,
+        'GT': [el[0] for el in target_list],
+        'GT_weight': [el[1] for el in target_list],
         'predicted': prediction_list
     }, columns=RESULT_CONFIG.COLUMNS)
 
