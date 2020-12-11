@@ -5,6 +5,7 @@ import random
 import pickle
 import glob2 as glob
 import time
+
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -13,6 +14,7 @@ from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 import utils
 from utils import download_dataset, get_dataset_path
+
 from constants import REPO_DIR, DATA_DIR_ONLINE_RUN
 
 parser = argparse.ArgumentParser()

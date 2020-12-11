@@ -1,6 +1,7 @@
 import argparse
 import pandas as pd
 import logging
+
 from glob2 import glob
 
 
@@ -25,24 +26,41 @@ def combine_model_results(csv_file_list, output_path):
     final_result = pd.concat(result_list, axis=0)
     final_result = final_result.rename_axis("Model")
     final_result = final_result.round(2)
-    result_csv = "{}{}{}".format(output_path, '/', OUTPUT_FILE_NAME)
+    result_csv = f"{output_path}/{OUTPUT_FILE_NAME}"
     final_result.to_csv(result_csv, index=True)
 
 
 if __name__ == "__main__":
-    PATHS = {
+    paths = {
         'height': 'outputs/height',
         'weight': 'outputs/weight'
     }
+
+    def validate_arg(arg_string):
+        """
+        Function to validate the passing args
+
+        Args:
+            arg_string (string): input argument 
+
+        Raises:
+            argparse.ArgumentTypeError: error to throw if the value is not valid
+        """
+        value = args_string.lower()
+        if value not in paths.keys():
+            raise argparse.ArgumentTypeError("%s is an invalid argument value" % args_string)
+        
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--model_measurement",
         default="height",
+        type = validate_arg,
         help="defining models usage for the measuring height or weight ")
     args = parser.parse_args()
     model_measurement_type = args.model_measurement
     model_measurement_type = model_measurement_type.lower()
-    result_path = PATHS.get(model_measurement_type)
-    csv_path = "{}{}".format(result_path, '/*.csv')
+    result_path = paths.get(model_measurement_type)
+    csv_path = f"{result_path}/*.csv"
     csv_files = glob(csv_path)
     combine_model_results(csv_files, result_path)
