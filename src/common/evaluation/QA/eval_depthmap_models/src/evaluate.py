@@ -19,7 +19,7 @@ from utils import download_dataset, get_dataset_path
 from constants import REPO_DIR, DATA_DIR_ONLINE_RUN
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--qa_config_module", default="qa_config_height", help="Configuration file")
+parser.add_argument("--qa_config_module", default="qa_config_42c4ef33", help="Configuration file")
 args = parser.parse_args()
 
 qa_config = import_module(args.qa_config_module)
@@ -163,18 +163,9 @@ if __name__ == "__main__":
         'artifact': artifact_list,
         'scantype': scantype_list,
         'GT': [el[0] for el in target_list],
-        'GT_weight': [el[1] for el in target_list],
+        'GT_age': [el[1] for el in target_list],
         'predicted': prediction_list
     }, columns=RESULT_CONFIG.COLUMNS)
-
-    # DAYS_IN_YEAR = 365
-    # buckets_smaller_than = [
-    #     1 * DAYS_IN_YEAR,
-    #     2 * DAYS_IN_YEAR,
-    #     3 * DAYS_IN_YEAR,
-    #     4 * DAYS_IN_YEAR,
-    #     5 * DAYS_IN_YEAR,
-    # ]
 
     df['GT'] = df['GT'].astype('float64')
     df['predicted'] = df['predicted'].astype('float64')

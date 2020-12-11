@@ -1,5 +1,7 @@
 from bunch import Bunch
 
+DAYS_IN_YEAR = 365
+
 #Details of model used for evaluation
 MODEL_CONFIG = Bunch(dict(
     EXPERIMENT_NAME='q3-depthmap-plaincnn-height-95k',
@@ -39,7 +41,7 @@ DATA_CONFIG = Bunch(dict(
     BATCH_SIZE=512,
     NORMALIZATION_VALUE=7.5,
     # Parameters for dataset generation.
-    TARGET_INDEXES=[0],  # 0 is height, 1 is weight.
+    TARGET_INDEXES=[0, 3, ],  # 0 is height, 1 is weight.
 
     CODE_TO_SCANTYPE={
         '100': '_front',
@@ -56,7 +58,15 @@ RESULT_CONFIG = Bunch(dict(
     # Error margin on various ranges
     #EVALUATION_ACCURACIES = [.2, .4, .8, 1.2, 2., 2.5, 3., 4., 5., 6.]
     ACCURACIES=[.2, .4, .6, 1, 1.2, 2., 2.5, 3., 4., 5., 6.],  # 0.2cm, 0.4cm, 0.6cm, 1cm, ...
-    COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],
+    AGE_BUCKETS=[
+        1 * DAYS_IN_YEAR,
+        2 * DAYS_IN_YEAR,
+        3 * DAYS_IN_YEAR,
+        4 * DAYS_IN_YEAR,
+        5 * DAYS_IN_YEAR,
+    ],
+
+    COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'GT_age', 'predicted'],
 
     #path of csv file in the experiment which final result is stored
     SAVE_PATH='./outputs/height',
