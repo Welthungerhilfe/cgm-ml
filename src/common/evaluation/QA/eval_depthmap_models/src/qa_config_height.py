@@ -21,10 +21,10 @@ EVAL_CONFIG = Bunch(dict(
     CLUSTER_NAME="gpu-cluster",
 
     #Used for Debug the QA pipeline
-    DEBUG_RUN=True,
+    DEBUG_RUN=False,
 
     #Will run eval on specified # of scan instead of full dataset
-    DEBUG_NUMBER_OF_SCAN=10,
+    DEBUG_NUMBER_OF_SCAN=50,
 
     SPLIT_SEED=0,
 ))
@@ -32,7 +32,7 @@ EVAL_CONFIG = Bunch(dict(
 #Details of Evaluation Dataset
 DATA_CONFIG = Bunch(dict(
     #Name of evaluation dataset
-    NAME='anon-depthmap-mini',
+    NAME='anon-depthmap-testset',
 
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
@@ -42,7 +42,7 @@ DATA_CONFIG = Bunch(dict(
     NORMALIZATION_VALUE=7.5,
 
     # Parameters for dataset generation.
-    TARGET_INDEXES=[0, 1],  # 0 is height, 1 is weight.
+    TARGET_INDEXES=[0],  # 0 is height, 1 is weight.
 
     CODE_TO_SCANTYPE={
         '100': '_front',
@@ -60,7 +60,7 @@ RESULT_CONFIG = Bunch(dict(
     # Error margin on various ranges
     #EVALUATION_ACCURACIES = [.2, .4, .8, 1.2, 2., 2.5, 3., 4., 5., 6.]
     ACCURACIES=[.2, .4, .6, 1, 1.2, 2., 2.5, 3., 4., 5., 6.],  # 0.2cm, 0.4cm, 0.6cm, 1cm, ...
-    COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'GT_weight', 'predicted'],
+    COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],
 
     #path of csv file in the experiment which final result is stored
     SAVE_PATH='./outputs/result.csv',

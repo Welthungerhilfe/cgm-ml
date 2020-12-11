@@ -56,7 +56,7 @@ def get_prediction(MODEL_PATH, dataset_evaluation):
         dataset_evaluation : dataset in which Evaluation
         need to performed
     '''
-    model = load_model(Path(__file__).parent / MODEL_PATH, compile=False)
+    model = load_model(MODEL_PATH, compile=False)
 
     dataset = dataset_evaluation.batch(DATA_CONFIG.BATCH_SIZE)
 
