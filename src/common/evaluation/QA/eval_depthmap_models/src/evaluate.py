@@ -175,7 +175,7 @@ if __name__ == "__main__":
 
     MAE['error'] = MAE.apply(utils.avgerror, axis=1)
 
-    print("Saving the results")
+    print(f"Calculate and save the results to {RESULT_CONFIG.SAVE_PATH}")
     utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, RESULT_CONFIG.SAVE_PATH,
                                      DATA_CONFIG, RESULT_CONFIG, MODEL_CONFIG.RUN_ID)
 

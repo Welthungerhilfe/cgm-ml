@@ -11,6 +11,9 @@ import numpy as np
 import pandas as pd
 
 
+DAYS_IN_YEAR = 365
+
+
 def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
     print("Accessing dataset...")
     if os.path.exists(dataset_path):
@@ -85,16 +88,28 @@ def calculate_performance(code: str, df_mae: pd.DataFrame, RESULT_CONFIG: Bunch)
     """
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
     accuracy_list = []
-    for acc in RESULT_CONFIG.ACCURACIES:
-        good_predictions = df_mae_filtered[(df_mae_filtered['error'] <= acc) & (df_mae_filtered['error'] >= -acc)]
-        if len(df_mae_filtered):
-            accuracy = len(good_predictions) / len(df_mae_filtered) * 100
+    accuracy_thresh = 1.0
+    age_thresholds = RESULT_CONFIG.AGE_BUCKETS
+    age_buckets = list(zip(age_thresholds[:-1], age_thresholds[1:]))
+    for age_min_years, age_max_years in age_buckets:
+        age_min = age_min_years * DAYS_IN_YEAR
+        age_max = age_max_years * DAYS_IN_YEAR
+
+        selection = (df_mae_filtered['GT_age'] >= age_min) & (df_mae_filtered['GT_age'] <= age_max)
+        df = df_mae_filtered[selection]
+
+        selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
+        good_predictions = df[selection]
+        if len(df):
+            accuracy = len(good_predictions) / len(df) * 100
         else:
             accuracy = 0.
         accuracy_list.append(accuracy)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
-    df_out.columns = RESULT_CONFIG.ACCURACIES
+
+    df_out.columns = [f"{age_min} to {age_max}" for age_min, age_max in age_buckets]
+
     return df_out
 
 
@@ -121,7 +136,7 @@ def calculate_and_save_results(MAE: pd.DataFrame, complete_name: str, CSV_OUT_PA
     result = result.round(2)
     # Save the model results in csv file
     Path(CSV_OUT_PATH).mkdir(parents=True, exist_ok=True)
-    csv_file = f"{CSV_OUT_PATH}/{RUN_ID}.csv"
+    csv_file = f"{CSV_OUT_PATH}/age_evaluation_{RUN_ID}.csv"
     result.to_csv(csv_file, index=True)
 
 
