@@ -1,9 +1,4 @@
-class dotdict(dict):
-    """dot.notation access to dictionary attributes"""
-    __getattr__ = dict.get
-    __setattr__ = dict.__setitem__
-    __delattr__ = dict.__delitem__
-
+from bunch import Bunch
 
 DATA_AUGMENTATION_SAME_PER_CHANNEL = "same_per_channel"
 DATA_AUGMENTATION_DIFFERENT_EACH_CHANNEL = "different_each_channel"
@@ -15,7 +10,7 @@ SAMPLING_STRATEGY_WINDOW = "window"
 DATASET_MODE_DOWNLOAD = "dataset_mode_download"
 DATASET_MODE_MOUNT = "dataset_mode_mount"
 
-CONFIG = dotdict(dict(
+CONFIG = Bunch(dict(
     DATASET_MODE=DATASET_MODE_DOWNLOAD,
     DATASET_NAME="anon-depthmap-95k",
     DATASET_NAME_LOCAL="anon-depthmap-mini",

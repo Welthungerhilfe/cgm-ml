@@ -3,6 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - python=3.7
+  - pip
   - nb_conda_kernels==2.2.1
   - scikit-image
   - pip:

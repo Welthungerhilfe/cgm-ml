@@ -1,12 +1,7 @@
-class dotdict(dict):
-    """dot.notation access to dictionary attributes"""
-    __getattr__ = dict.get
-    __setattr__ = dict.__setitem__
-    __delattr__ = dict.__delitem__
-
+from bunch import Bunch
 
 #Details of model used for evaluation
-MODEL_CONFIG = dotdict(dict(
+MODEL_CONFIG = Bunch(dict(
     EXPERIMENT_NAME='q3-depthmap-plaincnn-height-95k',
 
     RUN_ID='q3-depthmap-plaincnn-height-95k_1597988908_42c4ef33',  # Run 3
@@ -17,7 +12,7 @@ MODEL_CONFIG = dotdict(dict(
 ))
 
 
-EVAL_CONFIG = dotdict(dict(
+EVAL_CONFIG = Bunch(dict(
     #Name of evaluation
     NAME='q3-depthmap-plaincnn-height-100-95k-run_17',
 
@@ -35,7 +30,7 @@ EVAL_CONFIG = dotdict(dict(
 ))
 
 #Details of Evaluation Dataset
-DATA_CONFIG = dotdict(dict(
+DATA_CONFIG = Bunch(dict(
     #Name of evaluation dataset
     NAME='anon-depthmap-testset',
 
@@ -61,7 +56,7 @@ DATA_CONFIG = dotdict(dict(
 
 
 #Result configuration for result generation after evaluation is done
-RESULT_CONFIG = dotdict(dict(
+RESULT_CONFIG = Bunch(dict(
     # Error margin on various ranges
     #EVALUATION_ACCURACIES = [.2, .4, .8, 1.2, 2., 2.5, 3., 4., 5., 6.]
     ACCURACIES=[.2, .4, .6, 1, 1.2, 2., 2.5, 3., 4., 5., 6.],  # 0.2cm, 0.4cm, 0.6cm, 1cm, ...

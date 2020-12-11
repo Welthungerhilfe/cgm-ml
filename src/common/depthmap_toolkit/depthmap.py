@@ -88,6 +88,8 @@ def show_result():
                 #set output pixel
                 output[x][height - y - 1][:] = 1.0 - min(depth / 2.0, 1.0)  # depth data scaled to be visible
                 output[x][height + height - y - 1][:] = utils.parse_confidence(x, y)
+                if output[x][height + height - y - 1][0] == 0:
+                    output[x][height + height - y - 1][:] = 1
                 if vec[0] > 0 and vec[1] > 1 and vec[0] < width and vec[1] < height and has_rgb:
                     output[x][2 * height + height - y - 1][0] = im_array[int(vec[1])][int(vec[0])][0] / 255.0
                     output[x][2 * height + height - y - 1][1] = im_array[int(vec[1])][int(vec[0])][1] / 255.0

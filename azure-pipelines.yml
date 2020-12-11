@@ -33,6 +33,7 @@ steps:
   displayName: Cache pip packages
 - script: |
     python -m pip install --upgrade pip
+    pip install setuptools==50.3.2
     pip install -r requirements.txt
   displayName: 'Install dependencies'
 - script: |
