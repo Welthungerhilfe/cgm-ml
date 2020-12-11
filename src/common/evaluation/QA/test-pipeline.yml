@@ -42,7 +42,8 @@ jobs:
       cd src/common/evaluation/QA/eval_depthmap_models
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
-      python eval_main.py --qa_config_module qa_config_height
+      python eval_main.py --qa_config_module qa_config_42c4ef33
+      python eval_main.py --qa_config_module qa_config_cb44f6db
       ls -l
     displayName: 'Depthmap Height Model Evaluation'
 
@@ -51,19 +52,29 @@ jobs:
       cd src/common/evaluation/QA/eval_depthmap_models
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
-      python eval_main.py --qa_config_module qa_config_weight
+      python combine_results.py --model_measurement height
+      ls -l outputs/
       ls -l
-    displayName: 'Depthmap Weight Model Evaluation'
+    displayName: 'Combine results'
 
-  - bash: |
-      set -euox pipefail
-      cd src/common/evaluation/QA/eval-standardisation-test
-      source /usr/share/miniconda/etc/profile.d/conda.sh
-      conda activate CGM_QA_Pipeline
-      papermill eval_notebook.ipynb standardisation-test_output.ipynb --log-output --no-progress-bar -k python3
-      jupyter nbconvert --to html standardisation-test_output.ipynb
-      ls -l
-    displayName: 'Standardisation Test Model Evaluation'
+  # - bash: |
+  #     set -euox pipefail
+  #     cd src/common/evaluation/QA/eval_depthmap_models
+  #     source /usr/share/miniconda/etc/profile.d/conda.sh
+  #     conda activate CGM_QA_Pipeline
+  #     python eval_main.py --qa_config_module qa_config_weight
+  #     ls -l
+  #   displayName: 'Depthmap Weight Model Evaluation'
+
+  # - bash: |
+  #     set -euox pipefail
+  #     cd src/common/evaluation/QA/eval-standardisation-test
+  #     source /usr/share/miniconda/etc/profile.d/conda.sh
+  #     conda activate CGM_QA_Pipeline
+  #     papermill eval_notebook.ipynb standardisation-test_output.ipynb --log-output --no-progress-bar -k python3
+  #     jupyter nbconvert --to html standardisation-test_output.ipynb
+  #     ls -l
+  #   displayName: 'Standardisation Test Model Evaluation'
 
   - task: CopyFiles@2
     inputs:
@@ -71,6 +82,7 @@ jobs:
       Contents: |
         src/common/evaluation/QA/eval_depthmap_models/depthmap-*_output.html
         src/common/evaluation/QA/eval_depthmap_models/*.csv
+        src/common/evaluation/QA/eval_depthmap_models/outputs/height/*.csv
         src/common/evaluation/QA/eval-standardisation-test/standardisation-test_output.html
         src/common/evaluation/QA/eval-standardisation-test/*.csv
       TargetFolder: '$(Build.ArtifactStagingDirectory)'
