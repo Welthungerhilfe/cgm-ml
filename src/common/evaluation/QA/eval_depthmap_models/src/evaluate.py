@@ -12,9 +12,9 @@ import tensorflow as tf
 from tensorflow.keras.models import load_model
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
+
 import utils
 from utils import download_dataset, get_dataset_path
-
 from constants import REPO_DIR, DATA_DIR_ONLINE_RUN
 
 parser = argparse.ArgumentParser()
