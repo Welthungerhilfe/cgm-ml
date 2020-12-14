@@ -332,7 +332,7 @@ class Autoencoder(tf.keras.Model):
             mean_losses_validate = compute_mean_losses(self, dataset_validate)
             mean_losses_anomaly = compute_mean_losses(self, dataset_anomaly)
 
-            # Convert mean losses to float..
+            # Convert mean losses to float.
             mean_losses_train = [float(mean_loss) for mean_loss in mean_losses_train]
             mean_losses_validate = [float(mean_loss) for mean_loss in mean_losses_validate]
             mean_losses_anomaly = [float(mean_loss) for mean_loss in mean_losses_anomaly]
@@ -367,13 +367,13 @@ class Autoencoder(tf.keras.Model):
             if render and (epoch % render_every) == 0:
                 render_reconstructions(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename=f"reconstruction-{epoch:04d}.png")
                 #render_individual_losses(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename=f"losses-{epoch:04d}.png")
-                render_embeddings(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename="embeddings-{epoch:04d}.png")
+                render_embeddings(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename=f"embeddings-{epoch:04d}.png")
 
         # Merge reconstructions into an animation.
         if render:
             render_reconstructions(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename=f"reconstruction-{epoch:04d}.png")
             #render_individual_losses(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename=f"losses-{epoch:04d}.png")
-            render_embeddings(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename="embeddings-{epoch:04d}.png")
+            render_embeddings(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename=f"embeddings-{epoch:04d}.png")
             create_animation("reconstruction-*", outputs_path=outputs_path, filename="reconstruction-animation.gif", delete_originals=True)
             #create_animation("losses-*", outputs_path=outputs_path, filename="losses-animation.gif", delete_originals=True)
             create_animation("embeddings-*", outputs_path=outputs_path, filename="embeddings-animation.gif", delete_originals=True)
@@ -681,9 +681,9 @@ def render_embeddings(model, dataset_train_samples, dataset_validate_samples, da
 
     # Get the sizes.
     sizes = []
-    sizes += [10 for _ in embeddings_train_samples]
-    sizes += [10 for _ in embeddings_validate_samples]
-    sizes += [10 for _ in embeddings_anomaly_samples]
+    sizes += [20 for _ in embeddings_train_samples]
+    sizes += [20 for _ in embeddings_validate_samples]
+    sizes += [20 for _ in embeddings_anomaly_samples]
 
     # Render the TSNE results.
     plt.figure(figsize=(12, 12))
