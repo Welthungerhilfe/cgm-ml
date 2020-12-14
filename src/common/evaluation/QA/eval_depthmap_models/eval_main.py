@@ -3,14 +3,13 @@ from importlib import import_module
 import os
 import time
 import glob
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 from azureml.core import Workspace, Experiment
 from azureml.core.compute import ComputeTarget, AmlCompute
 from azureml.core.compute_target import ComputeTargetException
 from azureml.train.dnn import TensorFlow
-import pandas as pd
 
 from src.utils import download_model
 
@@ -81,6 +80,7 @@ if __name__ == "__main__":
         "opencv-python==4.1.2.30",
         "matplotlib",
         "tensorflow-addons==0.11.2",
+        "bunch==1.0.1"
     ]
 
     # Create the estimator.
@@ -115,11 +115,8 @@ if __name__ == "__main__":
 
     #Download the evaluation results of the model
     GET_CSV_FROM_EXPERIMENT_PATH = '.'
-    run.download_file(RESULT_CONFIG.SAVE_PATH, GET_CSV_FROM_EXPERIMENT_PATH)
+    run.download_files(RESULT_CONFIG.SAVE_PATH, GET_CSV_FROM_EXPERIMENT_PATH)
     print("Downloaded the result.csv")
-
-    result = pd.read_csv(CWD / 'result.csv')
-    print("Result:", result)
 
     #Delete temp folder
     shutil.rmtree(temp_path)

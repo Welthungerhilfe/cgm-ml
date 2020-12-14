@@ -2,6 +2,7 @@ import datetime
 import os
 from pathlib import Path
 import pickle
+import pathlib
 
 from azureml.core import Experiment, Run, Workspace
 import glob2 as glob
@@ -14,9 +15,11 @@ def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str)
     if os.path.exists(dataset_path):
         return
     dataset = workspace.datasets[dataset_name]
-    print(f"Downloading dataset {dataset_name}.. Current date and time: ", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    print(f"Downloading dataset {dataset_name}.. Current date and time: ",
+          datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     dataset.download(target_path=dataset_path, overwrite=False)
-    print(f"Finished downloading {dataset_name}, Current date and time: ", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    print(f"Finished downloading {dataset_name}, Current date and time: ",
+          datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
 
 def get_dataset_path(data_dir: Path, dataset_name: str):
@@ -84,7 +87,6 @@ def calculate_performance(code, df_mae, RESULT_CONFIG):
             accuracy = len(good_predictions) / len(df_mae_filtered) * 100
         else:
             accuracy = 0.
-        # print(f"Accuracy {acc:.1f} for {code}: {accuracy}")
         accuracy_list.append(accuracy)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
@@ -92,7 +94,7 @@ def calculate_performance(code, df_mae, RESULT_CONFIG):
     return df_out
 
 
-def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH, DATA_CONFIG, RESULT_CONFIG):
+def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH, DATA_CONFIG, RESULT_CONFIG, RUN_ID):
     '''
     Calculate accuracies across the scantypes and
     save the final results table to the CSV file
@@ -102,16 +104,15 @@ def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH, DATA_CONFIG, RE
         df = calculate_performance(code, MAE, RESULT_CONFIG)
         full_model_name = complete_name + DATA_CONFIG.CODE_TO_SCANTYPE[code]
         df.rename(index={0: full_model_name}, inplace=True)
-        #display(HTML(df.to_html()))
         dfs.append(df)
 
     result = pd.concat(dfs)
     result.index.name = 'Model_Scantype'
     result = result.round(2)
-    print(result)
-
     # Save the model results in csv file
-    result.to_csv(CSV_OUT_PATH, index=True)
+    pathlib.Path(CSV_OUT_PATH).mkdir(parents=True, exist_ok=True)
+    csv_file = f"{CSV_OUT_PATH}/{RUN_ID}.csv"
+    result.to_csv(csv_file, index=True)
 
 
 def download_model(ws, experiment_name, run_id, input_location, output_location):
@@ -127,8 +128,6 @@ def download_model(ws, experiment_name, run_id, input_location, output_location)
     experiment = Experiment(workspace=ws, name=experiment_name)
     #Download the model on which evaluation need to be done
     run = Run(experiment, run_id=run_id)
-    #run.get_details()
-
     if input_location.endswith(".h5"):
         run.download_file(input_location, output_location)
     elif input_location.endswith(".ckpt"):

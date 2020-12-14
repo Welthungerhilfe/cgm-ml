@@ -101,7 +101,6 @@ if __name__ == "__main__":
         print("Running in online mode...")
         experiment = run.experiment
         workspace = experiment.workspace
-
         dataset_name = DATA_CONFIG.NAME
 
         # Download
@@ -175,7 +174,8 @@ if __name__ == "__main__":
     MAE['error'] = MAE.apply(utils.avgerror, axis=1)
 
     print("Saving the results")
-    utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, RESULT_CONFIG.SAVE_PATH, DATA_CONFIG, RESULT_CONFIG)
+    utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, RESULT_CONFIG.SAVE_PATH,
+                                     DATA_CONFIG, RESULT_CONFIG, MODEL_CONFIG.RUN_ID)
 
     # Done.
     run.complete()
