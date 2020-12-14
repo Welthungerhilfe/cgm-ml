@@ -1,15 +1,15 @@
-from bunch import Bunch
 import datetime
 import os
-from pathlib import Path
 import pickle
+from pathlib import Path
 from typing import List
 
-from azureml.core import Experiment, Run, Workspace
 import glob2 as glob
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
+from azureml.core import Experiment, Run, Workspace
+from bunch import Bunch
 
 DAYS_IN_YEAR = 365
 
@@ -138,6 +138,26 @@ def calculate_and_save_results(MAE: pd.DataFrame, complete_name: str, CSV_OUT_PA
     Path(CSV_OUT_PATH).mkdir(parents=True, exist_ok=True)
     csv_file = f"{CSV_OUT_PATH}/age_evaluation_{RUN_ID}.csv"
     result.to_csv(csv_file, index=True)
+
+
+def draw_age_scatterplot(df_: pd.DataFrame, SAVE_PATH: str, RUN_ID: str):
+    """Draw error over age scatterplot
+
+    Args:
+        df_: Dataframe with columns: qrcode, scantype, GT_age, GT, predicted
+        SAVE_PATH: Dir where plot image will be saved
+        RUN_ID: ID of the experiment's run
+    """
+    df = df_[df_.scantype=='100'].groupby('qrcode').mean()
+    df['error'] = df.apply(avgerror, axis=1).abs()
+
+    plt.scatter(df['GT_age'], df['error'], s=2)
+    plt.grid()
+    plt.title("Per-scan Error over Age")
+    plt.xlabel("age")
+    plt.ylabel("error")
+    plt.savefig(f"{SAVE_PATH}/age_evaluation_scatter_{RUN_ID}.png")
+    plt.close()
 
 
 def download_model(ws, experiment_name, run_id, input_location, output_location):

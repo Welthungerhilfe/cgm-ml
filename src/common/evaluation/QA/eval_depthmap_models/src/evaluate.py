@@ -14,7 +14,7 @@ from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 
 import utils
-from utils import download_dataset, get_dataset_path
+from utils import download_dataset, get_dataset_path, draw_age_scatterplot
 from constants import REPO_DIR, DATA_DIR_ONLINE_RUN
 
 parser = argparse.ArgumentParser()
@@ -177,6 +177,8 @@ if __name__ == "__main__":
     print(f"Calculate and save the results to {RESULT_CONFIG.SAVE_PATH}")
     utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, RESULT_CONFIG.SAVE_PATH,
                                      DATA_CONFIG, RESULT_CONFIG, MODEL_CONFIG.RUN_ID)
+
+    draw_age_scatterplot(df, RESULT_CONFIG.SAVE_PATH, MODEL_CONFIG.RUN_ID)
 
     # Done.
     run.complete()
