@@ -178,15 +178,17 @@ def draw_age_scatterplot(df_: pd.DataFrame, SAVE_PATH: str, RUN_ID: str):
         SAVE_PATH: Dir where plot image will be saved
         RUN_ID: ID of the experiment's run
     """
+    print(f"Scatterplot 1")
     df = df_[df_.scantype=='100'].groupby('qrcode').mean()
     df['error'] = df.apply(avgerror, axis=1).abs()
-
+    print(f"Scatterplot 2")
     plt.scatter(df['GT_age'], df['error'], s=2)
     plt.grid()
     plt.title("Per-scan Error over Age")
     plt.xlabel("age")
     plt.ylabel("error")
     plt.savefig(f"{SAVE_PATH}/age_evaluation_scatter_{RUN_ID}.png")
+    print(f"Scatterplot 3")
     plt.close()
 
 

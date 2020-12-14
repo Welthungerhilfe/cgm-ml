@@ -180,9 +180,12 @@ if __name__ == "__main__":
 
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
         df['GT_age'] = [el[1] for el in target_list]
+
+        print(f"Calculate and save age results to {RESULT_CONFIG.SAVE_PATH}")
         utils.calculate_and_save_results_age(MAE, EVAL_CONFIG.NAME, RESULT_CONFIG.SAVE_PATH,
                                              DATA_CONFIG, RESULT_CONFIG, MODEL_CONFIG.RUN_ID)  # TODO CSV header is wrong
 
+        print(f"Calculate and save scatterplot results to {RESULT_CONFIG.SAVE_PATH}")
         draw_age_scatterplot(df, RESULT_CONFIG.SAVE_PATH, MODEL_CONFIG.RUN_ID)
 
     # Done.
