@@ -73,19 +73,59 @@ def avgerror(row):
     return difference
 
 
-def calculate_performance(code: str, df_mae: pd.DataFrame, RESULT_CONFIG: Bunch) -> pd.DataFrame:
+def calculate_performance(code, df_mae, RESULT_CONFIG):
     """For a specific scantype, calculate the performance of the model on each error margin
-
     Args:
         code: e.g. '100'
         df_mae: dataframe
         RESULT_CONFIG: bunch containing result config
-
     Returns:
         dataframe, where each column describes a differnt accuracy, e.g.
                             0.2   0.4   0.6   1.0   1.2    2.0    2.5    3.0    4.0    5.0    6.0
                            20.0  20.0  40.0  80.0  80.0  100.0  100.0  100.0  100.0  100.0  100.0
     """
+    df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
+    accuracy_list = []
+    for acc in RESULT_CONFIG.ACCURACIES:
+        good_predictions = df_mae_filtered[(df_mae_filtered['error'] <= acc) & (df_mae_filtered['error'] >= -acc)]
+        if len(df_mae_filtered):
+            accuracy = len(good_predictions) / len(df_mae_filtered) * 100
+        else:
+            accuracy = 0.
+        accuracy_list.append(accuracy)
+    df_out = pd.DataFrame(accuracy_list)
+    df_out = df_out.T
+    df_out.columns = RESULT_CONFIG.ACCURACIES
+    return df_out
+
+
+def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH, DATA_CONFIG, RESULT_CONFIG, RUN_ID):
+    """Calculate accuracies across the scantypes and save the final results table to the CSV file
+    Args:
+        MAE: dataframe
+        complete_name: e.g. 'q3-depthmap-plaincnn-height-100-95k-run_17'
+        CSV_OUT_PATH: CSV output path
+        DATA_CONFIG: bunch containing data config
+        RESULT_CONFIG: bunch containing result config
+        RUN_ID: e.g. 'q3-depthmap-plaincnn-height-95k_1597988908_42c4ef33'
+    """
+    dfs = []
+    for code in DATA_CONFIG.CODE_TO_SCANTYPE.keys():
+        df = calculate_performance(code, MAE, RESULT_CONFIG)
+        full_model_name = complete_name + DATA_CONFIG.CODE_TO_SCANTYPE[code]
+        df.rename(index={0: full_model_name}, inplace=True)
+        dfs.append(df)
+
+    result = pd.concat(dfs)
+    result.index.name = 'Model_Scantype'
+    result = result.round(2)
+    # Save the model results in csv file
+    Path(CSV_OUT_PATH).mkdir(parents=True, exist_ok=True)
+    csv_file = f"{CSV_OUT_PATH}/{RUN_ID}.csv"
+    result.to_csv(csv_file, index=True)
+
+
+def calculate_performance_age(code: str, df_mae: pd.DataFrame, RESULT_CONFIG: Bunch) -> pd.DataFrame:
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
     accuracy_list = []
     accuracy_thresh = 1.0
@@ -113,17 +153,7 @@ def calculate_performance(code: str, df_mae: pd.DataFrame, RESULT_CONFIG: Bunch)
     return df_out
 
 
-def calculate_and_save_results(MAE: pd.DataFrame, complete_name: str, CSV_OUT_PATH: str, DATA_CONFIG: Bunch, RESULT_CONFIG: Bunch, RUN_ID: str):
-    """Calculate accuracies across the scantypes and save the final results table to the CSV file
-
-    Args:
-        MAE: dataframe
-        complete_name: e.g. 'q3-depthmap-plaincnn-height-100-95k-run_17'
-        CSV_OUT_PATH: CSV output path
-        DATA_CONFIG: bunch containing data config
-        RESULT_CONFIG: bunch containing result config
-        RUN_ID: e.g. 'q3-depthmap-plaincnn-height-95k_1597988908_42c4ef33'
-    """
+def calculate_and_save_results_age(MAE: pd.DataFrame, complete_name: str, CSV_OUT_PATH: str, DATA_CONFIG: Bunch, RESULT_CONFIG: Bunch, RUN_ID: str):
     dfs = []
     for code in DATA_CONFIG.CODE_TO_SCANTYPE.keys():
         df = calculate_performance(code, MAE, RESULT_CONFIG)

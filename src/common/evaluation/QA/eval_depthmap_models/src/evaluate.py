@@ -162,7 +162,6 @@ if __name__ == "__main__":
         'artifact': artifact_list,
         'scantype': scantype_list,
         'GT': [el[0] for el in target_list],
-        'GT_age': [el[1] for el in target_list],
         'predicted': prediction_list
     }, columns=RESULT_CONFIG.COLUMNS)
 
@@ -178,7 +177,13 @@ if __name__ == "__main__":
     utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, RESULT_CONFIG.SAVE_PATH,
                                      DATA_CONFIG, RESULT_CONFIG, MODEL_CONFIG.RUN_ID)
 
-    draw_age_scatterplot(df, RESULT_CONFIG.SAVE_PATH, MODEL_CONFIG.RUN_ID)
+
+    if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
+        df['GT_age'] = [el[1] for el in target_list]
+        utils.calculate_and_save_results_age(MAE, EVAL_CONFIG.NAME, RESULT_CONFIG.SAVE_PATH,
+                                             DATA_CONFIG, RESULT_CONFIG, MODEL_CONFIG.RUN_ID)  # TODO CSV header is wrong
+
+        draw_age_scatterplot(df, RESULT_CONFIG.SAVE_PATH, MODEL_CONFIG.RUN_ID)
 
     # Done.
     run.complete()
