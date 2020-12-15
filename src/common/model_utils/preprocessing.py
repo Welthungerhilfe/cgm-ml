@@ -13,6 +13,7 @@ REGEX_PICKLE = re.compile(
     r"pc_(?P<qrcode>[a-zA-Z0-9]+-[a-zA-Z0-9]+)_(?P<unixepoch>\d+)_(?P<code>\d{3})_(?P<idx>\d{3}).p$"
 )
 
+
 def create_samples(qrcode_paths: List[str], CONFIG) -> List[List[str]]:
     samples = []
     for qrcode_path in sorted(qrcode_paths):

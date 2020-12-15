@@ -46,7 +46,7 @@ def draw_polygon(ax: axes._base._AxesBase, polygon: Polygon):
     poly_gdf.boundary.plot(ax=ax, color="red")
 
 
-def draw_distributions(series: List[pd.Series], labels: List[str], caption: str=""):
+def draw_distributions(series: List[pd.Series], labels: List[str], caption: str = ""):
     plt.figure(figsize=(20, 7))
     bins = np.linspace(0, 20, 50)
     for s, label in zip(series, labels):
