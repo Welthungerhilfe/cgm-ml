@@ -177,7 +177,6 @@ if __name__ == "__main__":
     utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, RESULT_CONFIG.SAVE_PATH,
                                      DATA_CONFIG, RESULT_CONFIG, MODEL_CONFIG.RUN_ID)
 
-
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
         df['GT_age'] = [el[1] for el in target_list]
 
