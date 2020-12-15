@@ -1,6 +1,8 @@
-import dbutils
-import pandas as pd
 import logging
+
+import pandas as pd
+
+import dbutils
 
 
 def extract_qrcode(row):

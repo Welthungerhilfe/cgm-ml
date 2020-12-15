@@ -1,8 +1,10 @@
-import numpy as np
+import sys
 import yaml
+
+import numpy as np
 import pandas as pd
 from pathlib import Path
-import sys
+
 sys.path.append(str(Path(__file__).parents[1]))
 from data_utils import QRCodeCollector  # noqa: E402
 
