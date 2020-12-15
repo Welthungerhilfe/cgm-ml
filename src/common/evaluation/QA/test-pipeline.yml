@@ -78,10 +78,10 @@ jobs:
       SourceFolder: '$(Build.SourcesDirectory)'
       Contents: |
         src/common/evaluation/QA/eval_depthmap_models/depthmap-*_output.html
-        src/common/evaluation/QA/eval_depthmap_models/*.csv
-        src/common/evaluation/QA/eval_depthmap_models/outputs/height/*.csv
+        src/common/evaluation/QA/eval_depthmap_models/*
+        src/common/evaluation/QA/eval_depthmap_models/outputs/height/*
         src/common/evaluation/QA/eval-standardisation-test/standardisation-test_output.html
-        src/common/evaluation/QA/eval-standardisation-test/*.csv
+        src/common/evaluation/QA/eval-standardisation-test/*
       TargetFolder: '$(Build.ArtifactStagingDirectory)'
     displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
 
