@@ -1,7 +1,5 @@
 from bunch import Bunch
 
-DAYS_IN_YEAR = 365
-
 #Details of model used for evaluation
 MODEL_CONFIG = Bunch(dict(
     EXPERIMENT_NAME='q3-depthmap-plaincnn-height-95k',

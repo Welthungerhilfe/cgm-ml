@@ -41,18 +41,20 @@ jobs:
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
       python eval_main.py --qa_config_module qa_config_42c4ef33
+      python eval_main.py --qa_config_module qa_config_cb44f6db
+
       ls -l
     displayName: 'Depthmap Height Model Evaluation'
 
-  # - bash: |
-  #     set -euox pipefail
-  #     cd src/common/evaluation/QA/eval_depthmap_models
-  #     source /usr/share/miniconda/etc/profile.d/conda.sh
-  #     conda activate CGM_QA_Pipeline
-  #     python combine_results.py --model_measurement height
-  #     ls -l outputs/
-  #     ls -l
-  #   displayName: 'Combine results'
+  - bash: |
+      set -euox pipefail
+      cd src/common/evaluation/QA/eval_depthmap_models
+      source /usr/share/miniconda/etc/profile.d/conda.sh
+      conda activate CGM_QA_Pipeline
+      python combine_results.py --model_measurement height
+      ls -l outputs/
+      ls -l
+    displayName: 'Combine results'
 
   # - bash: |
   #     set -euox pipefail
