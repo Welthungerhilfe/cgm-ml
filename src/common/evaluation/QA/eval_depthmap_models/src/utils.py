@@ -185,6 +185,9 @@ def draw_age_scatterplot(df_: pd.DataFrame, SAVE_PATH: str, RUN_ID: str):
     plt.title("Per-scan Error over Age")
     plt.xlabel("age")
     plt.ylabel("error")
+    axes = plt.gca()
+    axes.set_xlim([0, 2500])
+    axes.set_ylim([0, 5])
     plt.savefig(f"{SAVE_PATH}/age_evaluation_scatter_{RUN_ID}.png")
     plt.close()
 
