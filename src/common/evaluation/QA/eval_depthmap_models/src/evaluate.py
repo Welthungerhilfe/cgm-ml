@@ -168,6 +168,9 @@ if __name__ == "__main__":
     df['GT'] = df['GT'].astype('float64')
     df['predicted'] = df['predicted'].astype('float64')
 
+    if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
+        df['GT_age'] = [el[1] for el in target_list]
+
     MAE = df.groupby(['qrcode', 'scantype']).mean()
     print("Mean Avg Error: ", MAE)
 
@@ -178,8 +181,6 @@ if __name__ == "__main__":
                                      DATA_CONFIG, RESULT_CONFIG, MODEL_CONFIG.RUN_ID)
 
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
-        df['GT_age'] = [el[1] for el in target_list]
-
         print(f"Calculate and save age results to {RESULT_CONFIG.SAVE_PATH}")
         utils.calculate_and_save_results_age(MAE, EVAL_CONFIG.NAME, RESULT_CONFIG.SAVE_PATH,
                                              DATA_CONFIG, RESULT_CONFIG, MODEL_CONFIG.RUN_ID)  # TODO CSV header is wrong

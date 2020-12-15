@@ -156,7 +156,7 @@ def calculate_performance_age(code: str, df_mae: pd.DataFrame, RESULT_CONFIG: Bu
 def calculate_and_save_results_age(MAE: pd.DataFrame, complete_name: str, CSV_OUT_PATH: str, DATA_CONFIG: Bunch, RESULT_CONFIG: Bunch, RUN_ID: str):
     dfs = []
     for code in DATA_CONFIG.CODE_TO_SCANTYPE.keys():
-        df = calculate_performance(code, MAE, RESULT_CONFIG)
+        df = calculate_performance_age(code, MAE, RESULT_CONFIG)
         full_model_name = complete_name + DATA_CONFIG.CODE_TO_SCANTYPE[code]
         df.rename(index={0: full_model_name}, inplace=True)
         dfs.append(df)
