@@ -176,17 +176,20 @@ if __name__ == "__main__":
 
     MAE['error'] = MAE.apply(utils.avgerror, axis=1)
 
-    print(f"Calculate and save the results to {RESULT_CONFIG.SAVE_PATH}")
-    utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, RESULT_CONFIG.SAVE_PATH,
-                                     DATA_CONFIG, RESULT_CONFIG, MODEL_CONFIG.RUN_ID)
+    csv_file = f"{RESULT_CONFIG.SAVE_PATH}/{MODEL_CONFIG.RUN_ID}.csv"
+    print(f"Calculate and save the results to {csv_file}")
+    utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, csv_file,
+                                     DATA_CONFIG, RESULT_CONFIG)
 
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
-        print(f"Calculate and save age results to {RESULT_CONFIG.SAVE_PATH}")
-        utils.calculate_and_save_results_age(MAE, EVAL_CONFIG.NAME, RESULT_CONFIG.SAVE_PATH,
-                                             DATA_CONFIG, RESULT_CONFIG, MODEL_CONFIG.RUN_ID)  # TODO CSV header is wrong
+        csv_file = f"{RESULT_CONFIG.SAVE_PATH}/age_evaluation_{MODEL_CONFIG.RUN_ID}.csv"
+        print(f"Calculate and save age results to {csv_file}")
+        utils.calculate_and_save_results_age(MAE, EVAL_CONFIG.NAME, csv_file,
+                                             DATA_CONFIG, RESULT_CONFIG)
 
-        print(f"Calculate and save scatterplot results to {RESULT_CONFIG.SAVE_PATH}")
-        draw_age_scatterplot(df, RESULT_CONFIG.SAVE_PATH, MODEL_CONFIG.RUN_ID)
+        csv_file = f"{RESULT_CONFIG.SAVE_PATH}/age_evaluation_scatter_{MODEL_CONFIG.RUN_ID}.png"
+        print(f"Calculate and save scatterplot results to {csv_file}")
+        draw_age_scatterplot(df, csv_file)
 
     # Done.
     run.complete()

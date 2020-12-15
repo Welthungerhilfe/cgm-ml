@@ -99,7 +99,7 @@ def calculate_performance(code, df_mae, RESULT_CONFIG):
     return df_out
 
 
-def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH, DATA_CONFIG, RESULT_CONFIG, RUN_ID):
+def calculate_and_save_results(MAE, complete_name, CSV_OUT_FPATH, DATA_CONFIG, RESULT_CONFIG):
     """Calculate accuracies across the scantypes and save the final results table to the CSV file
     Args:
         MAE: dataframe
@@ -120,9 +120,8 @@ def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH, DATA_CONFIG, RE
     result.index.name = 'Model_Scantype'
     result = result.round(2)
     # Save the model results in csv file
-    Path(CSV_OUT_PATH).mkdir(parents=True, exist_ok=True)
-    csv_file = f"{CSV_OUT_PATH}/{RUN_ID}.csv"
-    result.to_csv(csv_file, index=True)
+    Path(CSV_OUT_FPATH).parent.mkdir(parents=True, exist_ok=True)
+    result.to_csv(CSV_OUT_FPATH, index=True)
 
 
 def calculate_performance_age(code: str, df_mae: pd.DataFrame, RESULT_CONFIG: Bunch) -> pd.DataFrame:
@@ -153,7 +152,7 @@ def calculate_performance_age(code: str, df_mae: pd.DataFrame, RESULT_CONFIG: Bu
     return df_out
 
 
-def calculate_and_save_results_age(MAE: pd.DataFrame, complete_name: str, CSV_OUT_PATH: str, DATA_CONFIG: Bunch, RESULT_CONFIG: Bunch, RUN_ID: str):
+def calculate_and_save_results_age(MAE: pd.DataFrame, complete_name: str, CSV_OUT_FPATH: str, DATA_CONFIG: Bunch, RESULT_CONFIG: Bunch):
     dfs = []
     for code in DATA_CONFIG.CODE_TO_SCANTYPE.keys():
         df = calculate_performance_age(code, MAE, RESULT_CONFIG)
@@ -165,12 +164,11 @@ def calculate_and_save_results_age(MAE: pd.DataFrame, complete_name: str, CSV_OU
     result.index.name = 'Model_Scantype'
     result = result.round(2)
     # Save the model results in csv file
-    Path(CSV_OUT_PATH).mkdir(parents=True, exist_ok=True)
-    csv_file = f"{CSV_OUT_PATH}/age_evaluation_{RUN_ID}.csv"
-    result.to_csv(csv_file, index=True)
+    Path(CSV_OUT_FPATH).parent.mkdir(parents=True, exist_ok=True)
+    result.to_csv(CSV_OUT_FPATH, index=True)
 
 
-def draw_age_scatterplot(df_: pd.DataFrame, SAVE_PATH: str, RUN_ID: str):
+def draw_age_scatterplot(df_: pd.DataFrame, CSV_OUT_FPATH: str):
     """Draw error over age scatterplot
 
     Args:
@@ -188,7 +186,8 @@ def draw_age_scatterplot(df_: pd.DataFrame, SAVE_PATH: str, RUN_ID: str):
     axes = plt.gca()
     axes.set_xlim([0, 2500])
     axes.set_ylim([0, 5])
-    plt.savefig(f"{SAVE_PATH}/age_evaluation_scatter_{RUN_ID}.png")
+    Path(CSV_OUT_FPATH).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(CSV_OUT_FPATH)
     plt.close()
 
 
