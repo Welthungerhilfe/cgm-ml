@@ -14,7 +14,7 @@ from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 
 import utils
-from utils import download_dataset, get_dataset_path, draw_age_scatterplot
+from utils import download_dataset, get_dataset_path, draw_age_scatterplot, calculate_performance, calculate_performance_age
 from constants import REPO_DIR, DATA_DIR_ONLINE_RUN
 
 parser = argparse.ArgumentParser()
@@ -179,13 +179,13 @@ if __name__ == "__main__":
     csv_file = f"{RESULT_CONFIG.SAVE_PATH}/{MODEL_CONFIG.RUN_ID}.csv"
     print(f"Calculate and save the results to {csv_file}")
     utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, csv_file,
-                                     DATA_CONFIG, RESULT_CONFIG)
+                                     DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
         csv_file = f"{RESULT_CONFIG.SAVE_PATH}/age_evaluation_{MODEL_CONFIG.RUN_ID}.csv"
         print(f"Calculate and save age results to {csv_file}")
-        utils.calculate_and_save_results_age(MAE, EVAL_CONFIG.NAME, csv_file,
-                                             DATA_CONFIG, RESULT_CONFIG)
+        utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, csv_file,
+                                         DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
 
         csv_file = f"{RESULT_CONFIG.SAVE_PATH}/age_evaluation_scatter_{MODEL_CONFIG.RUN_ID}.png"
         print(f"Calculate and save scatterplot results to {csv_file}")
