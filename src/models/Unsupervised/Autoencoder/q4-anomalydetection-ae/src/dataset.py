@@ -34,6 +34,19 @@ def create_datasets(workspace, experiment, run, offline_run, CONFIG):
         else:
             raise NameError(f"Unknown DATASET_MODE: {CONFIG.DATASET_MODE}")
 
+    print(f"Using dataset path {dataset_path}")
+
+    # Branch into specific datasets.
+    if dataset_name == "anon_rgb_training":
+        return __create_anon_rgb_training(dataset_path, CONFIG)
+    elif dataset_name == "anomaly_detection_data":
+        return __create_anomaly_detection_data(dataset_path, CONFIG)
+    else:
+        assert False, f"Unexpected dataset {dataset_name}."
+
+
+def __create_anon_rgb_training(dataset_path, CONFIG):
+
     # Get the QR-code paths.
     dataset_path = os.path.join(dataset_path, "scans")
     print("Dataset path:", dataset_path)
@@ -137,4 +150,66 @@ def create_datasets(workspace, experiment, run, offline_run, CONFIG):
     dataset_anomaly = dataset_anomaly.map(lambda sample: tf_preprocess(sample["image"]))
 
     # Done.
+    return dataset_train, dataset_validate, dataset_anomaly
+
+def __create_anomaly_detection_data(dataset_path, CONFIG):
+
+    #dataset_path = os.path.join(dataset_path, "scans")
+    print(glob.glob(os.path.join(dataset_path, "*")))
+
+    good_paths = glob.glob(os.path.join(dataset_path, "not_bad", "*.jpg"))
+    bad_paths = glob.glob(os.path.join(dataset_path, "bad", "*.jpg"))
+
+    random.shuffle(good_paths)
+    split_index = int(0.8 * len(good_paths))
+    paths_training = good_paths[:split_index]
+    paths_validate = good_paths[split_index:]
+    paths_anomaly = bad_paths
+
+    print(f"Training paths: {len(paths_training)}")
+    print(f"Validate paths: {len(paths_validate)}")
+    print(f"anomaly paths: {len(paths_anomaly)}")
+    assert len(paths_training) * len(paths_validate) * len(paths_anomaly) != 0
+
+    # Function for loading and processing images.
+    def tf_load_sample(path):
+        def py_load_sample(path):
+            image_string = tf.io.read_file(path)
+            image_decoded = tf.image.decode_jpeg(image_string, channels=3)
+            image = tf.cast(image_decoded, tf.float32)
+            image = tf.image.resize(image, (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH))
+            image = tf.image.rot90(image, k=3)
+            image = image / 255.0
+            return image
+
+        image = tf.py_function(py_load_sample, [path], [tf.float32])[0]
+        image.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 3))
+        return image
+
+    # Create dataset for training.
+    # Note: Model will do caching et cetera.
+    paths = paths_training
+    dataset = tf.data.Dataset.from_tensor_slices(paths)
+    dataset_norm = dataset.map(lambda path: tf_load_sample(path))
+    dataset_train = dataset_norm
+    del dataset_norm
+
+    # Create dataset for validation.
+    # Note: No shuffle necessary.
+    # Note: Model will do caching et cetera.
+    paths = paths_validate
+    dataset = tf.data.Dataset.from_tensor_slices(paths)
+    dataset_norm = dataset.map(lambda path: tf_load_sample(path))
+    dataset_validate = dataset_norm
+    del dataset_norm
+
+    # Create dataset for validation.
+    # Note: No shuffle necessary.
+    # Note: Model will do caching et cetera.
+    paths = paths_anomaly
+    dataset = tf.data.Dataset.from_tensor_slices(paths)
+    dataset_norm = dataset.map(lambda path: tf_load_sample(path))
+    dataset_anomaly = dataset_norm
+    del dataset_norm
+
     return dataset_train, dataset_validate, dataset_anomaly

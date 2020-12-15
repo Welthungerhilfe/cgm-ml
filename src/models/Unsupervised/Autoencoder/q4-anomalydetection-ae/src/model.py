@@ -29,7 +29,7 @@ class Autoencoder(tf.keras.Model):
         super().__init__()
 
         assert family in ["ae", "vae"], family
-        assert size in ["tiny", "small", "big"]
+        assert size in ["tiny", "small", "big", "huge"]
 
         # Save some parameters.
         self.family = family
@@ -45,6 +45,7 @@ class Autoencoder(tf.keras.Model):
             output_size = latent_dim
         elif self.family == "vae":
             output_size = 2 * latent_dim
+        
         if self.size == "tiny":
             self.encoder = tf.keras.models.Sequential([
                 tf.keras.layers.InputLayer(input_shape=input_shape),
@@ -99,6 +100,36 @@ class Autoencoder(tf.keras.Model):
                 tf.keras.layers.InputLayer(input_shape=(latent_dim,)),
                 tf.keras.layers.Dense(units=np.prod(bridge_shape), activation="relu"),
                 tf.keras.layers.Reshape(bridge_shape),
+                tf.keras.layers.Conv2DTranspose(filters=filters[5], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(filters=filters[4], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(filters=filters[3], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(filters=filters[2], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(filters=filters[1], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(filters=filters[0], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(filters=input_shape[-1], kernel_size=3, strides=(2, 2), padding="same", activation="linear")
+            ])
+        elif self.size == "huge":
+            self.encoder = tf.keras.models.Sequential([
+                tf.keras.layers.InputLayer(input_shape=input_shape),
+                tf.keras.layers.Conv2D(filters=filters[0], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(filters=filters[1], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(filters=filters[2], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(filters=filters[3], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(filters=filters[4], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(filters=filters[5], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(filters=filters[6], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(filters=filters[7], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(filters=filters[8], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Flatten(),
+                tf.keras.layers.Dense(output_size),
+            ])
+
+            self.decoder = tf.keras.models.Sequential([
+                tf.keras.layers.InputLayer(input_shape=(latent_dim,)),
+                tf.keras.layers.Dense(units=np.prod(bridge_shape), activation="relu"),
+                tf.keras.layers.Reshape(bridge_shape),
+                tf.keras.layers.Conv2DTranspose(filters=filters[7], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(filters=filters[6], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
                 tf.keras.layers.Conv2DTranspose(filters=filters[5], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
                 tf.keras.layers.Conv2DTranspose(filters=filters[4], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
                 tf.keras.layers.Conv2DTranspose(filters=filters[3], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
