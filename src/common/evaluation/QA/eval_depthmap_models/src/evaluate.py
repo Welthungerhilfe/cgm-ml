@@ -14,7 +14,7 @@ from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 
 import utils
-from utils import download_dataset, get_dataset_path, draw_age_scatterplot, calculate_performance, calculate_performance_age
+from utils import download_dataset, get_dataset_path, draw_age_scatterplot, calculate_performance, calculate_performance_age, calculate_performance_gender, GENDER_IDX
 from constants import REPO_DIR, DATA_DIR_ONLINE_RUN
 
 parser = argparse.ArgumentParser()
@@ -170,6 +170,8 @@ if __name__ == "__main__":
 
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
         df['GT_age'] = [el[1] for el in target_list]
+    if GENDER_IDX in DATA_CONFIG.TARGET_INDEXES:
+        df['GT_gender'] = [el[2] for el in target_list]
 
     MAE = df.groupby(['qrcode', 'scantype']).mean()
     print("Mean Avg Error: ", MAE)
@@ -190,6 +192,12 @@ if __name__ == "__main__":
         csv_file = f"{RESULT_CONFIG.SAVE_PATH}/age_evaluation_scatter_{MODEL_CONFIG.RUN_ID}.png"
         print(f"Calculate and save scatterplot results to {csv_file}")
         draw_age_scatterplot(df, csv_file)
+
+    if GENDER_IDX in DATA_CONFIG.TARGET_INDEXES:
+        csv_file = f"{RESULT_CONFIG.SAVE_PATH}/gender_evaluation_{MODEL_CONFIG.RUN_ID}.csv"
+        print(f"Calculate and save gender results to {csv_file}")
+        utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, csv_file,
+                                         DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_gender)
 
     # Done.
     run.complete()
