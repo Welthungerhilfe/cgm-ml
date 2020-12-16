@@ -1,21 +1,24 @@
 import argparse
-from importlib import import_module
 import os
-import random
 import pickle
-import glob2 as glob
+import random
 import time
+from importlib import import_module
 
+import glob2 as glob
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from tensorflow.keras.models import load_model
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
+from tensorflow.keras.models import load_model
 
 import utils
-from utils import download_dataset, get_dataset_path, draw_age_scatterplot, calculate_performance, calculate_performance_age, calculate_performance_gender, GENDER_IDX
-from constants import REPO_DIR, DATA_DIR_ONLINE_RUN
+from constants import DATA_DIR_ONLINE_RUN, REPO_DIR
+from utils import (AGE_IDX, GENDER_IDX, GOODBAD_IDX, calculate_performance,
+                   calculate_performance_age, calculate_performance_gender,
+                   calculate_performance_goodbad, download_dataset,
+                   draw_age_scatterplot, get_dataset_path)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--qa_config_module", default="qa_config_42c4ef33", help="Configuration file")
@@ -169,9 +172,14 @@ if __name__ == "__main__":
     df['predicted'] = df['predicted'].astype('float64')
 
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
-        df['GT_age'] = [el[1] for el in target_list]
+        idx = DATA_CONFIG.TARGET_INDEXES.index(AGE_IDX)
+        df['GT_age'] = [el[idx] for el in target_list]
     if GENDER_IDX in DATA_CONFIG.TARGET_INDEXES:
-        df['GT_gender'] = [el[2] for el in target_list]
+        idx = DATA_CONFIG.TARGET_INDEXES.index(GENDER_IDX)
+        df['GT_gender'] = [el[idx] for el in target_list]
+    if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
+        idx = DATA_CONFIG.TARGET_INDEXES.index(GOODBAD_IDX)
+        df['GT_goodbad'] = [el[idx] for el in target_list]
 
     MAE = df.groupby(['qrcode', 'scantype']).mean()
     print("Mean Avg Error: ", MAE)
@@ -198,6 +206,11 @@ if __name__ == "__main__":
         print(f"Calculate and save gender results to {csv_file}")
         utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_gender)
+    if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
+        csv_file = f"{RESULT_CONFIG.SAVE_PATH}/goodbad_evaluation_{MODEL_CONFIG.RUN_ID}.csv"
+        print(f"Calculate performance on bad/good scans and save results to {csv_file}")
+        utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, csv_file,
+                                         DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_goodbad)
 
     # Done.
     run.complete()
