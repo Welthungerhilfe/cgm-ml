@@ -12,8 +12,14 @@ from azureml.core import Experiment, Run, Workspace
 from bunch import Bunch
 
 DAYS_IN_YEAR = 365
+
+HEIGHT_IDX = 0
+WEIGHT_IDX = 1
+MUAC_IDX = 2
+AGE_IDX = 3
 GENDER_IDX = 4
 GOODBAD_IDX = 5
+
 GENDER_DICT = {'female': 0., 'male': 1.}
 GOODBAD_DICT = {'bad': 0., 'good': 1.}
 
@@ -150,6 +156,27 @@ def calculate_performance_gender(code: str, df_mae: pd.DataFrame, RESULT_CONFIG:
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
     df_out.columns = GENDER_DICT.keys()
+    return df_out
+
+
+def calculate_performance_goodbad(code: str, df_mae: pd.DataFrame, RESULT_CONFIG: Bunch) -> pd.DataFrame:
+    df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
+    accuracy_list = []
+    accuracy_thresh = 1.0
+    for _, goodbad_id in GOODBAD_DICT.items():
+        selection = (df_mae_filtered['GT_goodbad'] == goodbad_id)
+        df = df_mae_filtered[selection]
+
+        selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
+        good_predictions = df[selection]
+        if len(df):
+            accuracy = len(good_predictions) / len(df) * 100
+        else:
+            accuracy = 0.
+        accuracy_list.append(accuracy)
+    df_out = pd.DataFrame(accuracy_list)
+    df_out = df_out.T
+    df_out.columns = GOODBAD_DICT.keys()
     return df_out
 
 
