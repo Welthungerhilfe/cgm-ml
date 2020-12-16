@@ -32,13 +32,14 @@ steps:
     path: $(PIP_CACHE_DIR)
   displayName: Cache pip packages
 - script: |
+    pip install flake8==3.8.4
+    flake8 src/
+  displayName: 'flake8'
+- script: |
     python -m pip install --upgrade pip
     pip install setuptools==50.3.2
     pip install -r requirements.txt
   displayName: 'Install dependencies'
-- script: |
-    flake8 src/
-  displayName: 'flake8'
 - script: |
     pytest --cov=src
   displayName: 'pytest'
