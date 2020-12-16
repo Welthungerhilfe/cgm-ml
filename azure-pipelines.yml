@@ -23,6 +23,10 @@ steps:
   inputs:
     versionSpec: '$(python.version)'
   displayName: 'Use Python $(python.version)'
+- script: |
+    pip install flake8==3.8.4
+    flake8 src/
+  displayName: 'flake8'
 - task: Cache@2
   inputs:
     key: 'python | "$(Agent.OS)" | requirements.txt'
@@ -31,10 +35,6 @@ steps:
       python
     path: $(PIP_CACHE_DIR)
   displayName: Cache pip packages
-- script: |
-    pip install flake8==3.8.4
-    flake8 src/
-  displayName: 'flake8'
 - script: |
     python -m pip install --upgrade pip
     pip install setuptools==50.3.2
