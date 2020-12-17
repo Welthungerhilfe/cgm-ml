@@ -5,7 +5,6 @@ import glob2 as glob
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from PIL import Image
 
 from test_config import DATA_CONFIG, RESULT_CONFIG
 
@@ -80,14 +79,14 @@ def calculate_performance(code, df_mae):
 
 def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH):
 
-    ## Calculate accuracies across the scantypes
-
+    '''Calculate accuracies across the scantypes
+    '''
     dfs = []
     for code in DATA_CONFIG.CODE_TO_SCANTYPE.keys():
         df = calculate_performance(code, MAE)
         full_model_name = complete_name + DATA_CONFIG.CODE_TO_SCANTYPE[code]
         df.rename(index={0: full_model_name}, inplace=True)
-        #display(HTML(df.to_html()))
+        # display(HTML(df.to_html()))
         dfs.append(df)
 
     result = pd.concat(dfs)

@@ -8,7 +8,6 @@ import pandas as pd
 import tensorflow as tf
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
-from PIL import Image
 from tensorflow.keras.models import load_model
 
 import utils
