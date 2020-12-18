@@ -1,3 +1,4 @@
+"""Testcases for maskrcnn resize image file."""
 import sys
 from pathlib import Path
 
