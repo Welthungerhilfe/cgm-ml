@@ -195,6 +195,7 @@ def setWidth(value):
     global width
     width = value
 
+
 def setHeight(value):
     global height
     height = value
