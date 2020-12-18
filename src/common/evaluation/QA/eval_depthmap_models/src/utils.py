@@ -49,7 +49,12 @@ def preprocess_targets(targets, targets_indices):
     if GENDER_IDX in targets_indices:
         targets[GENDER_IDX] = GENDER_DICT[targets[GENDER_IDX]]
     if GOODBAD_IDX in targets_indices:
-        targets[GOODBAD_IDX] = GOODBAD_DICT[targets[GOODBAD_IDX]]
+        try:
+            targets[GOODBAD_IDX] = GOODBAD_DICT[targets[GOODBAD_IDX]]
+        except KeyError:
+            print(f"Key '{targets[GOODBAD_IDX]}' not found in GOODBAD_DICT")
+            targets[GOODBAD_IDX] = 0.  # unknown target values will be categorized as 'bad'
+
     if targets_indices is not None:
         targets = targets[targets_indices]
     return targets.astype("float32")
