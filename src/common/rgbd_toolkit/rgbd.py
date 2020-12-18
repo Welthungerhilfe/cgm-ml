@@ -20,7 +20,6 @@ from get_timestamps import get_timestamps_from_pcd, get_timestamps_from_rgb
 sys.path.append('../cgm-ml')
 sys.path.append(os.path.dirname(os.getcwd()))
 
-# check core SDK version number
 print("Azure ML SDK Version: ", azureml.core.VERSION)
 
 warnings.filterwarnings("ignore")
@@ -77,7 +76,6 @@ def get_filename(pcd_file, rgbd_folder, qr_folder):
 
 
 def process_pcd(paths, process_index=0):
-
     pcd_file = paths[0]
     jpg_file = paths[1]
 

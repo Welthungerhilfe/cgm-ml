@@ -44,7 +44,7 @@ def get_timestamps_from_pcd(pcd_paths):
     timestamps = np.array([])
     path = [x for x in pcd_paths]
 
-    #iterate over all paths pointing to pcds
+    # iterate over all paths pointing to pcds
     for p in path:
         try:
             stamp = get_timestamp_from_pcd(p)
