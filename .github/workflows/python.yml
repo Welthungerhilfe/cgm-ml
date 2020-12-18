@@ -17,11 +17,10 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Cache pip
+      id: cache
       uses: actions/cache@v2
       with:
-        # This path is specific to Ubuntu
         path: ~/.cache/pip
-        # Look to see if there is a cache hit for the corresponding requirements file
         key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
