@@ -20,6 +20,7 @@ from utils import (AGE_IDX, GENDER_IDX, GOODBAD_IDX, calculate_performance,
                    calculate_performance_goodbad, download_dataset,
                    draw_age_scatterplot, get_dataset_path)
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--qa_config_module", default="qa_config_42c4ef33", help="Configuration file")
 args = parser.parse_args()
