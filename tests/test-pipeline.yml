@@ -1,0 +1,77 @@
+  trigger:
+    batch: true
+    branches:
+      include:
+      - test-pipeline
+
+  jobs:
+  - job: EvaluationJob
+    timeoutInMinutes: 300
+    cancelTimeoutInMinutes: 2
+
+    pool:
+      vmImage: 'Ubuntu-20.04'
+
+    steps:
+    - script: echo Hello, QA Pipeline!
+      displayName: 'QA Pipeline for cgm-ml-service'
+
+    - bash: |
+        cd tests
+        ls -l
+        source /usr/share/miniconda/etc/profile.d/conda.sh
+        which conda
+        conda env create -f environment.yml
+        conda env list
+        jupyter kernelspec list
+        conda activate CGM_QA_Pipeline
+        conda list
+        conda list | grep nbconvert
+        conda list | grep papermill
+        jupyter kernelspec list
+      displayName: 'Environment Creation'
+    
+    - bash: |
+        echo Login Azure Account
+        az login -t $(sptenent) --service-principal -u $(spidentity) --password $(spsecret)
+        az account set --subscription $(subscriptionid)
+      displayName: 'Azure Login'
+    
+    - bash: |
+        cd tests/QA
+        ls -l
+        source /usr/share/miniconda/etc/profile.d/conda.sh
+        conda activate CGM_QA_Pipeline
+        python auth.py -sid $(subscriptionid) -rg $(RESOURCE_GROUP) -wn $(WORKSPACE_NAME)
+      displayName: 'Saving Workspace Config'
+
+    - bash: |
+        cd tests/QA/eval-depthmap-plaincnn-height
+        ls -l
+        source /usr/share/miniconda/etc/profile.d/conda.sh
+        conda activate CGM_QA_Pipeline
+        echo Executing eval_notebook.ipynb
+        papermill eval_notebook.ipynb depthmap-plaincnn-height_output.ipynb --log-output --no-progress-bar -k python3
+        jupyter nbconvert --to html depthmap-plaincnn-height_output.ipynb
+        ls -l
+      displayName: 'Depthmap PlainCNN Height Model Evaluation'
+
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)'
+        Contents: |
+          tests/QA/eval-depthmap-plaincnn-height/depthmap-plaincnn-height_output.html
+          tests/QA/eval-depthmap-plaincnn-height/*.csv
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+      displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+        artifact: 'Output Notebook'
+        publishLocation: 'pipeline'
+      displayName: 'Publish Results and Output Notebook'
+
+    - bash: |
+        az logout
+      displayName: 'Azure Logout'
