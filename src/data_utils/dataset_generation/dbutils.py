@@ -21,26 +21,27 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 import json
 import os
 
+
 def connect_to_default_database():
     """
     Connects to the database. Should only be used when you want to create a new database. Do not do anything else there. Uses credentials from the JSON file.
     """
-    
+
     json_data = load_dbconnection_file()
-    dbname="postgres"
-    user=json_data["user"]
-    host=json_data["host"]
-    password=json_data["password"]
-    port=json_data["port"]
-    sslmode=json_data["sslmode"]
+    dbname = "postgres"
+    user = json_data["user"]
+    host = json_data["host"]
+    password = json_data["password"]
+    port = json_data["port"]
+    sslmode = json_data["sslmode"]
     return DatabaseInterface(dbname=dbname, user=user, host=host, password=password, port=port, sslmode=sslmode)
-    
-    
+
+
 def connect_to_main_database(connection_file=None):
     """
     Connect to the main database. Uses database name and credentials from the JSON file.
     """
-    
+
     json_data = load_dbconnection_file(connection_file)
     dbname = json_data["dbname"]
     user = json_data["user"]
@@ -48,33 +49,33 @@ def connect_to_main_database(connection_file=None):
     password = json_data["password"]
     port = json_data["port"]
     sslmode = json_data["sslmode"]
-    
+
     print("Host:    {}".format(host))
     print("DB-name: {}".format(dbname))
     return DatabaseInterface(dbname=dbname, user=user, host=host, password=password, port=port, sslmode=sslmode)
-    
-    
+
+
 def load_dbconnection_file(connection_file=None):
     """
     Loads the JSON file.
     """
-    
-    if connection_file == None:
+
+    if connection_file is None:
         connection_file = "dbconnection.json"
-        
+
     print("Loading {}...".format(os.path.abspath(connection_file)))
-    with open(connection_file) as json_file:  
+    with open(connection_file) as json_file:
         json_data = json.load(json_file)
         return json_data
 
-    
+
 class DatabaseInterface:
-    
+
     def __init__(self, dbname, user, host, password, port, sslmode):
         """
         Established a connection to a database.
         """
-        
+
         self.dbname = dbname
         self.user = user
         self.host = host
@@ -82,12 +83,12 @@ class DatabaseInterface:
         self.port = port
         self.sslmode = sslmode
         self.connect()
-    
+
     def connect(self):
         """
         Connects.
         """
-        
+
         self.connection = psycopg2.connect(
             dbname=self.dbname,
             user=self.user,
@@ -99,17 +100,15 @@ class DatabaseInterface:
         self.connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         self.connection.autocommit = True
         self.cursor = self.connection.cursor()
-        
-     
+
     def execute_script_file(self, filename):
         """
         Executes a SQL script file.
         """
-        
+
         script = open(filename, "r").read()
         self.execute(script)
-        
-        
+
     def execute(self, script, fetch_one=False, fetch_all=False):
         """
         Executes an SQL file. Capable of reconnecting if necessary.
@@ -118,74 +117,73 @@ class DatabaseInterface:
         # Try to  execute the script.
         try:
             result = self.cursor.execute(script)
-        
+
         # Could happen. Reconnect. And try again.
         except psycopg2.OperationalError:
             self.connect()
             result = self.cursor.execute(script)
-        
+
         # Commit the statement.
         self.connection.commit()
-        if fetch_one == True:
+        if fetch_one is True:
             result = self.cursor.fetchone()
-        elif fetch_all == True:
+        elif fetch_all is True:
             result = self.cursor.fetchall()
         return result
-        
-    
+
     def get_all_tables(self):
         """
         Retrieves all tables.
         """
-        
+
         self.cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
         tables = [str(table[0]) for table in self.cursor.fetchall()]
         return tables
-    
+
     def clear_table(self, table):
-        result = self.cursor.execute("TRUNCATE TABLE {};".format(table))
+        self.cursor.execute("TRUNCATE TABLE {};".format(table))
         self.connection.commit()
 
     def get_number_of_rows(self, table):
         self.cursor.execute("SELECT COUNT(*) from {};".format(table))
         result = self.cursor.fetchone()
         return result[0]
-    
+
     def get_columns(self, table):
         sql_statement = ""
-        sql_statement += "SELECT column_name, data_type, character_maximum_length FROM INFORMATION_SCHEMA.COLUMNS" 
+        sql_statement += "SELECT column_name, data_type, character_maximum_length FROM INFORMATION_SCHEMA.COLUMNS"
         sql_statement += " WHERE table_name = '{}';".format(table)
         self.cursor.execute(sql_statement)
         results = self.cursor.fetchall()
         columns = [result[0] for result in results]
         return columns
-    
+
 
 def create_insert_statement(table, keys, values, convert_values_to_string=True, use_quotes_for_values=True):
-    if convert_values_to_string == True:
+    if convert_values_to_string is True:
         values = [str(value) for value in values]
-    if use_quotes_for_values == True:
+    if use_quotes_for_values is True:
         values = ["'" + value + "'" for value in values]
-        
+
     sql_statement = "INSERT INTO {}".format(table) + " "
-    
+
     keys_string = "(" + ", ".join(keys) + ")"
     sql_statement += keys_string
-    
+
     values_string = "VALUES (" + ", ".join(values) + ")"
     sql_statement += "\n" + values_string
-    
+
     sql_statement += ";" + "\n"
-    
+
     return sql_statement
 
 
 def create_update_statement(table, keys, values, id_value, convert_values_to_string=True, use_quotes_for_values=True):
-    if convert_values_to_string == True:
+    if convert_values_to_string is True:
         values = [str(value) for value in values]
-    if use_quotes_for_values == True:
+    if use_quotes_for_values is True:
         values = ["'" + value + "'" for value in values]
-        
+
     sql_statement = "UPDATE {}".format(table) + " SET"
     sql_statement += ", ".join([" {} = {}".format(key, value) for key, value in zip(keys, values) if key != id_value])
     sql_statement += " WHERE id = {}".format(id_value)
@@ -195,20 +193,20 @@ def create_update_statement(table, keys, values, id_value, convert_values_to_str
 
 
 def create_select_statement(table, keys=[], values=[], convert_values_to_string=True, use_quotes_for_values=True):
-    if convert_values_to_string == True:
+    if convert_values_to_string is True:
         values = [str(value) for value in values]
-    if use_quotes_for_values == True:
+    if use_quotes_for_values is True:
         values = ["'" + value + "'" for value in values]
 
     sql_statement = "SELECT * FROM {}".format(table)
-    
+
     if len(keys) != 0 and len(values) != 0:
         sql_statement += " WHERE "
         like_statements = []
         for key, value in zip(keys, values):
             like_statement = str(key) + "=" + str(value)
             like_statements.append(like_statement)
-        sql_statement += " AND ".join(like_statements) 
-    
+        sql_statement += " AND ".join(like_statements)
+
     sql_statement += ";" + "\n"
     return sql_statement

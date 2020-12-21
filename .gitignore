@@ -2,6 +2,7 @@
 old/cgm_database/dbconnection.json
 *.ply
 *.png
+test-output.xml
 data/
 vandelay-py.js
 logs/
@@ -12,6 +13,9 @@ src/common/depthmap_toolkit/honor/
 src/common/depthmap_toolkit/output/
 src/common/depthmap_toolkit/export/
 tmp_model_util/
+tmp_eval/
+best_model.ckpt/
+best_model.h5
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -1,9 +1,4 @@
-class dotdict(dict):
-    """dot.notation access to dictionary attributes"""
-    __getattr__ = dict.get
-    __setattr__ = dict.__setitem__
-    __delattr__ = dict.__delitem__
-
+from bunch import Bunch
 
 DATA_AUGMENTATION_SAME_PER_CHANNEL = "same_per_channel"
 DATA_AUGMENTATION_DIFFERENT_EACH_CHANNEL = "different_each_channel"
@@ -12,7 +7,7 @@ DATA_AUGMENTATION_NO = "no"
 SAMPLING_STRATEGY_SYSTEMATIC = "systematic"
 SAMPLING_STRATEGY_WINDOW = "window"
 
-CONFIG = dotdict(dict(
+CONFIG = Bunch(dict(
     SPLIT_SEED=0,
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,

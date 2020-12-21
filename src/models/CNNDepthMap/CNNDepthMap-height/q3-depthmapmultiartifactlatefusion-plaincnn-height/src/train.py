@@ -32,7 +32,7 @@ if run.id.startswith("OfflineRun"):
         shutil.copy(p, temp_model_util_dir)
 
 from tmp_model_util.preprocessing import create_samples  # noqa: E402
-from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback  # noqa: E402
+from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer  # noqa: E402
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
@@ -177,7 +177,9 @@ training_callbacks = [
     checkpoint_callback,
 ]
 
-optimizer = tf.keras.optimizers.Nadam(learning_rate=CONFIG.LEARNING_RATE)
+optimizer = get_optimizer(CONFIG.USE_ONE_CYCLE,
+                          lr=CONFIG.LEARNING_RATE,
+                          n_steps=len(paths_training) / CONFIG.BATCH_SIZE)
 
 # Compile the model.
 model.compile(optimizer=optimizer, loss="mse", metrics=["mae"])

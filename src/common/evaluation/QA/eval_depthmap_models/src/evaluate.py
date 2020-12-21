@@ -1,18 +1,31 @@
+import argparse
+from importlib import import_module
 import os
 import random
 import pickle
+import glob2 as glob
+import time
+
 import numpy as np
 import pandas as pd
-import glob2 as glob
 import tensorflow as tf
 from tensorflow.keras.models import load_model
-
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 
 import utils
-from constants import REPO_DIR
-from qa_config import MODEL_CONFIG, EVAL_CONFIG, DATA_CONFIG, RESULT_CONFIG
+from utils import download_dataset, get_dataset_path, draw_age_scatterplot, calculate_performance, calculate_performance_age
+from constants import REPO_DIR, DATA_DIR_ONLINE_RUN
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--qa_config_module", default="qa_config_42c4ef33", help="Configuration file")
+args = parser.parse_args()
+
+qa_config = import_module(args.qa_config_module)
+MODEL_CONFIG = qa_config.MODEL_CONFIG
+EVAL_CONFIG = qa_config.EVAL_CONFIG
+DATA_CONFIG = qa_config.DATA_CONFIG
+RESULT_CONFIG = qa_config.RESULT_CONFIG
 
 
 # Function for loading and processing depthmaps.
@@ -34,16 +47,24 @@ def tf_load_pickle(path, max_value):
     return depthmap, targets
 
 
-def get_height_prediction(MODEL_PATH, dataset_evaluation):
+def get_prediction(MODEL_PATH, dataset_evaluation):
     '''
-    Perform the height prediction on the dataset
+    Perform the prediction on the dataset with the given model
     Input:
         MODEL_PATH : Path of the trained model
         dataset_evaluation : dataset in which Evaluation
         need to performed
     '''
-    model = load_model(MODEL_PATH)
-    predictions = model.predict(dataset_evaluation.batch(DATA_CONFIG.BATCH_SIZE))
+    model = load_model(MODEL_PATH, compile=False)
+
+    dataset = dataset_evaluation.batch(DATA_CONFIG.BATCH_SIZE)
+
+    print("starting predicting")
+    start = time.time()
+    predictions = model.predict(dataset, batch_size=DATA_CONFIG.BATCH_SIZE)
+    end = time.time()
+    print("Total time for prediction experiment: {} sec".format(end - start))
+
     prediction_list = np.squeeze(predictions)
     return prediction_list
 
@@ -80,7 +101,11 @@ if __name__ == "__main__":
         print("Running in online mode...")
         experiment = run.experiment
         workspace = experiment.workspace
-        dataset_path = run.input_datasets["dataset"]
+        dataset_name = DATA_CONFIG.NAME
+
+        # Download
+        dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
+        download_dataset(workspace, dataset_name, dataset_path)
 
     # Get the QR-code paths.
     dataset_path = os.path.join(dataset_path, "scans")
@@ -107,7 +132,7 @@ if __name__ == "__main__":
 
     print("Using {} artifact files for evaluation.".format(len(paths_evaluation)))
 
-    # Create dataset for training.
+    print("Creating dataset for training.")
     paths = paths_evaluation
     dataset = tf.data.Dataset.from_tensor_slices(paths)
     dataset_norm = dataset.map(lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE))
@@ -115,34 +140,56 @@ if __name__ == "__main__":
     dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
     dataset_evaluation = dataset_norm
     del dataset_norm
+    print("Created dataset for training.")
 
-    #Get the prediction
-    prediction_list_one = get_height_prediction(MODEL_CONFIG.NAME, dataset_evaluation)
+    # Get the prediction
+    if MODEL_CONFIG.NAME.endswith(".h5"):
+        model_path = MODEL_CONFIG.NAME
+    elif MODEL_CONFIG.NAME.endswith(".ckpt"):
+        model_path = f"{MODEL_CONFIG.INPUT_LOCATION}/{MODEL_CONFIG.NAME}"
+    else:
+        raise NameError(f"{MODEL_CONFIG.NAME}'s path extension not supported")
+    prediction_list_one = get_prediction(model_path, dataset_evaluation)
 
     print("Prediction made by model on the depthmaps...")
     print(prediction_list_one)
 
     qrcode_list, scantype_list, artifact_list, prediction_list, target_list = utils.get_column_list(
-        paths_evaluation, prediction_list_one)
+        paths_evaluation, prediction_list_one, DATA_CONFIG)
 
     df = pd.DataFrame({
         'qrcode': qrcode_list,
         'artifact': artifact_list,
         'scantype': scantype_list,
-        'GT': target_list,
+        'GT': [el[0] for el in target_list],
         'predicted': prediction_list
     }, columns=RESULT_CONFIG.COLUMNS)
 
     df['GT'] = df['GT'].astype('float64')
     df['predicted'] = df['predicted'].astype('float64')
 
+    if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
+        df['GT_age'] = [el[1] for el in target_list]
+
     MAE = df.groupby(['qrcode', 'scantype']).mean()
     print("Mean Avg Error: ", MAE)
 
     MAE['error'] = MAE.apply(utils.avgerror, axis=1)
 
-    print("Saving the results")
-    utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, RESULT_CONFIG.SAVE_PATH)
+    csv_file = f"{RESULT_CONFIG.SAVE_PATH}/{MODEL_CONFIG.RUN_ID}.csv"
+    print(f"Calculate and save the results to {csv_file}")
+    utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, csv_file,
+                                     DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
+
+    if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
+        csv_file = f"{RESULT_CONFIG.SAVE_PATH}/age_evaluation_{MODEL_CONFIG.RUN_ID}.csv"
+        print(f"Calculate and save age results to {csv_file}")
+        utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, csv_file,
+                                         DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
+
+        csv_file = f"{RESULT_CONFIG.SAVE_PATH}/age_evaluation_scatter_{MODEL_CONFIG.RUN_ID}.png"
+        print(f"Calculate and save scatterplot results to {csv_file}")
+        draw_age_scatterplot(df, csv_file)
 
     # Done.
     run.complete()
