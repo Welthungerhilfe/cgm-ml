@@ -26,7 +26,6 @@ class Autoencoder(tf.keras.Model):
             latent_dim (int): Size of the latent space.
             size (str): Size of the model.
         """
-
         super().__init__()
 
         assert family in ["ae", "vae"], family
@@ -657,7 +656,7 @@ def render_history(history, loss_names, outputs_path, filename):
 
     print("Rendering history...")
 
-    fig, axes = plt.subplots(len(loss_names), figsize=(8, 12))
+    _, axes = plt.subplots(len(loss_names), figsize=(8, 12))
     if not isinstance(axes, np.ndarray):
         axes = [axes]
     for loss_name, axis in zip(loss_names, axes):
@@ -720,7 +719,7 @@ def render_embeddings(model, dataset_train_samples, dataset_validate_samples, da
     plt.figure(figsize=(12, 12))
     plt.scatter(tsne_results[:, 0], tsne_results[:, 1], s=sizes, c=colors)
 
-    # Rendeer the legend-
+    # Render the legend
     legend_elements = []
     for name, color in zip(set(names), color_lookup):
         legend_elements.append(Line2D([0], [0], marker='o', color=color, label=name, markerfacecolor=color, markersize=15))
