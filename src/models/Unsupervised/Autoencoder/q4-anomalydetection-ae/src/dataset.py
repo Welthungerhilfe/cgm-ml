@@ -1,13 +1,14 @@
-from pathlib import Path
-from tmp_model_util.utils import download_dataset, get_dataset_path
-from config import DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
-from constants import DATA_DIR_ONLINE_RUN
-from constants import REPO_DIR
 import os
-import glob2 as glob
 import random
+from pathlib import Path
+
+import glob2 as glob
 import tensorflow as tf
 import tensorflow_datasets as tfds
+from tmp_model_util.utils import download_dataset, get_dataset_path
+
+from config import DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
+from constants import DATA_DIR_ONLINE_RUN, REPO_DIR
 
 
 def create_datasets(workspace, experiment, run, offline_run, CONFIG):

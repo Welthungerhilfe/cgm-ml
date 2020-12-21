@@ -1,14 +1,9 @@
-class dotdict(dict):
-    """dot.notation access to dictionary attributes"""
-    __getattr__ = dict.get
-    __setattr__ = dict.__setitem__
-    __delattr__ = dict.__delitem__
-
+from bunch import Bunch
 
 DATASET_MODE_DOWNLOAD = "dataset_mode_download"
 DATASET_MODE_MOUNT = "dataset_mode_mount"
 
-CONFIG = dotdict(dict(
+CONFIG = Bunch(dict(
     NAME="Config for training.",
 
     DATASET_MODE=DATASET_MODE_MOUNT,
@@ -61,10 +56,9 @@ CONFIG = dotdict(dict(
     RENDER=True,
     #NORMALIZATION_VALUE=7.5,
     #LEARNING_RATE=0.01,
-
 ))
 
-CONFIG_DEV = dotdict(dict(
+CONFIG_DEV = Bunch(dict(
     NAME="Development only config.",
 
     DATASET_MODE=DATASET_MODE_DOWNLOAD,

@@ -1,16 +1,17 @@
 import glob
+import itertools
+import os
+import time
+
 import imageio
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-import time
-from PIL import Image
-import os
-import itertools
-from sklearn.manifold import TSNE
-from matplotlib.pyplot import cm
 from matplotlib.colors import rgb2hex
 from matplotlib.lines import Line2D
+from matplotlib.pyplot import cm
+from PIL import Image
+from sklearn.manifold import TSNE
 
 
 class Autoencoder(tf.keras.Model):
