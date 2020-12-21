@@ -45,7 +45,7 @@ class Autoencoder(tf.keras.Model):
             output_size = latent_dim
         elif self.family == "vae":
             output_size = 2 * latent_dim
-        
+
         if self.size == "tiny":
             self.encoder = tf.keras.models.Sequential([
                 tf.keras.layers.InputLayer(input_shape=input_shape),
@@ -565,7 +565,6 @@ def render_reconstructions(model, samples_train, samples_validate, samples_anoma
     """
 
     print("Rendering reconstructions...")
-
 
     # Reconstruct all samples.
     reconstructions_train = model.predict(samples_train[:steps], steps=steps)

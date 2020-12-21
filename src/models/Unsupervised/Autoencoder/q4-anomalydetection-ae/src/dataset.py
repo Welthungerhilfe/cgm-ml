@@ -152,6 +152,7 @@ def __create_anon_rgb_training(dataset_path, CONFIG):
     # Done.
     return dataset_train, dataset_validate, dataset_anomaly
 
+
 def __create_anomaly_detection_data(dataset_path, CONFIG):
 
     #dataset_path = os.path.join(dataset_path, "scans")

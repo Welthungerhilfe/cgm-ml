@@ -33,9 +33,9 @@ if offline_run:
 
 print(f"Config: {CONFIG.NAME}")
 
-from model import Autoencoder
-from dataset import create_datasets
-from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback
+from model import Autoencoder   # noqa: E402
+from dataset import create_datasets   # noqa: E402
+from tmp_model_util.utils import AzureLogCallback   # noqa: E402
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)

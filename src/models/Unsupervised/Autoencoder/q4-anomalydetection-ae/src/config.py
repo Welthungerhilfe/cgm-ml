@@ -16,14 +16,14 @@ CONFIG = dotdict(dict(
 
     #DATASET_NAME="anon_rgb_training",
     #DATASET_NAME_LOCAL="anon_rgb_training",
-    
+
     DATASET_NAME="anomaly_detection_data",
     DATASET_NAME_LOCAL="anomaly_detection_data",
-    
+
     DATASET_MAX_SCANS=200,
     DATASET_MAX_SAMPLES_PER_SCAN=10000,
     SPLIT_SEED=0,
-   
+
     MODEL_FAMILY="ae",
 
     #MODEL_SIZE="huge",
@@ -39,7 +39,7 @@ CONFIG = dotdict(dict(
     IMAGE_TARGET_DEPTH=3,
     FILTERS=[32, 32, 64, 64, 128, 128, 256],
     LATENT_DIM=32,
-    
+
     #MODEL_SIZE="small",
     #IMAGE_TARGET_HEIGHT=64,
     #IMAGE_TARGET_WIDTH=64,
@@ -75,7 +75,7 @@ CONFIG_DEV = dotdict(dict(
     SPLIT_SEED=0,
 
     MODEL_FAMILY="ae",
-   
+
     MODEL_SIZE="tiny",
     IMAGE_TARGET_HEIGHT=32,
     IMAGE_TARGET_WIDTH=32,
