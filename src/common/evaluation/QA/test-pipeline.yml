@@ -40,6 +40,8 @@ jobs:
       cd src/common/evaluation/QA/eval_depthmap_models
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
+      pwd
+      ls -al
       ./eval_configs.sh
       ls -l
     displayName: 'Depthmap Height Model Evaluation'
