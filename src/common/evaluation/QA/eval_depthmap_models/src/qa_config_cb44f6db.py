@@ -45,9 +45,9 @@ DATA_CONFIG = Bunch(dict(
     TARGET_INDEXES=[0, 3, 4, 5],  # 0 is height, 1 is weight, 2 is muac, 3 is weight, 4 is sex('male' or 'female'), 5 is quality ('good' or 'bad'), 6 is test
 
     CODE_TO_SCANTYPE={
-        '100': '_front',
-        '101': '_360',
-        '102': '_back',
+        '100': '_standingfront',
+        '101': '_standing360',
+        '102': '_standingback',
         '200': '_lyingfront',
         '201': '_lyingrot',
         '202': '_lyingback',
