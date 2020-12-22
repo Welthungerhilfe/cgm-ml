@@ -34,9 +34,7 @@ RESULT_CONFIG = qa_config.RESULT_CONFIG
 
 # Function for loading and processing depthmaps.
 def tf_load_pickle(path, max_value):
-    '''
-    Utility to load the depthmap pickle file
-    '''
+    """Utility to load the depthmap pickle file"""
     def py_load_pickle(path, max_value):
         depthmap, targets = pickle.load(open(path.numpy(), "rb"))
         depthmap = utils.preprocess_depthmap(depthmap)
@@ -51,15 +49,17 @@ def tf_load_pickle(path, max_value):
     return depthmap, targets
 
 
-def get_prediction(MODEL_PATH, dataset_evaluation):
-    '''
-    Perform the prediction on the dataset with the given model
-    Input:
-        MODEL_PATH : Path of the trained model
-        dataset_evaluation : dataset in which Evaluation
-        need to performed
-    '''
-    model = load_model(MODEL_PATH, compile=False)
+def get_prediction(model_path, dataset_evaluation):
+    """Perform the prediction on the dataset with the given model
+
+    Args:
+        model_path: Path of the trained model
+        dataset_evaluation: dataset in which Evaluation need to performed
+
+    Returns:
+        prediction_list
+    """
+    model = load_model(model_path, compile=False)
 
     dataset = dataset_evaluation.batch(DATA_CONFIG.BATCH_SIZE)
 

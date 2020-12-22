@@ -10,8 +10,7 @@ OUTPUT_FILE_NAME = 'evaluated_models_result.csv'
 
 
 def combine_model_results(csv_file_list: List[str], output_path: str):
-    """
-    Function to combine the models resultant csv files into a single file
+    """Function to combine the models resultant csv files into a single file
 
     Args:
         csv_file_list: list containing absolute path of csv file
