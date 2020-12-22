@@ -118,10 +118,11 @@ def calculate_performance(code, df_mae, result_config):
     return df_out
 
 
-def calculate_and_save_results(MAE: pd.DataFrame, complete_name: str, csv_out_fpath: str, data_config: Bunch, result_config: Bunch, fct: Callable):
+def calculate_and_save_results(df_grouped: pd.DataFrame, complete_name: str, csv_out_fpath: str, data_config: Bunch, result_config: Bunch, fct: Callable):
     """Calculate accuracies across the scantypes and save the final results table to the CSV file
+
     Args:
-        MAE: dataframe
+        df_grouped: dataframe grouped by 'qrcode' and 'scantype
         complete_name: e.g. 'q3-depthmap-plaincnn-height-100-95k-run_17'
         csv_out_fpath: CSV output path
         data_config: bunch containing data config
@@ -130,7 +131,7 @@ def calculate_and_save_results(MAE: pd.DataFrame, complete_name: str, csv_out_fp
     """
     dfs = []
     for code in data_config.CODE_TO_SCANTYPE.keys():
-        df = fct(code, MAE, result_config)
+        df = fct(code, df_grouped, result_config)
         full_model_name = complete_name + data_config.CODE_TO_SCANTYPE[code]
         df.rename(index={0: full_model_name}, inplace=True)
         dfs.append(df)

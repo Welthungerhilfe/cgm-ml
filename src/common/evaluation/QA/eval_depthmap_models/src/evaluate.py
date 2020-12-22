@@ -182,20 +182,20 @@ if __name__ == "__main__":
         idx = DATA_CONFIG.TARGET_INDEXES.index(GOODBAD_IDX)
         df['GT_goodbad'] = [el[idx] for el in target_list]
 
-    MAE = df.groupby(['qrcode', 'scantype']).mean()
-    print("Mean Avg Error: ", MAE)
+    df_grouped = df.groupby(['qrcode', 'scantype']).mean()
+    print("Mean Avg Error: ", df_grouped)
 
-    MAE['error'] = MAE.apply(utils.avgerror, axis=1)
+    df_grouped['error'] = df_grouped.apply(utils.avgerror, axis=1)
 
     csv_file = f"{RESULT_CONFIG.SAVE_PATH}/{MODEL_CONFIG.RUN_ID}.csv"
     print(f"Calculate and save the results to {csv_file}")
-    utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, csv_file,
+    utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                      DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
         csv_file = f"{RESULT_CONFIG.SAVE_PATH}/age_evaluation_{MODEL_CONFIG.RUN_ID}.csv"
         print(f"Calculate and save age results to {csv_file}")
-        utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, csv_file,
+        utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
 
         csv_file = f"{RESULT_CONFIG.SAVE_PATH}/age_evaluation_scatter_{MODEL_CONFIG.RUN_ID}.png"
@@ -205,12 +205,12 @@ if __name__ == "__main__":
     if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_file = f"{RESULT_CONFIG.SAVE_PATH}/sex_evaluation_{MODEL_CONFIG.RUN_ID}.csv"
         print(f"Calculate and save sex results to {csv_file}")
-        utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, csv_file,
+        utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_sex)
     if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_file = f"{RESULT_CONFIG.SAVE_PATH}/goodbad_evaluation_{MODEL_CONFIG.RUN_ID}.csv"
         print(f"Calculate performance on bad/good scans and save results to {csv_file}")
-        utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, csv_file,
+        utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_goodbad)
 
     # Done.
