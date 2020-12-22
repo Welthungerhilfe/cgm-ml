@@ -45,7 +45,8 @@ if __name__ == "__main__":
     ws = Workspace.from_config()
 
     run = Run.get_context()
-    MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if run.id.startswith("OfflineRun") else temp_path
+    USE_LOCAL = False
+    MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if USE_LOCAL else temp_path
     print('MODEL_BASE_DIR:', MODEL_BASE_DIR)
     os.makedirs(MODEL_BASE_DIR, exist_ok=True)
 
