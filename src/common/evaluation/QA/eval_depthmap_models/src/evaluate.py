@@ -26,9 +26,11 @@ MODEL_CONFIG = qa_config.MODEL_CONFIG
 EVAL_CONFIG = qa_config.EVAL_CONFIG
 DATA_CONFIG = qa_config.DATA_CONFIG
 RESULT_CONFIG = qa_config.RESULT_CONFIG
-
+FILTER_CONFIG = qa_config.FILTER_CONFIG
 
 # Function for loading and processing depthmaps.
+
+
 def tf_load_pickle(path, max_value):
     '''
     Utility to load the depthmap pickle file
@@ -110,7 +112,7 @@ if __name__ == "__main__":
     # Get the QR-code paths.
     dataset_path = os.path.join(dataset_path, "scans")
     print("Dataset path:", dataset_path)
-    #print(glob.glob(os.path.join(dataset_path, "*"))) # Debug
+    # print(glob.glob(os.path.join(dataset_path, "*"))) # Debug
     print("Getting QR code paths...")
     qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
     print("QR code paths: ", len(qrcode_paths))
@@ -132,8 +134,26 @@ if __name__ == "__main__":
 
     print("Using {} artifact files for evaluation.".format(len(paths_evaluation)))
 
+    standing = load_model(FILTER_CONFIG.NAME)
+    new_paths_evaluation = paths_evaluation
+
+    if FILTER_CONFIG.SWITCH == 'ON':
+        new_paths_evaluation = []
+        exc = []
+        for p in paths_evaluation:
+            depthmap, targets, image = pickle.load(open(p, "rb"))
+            try:
+                image = utils.process_image(image)
+                if standing.predict(image) > .9:
+                    new_paths_evaluation.append(p)
+            except ValueError:
+                exc.append(image)
+
+    print(len(new_paths_evaluation))
+    print(len(paths_evaluation))
+
     print("Creating dataset for training.")
-    paths = paths_evaluation
+    paths = new_paths_evaluation
     dataset = tf.data.Dataset.from_tensor_slices(paths)
     dataset_norm = dataset.map(lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE))
     dataset_norm = dataset_norm.cache()

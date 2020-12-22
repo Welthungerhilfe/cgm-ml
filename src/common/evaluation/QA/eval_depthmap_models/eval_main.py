@@ -26,6 +26,7 @@ if __name__ == "__main__":
     EVAL_CONFIG = qa_config.EVAL_CONFIG
     DATA_CONFIG = qa_config.DATA_CONFIG
     RESULT_CONFIG = qa_config.RESULT_CONFIG
+    FILTER_CONFIG = qa_config.FILTER_CONFIG
 
     # Create a temp folder
     code_dir = CWD / "src"
@@ -49,6 +50,13 @@ if __name__ == "__main__":
                    input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
                    output_location=temp_path)
 
+    # Copy filter to temp folder
+    download_model(ws=ws,
+                   experiment_name=FILTER_CONFIG.EXPERIMENT_NAME,
+                   run_id=FILTER_CONFIG.RUN_ID,
+                   input_location=os.path.join(FILTER_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
+                   output_location=str(temp_path) + '/' + FILTER_CONFIG.NAME)
+
     experiment = Experiment(workspace=ws, name=EVAL_CONFIG.EXPERIMENT_NAME)
 
     # Find/create a compute target.
@@ -67,7 +75,7 @@ if __name__ == "__main__":
     print("dataset:", dataset)
     print("TF supported versions:", TensorFlow.get_supported_versions())
 
-    #parameters used in the evaluation
+    # parameters used in the evaluation
     script_params = {"--qa_config_module": args.qa_config_module}
     print("script_params:", script_params)
 
@@ -82,6 +90,9 @@ if __name__ == "__main__":
         "tensorflow-addons==0.11.2",
         "bunch==1.0.1"
     ]
+
+    import azureml._restclient.snapshots_client
+    azureml._restclient.snapshots_client. SNAPSHOT_MAX_SIZE_BYTES = 500000000
 
     # Create the estimator.
     estimator = TensorFlow(
@@ -104,19 +115,19 @@ if __name__ == "__main__":
     # Show run.
     print("Run:", run)
 
-    #Check the logs of the current run until is complete
+    # Check the logs of the current run until is complete
     run.wait_for_completion(show_output=True)
 
-    #Print Completed when run is completed
+    # Print Completed when run is completed
     print("Run status:", run.get_status())
 
     end = time.time()
     print("Total time for evaluation experiment: {} sec".format(end - start))
 
-    #Download the evaluation results of the model
+    # Download the evaluation results of the model
     GET_CSV_FROM_EXPERIMENT_PATH = '.'
     run.download_files(RESULT_CONFIG.SAVE_PATH, GET_CSV_FROM_EXPERIMENT_PATH)
     print("Downloaded the result.csv")
 
-    #Delete temp folder
+    # Delete temp folder
     shutil.rmtree(temp_path)
