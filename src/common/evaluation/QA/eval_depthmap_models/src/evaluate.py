@@ -15,8 +15,8 @@ from tensorflow.keras.models import load_model
 
 import utils
 from constants import DATA_DIR_ONLINE_RUN, REPO_DIR
-from utils import (AGE_IDX, GENDER_IDX, GOODBAD_IDX, calculate_performance,
-                   calculate_performance_age, calculate_performance_gender,
+from utils import (AGE_IDX, SEX_IDX, GOODBAD_IDX, calculate_performance,
+                   calculate_performance_age, calculate_performance_sex,
                    calculate_performance_goodbad, download_dataset,
                    draw_age_scatterplot, get_dataset_path)
 
@@ -175,9 +175,9 @@ if __name__ == "__main__":
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
         idx = DATA_CONFIG.TARGET_INDEXES.index(AGE_IDX)
         df['GT_age'] = [el[idx] for el in target_list]
-    if GENDER_IDX in DATA_CONFIG.TARGET_INDEXES:
-        idx = DATA_CONFIG.TARGET_INDEXES.index(GENDER_IDX)
-        df['GT_gender'] = [el[idx] for el in target_list]
+    if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
+        idx = DATA_CONFIG.TARGET_INDEXES.index(SEX_IDX)
+        df['GT_sex'] = [el[idx] for el in target_list]
     if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
         idx = DATA_CONFIG.TARGET_INDEXES.index(GOODBAD_IDX)
         df['GT_goodbad'] = [el[idx] for el in target_list]
@@ -202,11 +202,11 @@ if __name__ == "__main__":
         print(f"Calculate and save scatterplot results to {csv_file}")
         draw_age_scatterplot(df, csv_file)
 
-    if GENDER_IDX in DATA_CONFIG.TARGET_INDEXES:
-        csv_file = f"{RESULT_CONFIG.SAVE_PATH}/gender_evaluation_{MODEL_CONFIG.RUN_ID}.csv"
-        print(f"Calculate and save gender results to {csv_file}")
+    if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
+        csv_file = f"{RESULT_CONFIG.SAVE_PATH}/sex_evaluation_{MODEL_CONFIG.RUN_ID}.csv"
+        print(f"Calculate and save sex results to {csv_file}")
         utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, csv_file,
-                                         DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_gender)
+                                         DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_sex)
     if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_file = f"{RESULT_CONFIG.SAVE_PATH}/goodbad_evaluation_{MODEL_CONFIG.RUN_ID}.csv"
         print(f"Calculate performance on bad/good scans and save results to {csv_file}")

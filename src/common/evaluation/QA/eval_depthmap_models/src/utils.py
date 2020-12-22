@@ -17,10 +17,10 @@ HEIGHT_IDX = 0
 WEIGHT_IDX = 1
 MUAC_IDX = 2
 AGE_IDX = 3
-GENDER_IDX = 4
+SEX_IDX = 4
 GOODBAD_IDX = 5
 
-GENDER_DICT = {'female': 0., 'male': 1.}
+SEX_DICT = {'female': 0., 'male': 1.}
 GOODBAD_DICT = {'bad': 0., 'good': 1.}
 
 
@@ -46,8 +46,8 @@ def preprocess_depthmap(depthmap):
 
 
 def preprocess_targets(targets, targets_indices):
-    if GENDER_IDX in targets_indices:
-        targets[GENDER_IDX] = GENDER_DICT[targets[GENDER_IDX]]
+    if SEX_IDX in targets_indices:
+        targets[SEX_IDX] = SEX_DICT[targets[SEX_IDX]]
     if GOODBAD_IDX in targets_indices:
         try:
             targets[GOODBAD_IDX] = GOODBAD_DICT[targets[GOODBAD_IDX]]
@@ -143,12 +143,12 @@ def calculate_and_save_results(MAE: pd.DataFrame, complete_name: str, CSV_OUT_FP
     result.to_csv(CSV_OUT_FPATH, index=True)
 
 
-def calculate_performance_gender(code: str, df_mae: pd.DataFrame, RESULT_CONFIG: Bunch) -> pd.DataFrame:
+def calculate_performance_sex(code: str, df_mae: pd.DataFrame, RESULT_CONFIG: Bunch) -> pd.DataFrame:
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
     accuracy_list = []
     accuracy_thresh = RESULT_CONFIG.ACCURACY_MAIN_HEIGHT_THRESH
-    for _, gender_id in GENDER_DICT.items():
-        selection = (df_mae_filtered['GT_gender'] == gender_id)
+    for _, sex_id in SEX_DICT.items():
+        selection = (df_mae_filtered['GT_sex'] == sex_id)
         df = df_mae_filtered[selection]
 
         selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
@@ -160,7 +160,7 @@ def calculate_performance_gender(code: str, df_mae: pd.DataFrame, RESULT_CONFIG:
         accuracy_list.append(accuracy)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
-    df_out.columns = GENDER_DICT.keys()
+    df_out.columns = SEX_DICT.keys()
     return df_out
 
 

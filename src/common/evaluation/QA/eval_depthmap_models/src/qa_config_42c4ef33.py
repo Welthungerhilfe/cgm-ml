@@ -39,7 +39,7 @@ DATA_CONFIG = Bunch(dict(
     BATCH_SIZE=512,
     NORMALIZATION_VALUE=7.5,
     # Parameters for dataset generation.
-    TARGET_INDEXES=[0, 3, 4, 5],  # 0 is height, 1 is weight, 2 is muac, 3 is weight, 4 is gender('male' or 'female'), 5 is quality ('good' or 'bad'), 6 is test
+    TARGET_INDEXES=[0, 3, 4, 5],  # 0 is height, 1 is weight, 2 is muac, 3 is weight, 4 is sex('male' or 'female'), 5 is quality ('good' or 'bad'), 6 is test
 
     CODE_TO_SCANTYPE={
         '100': '_front',
