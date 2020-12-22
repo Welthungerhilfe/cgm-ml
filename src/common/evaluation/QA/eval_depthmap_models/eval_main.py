@@ -9,9 +9,11 @@ from pathlib import Path
 from azureml.core import Workspace, Experiment
 from azureml.core.compute import ComputeTarget, AmlCompute
 from azureml.core.compute_target import ComputeTargetException
+from azureml.core.run import Run
 from azureml.train.dnn import TensorFlow
 
 from src.utils import download_model
+from src.constants import REPO_DIR
 
 CWD = Path(__file__).parent
 TAGS = {}
@@ -42,12 +44,16 @@ if __name__ == "__main__":
 
     ws = Workspace.from_config()
 
+    run = Run.get_context()
+    MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if run.id.startswith("OfflineRun") else temp_path
+    os.makedirs(MODEL_BASE_DIR, exist_ok=True)
+
     # Copy model to temp folder
     download_model(ws=ws,
                    experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
                    run_id=MODEL_CONFIG.RUN_ID,
                    input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
-                   output_location=temp_path)
+                   output_location=MODEL_BASE_DIR)
 
     experiment = Experiment(workspace=ws, name=EVAL_CONFIG.EXPERIMENT_NAME)
 

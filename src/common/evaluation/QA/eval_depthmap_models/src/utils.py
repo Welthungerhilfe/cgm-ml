@@ -240,6 +240,14 @@ def draw_age_scatterplot(df_: pd.DataFrame, csv_out_fpath: str):
     plt.close()
 
 
+def get_model_path(MODEL_CONFIG: Bunch) -> str:
+        if MODEL_CONFIG.NAME.endswith(".h5"):
+            return MODEL_CONFIG.NAME
+        elif MODEL_CONFIG.NAME.endswith(".ckpt"):
+            return f"{MODEL_CONFIG.INPUT_LOCATION}/{MODEL_CONFIG.NAME}"
+        raise NameError(f"{MODEL_CONFIG.NAME}'s path extension not supported")
+
+
 def download_model(ws, experiment_name, run_id, input_location, output_location):
     """Download the pretrained model
 

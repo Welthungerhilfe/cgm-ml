@@ -3,6 +3,7 @@ import os
 import pickle
 import random
 import time
+from pathlib import Path
 from importlib import import_module
 
 import glob2 as glob
@@ -19,10 +20,11 @@ from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD,
                    COLUMN_NAME_SEX, GOODBAD_IDX, SEX_IDX,
                    calculate_performance, calculate_performance_age,
                    calculate_performance_goodbad, calculate_performance_sex,
-                   download_dataset, draw_age_scatterplot, get_dataset_path)
+                   download_dataset, draw_age_scatterplot, get_dataset_path,
+                   get_model_path)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--qa_config_module", default="qa_config_42c4ef33", help="Configuration file")
+parser.add_argument("--qa_config_module", default="qa_config_height", help="Configuration file")
 args = parser.parse_args()
 
 qa_config = import_module(args.qa_config_module)
@@ -85,6 +87,7 @@ if __name__ == "__main__":
     run = Run.get_context()
 
     OUTPUT_CSV_PATH = str(REPO_DIR / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
+    MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if run.id.startswith("OfflineRun") else Path('.')
 
     # Offline run. Download the sample dataset and run locally. Still push results to Azure.
     if run.id.startswith("OfflineRun"):
@@ -150,13 +153,7 @@ if __name__ == "__main__":
     del dataset_norm
     print("Created dataset for training.")
 
-    # Get the prediction
-    if MODEL_CONFIG.NAME.endswith(".h5"):
-        model_path = MODEL_CONFIG.NAME
-    elif MODEL_CONFIG.NAME.endswith(".ckpt"):
-        model_path = f"{MODEL_CONFIG.INPUT_LOCATION}/{MODEL_CONFIG.NAME}"
-    else:
-        raise NameError(f"{MODEL_CONFIG.NAME}'s path extension not supported")
+    model_path = MODEL_BASE_DIR / get_model_path(MODEL_CONFIG)
     prediction_list_one = get_prediction(model_path, dataset_evaluation)
 
     print("Prediction made by model on the depthmaps...")
