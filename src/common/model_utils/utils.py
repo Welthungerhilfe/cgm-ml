@@ -102,7 +102,7 @@ def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str)
     print(f"Finished downloading {dataset_name}, Current date and time: ", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
 
-def get_dataset_path(data_dir: Path, dataset_name: str):
+def get_dataset_path(data_dir: Path, dataset_name: str) -> str:
     return str(data_dir / dataset_name)
 
 

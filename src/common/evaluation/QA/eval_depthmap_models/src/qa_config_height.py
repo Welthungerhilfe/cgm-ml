@@ -23,8 +23,8 @@ FILTER_CONFIG = Bunch(dict(
 ))
 
 EVAL_CONFIG = Bunch(dict(
-    # Name of evaluation
-    NAME='q3-depthmap-plaincnn-height-100-95k-run_17',
+    #Name of evaluation
+    NAME='q3-depthmap-plaincnn-height-95k-run_03',
 
     # Experiment in Azure ML which will be used for evaluation
     EXPERIMENT_NAME="QA-pipeline",
@@ -41,8 +41,8 @@ EVAL_CONFIG = Bunch(dict(
 
 # Details of Evaluation Dataset
 DATA_CONFIG = Bunch(dict(
-    # Name of evaluation dataset
-    NAME='anon-depthmap-testset',
+    #Name of evaluation dataset
+    NAME='anon-realtime-testdata',
 
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,

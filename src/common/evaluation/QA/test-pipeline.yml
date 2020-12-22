@@ -2,7 +2,6 @@ trigger:
   branches:
     include:
     - releases/*
-
 pr: none
 
 jobs:
@@ -82,9 +81,12 @@ jobs:
       Contents: |
         src/common/evaluation/QA/eval_depthmap_models/depthmap-*_output.html
         src/common/evaluation/QA/eval_depthmap_models/*.csv
+        src/common/evaluation/QA/eval_depthmap_models/*.png
         src/common/evaluation/QA/eval_depthmap_models/outputs/height/*.csv
+        src/common/evaluation/QA/eval_depthmap_models/outputs/height/*.png
         src/common/evaluation/QA/eval-standardisation-test/standardisation-test_output.html
         src/common/evaluation/QA/eval-standardisation-test/*.csv
+        src/common/evaluation/QA/eval-standardisation-test/*.png
       TargetFolder: '$(Build.ArtifactStagingDirectory)'
     displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
 

@@ -1,0 +1,14 @@
+database:
+    db_connection_file: 'src/data_utils/dataset_generation/dbconnection.json'
+scans:
+    scan_amount : 3000
+calibration:
+    {'Lenovo': 'src/common/depthmap_toolkit/camera_calibration.txt',
+                       'Huawei': 'file not found'}
+data:
+    scangroup: 'test' 
+paths:
+    source_path: '/mnt/bmzdata/cgminbmzprod_v5.0/'
+    target_path: 'src/data_utils/dataset_generation/realtime_evaluation_updated/'
+debug: 
+    debug : True

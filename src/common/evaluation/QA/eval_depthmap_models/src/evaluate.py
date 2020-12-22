@@ -14,11 +14,11 @@ from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 
 import utils
-from utils import download_dataset, get_dataset_path
+from utils import download_dataset, get_dataset_path, draw_age_scatterplot, calculate_performance, calculate_performance_age
 from constants import REPO_DIR, DATA_DIR_ONLINE_RUN
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--qa_config_module", default="qa_config_height", help="Configuration file")
+parser.add_argument("--qa_config_module", default="qa_config_42c4ef33", help="Configuration file")
 args = parser.parse_args()
 
 qa_config = import_module(args.qa_config_module)
@@ -181,21 +181,35 @@ if __name__ == "__main__":
         'qrcode': qrcode_list,
         'artifact': artifact_list,
         'scantype': scantype_list,
-        'GT': target_list,
+        'GT': [el[0] for el in target_list],
         'predicted': prediction_list
     }, columns=RESULT_CONFIG.COLUMNS)
 
     df['GT'] = df['GT'].astype('float64')
     df['predicted'] = df['predicted'].astype('float64')
 
+    if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
+        df['GT_age'] = [el[1] for el in target_list]
+
     MAE = df.groupby(['qrcode', 'scantype']).mean()
     print("Mean Avg Error: ", MAE)
 
     MAE['error'] = MAE.apply(utils.avgerror, axis=1)
 
-    print("Saving the results")
-    utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, RESULT_CONFIG.SAVE_PATH,
-                                     DATA_CONFIG, RESULT_CONFIG, MODEL_CONFIG.RUN_ID)
+    csv_file = f"{RESULT_CONFIG.SAVE_PATH}/{MODEL_CONFIG.RUN_ID}.csv"
+    print(f"Calculate and save the results to {csv_file}")
+    utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, csv_file,
+                                     DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
+
+    if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
+        csv_file = f"{RESULT_CONFIG.SAVE_PATH}/age_evaluation_{MODEL_CONFIG.RUN_ID}.csv"
+        print(f"Calculate and save age results to {csv_file}")
+        utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, csv_file,
+                                         DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
+
+        csv_file = f"{RESULT_CONFIG.SAVE_PATH}/age_evaluation_scatter_{MODEL_CONFIG.RUN_ID}.png"
+        print(f"Calculate and save scatterplot results to {csv_file}")
+        draw_age_scatterplot(df, csv_file)
 
     # Done.
     run.complete()
