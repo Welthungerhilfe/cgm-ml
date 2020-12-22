@@ -15,11 +15,11 @@ from tensorflow.keras.models import load_model
 
 import utils
 from constants import DATA_DIR_ONLINE_RUN, REPO_DIR
-from utils import (AGE_IDX, SEX_IDX, GOODBAD_IDX, calculate_performance,
-                   calculate_performance_age, calculate_performance_sex,
-                   calculate_performance_goodbad, download_dataset,
-                   draw_age_scatterplot, get_dataset_path)
-
+from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD,
+                   COLUMN_NAME_SEX, GOODBAD_IDX, SEX_IDX,
+                   calculate_performance, calculate_performance_age,
+                   calculate_performance_goodbad, calculate_performance_sex,
+                   download_dataset, draw_age_scatterplot, get_dataset_path)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--qa_config_module", default="qa_config_42c4ef33", help="Configuration file")
@@ -174,13 +174,13 @@ if __name__ == "__main__":
 
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
         idx = DATA_CONFIG.TARGET_INDEXES.index(AGE_IDX)
-        df['GT_age'] = [el[idx] for el in target_list]
+        df[COLUMN_NAME_AGE] = [el[idx] for el in target_list]
     if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
         idx = DATA_CONFIG.TARGET_INDEXES.index(SEX_IDX)
-        df['GT_sex'] = [el[idx] for el in target_list]
+        df[COLUMN_NAME_SEX] = [el[idx] for el in target_list]
     if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
         idx = DATA_CONFIG.TARGET_INDEXES.index(GOODBAD_IDX)
-        df['GT_goodbad'] = [el[idx] for el in target_list]
+        df[COLUMN_NAME_GOODBAD] = [el[idx] for el in target_list]
 
     df_grouped = df.groupby(['qrcode', 'scantype']).mean()
     print("Mean Avg Error: ", df_grouped)

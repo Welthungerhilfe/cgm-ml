@@ -23,6 +23,10 @@ GOODBAD_IDX = 5
 SEX_DICT = {'female': 0., 'male': 1.}
 GOODBAD_DICT = {'bad': 0., 'good': 1.}
 
+COLUMN_NAME_AGE = 'GT_age'
+COLUMN_NAME_SEX = 'GT_sex'
+COLUMN_NAME_GOODBAD = 'GT_goodbad'
+
 
 def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
     print("Accessing dataset...")
@@ -149,7 +153,7 @@ def calculate_performance_sex(code: str, df_mae: pd.DataFrame, result_config: Bu
     accuracy_list = []
     accuracy_thresh = result_config.ACCURACY_MAIN_HEIGHT_THRESH
     for _, sex_id in SEX_DICT.items():
-        selection = (df_mae_filtered['GT_sex'] == sex_id)
+        selection = (df_mae_filtered[COLUMN_NAME_SEX] == sex_id)
         df = df_mae_filtered[selection]
 
         selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
@@ -170,7 +174,7 @@ def calculate_performance_goodbad(code: str, df_mae: pd.DataFrame, result_config
     accuracy_list = []
     accuracy_thresh = result_config.ACCURACY_MAIN_HEIGHT_THRESH
     for _, goodbad_id in GOODBAD_DICT.items():
-        selection = (df_mae_filtered['GT_goodbad'] == goodbad_id)
+        selection = (df_mae_filtered[COLUMN_NAME_GOODBAD] == goodbad_id)
         df = df_mae_filtered[selection]
 
         selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
@@ -196,7 +200,7 @@ def calculate_performance_age(code: str, df_mae: pd.DataFrame, result_config: Bu
         age_min = age_min_years * DAYS_IN_YEAR
         age_max = age_max_years * DAYS_IN_YEAR
 
-        selection = (df_mae_filtered['GT_age'] >= age_min) & (df_mae_filtered['GT_age'] <= age_max)
+        selection = (df_mae_filtered[COLUMN_NAME_AGE] >= age_min) & (df_mae_filtered[COLUMN_NAME_AGE] <= age_max)
         df = df_mae_filtered[selection]
 
         selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
@@ -218,12 +222,12 @@ def draw_age_scatterplot(df_: pd.DataFrame, csv_out_fpath: str):
     """Draw error over age scatterplot
 
     Args:
-        df_: Dataframe with columns: qrcode, scantype, GT_age, GT, predicted
+        df_: Dataframe with columns: qrcode, scantype, COLUMN_NAME_AGE, GT, predicted
         csv_out_fpath: File path where plot image will be saved
     """
     df = df_[df_.scantype == '100'].groupby('qrcode').mean()
     df['error'] = df.apply(avgerror, axis=1).abs()
-    plt.scatter(df['GT_age'], df['error'], s=2)
+    plt.scatter(df[COLUMN_NAME_AGE], df['error'], s=2)
     plt.grid()
     plt.title("Per-scan Error over Age")
     plt.xlabel("age")
