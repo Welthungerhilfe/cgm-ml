@@ -15,7 +15,7 @@ from azureml.core.run import Run
 from tensorflow.keras.models import load_model
 
 import utils
-from constants import DATA_DIR_ONLINE_RUN, REPO_DIR
+from constants import DATA_DIR_ONLINE_RUN, REPO_DIR, DEFAULT_CONFIG
 from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD,
                    COLUMN_NAME_SEX, GOODBAD_IDX, SEX_IDX,
                    calculate_performance, calculate_performance_age,
@@ -24,7 +24,7 @@ from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD,
                    get_model_path)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--qa_config_module", default="qa_config_height", help="Configuration file")
+parser.add_argument("--qa_config_module", default=DEFAULT_CONFIG, help="Configuration file")
 args = parser.parse_args()
 
 qa_config = import_module(args.qa_config_module)

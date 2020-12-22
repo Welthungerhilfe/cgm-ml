@@ -13,14 +13,14 @@ from azureml.core.run import Run
 from azureml.train.dnn import TensorFlow
 
 from src.utils import download_model
-from src.constants import REPO_DIR
+from src.constants import REPO_DIR, DEFAULT_CONFIG
 
 CWD = Path(__file__).parent
 TAGS = {}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--qa_config_module", default="qa_config_height", help="Configuration file")
+    parser.add_argument("--qa_config_module", default=DEFAULT_CONFIG, help="Configuration file")
     args = parser.parse_args()
 
     qa_config = import_module(f'src.{args.qa_config_module}')
