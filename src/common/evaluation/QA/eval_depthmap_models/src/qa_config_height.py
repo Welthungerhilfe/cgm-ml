@@ -44,14 +44,7 @@ DATA_CONFIG = Bunch(dict(
     # Parameters for dataset generation.
     TARGET_INDEXES=[0],  # 0 is height, 1 is weight.
 
-    CODE_TO_SCANTYPE={
-        '100': '_standingfront',
-        '101': '_standing360',
-        '102': '_standingback',
-        '200': '_lyingfront',
-        '201': '_lyingrot',
-        '202': '_lyingback',
-    }
+    CODES=['100', '101', '102', '200', '201', '202']
 ))
 
 

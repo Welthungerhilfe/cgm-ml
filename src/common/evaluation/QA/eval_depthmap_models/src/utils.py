@@ -23,6 +23,15 @@ GOODBAD_IDX = 5
 SEX_DICT = {'female': 0., 'male': 1.}
 GOODBAD_DICT = {'bad': 0., 'good': 1.}
 
+CODE_TO_SCANTYPE = {
+    '100': '_standingfront',
+    '101': '_standing360',
+    '102': '_standingback',
+    '200': '_lyingfront',
+    '201': '_lyingrot',
+    '202': '_lyingback',
+}
+
 
 def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
     print("Accessing dataset...")
@@ -129,9 +138,9 @@ def calculate_and_save_results(MAE: pd.DataFrame, complete_name: str, CSV_OUT_FP
         fct: Function to execute on inputs
     """
     dfs = []
-    for code in DATA_CONFIG.CODE_TO_SCANTYPE.keys():
+    for code in DATA_CONFIG.CODES:
         df = fct(code, MAE, RESULT_CONFIG)
-        full_model_name = complete_name + DATA_CONFIG.CODE_TO_SCANTYPE[code]
+        full_model_name = complete_name + CODE_TO_SCANTYPE[code]
         df.rename(index={0: full_model_name}, inplace=True)
         dfs.append(df)
 
