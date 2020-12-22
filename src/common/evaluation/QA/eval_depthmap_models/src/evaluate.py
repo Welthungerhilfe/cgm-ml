@@ -31,7 +31,6 @@ EVAL_CONFIG = qa_config.EVAL_CONFIG
 DATA_CONFIG = qa_config.DATA_CONFIG
 RESULT_CONFIG = qa_config.RESULT_CONFIG
 
-OUTPUT_CSV_PATH = RESULT_CONFIG.SAVE_PATH
 RUN_ID = MODEL_CONFIG.RUN_ID
 
 
@@ -84,6 +83,8 @@ if __name__ == "__main__":
 
     # Get the current run.
     run = Run.get_context()
+
+    OUTPUT_CSV_PATH = str(REPO_DIR / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
 
     # Offline run. Download the sample dataset and run locally. Still push results to Azure.
     if run.id.startswith("OfflineRun"):
