@@ -12,7 +12,7 @@ from azureml.core.run import Run
 
 import posepoints
 import utils
-from config import EVAL_CONFIG, DATA_CONFIG, RESULT_CONFIG
+from config import DATA_CONFIG, EVAL_CONFIG, RESULT_CONFIG
 from constants import REPO_DIR
 
 

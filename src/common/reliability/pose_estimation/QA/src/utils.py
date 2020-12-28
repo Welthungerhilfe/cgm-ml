@@ -1,5 +1,5 @@
-import os
 import glob
+import os
 
 
 def get_file_name(im_path):
@@ -22,7 +22,7 @@ def get_column_list(rgb_path_list):
 
     qrcode_list, artifact_list = [], []
 
-    for idx, path in enumerate(rgb_path_list):
+    for _, path in enumerate(rgb_path_list):
         sub_folder_list = path.split('/')
         qrcode_list.append(sub_folder_list[-3])
         artifact_list.append(sub_folder_list[-1])

@@ -1,7 +1,8 @@
+import os
+import time
+
 import cv2
 import pandas as pd
-import time
-import os
 
 
 def init(proto_txt, model_type):
@@ -135,12 +136,7 @@ def pose_estimate(image_path, net, body_parts, pose_pairs, threshold=0.1, width=
 
     except Exception:
         filename = 'outputs/not_processed.txt'
-
-        if os.path.exists(filename):
-            append_write = 'a'
-        else:
-            append_write = 'w'
-
+        append_write = 'a' if os.path.exists(filename) else 'w'
         exp_write = open(filename, append_write)
         exp_write.write(f"File: {image_path}\n")
         exp_write.close()
