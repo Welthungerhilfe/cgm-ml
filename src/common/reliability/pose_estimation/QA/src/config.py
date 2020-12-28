@@ -4,10 +4,11 @@ class dotdict(dict):
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
 
+
 EVAL_CONFIG = dotdict(dict(
     # Name of evaluation
     NAME='rgbtrain-poseest-95k-run_1',
-    
+
     # Experiment in Azure ML which will be used for evaluation
     EXPERIMENT_NAME="anonrgbtrain_poseestimation_ps",
     CLUSTER_NAME="gpu-cluster",
@@ -25,11 +26,11 @@ EVAL_CONFIG = dotdict(dict(
 DATA_CONFIG = dotdict(dict(
     # Name of training dataset
     NAME='anon_rgb_training',
-        
+
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
 
-    #Batch size for evaluation
+    # Batch size for evaluation
     BATCH_SIZE=256,
     NORMALIZATION_VALUE=7.5,
 
@@ -39,8 +40,8 @@ DATA_CONFIG = dotdict(dict(
     # process sample number of files for testing
     # NUM_SCANFILES = 4,
     # 0 meaning process all files
-    NUM_SCANFILES=0, 
-    
+    NUM_SCANFILES=0,
+
     CODE_TO_SCANTYPE={
         '100': '_front',
         '101': '_360',

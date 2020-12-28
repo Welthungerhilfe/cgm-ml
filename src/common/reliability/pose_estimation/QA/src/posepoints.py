@@ -67,7 +67,7 @@ def add_columns_to_dataframe(body_parts, pose_pairs, df):
         col_name = "P" + str(id_from) + str(id_to)
         pair_cols.append(col_name)
 
-    # add other columns to the dataframe 
+    # add other columns to the dataframe
     df = pd.DataFrame(columns=df.columns.tolist() + pair_cols)
 
     return df, pair_cols
@@ -127,7 +127,7 @@ def pose_estimate(image_path, net, body_parts, pose_pairs, threshold=0.1, width=
                 # print('points ', points)
 
                 # the last pairs, are
-                # - right ankle to right big toe 
+                # - right ankle to right big toe
                 # - left ankle to left big toe
             else:
                 # append [] if no pose points estimated
