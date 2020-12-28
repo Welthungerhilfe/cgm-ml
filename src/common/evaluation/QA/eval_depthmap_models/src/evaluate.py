@@ -69,21 +69,18 @@ def get_prediction(model_path, dataset_evaluation):
     model = load_model(model_path, compile=False)
 
     dataset = dataset_evaluation.batch(1)
-    it = dataset.as_numpy_iterator()
-    sample = next(it)
-    X, y = sample
-    one_batch = np.repeat(X, NUM_PREDICTIONS, axis=0)
 
     print("starting predicting")
     start = time.time()
 
-    # it = dataset.as_numpy_iterator()
-    # one_batch = next(it)
-    predictions = model(one_batch, training=True)
+    for sample in dataset.as_numpy_iterator():
+        X, y = sample
+        one_batch = np.repeat(X, NUM_PREDICTIONS, axis=0)
+        predictions = model(one_batch, training=True)
 
-    mean = tf.math.reduce_mean(predictions)
-    std = tf.math.reduce_std(predictions)
-    # predictions
+        mean = tf.math.reduce_mean(predictions)
+        std = tf.math.reduce_std(predictions)
+        prediction = model(one_batch[0:1], training=False)
 
     end = time.time()
     print("Total time for prediction experiment: {} sec".format(end - start))
