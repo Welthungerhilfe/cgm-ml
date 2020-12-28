@@ -1,0 +1,27 @@
+$ python3 analyseOutput.py 
+Initialize an empty POSE_PAIR dictionary:
+{'P12': 0, 'P15': 0, 'P23': 0, 'P34': 0, 'P56': 0, 'P67': 0, 'P18': 0, 'P89': 0, 'P910': 0, 'P111': 0, 'P1112': 0, 'P1213': 0, 'P10': 0, 'P014': 0, 'P1416': 0, 'P015': 0, 'P1517': 0}
+
+Total no. of images used during training:  107229
+Dataset type and model:  COCO-caffemodel
+BODY_PARTS present in a training image:
+{'Nose': 0, 'Neck': 1, 'RShoulder': 2, 'RElbow': 3, 'RWrist': 4, 'LShoulder': 5, 'LElbow': 6, 'LWrist': 7, 'RHip': 8, 'RKnee': 9, 'RAnkle': 10, 'LHip': 11, 'LKnee': 12, 'LAnkle': 13, 'REye': 14, 'LEye': 15, 'REar': 16, 'LEar': 17, 'Background': 18}
+
+POSE_PAIRS that connect BODY_PARTS:['P12', 'P15', 'P23', 'P34', 'P56', 'P67', 'P18', 'P89', 'P910', 'P111', 'P1112', 'P1213', 'P10', 'P014', 'P1416', 'P015', 'P1517']
+Length of the POSE_PAIR list:17
+
+POSE_PAIR and the corresponding no. of undetected POSE_POINTS from 107229 images: {'P12': 21506, 'P15': 20623, 'P23': 26208, 'P34': 27752, 'P56': 26424, 'P67': 29230, 'P18': 28327, 'P89': 33502, 'P910': 31330, 'P111': 29030, 'P1112': 34541, 'P1213': 33097, 'P10': 57120, 'P014': 61078, 'P1416': 66511, 'P015': 63009, 'P1517': 71547}
+
+
+Total number of undetected POSE_POINTS in all images = 660835
+
+Out of 107229 images, in 91769 images, POSE_POINTS have not been detected
+
+###############EVALUATION################
+
+ACCURACY of CAFFE Pose estimation model = 85.58225853080789%
+POSE_PAIR ['P1517'] has the maximum number of undetected pose points = 71547
+POSE_PAIR ['P15'] has the minimum number of undetected pose points = 20623
+
+Mean of undetected pose_points =  38872.64705882353
+Standard deviation of undetected pose_points = 17234.96737718546
