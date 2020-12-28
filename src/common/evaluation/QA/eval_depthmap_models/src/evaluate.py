@@ -53,35 +53,61 @@ def tf_load_pickle(path, max_value):
     return depthmap, targets
 
 
-NUM_PREDICTIONS = 64
+NUM_PREDICTIONS = 16
 
 
-def get_prediction(model_path, dataset_evaluation):
+def predict_uncertainty(X: np.array, model: tf.keras.Model) -> float:
+    """Predict standard deviation of multiple predictions with different dropouts
+
+    Args:
+        X: Sample image with shape (1, h, w, 1)
+        model: keras model
+
+    Returns:
+        The standard deviation of multiple predictions
+    """
+    one_batch = np.repeat(X, NUM_PREDICTIONS, axis=0)
+    predictions = model(one_batch, training=True)
+    std = tf.math.reduce_std(predictions)
+    return std
+
+
+def get_prediction_uncertainty(model_path: str, dataset_evaluation: tf.data.Dataset) -> np.array:
+    """Predict standard deviation of multiple predictions with different dropouts
+
+    Args:
+        model_path: Path of the trained model
+        dataset_evaluation: dataset in which the evaluation need to performed
+
+    Returns:
+        predictions, array shape (N_SAMPLES, )
+    """
+    model = load_model(model_path, compile=False)
+    dataset = dataset_evaluation.batch(1)
+    print("starting predicting uncertainty")
+    start = time.time()
+    std_list = [predict_uncertainty(X, model) for X, y in dataset.as_numpy_iterator()]
+    end = time.time()
+    print("Total time for uncertainty prediction experiment: {} sec".format(end - start))
+    return np.array(std_list)
+
+
+def get_prediction(model_path: str, dataset_evaluation: tf.data.Dataset) -> np.array:
     """Perform the prediction on the dataset with the given model
 
     Args:
         model_path: Path of the trained model
-        dataset_evaluation: dataset in which Evaluation need to performed
-
+        dataset_evaluation: dataset in which the evaluation need to performed
     Returns:
-        prediction_list
+        predictions, array shape (N_SAMPLES, )
     """
     model = load_model(model_path, compile=False)
 
-    dataset = dataset_evaluation.batch(1)
+    dataset = dataset_evaluation.batch(DATA_CONFIG.BATCH_SIZE)
 
     print("starting predicting")
     start = time.time()
-
-    for sample in dataset.as_numpy_iterator():
-        X, y = sample
-        one_batch = np.repeat(X, NUM_PREDICTIONS, axis=0)
-        predictions = model(one_batch, training=True)
-
-        mean = tf.math.reduce_mean(predictions)
-        std = tf.math.reduce_std(predictions)
-        prediction = model(one_batch[0:1], training=False)
-
+    predictions = model.predict(dataset, batch_size=DATA_CONFIG.BATCH_SIZE)
     end = time.time()
     print("Total time for prediction experiment: {} sec".format(end - start))
 
