@@ -26,6 +26,14 @@ GOODBAD_DICT = {'bad': 0., 'good': 1.}
 COLUMN_NAME_AGE = 'GT_age'
 COLUMN_NAME_SEX = 'GT_sex'
 COLUMN_NAME_GOODBAD = 'GT_goodbad'
+CODE_TO_SCANTYPE = {
+    '100': '_standingfront',
+    '101': '_standing360',
+    '102': '_standingback',
+    '200': '_lyingfront',
+    '201': '_lyingrot',
+    '202': '_lyingback',
+}
 
 
 def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
@@ -134,9 +142,9 @@ def calculate_and_save_results(df_grouped: pd.DataFrame, complete_name: str, csv
         fct: Function to execute on inputs
     """
     dfs = []
-    for code in data_config.CODE_TO_SCANTYPE.keys():
+    for code in data_config.CODES:
         df = fct(code, df_grouped, result_config)
-        full_model_name = complete_name + data_config.CODE_TO_SCANTYPE[code]
+        full_model_name = complete_name + CODE_TO_SCANTYPE[code]
         df.rename(index={0: full_model_name}, inplace=True)
         dfs.append(df)
 
