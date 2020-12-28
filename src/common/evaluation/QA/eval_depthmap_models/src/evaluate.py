@@ -53,6 +53,9 @@ def tf_load_pickle(path, max_value):
     return depthmap, targets
 
 
+NUM_PREDICTIONS = 64
+
+
 def get_prediction(model_path, dataset_evaluation):
     """Perform the prediction on the dataset with the given model
 
@@ -65,11 +68,23 @@ def get_prediction(model_path, dataset_evaluation):
     """
     model = load_model(model_path, compile=False)
 
-    dataset = dataset_evaluation.batch(DATA_CONFIG.BATCH_SIZE)
+    dataset = dataset_evaluation.batch(1)
+    it = dataset.as_numpy_iterator()
+    sample = next(it)
+    X, y = sample
+    one_batch = np.repeat(X, NUM_PREDICTIONS, axis=0)
 
     print("starting predicting")
     start = time.time()
-    predictions = model.predict(dataset, batch_size=DATA_CONFIG.BATCH_SIZE)
+
+    # it = dataset.as_numpy_iterator()
+    # one_batch = next(it)
+    predictions = model(one_batch, training=True)
+
+    mean = tf.math.reduce_mean(predictions)
+    std = tf.math.reduce_std(predictions)
+    # predictions
+
     end = time.time()
     print("Total time for prediction experiment: {} sec".format(end - start))
 

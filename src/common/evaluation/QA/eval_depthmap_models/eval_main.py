@@ -47,7 +47,7 @@ if __name__ == "__main__":
     run = Run.get_context()
 
     # When we run scripts locally(e.g. for debugging), we want to use another directory
-    USE_LOCAL = False
+    USE_LOCAL = True
 
     MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if USE_LOCAL else temp_path
     print('MODEL_BASE_DIR:', MODEL_BASE_DIR)
