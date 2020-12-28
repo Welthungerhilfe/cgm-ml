@@ -1,12 +1,9 @@
-import pandas as pd
 import os
-import sys
 import random
-import numpy as np
-import cv2 as cv
-import re
 
-from azureml.core import Workspace, Datastore, Dataset
+import cv2 as cv
+import numpy as np
+from azureml.core import Dataset, Workspace
 
 
 def getMountContext(path):
