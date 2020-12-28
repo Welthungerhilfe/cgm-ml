@@ -28,6 +28,15 @@ permissible_measure = {'HEIGHT':
                        {'GOOD': 2.0, 'ACCEPTABLE': 2.7, 'POOR': 3.3, 'REJECT': None}
                        }
 
+CODE_TO_SCANTYPE = {
+    '100': '_standingfront',
+    '101': '_standing360',
+    '102': '_standingback',
+    '200': '_lyingfront',
+    '201': '_lyingrot',
+    '202': '_lyingback',
+}
+
 
 def get_intra_TEM(measure_one, measure_two):
     '''
@@ -127,9 +136,9 @@ def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH):
     Calculate accuracies across the scantypes
     '''
     dfs = []
-    for code in DATA_CONFIG.CODE_TO_SCANTYPE.keys():
+    for code in DATA_CONFIG.CODES:
         df = calculate_performance(code, MAE)
-        full_model_name = complete_name + DATA_CONFIG.CODE_TO_SCANTYPE[code]
+        full_model_name = complete_name + CODE_TO_SCANTYPE[code]
         df.rename(index={0: full_model_name}, inplace=True)
         #display(HTML(df.to_html()))
         dfs.append(df)
