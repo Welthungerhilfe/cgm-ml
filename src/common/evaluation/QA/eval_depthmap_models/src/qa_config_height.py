@@ -24,7 +24,7 @@ EVAL_CONFIG = Bunch(dict(
     DEBUG_RUN=True,
 
     #Will run eval on specified # of scan instead of full dataset
-    DEBUG_NUMBER_OF_SCAN=10,
+    DEBUG_NUMBER_OF_SCAN=2,
 
     SPLIT_SEED=0,
 ))

@@ -23,11 +23,15 @@ from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD,
                    download_dataset, draw_age_scatterplot, get_dataset_path,
                    get_model_path)
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--qa_config_module", default=DEFAULT_CONFIG, help="Configuration file")
-args = parser.parse_args()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--qa_config_module", default=DEFAULT_CONFIG, help="Configuration file")
+    args = parser.parse_args()
+    qa_config = import_module(args.qa_config_module)
+else:
+    qa_config = import_module(DEFAULT_CONFIG)
 
-qa_config = import_module(args.qa_config_module)
+
 MODEL_CONFIG = qa_config.MODEL_CONFIG
 EVAL_CONFIG = qa_config.EVAL_CONFIG
 DATA_CONFIG = qa_config.DATA_CONFIG
