@@ -10,18 +10,16 @@ sys.path.append("..")
 
 
 def load_param_config():
-    """
-    Loading configuration file containing Model and Dataset type
-    """
+    """Loading configuration file containing Model and Dataset type"""
     ds = DATA_CONFIG.DATASETTYPE_PATH
     model = DATA_CONFIG.MODELTYPE_PATH
     print("Dataset type = {}\n Model = {} ".format(ds, model))
     return ds
 
+
 def initialisation(dataset="default-dataset"):
-    """
-    Initialising an empty POSE_PAIR dictionary according to the
-    dataset type used for training the model.
+    """Initialise an empty POSE_PAIR dictionary according to the dataset type used for training the model.
+
     During analysis, if a pose pair is found missing for an image
     then the value corresponding to the pose pair is incremented
     and saved in this dictionary
@@ -58,6 +56,7 @@ def initialisation(dataset="default-dataset"):
               format(pose_pair))
     return pose_pair
 
+
 def set_pose_pair_body_parts(dataset_typ, num_qrcodes):
     """
     This function is called to set pose details such as POSE_PAIRS
@@ -79,10 +78,9 @@ def set_pose_pair_body_parts(dataset_typ, num_qrcodes):
     l: int = len(columns)
     print("Length of the POSE_PAIR list:{}\n".format(l))
 
+
 def load_json():
-    """
-    Load the training result of the Pose estimation model
-    """
+    """Load the training result of the Pose estimation model"""
     with open("pose_estimation_output.json", "r") as f:
         data = json.load(f)
     # The experiment is ran on 1/6th (107229) of the total
@@ -92,9 +90,9 @@ def load_json():
     print("No. of artifacts = ", num_of_artifacts)
     return data, num_of_artifacts
 
+
 def analyse(data, pose_pair, num_qrcodes):
-    """
-    Parse anonrgbtrain_poseestimation_ps_posepoints.json file to
+    """Parse anonrgbtrain_poseestimation_ps_posepoints.json file to
     detect missing posepoints for each POSE_PAIR in all the images
     """
     missing_posepair = []

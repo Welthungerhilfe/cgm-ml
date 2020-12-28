@@ -1,4 +1,4 @@
-$ python3 analyseOutput.py 
+$ python3 analyseOutput.py
 Initialize an empty POSE_PAIR dictionary:
 {'P12': 0, 'P15': 0, 'P23': 0, 'P34': 0, 'P56': 0, 'P67': 0, 'P18': 0, 'P89': 0, 'P910': 0, 'P111': 0, 'P1112': 0, 'P1213': 0, 'P10': 0, 'P014': 0, 'P1416': 0, 'P015': 0, 'P1517': 0}
 
