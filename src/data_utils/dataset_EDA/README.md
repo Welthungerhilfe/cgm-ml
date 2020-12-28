@@ -1,28 +1,26 @@
-
-
 ## Introduction
 
 Here you will find the Exploratory Data Analysis (EDA) notebooks for our various datasets.
 
 ### anon-depthmaps-56k
 
-This Exploratory Data Analysis (EDA) notebook provide the data analysis of the [anon-depthmaps-56k](https://ml.azure.com/dataset/anon-depthmaps-56k/latest/details?wsid=/subscriptions/9b82ecea-6780-4b85-8acf-d27d79028f07/resourceGroups/cgm-ml-prod/providers/Microsoft.MachineLearningServices/workspaces/cgm-azureml-prod&tid=006dabd7-456d-465b-a87f-f7d557e319c8). The dataset contains 2106 scans of children in depthmap and pcd format. The files are in pickle format and the 0 index contains the depthmap, index 1 have height and index 2 weight. 
+    This Exploratory Data Analysis (EDA) notebook provide the data analysis of the [anon-depthmaps-56k](https://ml.azure.com/dataset/anon-depthmaps-56k/latest/details?wsid=/subscriptions/9b82ecea-6780-4b85-8acf-d27d79028f07/resourceGroups/cgm-ml-prod/providers/Microsoft.MachineLearningServices/workspaces/cgm-azureml-prod&tid=006dabd7-456d-465b-a87f-f7d557e319c8). The dataset contains 2106 scans of children in depthmap and pcd format. The files are in pickle format and the 0 index contains the depthmap, index 1 have height and index 2 weight. 
 
 ### anon-depthmap-testset
 
-This Exploratory Data Analysis (EDA) notebook provide the data analysis of the [anon-depthmap-testset](https://ml.azure.com/dataset/anon-depthmap-testset/latest/details?wsid=/subscriptions/9b82ecea-6780-4b85-8acf-d27d79028f07/resourceGroups/cgm-ml-prod/providers/Microsoft.MachineLearningServices/workspaces/cgm-azureml-prod&tid=006dabd7-456d-465b-a87f-f7d557e319c8). The dataset contains 1745 scans of children in depthmap format. The files are in pickle format and the 0 index contains the depthmap, index 1 have height and index 2 weight. 
+    This Exploratory Data Analysis (EDA) notebook provide the data analysis of the [anon-depthmap-testset](https://ml.azure.com/dataset/anon-depthmap-testset/latest/details?wsid=/subscriptions/9b82ecea-6780-4b85-8acf-d27d79028f07/resourceGroups/cgm-ml-prod/providers/Microsoft.MachineLearningServices/workspaces/cgm-azureml-prod&tid=006dabd7-456d-465b-a87f-f7d557e319c8). The dataset contains 1745 scans of children in depthmap format. The files are in pickle format and the 0 index contains the depthmap, index 1 have height and index 2 weight. 
 
 ### anon-pcd-opensource
 
-This Exploratory Data Analysis (EDA) notebook provide the data analysis of the [anon-pcd-opensource](https://ml.azure.com/dataset/anon-pcd-opensource/latest/details?wsid=/subscriptions/9b82ecea-6780-4b85-8acf-d27d79028f07/resourceGroups/cgm-ml-prod/providers/Microsoft.MachineLearningServices/workspaces/cgm-azureml-prod&tid=006dabd7-456d-465b-a87f-f7d557e319c8). The dataset contains 4858 scans of children in pcd format. 
+    This Exploratory Data Analysis (EDA) notebook provide the data analysis of the [anon-pcd-opensource](https://ml.azure.com/dataset/anon-pcd-opensource/latest/details?wsid=/subscriptions/9b82ecea-6780-4b85-8acf-d27d79028f07/resourceGroups/cgm-ml-prod/providers/Microsoft.MachineLearningServices/workspaces/cgm-azureml-prod&tid=006dabd7-456d-465b-a87f-f7d557e319c8). The dataset contains 4858 scans of children in pcd format. 
 
 ### anon-depthmap-95k
 
-This Exploratory Data Analysis (EDA) notebook provide the data analysis of the [anon-depthmap-95k](https://ml.azure.com/dataset/anon-depthmap-95k/latest/details?wsid=/subscriptions/9b82ecea-6780-4b85-8acf-d27d79028f07/resourceGroups/cgm-ml-prod/providers/Microsoft.MachineLearningServices/workspaces/cgm-azureml-prod&tid=006dabd7-456d-465b-a87f-f7d557e319c8). The dataset contains 4858 scans of children in depthmap format. The files are in pickle format and the 0 index contains the depthmap, index 1 have height and index 2 weight.
+    This Exploratory Data Analysis (EDA) notebook provide the data analysis of the [anon-depthmap-95k](https://ml.azure.com/dataset/anon-depthmap-95k/latest/details?wsid=/subscriptions/9b82ecea-6780-4b85-8acf-d27d79028f07/resourceGroups/cgm-ml-prod/providers/Microsoft.MachineLearningServices/workspaces/cgm-azureml-prod&tid=006dabd7-456d-465b-a87f-f7d557e319c8). The dataset contains 4858 scans of children in depthmap format. The files are in pickle format and the 0 index contains the depthmap, index 1 have height and index 2 weight.
 
 ### anon-realtime-evaluation
 
-This Exploratory Data Analysis (EDA) notebook provide the data analysis of the [anon-realtime-evaluation](https://ml.azure.com/dataset/anon-realtime-evaluation/latest/details?wsid=/subscriptions/9b82ecea-6780-4b85-8acf-d27d79028f07/resourceGroups/cgm-ml-prod/providers/Microsoft.MachineLearningServices/workspaces/cgm-azureml-prod&tid=006dabd7-456d-465b-a87f-f7d557e319c8). The dataset contains 3000 scans of children in depthmap, Pointclouds and RGB format. 
+    This Exploratory Data Analysis (EDA) notebook provide the data analysis of the [anon-realtime-evaluation](https://ml.azure.com/dataset/anon-realtime-evaluation/latest/details?wsid=/subscriptions/9b82ecea-6780-4b85-8acf-d27d79028f07/resourceGroups/cgm-ml-prod/providers/Microsoft.MachineLearningServices/workspaces/cgm-azureml-prod&tid=006dabd7-456d-465b-a87f-f7d557e319c8). The dataset contains 3000 scans of children in depthmap, Pointclouds and RGB format. 
 
 
 ## Getting started
