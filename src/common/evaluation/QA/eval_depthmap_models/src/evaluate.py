@@ -86,13 +86,17 @@ def get_prediction_uncertainty(model_path: str, dataset_evaluation: tf.data.Data
     Returns:
         predictions, array shape (N_SAMPLES, )
     """
+    print(f"loading model from {model_path}")
     model = load_model(model_path, compile=False)
+
     dataset = dataset_evaluation.batch(1)
+
     print("starting predicting uncertainty")
     start = time.time()
     std_list = [predict_uncertainty(X, model) for X, y in dataset.as_numpy_iterator()]
     end = time.time()
     print(f"Total time for uncertainty prediction experiment: {end - start:.3} sec")
+
     return np.array(std_list)
 
 
@@ -105,6 +109,7 @@ def get_prediction(model_path: str, dataset_evaluation: tf.data.Dataset) -> np.a
     Returns:
         predictions, array shape (N_SAMPLES, )
     """
+    print(f"loading model from {model_path}")
     model = load_model(model_path, compile=False)
 
     dataset = dataset_evaluation.batch(DATA_CONFIG.BATCH_SIZE)
