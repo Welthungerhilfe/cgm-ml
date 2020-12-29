@@ -3,8 +3,8 @@ import os
 import pickle
 import random
 import time
-from pathlib import Path
 from importlib import import_module
+from pathlib import Path
 
 import glob2 as glob
 import numpy as np
@@ -15,12 +15,13 @@ from azureml.core.run import Run
 from tensorflow.keras.models import load_model
 
 import utils
-from constants import DATA_DIR_ONLINE_RUN, REPO_DIR, DEFAULT_CONFIG
+from constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR
 from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD,
                    COLUMN_NAME_SEX, GOODBAD_IDX, SEX_IDX,
                    calculate_performance, calculate_performance_age,
                    calculate_performance_goodbad, calculate_performance_sex,
-                   download_dataset, draw_age_scatterplot, get_dataset_path,
+                   download_dataset, draw_age_scatterplot,
+                   draw_uncertainty_goodbad_plot, get_dataset_path,
                    get_model_path)
 
 if __name__ == "__main__":
@@ -92,7 +93,7 @@ def get_prediction_uncertainty(model_path: str, dataset_evaluation: tf.data.Data
     start = time.time()
     std_list = [predict_uncertainty(X, model) for X, y in dataset.as_numpy_iterator()]
     end = time.time()
-    print("Total time for uncertainty prediction experiment: {} sec".format(end - start))
+    print(f"Total time for uncertainty prediction experiment: {end - start:.3} sec")
     return np.array(std_list)
 
 
@@ -113,7 +114,7 @@ def get_prediction(model_path: str, dataset_evaluation: tf.data.Dataset) -> np.a
     start = time.time()
     predictions = model.predict(dataset, batch_size=DATA_CONFIG.BATCH_SIZE)
     end = time.time()
-    print("Total time for prediction experiment: {} sec".format(end - start))
+    print(f"Total time for prediction experiment: {end - start:.3} sec")
 
     prediction_list = np.squeeze(predictions)
     return prediction_list
@@ -197,7 +198,6 @@ if __name__ == "__main__":
 
     model_path = MODEL_BASE_DIR / get_model_path(MODEL_CONFIG)
     prediction_list_one = get_prediction(model_path, dataset_evaluation)
-
     print("Prediction made by model on the depthmaps...")
     print(prediction_list_one)
 
@@ -241,9 +241,9 @@ if __name__ == "__main__":
         utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
 
-        csv_file = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{RUN_ID}.png"
-        print(f"Calculate and save scatterplot results to {csv_file}")
-        draw_age_scatterplot(df, csv_file)
+        png_file = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{RUN_ID}.png"
+        print(f"Calculate and save scatterplot results to {png_file}")
+        draw_age_scatterplot(df, png_file)
 
     if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_file = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"
@@ -255,6 +255,18 @@ if __name__ == "__main__":
         print(f"Calculate performance on bad/good scans and save results to {csv_file}")
         utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_goodbad)
+
+    if RESULT_CONFIG.USE_UNCERTAINTY:
+        assert GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES
+        assert COLUMN_NAME_GOODBAD in df
+
+        # Predict uncertainty
+        uncertainty_list_one = get_prediction_uncertainty(model_path, dataset_evaluation)
+        assert len(df) == len(uncertainty_list_one)
+        df['uncertainties'] = uncertainty_list_one
+
+        png_file = f"{OUTPUT_CSV_PATH}/uncertainty_distribution_{RUN_ID}.png"
+        draw_uncertainty_goodbad_plot(df, png_file)
 
     # Done.
     run.complete()

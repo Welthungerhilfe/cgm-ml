@@ -54,6 +54,8 @@ RESULT_CONFIG = Bunch(dict(
 
     COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],
 
+    USE_UNCERTAINTY=False,
+
     #path of csv file in the experiment which final result is stored
     SAVE_PATH='./outputs/height',
 ))

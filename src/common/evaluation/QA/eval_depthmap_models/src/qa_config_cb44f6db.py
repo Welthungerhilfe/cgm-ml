@@ -21,10 +21,10 @@ EVAL_CONFIG = Bunch(dict(
     CLUSTER_NAME="gpu-cluster",
 
     #Used for Debug the QA pipeline
-    DEBUG_RUN=False,
+    DEBUG_RUN=True,
 
     #Will run eval on specified # of scan instead of full dataset
-    DEBUG_NUMBER_OF_SCAN=5,
+    DEBUG_NUMBER_OF_SCAN=20,
 
     SPLIT_SEED=0,
 ))
@@ -57,6 +57,8 @@ RESULT_CONFIG = Bunch(dict(
     AGE_BUCKETS=[0, 1, 2, 3, 4, 5],
 
     COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],
+
+    USE_UNCERTAINTY=True,
 
     #path of csv file in the experiment which final result is stored
     SAVE_PATH='./outputs/height',

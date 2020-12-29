@@ -226,15 +226,16 @@ def calculate_performance_age(code: str, df_mae: pd.DataFrame, result_config: Bu
     return df_out
 
 
-def draw_uncertainty_goodbad_plot(df: pd.DataFrame, csv_out_fpath: str):
+def draw_uncertainty_goodbad_plot(df_: pd.DataFrame, csv_out_fpath: str):
     """Take all good samples and plot error distributions. Do the same for bad samples.
 
     Args:
         df: Dataframe with columns: goodbad and uncertainties
         csv_out_fpath (str): File path where plot image will be saved
     """
-    df_good = df[df.goodbad == 1.0]
-    df_bad = df[df.goodbad == 0.0]
+    df = df_[df_.uncertainties.notna()]
+    df_good = df[df[COLUMN_NAME_GOODBAD] == 1.0]
+    df_bad = df[df[COLUMN_NAME_GOODBAD] == 0.0]
 
     good = list(df_good.uncertainties)
     bad = list(df_bad.uncertainties)
@@ -243,6 +244,7 @@ def draw_uncertainty_goodbad_plot(df: pd.DataFrame, csv_out_fpath: str):
 
     plt.hist(good, bins, alpha=0.5, label='good')
     plt.hist(bad, bins, alpha=0.5, label='bad')
+    plt.title(f"Uncertainty plot: n_good={len(good)}, n_bad={len(bad)}")
     plt.xlabel("error in cm")
     plt.ylabel("occurrence count")
     plt.legend(loc='upper right')
