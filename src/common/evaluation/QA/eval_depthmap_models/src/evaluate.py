@@ -128,7 +128,7 @@ if __name__ == "__main__":
     # Get the current run.
     run = Run.get_context()
 
-    OUTPUT_CSV_PATH = str(REPO_DIR / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
+    OUTPUT_CSV_PATH = str(REPO_DIR / 'data' / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
     MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if run.id.startswith("OfflineRun") else Path('.')
 
     # Offline run. Download the sample dataset and run locally. Still push results to Azure.
