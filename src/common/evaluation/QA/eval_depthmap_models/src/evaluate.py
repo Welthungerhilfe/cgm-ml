@@ -40,6 +40,8 @@ RESULT_CONFIG = qa_config.RESULT_CONFIG
 
 RUN_ID = MODEL_CONFIG.RUN_ID
 
+NUM_PREDICTIONS = 16
+
 
 # Function for loading and processing depthmaps.
 def tf_load_pickle(path, max_value):
@@ -56,9 +58,6 @@ def tf_load_pickle(path, max_value):
     depthmap.set_shape((DATA_CONFIG.IMAGE_TARGET_HEIGHT, DATA_CONFIG.IMAGE_TARGET_WIDTH, 1))
     targets.set_shape((len(DATA_CONFIG.TARGET_INDEXES,)))
     return depthmap, targets
-
-
-NUM_PREDICTIONS = 16
 
 
 def predict_uncertainty(X: np.array, model: tf.keras.Model) -> float:
