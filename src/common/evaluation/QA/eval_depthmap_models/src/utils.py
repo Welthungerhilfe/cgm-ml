@@ -245,7 +245,7 @@ def draw_uncertainty_goodbad_plot(df_: pd.DataFrame, csv_out_fpath: str):
     plt.hist(good, bins, alpha=0.5, label='good')
     plt.hist(bad, bins, alpha=0.5, label='bad')
     plt.title(f"Uncertainty plot: n_good={len(good)}, n_bad={len(bad)}")
-    plt.xlabel("error in cm")
+    plt.xlabel("uncertainty in cm")
     plt.ylabel("occurrence count")
     plt.legend(loc='upper right')
 
