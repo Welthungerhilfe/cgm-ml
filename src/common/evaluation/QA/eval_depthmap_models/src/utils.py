@@ -248,6 +248,12 @@ def draw_uncertainty_goodbad_plot(df_: pd.DataFrame, csv_out_fpath: str):
     plt.xlabel("error in cm")
     plt.ylabel("occurrence count")
     plt.legend(loc='upper right')
+
+    mean_good = float(df_good.uncertainties.mean())
+    mean_bad = float(df_bad.uncertainties.mean())
+    plt.axvline(mean_good, color='g', linestyle='dashed', linewidth=2)
+    plt.axvline(mean_bad, color='r', linestyle='dashed', linewidth=2)
+
     plt.savefig(csv_out_fpath)
     plt.close()
 
