@@ -12,7 +12,8 @@ import pandas as pd
 import tensorflow as tf
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
-from tensorflow.keras.models import load_model
+from tensorflow.keras.models import load_model, Sequential
+from tensorflow.python.keras import layers
 
 import utils
 from constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR
@@ -41,6 +42,7 @@ RESULT_CONFIG = qa_config.RESULT_CONFIG
 RUN_ID = MODEL_CONFIG.RUN_ID
 
 NUM_PREDICTIONS = 16
+DROPOUT_STRENGTH = 2  # 1.0 means like original model
 
 
 # Function for loading and processing depthmaps.
@@ -99,6 +101,13 @@ def get_prediction_uncertainty(model_path: str, dataset_evaluation: tf.data.Data
     """
     print(f"loading model from {model_path}")
     model = load_model(model_path, compile=False)
+
+    new_model = Sequential(name="new_model")
+    for layer in model.layers:
+        if isinstance(layer, layers.core.Dropout):
+            layer.rate = min(0.999, layer.rate * DROPOUT_STRENGTH)
+        new_model.add(layer)
+    model = new_model
 
     dataset = dataset_evaluation.batch(1)
 
@@ -286,11 +295,11 @@ if __name__ == "__main__":
         assert len(df_sample) == len(uncertainty_list_one)
         df_sample['uncertainties'] = uncertainty_list_one
 
-        png_file = f"{OUTPUT_CSV_PATH}/uncertainty_distribution_{RUN_ID}.png"
+        png_file = f"{OUTPUT_CSV_PATH}/uncertainty_distribution_dropoutstrength{DROPOUT_STRENGTH}_{RUN_ID}.png"
         draw_uncertainty_goodbad_plot(df_sample, png_file)
 
         df_sample_100 = df_sample.iloc[df_sample.index.get_level_values('scantype') == '100']
-        png_file = f"{OUTPUT_CSV_PATH}/uncertainty_code100_distribution_{RUN_ID}.png"
+        png_file = f"{OUTPUT_CSV_PATH}/uncertainty_code100_distribution_dropoutstrength{DROPOUT_STRENGTH}_{RUN_ID}.png"
         draw_uncertainty_goodbad_plot(df_sample_100, png_file)
 
     # Done.
