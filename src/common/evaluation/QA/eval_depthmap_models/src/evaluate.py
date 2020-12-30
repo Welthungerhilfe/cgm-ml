@@ -264,13 +264,25 @@ if __name__ == "__main__":
         assert GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES
         assert COLUMN_NAME_GOODBAD in df
 
+        # Sample one artifact per scan (qrcode, scantype combination)
+        df_sample = df.groupby(['qrcode', 'scantype']).apply(lambda x: x.sample(1))
+
+        # Prepare uncertainty prediction on these artifacts
+        f = lambda x: f"{dataset_path}/{x['qrcode']}/{x['scantype']}/{x['artifact']}"
+        df_sample['artifact_path'] = df_sample.apply(f, axis=1)
+        paths_evaluation = list(df_sample['artifact_path'])
+        dataset_sample = tf.data.Dataset.from_tensor_slices(paths_evaluation)
+        dataset_sample = dataset_sample.map(lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE))
+        dataset_sample = dataset_sample.cache()
+        dataset_sample = dataset_sample.prefetch(tf.data.experimental.AUTOTUNE)
+
         # Predict uncertainty
-        uncertainty_list_one = get_prediction_uncertainty(model_path, dataset_evaluation)
-        assert len(df) == len(uncertainty_list_one)
-        df['uncertainties'] = uncertainty_list_one
+        uncertainty_list_one = get_prediction_uncertainty(model_path, dataset_sample)
+        assert len(df_sample) == len(uncertainty_list_one)
+        df_sample['uncertainties'] = uncertainty_list_one
 
         png_file = f"{OUTPUT_CSV_PATH}/uncertainty_distribution_{RUN_ID}.png"
-        draw_uncertainty_goodbad_plot(df, png_file)
+        draw_uncertainty_goodbad_plot(df_sample, png_file)
 
     # Done.
     run.complete()
