@@ -60,6 +60,17 @@ def tf_load_pickle(path, max_value):
     return depthmap, targets
 
 
+def prepare_sample_dataset(df_sample, dataset_path):
+    df_sample['artifact_path'] = df_sample.apply(
+        lambda x: f"{dataset_path}/{x['qrcode']}/{x['scantype']}/{x['artifact']}", axis=1)
+    paths_evaluation = list(df_sample['artifact_path'])
+    dataset_sample = tf.data.Dataset.from_tensor_slices(paths_evaluation)
+    dataset_sample = dataset_sample.map(lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE))
+    dataset_sample = dataset_sample.cache()
+    dataset_sample = dataset_sample.prefetch(tf.data.experimental.AUTOTUNE)
+    return dataset_sample
+
+
 def predict_uncertainty(X: np.array, model: tf.keras.Model) -> float:
     """Predict standard deviation of multiple predictions with different dropouts
 
@@ -268,13 +279,7 @@ if __name__ == "__main__":
         df_sample = df.groupby(['qrcode', 'scantype']).apply(lambda x: x.sample(1))
 
         # Prepare uncertainty prediction on these artifacts
-        f = lambda x: f"{dataset_path}/{x['qrcode']}/{x['scantype']}/{x['artifact']}"
-        df_sample['artifact_path'] = df_sample.apply(f, axis=1)
-        paths_evaluation = list(df_sample['artifact_path'])
-        dataset_sample = tf.data.Dataset.from_tensor_slices(paths_evaluation)
-        dataset_sample = dataset_sample.map(lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE))
-        dataset_sample = dataset_sample.cache()
-        dataset_sample = dataset_sample.prefetch(tf.data.experimental.AUTOTUNE)
+        dataset_sample = prepare_sample_dataset(df_sample, dataset_path)
 
         # Predict uncertainty
         uncertainty_list_one = get_prediction_uncertainty(model_path, dataset_sample)
