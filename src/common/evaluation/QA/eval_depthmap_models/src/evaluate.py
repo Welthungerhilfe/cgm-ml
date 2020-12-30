@@ -289,5 +289,9 @@ if __name__ == "__main__":
         png_file = f"{OUTPUT_CSV_PATH}/uncertainty_distribution_{RUN_ID}.png"
         draw_uncertainty_goodbad_plot(df_sample, png_file)
 
+        df_sample_100 = df_sample.iloc[df_sample.index.get_level_values('scantype') == '100']
+        png_file = f"{OUTPUT_CSV_PATH}/uncertainty_code100_distribution_{RUN_ID}.png"
+        draw_uncertainty_goodbad_plot(df_sample_100, png_file)
+
     # Done.
     run.complete()
