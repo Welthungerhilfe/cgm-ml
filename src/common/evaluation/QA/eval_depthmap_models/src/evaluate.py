@@ -41,8 +41,8 @@ RESULT_CONFIG = qa_config.RESULT_CONFIG
 
 RUN_ID = MODEL_CONFIG.RUN_ID
 
-NUM_PREDICTIONS = 16
-DROPOUT_STRENGTH = 0.1  # 1.0 means like original model
+NUM_PREDICTIONS = 64
+DROPOUT_STRENGTH = 1  # 1.0 means like original model
 
 
 # Function for loading and processing depthmaps.
