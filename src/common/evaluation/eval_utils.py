@@ -41,7 +41,7 @@ CONFIG = Bunch(dict(
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
     NORMALIZATION_VALUE=7.5,
-    TARGET_INDEXES=[0, 5],  # 0 is height, 1 is weight.
+    TARGET_INDEXES=[0, 3, 5],  # 0 is height, 1 is weight.
     N_ARTIFACTS=5,
     CODES_FOR_POSE_AND_SCANSTEP=("100", ),
 ))
