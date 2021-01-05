@@ -14,7 +14,6 @@ from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 
 import utils
-from utils import download_dataset, get_dataset_path
 from constants import REPO_DIR, DATA_DIR_ONLINE_RUN
 
 parser = argparse.ArgumentParser()
@@ -29,8 +28,6 @@ RESULT_CONFIG = qa_config.RESULT_CONFIG
 FILTER_CONFIG = qa_config.FILTER_CONFIG
 
 # Function for loading and processing depthmaps.
-
-
 def tf_load_pickle(path, max_value):
     '''
     Utility to load the depthmap pickle file
@@ -106,8 +103,8 @@ if __name__ == "__main__":
         dataset_name = DATA_CONFIG.NAME
 
         # Download
-        dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
-        download_dataset(workspace, dataset_name, dataset_path)
+        dataset_path = utils.get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
+        utils.download_dataset(workspace, dataset_name, dataset_path)
 
     # Get the QR-code paths.
     dataset_path = os.path.join(dataset_path, "scans")
@@ -137,17 +134,8 @@ if __name__ == "__main__":
     standing = load_model(FILTER_CONFIG.NAME)
     new_paths_evaluation = paths_evaluation
 
-    if FILTER_CONFIG.SWITCH == 'ON':
-        new_paths_evaluation = []
-        exc = []
-        for p in paths_evaluation:
-            depthmap, targets, image = pickle.load(open(p, "rb"))
-            try:
-                image = utils.process_image(image)
-                if standing.predict(image) > .9:
-                    new_paths_evaluation.append(p)
-            except ValueError:
-                exc.append(image)
+    if FILTER_CONFIG.SWITCH == True:
+        new_paths_evaluation = utils.filter_dataset(paths_evaluation, standing)
 
     print(len(new_paths_evaluation))
     print(len(paths_evaluation))

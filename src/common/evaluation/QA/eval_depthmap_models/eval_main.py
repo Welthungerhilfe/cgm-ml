@@ -55,7 +55,7 @@ if __name__ == "__main__":
                    experiment_name=FILTER_CONFIG.EXPERIMENT_NAME,
                    run_id=FILTER_CONFIG.RUN_ID,
                    input_location=os.path.join(FILTER_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
-                   output_location=str(temp_path) + '/' + FILTER_CONFIG.NAME)
+                   output_location=str(temp_path / FILTER_CONFIG.NAME))
 
     experiment = Experiment(workspace=ws, name=EVAL_CONFIG.EXPERIMENT_NAME)
 

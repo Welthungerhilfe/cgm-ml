@@ -1,14 +1,23 @@
 import datetime
 import os
-from pathlib import Path
-import pickle
 import pathlib
+import pickle
+from pathlib import Path
 
-from azureml.core import Experiment, Run, Workspace
 import glob2 as glob
 import numpy as np
 import pandas as pd
+import tensorflow as tf
+from azureml.core import Experiment, Run, Workspace
 
+
+def process_image(data):
+    img = tf.convert_to_tensor(data)
+    img = tf.cast(img, tf.float32) * (1. / 256)
+    img = tf.image.rot90(img, k=3)
+    img = tf.image.resize(img, [240, 180])
+    img = tf.expand_dims(img, axis=0)
+    return img
 
 def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
     print("Accessing dataset...")
@@ -126,7 +135,7 @@ def download_model(ws, experiment_name, run_id, input_location, output_location)
          output_location: Location for saving the model
     '''
     experiment = Experiment(workspace=ws, name=experiment_name)
-    #Download the model on which evaluation need to be done
+    # Download the model on which evaluation need to be done
     run = Run(experiment, run_id=run_id)
     if input_location.endswith(".h5"):
         run.download_file(input_location, output_location)
@@ -135,3 +144,17 @@ def download_model(ws, experiment_name, run_id, input_location, output_location)
     else:
         raise NameError(f"{input_location}'s path extension not supported")
     print("Successfully downloaded model")
+
+
+def filter_dataset(paths_evaluation, standing):
+    new_paths_evaluation = []
+    exc = []
+    for p in paths_evaluation:
+        depthmap, targets, image = pickle.load(open(p, "rb"))
+        try:
+            image = process_image(image)
+            if standing.predict(image) > .9:
+                new_paths_evaluation.append(p)
+        except ValueError:
+            exc.append(image)
+    return new_paths_evaluation

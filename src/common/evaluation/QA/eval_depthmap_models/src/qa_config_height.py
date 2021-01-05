@@ -12,7 +12,7 @@ MODEL_CONFIG = Bunch(dict(
 ))
 
 FILTER_CONFIG = Bunch(dict(
-    SWITCH='ON',  # 'OFF'
+    IS_ENABLED=True,  # 'False'
     EXPERIMENT_NAME='q4-rgb-plaincnn-classifaction-standing-lying-8k',
 
     RUN_ID='q4-rgb-plaincnn-classifaction-standing-lying-8k_1602316038_3ebdb326',  # Run 3
