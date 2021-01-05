@@ -13,5 +13,6 @@ dependencies:
     - nbconvert==5.6.0
     - matplotlib==3.2.1
     - glob2==0.7
+    - tensorflow==2.3.1
     - tensorflow-addons==0.11.2
     - bunch==1.0.1
