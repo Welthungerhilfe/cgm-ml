@@ -135,7 +135,7 @@ if __name__ == "__main__":
     standing = load_model(FILTER_CONFIG.NAME)
     new_paths_evaluation = paths_evaluation
 
-    if FILTER_CONFIG.SWITCH == True:
+    if FILTER_CONFIG.IS_ENABLED:
         new_paths_evaluation = utils.filter_dataset(paths_evaluation, standing)
 
     print(len(new_paths_evaluation))
