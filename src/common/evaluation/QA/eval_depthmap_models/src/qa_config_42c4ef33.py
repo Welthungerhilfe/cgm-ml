@@ -42,7 +42,7 @@ EVAL_CONFIG = Bunch(dict(
 # Details of Evaluation Dataset
 DATA_CONFIG = Bunch(dict(
     # Name of evaluation dataset
-    NAME='anon-realtime-testdata',
+    NAME='anon-depthmap-rgb-timestamp',
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
     # Batch size for evaluation
