@@ -31,7 +31,7 @@ EVAL_CONFIG = Bunch(dict(
     CLUSTER_NAME="gpu-cluster",
 
     # Used for Debug the QA pipeline
-    DEBUG_RUN=False,
+    DEBUG_RUN=True,
 
     # Will run eval on specified # of scan instead of full dataset
     DEBUG_NUMBER_OF_SCAN=50,
@@ -42,7 +42,7 @@ EVAL_CONFIG = Bunch(dict(
 # Details of Evaluation Dataset
 DATA_CONFIG = Bunch(dict(
     #Name of evaluation dataset
-    NAME='anon-realtime-testdata',
+    NAME='anon-depthmap-rgb-timestamp',
 
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
