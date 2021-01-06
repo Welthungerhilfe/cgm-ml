@@ -1,4 +1,5 @@
 import argparse
+import copy
 import os
 import pickle
 import random
@@ -89,6 +90,17 @@ def predict_uncertainty(X: np.array, model: tf.keras.Model) -> float:
     return std
 
 
+def change_dropout_strength(model: tf.keras.Model, dropout_strength: float) -> tf.keras.Model:
+    """Duplicate a model while adjusting the dropout rate"""
+    new_model = Sequential(name="new_model")
+    for layer_ in model.layers:
+        layer = copy.copy(layer_)
+        if isinstance(layer, layers.core.Dropout):
+            layer.rate = min(0.999, layer.rate * dropout_strength)
+        new_model.add(layer)
+    return new_model
+
+
 def get_prediction_uncertainty(model_path: str, dataset_evaluation: tf.data.Dataset) -> np.array:
     """Predict standard deviation of multiple predictions with different dropouts
 
@@ -101,13 +113,7 @@ def get_prediction_uncertainty(model_path: str, dataset_evaluation: tf.data.Data
     """
     print(f"loading model from {model_path}")
     model = load_model(model_path, compile=False)
-
-    new_model = Sequential(name="new_model")
-    for layer in model.layers:
-        if isinstance(layer, layers.core.Dropout):
-            layer.rate = min(0.999, layer.rate * DROPOUT_STRENGTH)
-        new_model.add(layer)
-    model = new_model
+    model = change_dropout_strength(model, DROPOUT_STRENGTH)
 
     dataset = dataset_evaluation.batch(1)
 
