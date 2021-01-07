@@ -73,7 +73,10 @@ def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CO
         qrcode_list.append(sub_folder_list[-3])
         scan_type_list.append(sub_folder_list[-2])
         artifact_list.append(sub_folder_list[-1])
+        print(sub_folder_list[-1])
+        print(prediction[idx])
         prediction_list.append(prediction[idx])
+        print(target)
         target_list.append(target)
 
     return qrcode_list, scan_type_list, artifact_list, prediction_list, target_list
