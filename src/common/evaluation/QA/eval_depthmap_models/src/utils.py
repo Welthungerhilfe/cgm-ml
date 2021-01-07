@@ -65,7 +65,7 @@ def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CO
 
     for idx, path in enumerate(depthmap_path_list):
         #_, targets = pickle.load(open(path, "rb"))
-        _, targets, _ = pickle.load(open(path.numpy(), "rb"))
+        _, targets, _ = pickle.load(open(path, "rb"))
         targets = preprocess_targets(targets, DATA_CONFIG.TARGET_INDEXES)
         target = np.squeeze(targets)
 
