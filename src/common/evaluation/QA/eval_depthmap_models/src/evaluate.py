@@ -34,7 +34,8 @@ def tf_load_pickle(path, max_value):
     Utility to load the depthmap pickle file
     '''
     def py_load_pickle(path, max_value):
-        depthmap, targets = pickle.load(open(path.numpy(), "rb"))
+        #depthmap, targets = pickle.load(open(path.numpy(), "rb"))
+        depthmap, targets, image = pickle.load(open(path.numpy(), "rb"))
         depthmap = utils.preprocess_depthmap(depthmap)
         depthmap = depthmap / max_value
         depthmap = tf.image.resize(depthmap, (DATA_CONFIG.IMAGE_TARGET_HEIGHT, DATA_CONFIG.IMAGE_TARGET_WIDTH))
@@ -158,6 +159,7 @@ if __name__ == "__main__":
         model_path = f"{MODEL_CONFIG.INPUT_LOCATION}/{MODEL_CONFIG.NAME}"
     else:
         raise NameError(f"{MODEL_CONFIG.NAME}'s path extension not supported")
+    print(model_path)
     prediction_list_one = get_prediction(model_path, dataset_evaluation)
 
     print("Prediction made by model on the depthmaps...")
