@@ -166,7 +166,7 @@ if __name__ == "__main__":
     print(prediction_list_one)
 
     qrcode_list, scantype_list, artifact_list, prediction_list, target_list = utils.get_column_list(
-        paths_evaluation, prediction_list_one, DATA_CONFIG)
+        new_paths_evaluation , prediction_list_one, DATA_CONFIG)
 
     df = pd.DataFrame({
         'qrcode': qrcode_list,

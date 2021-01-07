@@ -65,7 +65,7 @@ def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CO
 
     for idx, path in enumerate(depthmap_path_list):
         #_, targets = pickle.load(open(path, "rb"))
-        _, targets,_ = pickle.load(open(path, "rb"))
+        _, targets, _ = pickle.load(open(path.numpy(), "rb"))
         targets = preprocess_targets(targets, DATA_CONFIG.TARGET_INDEXES)
         target = np.squeeze(targets)
 
@@ -212,7 +212,7 @@ def filter_dataset(paths_evaluation, standing):
     new_paths_evaluation = []
     exc = []
     for p in paths_evaluation:
-        depthmap, targets, image = pickle.load(open(p, "rb"))
+        depthmap, targets, image = pickle.load(open(p.numpy(), "rb"))
         try:
             image = process_image(image)
             if standing.predict(image) > .9:
