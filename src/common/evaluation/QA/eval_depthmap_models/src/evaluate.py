@@ -3,6 +3,7 @@ import os
 import pickle
 import random
 import time
+from pathlib import Path
 from importlib import import_module
 
 import glob2 as glob
@@ -14,10 +15,16 @@ from azureml.core.run import Run
 from tensorflow.keras.models import load_model
 
 import utils
-from constants import DATA_DIR_ONLINE_RUN, REPO_DIR
+from constants import DATA_DIR_ONLINE_RUN, REPO_DIR, DEFAULT_CONFIG
+from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD,
+                   COLUMN_NAME_SEX, GOODBAD_IDX, SEX_IDX,
+                   calculate_performance, calculate_performance_age,
+                   calculate_performance_goodbad, calculate_performance_sex,
+                   download_dataset, draw_age_scatterplot, get_dataset_path,
+                   get_model_path)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--qa_config_module", default="qa_config_42c4ef33", help="Configuration file")
+parser.add_argument("--qa_config_module", default=DEFAULT_CONFIG, help="Configuration file")
 args = parser.parse_args()
 
 qa_config = import_module(args.qa_config_module)
@@ -27,13 +34,13 @@ DATA_CONFIG = qa_config.DATA_CONFIG
 RESULT_CONFIG = qa_config.RESULT_CONFIG
 FILTER_CONFIG = qa_config.FILTER_CONFIG
 
+RUN_ID = MODEL_CONFIG.RUN_ID
+
 # Function for loading and processing depthmaps.
 
 
 def tf_load_pickle(path, max_value):
-    '''
-    Utility to load the depthmap pickle file
-    '''
+    """Utility to load the depthmap pickle file"""
     def py_load_pickle(path, max_value):
         if FILTER_CONFIG.IS_ENABLED:
             depthmap, targets, image = pickle.load(open(path.numpy(), "rb"))  # for filter (Contains RGBs)
@@ -51,15 +58,17 @@ def tf_load_pickle(path, max_value):
     return depthmap, targets
 
 
-def get_prediction(MODEL_PATH, dataset_evaluation):
-    '''
-    Perform the prediction on the dataset with the given model
-    Input:
-        MODEL_PATH : Path of the trained model
-        dataset_evaluation : dataset in which Evaluation
-        need to performed
-    '''
-    model = load_model(MODEL_PATH, compile=False)
+def get_prediction(model_path, dataset_evaluation):
+    """Perform the prediction on the dataset with the given model
+
+    Args:
+        model_path: Path of the trained model
+        dataset_evaluation: dataset in which Evaluation need to performed
+
+    Returns:
+        prediction_list
+    """
+    model = load_model(model_path, compile=False)
 
     dataset = dataset_evaluation.batch(DATA_CONFIG.BATCH_SIZE)
 
@@ -82,8 +91,11 @@ if __name__ == "__main__":
     # Get the current run.
     run = Run.get_context()
 
+    OUTPUT_CSV_PATH = str(REPO_DIR / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
+    MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if run.id.startswith("OfflineRun") else Path('.')
+
     # Offline run. Download the sample dataset and run locally. Still push results to Azure.
-    if(run.id.startswith("OfflineRun")):
+    if run.id.startswith("OfflineRun"):
         print("Running in offline mode...")
 
         # Access workspace.
@@ -108,7 +120,7 @@ if __name__ == "__main__":
         dataset_name = DATA_CONFIG.NAME
 
         # Download
-        dataset_path = utils.get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
+        dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
         utils.download_dataset(workspace, dataset_name, dataset_path)
 
     # Get the QR-code paths.
@@ -152,13 +164,7 @@ if __name__ == "__main__":
     del dataset_norm
     print("Created dataset for training.")
 
-    # Get the prediction
-    if MODEL_CONFIG.NAME.endswith(".h5"):
-        model_path = MODEL_CONFIG.NAME
-    elif MODEL_CONFIG.NAME.endswith(".ckpt"):
-        model_path = f"{MODEL_CONFIG.INPUT_LOCATION}/{MODEL_CONFIG.NAME}"
-    else:
-        raise NameError(f"{MODEL_CONFIG.NAME}'s path extension not supported")
+    model_path = MODEL_BASE_DIR / get_model_path(MODEL_CONFIG)
     prediction_list_one = get_prediction(model_path, dataset_evaluation)
 
     print("Prediction made by model on the depthmaps...")
@@ -179,27 +185,44 @@ if __name__ == "__main__":
     df['predicted'] = df['predicted'].astype('float64')
 
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
-        df['GT_age'] = [el[1] for el in target_list]
+        idx = DATA_CONFIG.TARGET_INDEXES.index(AGE_IDX)
+        df[COLUMN_NAME_AGE] = [el[idx] for el in target_list]
+    if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
+        idx = DATA_CONFIG.TARGET_INDEXES.index(SEX_IDX)
+        df[COLUMN_NAME_SEX] = [el[idx] for el in target_list]
+    if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
+        idx = DATA_CONFIG.TARGET_INDEXES.index(GOODBAD_IDX)
+        df[COLUMN_NAME_GOODBAD] = [el[idx] for el in target_list]
 
-    MAE = df.groupby(['qrcode', 'scantype']).mean()
-    print("Mean Avg Error: ", MAE)
+    df_grouped = df.groupby(['qrcode', 'scantype']).mean()
+    print("Mean Avg Error: ", df_grouped)
 
-    MAE['error'] = MAE.apply(utils.avgerror, axis=1)
+    df_grouped['error'] = df_grouped.apply(utils.avgerror, axis=1)
 
-    csv_file = f"{RESULT_CONFIG.SAVE_PATH}/{MODEL_CONFIG.RUN_ID}.csv"
+    csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
     print(f"Calculate and save the results to {csv_file}")
-    utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, csv_file,
-                                     DATA_CONFIG, RESULT_CONFIG, fct=utils.calculate_performance)
-
+    utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
+                                     DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
-        csv_file = f"{RESULT_CONFIG.SAVE_PATH}/age_evaluation_{MODEL_CONFIG.RUN_ID}.csv"
+        csv_file = f"{OUTPUT_CSV_PATH}/age_evaluation_{RUN_ID}.csv"
         print(f"Calculate and save age results to {csv_file}")
-        utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, csv_file,
-                                         DATA_CONFIG, RESULT_CONFIG, fct=utils.calculate_performance_age)
+        utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
+                                         DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
 
-        csv_file = f"{RESULT_CONFIG.SAVE_PATH}/age_evaluation_scatter_{MODEL_CONFIG.RUN_ID}.png"
+        csv_file = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{RUN_ID}.png"
         print(f"Calculate and save scatterplot results to {csv_file}")
         utils.draw_age_scatterplot(df, csv_file)
+
+    if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
+        csv_file = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"
+        print(f"Calculate and save sex results to {csv_file}")
+        utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
+                                         DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_sex)
+    if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
+        csv_file = f"{OUTPUT_CSV_PATH}/goodbad_evaluation_{RUN_ID}.csv"
+        print(f"Calculate performance on bad/good scans and save results to {csv_file}")
+        utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
+                                         DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_goodbad)
 
     # Done.
     run.complete()

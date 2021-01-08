@@ -234,7 +234,7 @@ if __name__ == "__main__":
     run = Run.get_context()
 
     # Offline run. Download the sample dataset and run locally. Still push results to Azure.
-    if(run.id.startswith("OfflineRun")):
+    if run.id.startswith("OfflineRun"):
         print("Running in offline mode...")
 
         # Access workspace.
