@@ -1,13 +1,14 @@
 import argparse
-from importlib import import_module
-import os
-import time
 import glob
+import os
 import shutil
+import time
+from importlib import import_module
 from pathlib import Path
 
-from azureml.core import Workspace, Experiment
-from azureml.core.compute import ComputeTarget, AmlCompute
+import azureml._restclient.snapshots_client
+from azureml.core import Experiment, Workspace
+from azureml.core.compute import AmlCompute, ComputeTarget
 from azureml.core.compute_target import ComputeTargetException
 from azureml.train.dnn import TensorFlow
 
@@ -51,11 +52,13 @@ if __name__ == "__main__":
                    output_location=temp_path)
 
     # Copy filter to temp folder
-    download_model(ws=ws,
-                   experiment_name=FILTER_CONFIG.EXPERIMENT_NAME,
-                   run_id=FILTER_CONFIG.RUN_ID,
-                   input_location=os.path.join(FILTER_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
-                   output_location=str(temp_path / FILTER_CONFIG.NAME))
+    if FILTER_CONFIG.IS_ENABLED:
+        download_model(ws=ws,
+                    experiment_name=FILTER_CONFIG.EXPERIMENT_NAME,
+                    run_id=FILTER_CONFIG.RUN_ID,
+                    input_location=os.path.join(FILTER_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
+                    output_location=str(temp_path / FILTER_CONFIG.NAME))
+        azureml._restclient.snapshots_client. SNAPSHOT_MAX_SIZE_BYTES = 500000000
 
     experiment = Experiment(workspace=ws, name=EVAL_CONFIG.EXPERIMENT_NAME)
 
@@ -90,9 +93,6 @@ if __name__ == "__main__":
         "tensorflow-addons==0.11.2",
         "bunch==1.0.1"
     ]
-
-    import azureml._restclient.snapshots_client
-    azureml._restclient.snapshots_client. SNAPSHOT_MAX_SIZE_BYTES = 500000000
 
     # Create the estimator.
     estimator = TensorFlow(
