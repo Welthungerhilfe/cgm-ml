@@ -64,11 +64,8 @@ if __name__ == "__main__":
 
     # Copy filter to temp folder
     if FILTER_CONFIG.IS_ENABLED:
-        download_model(ws=ws,
-                    experiment_name=FILTER_CONFIG.EXPERIMENT_NAME,
-                    run_id=FILTER_CONFIG.RUN_ID,
-                    input_location=os.path.join(FILTER_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
-                    output_location=str(temp_path / FILTER_CONFIG.NAME))
+        download_model(ws=ws, experiment_name=FILTER_CONFIG.EXPERIMENT_NAME, run_id=FILTER_CONFIG.RUN_ID, input_location=os.path.join(
+            FILTER_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME), output_location=str(temp_path / FILTER_CONFIG.NAME))
         azureml._restclient.snapshots_client. SNAPSHOT_MAX_SIZE_BYTES = 500000000
 
     experiment = Experiment(workspace=ws, name=EVAL_CONFIG.EXPERIMENT_NAME)

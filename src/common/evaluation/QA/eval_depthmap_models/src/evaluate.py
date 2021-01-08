@@ -121,7 +121,7 @@ if __name__ == "__main__":
 
         # Download
         dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
-        utils.download_dataset(workspace, dataset_name, dataset_path)
+        download_dataset(workspace, dataset_name, dataset_path)
 
     # Get the QR-code paths.
     dataset_path = os.path.join(dataset_path, "scans")
@@ -211,7 +211,7 @@ if __name__ == "__main__":
 
         csv_file = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{RUN_ID}.png"
         print(f"Calculate and save scatterplot results to {csv_file}")
-        utils.draw_age_scatterplot(df, csv_file)
+        draw_age_scatterplot(df, csv_file)
 
     if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_file = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"
