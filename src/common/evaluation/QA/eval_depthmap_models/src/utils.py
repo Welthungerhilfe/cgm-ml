@@ -2,7 +2,7 @@ import datetime
 import os
 import pickle
 from pathlib import Path
-from typing import List, Callable
+from typing import Callable, List
 
 import glob2 as glob
 import matplotlib.pyplot as plt
@@ -10,11 +10,10 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from azureml.core import Experiment, Run, Workspace
-
-from azureml.core import Experiment, Run, Workspace
 from bunch import Bunch
 
 DAYS_IN_YEAR = 365
+
 
 def process_image(data):
     img = tf.convert_to_tensor(data)
@@ -23,6 +22,7 @@ def process_image(data):
     img = tf.image.resize(img, [240, 180])
     img = tf.expand_dims(img, axis=0)
     return img
+
 
 def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
     print("Accessing dataset...")
@@ -59,13 +59,15 @@ def get_depthmap_files(paths: List[str]) -> List[str]:
     return pickle_paths
 
 
-def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CONFIG: Bunch):
+def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CONFIG: Bunch, FILTER_CONFIG: Bunch):
     """Prepare the list of all artifact with its corresponding scantype, qrcode, target and prediction"""
     qrcode_list, scan_type_list, artifact_list, prediction_list, target_list = [], [], [], [], []
 
     for idx, path in enumerate(depthmap_path_list):
-        #_, targets = pickle.load(open(path, "rb"))
-        _, targets, _ = pickle.load(open(path, "rb"))
+        if FILTER_CONFIG.IS_ENABLED:
+            _, targets, _ = pickle.load(open(path, "rb"))  # For filter(contains RGBs) dataset
+        else:
+            _, targets = pickle.load(open(path, "rb"))
         targets = preprocess_targets(targets, DATA_CONFIG.TARGET_INDEXES)
         target = np.squeeze(targets)
 
@@ -73,10 +75,7 @@ def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CO
         qrcode_list.append(sub_folder_list[-3])
         scan_type_list.append(sub_folder_list[-2])
         artifact_list.append(sub_folder_list[-1])
-        print(sub_folder_list[-1])
-        print(prediction[idx])
         prediction_list.append(prediction[idx])
-        print(target)
         target_list.append(target)
 
     return qrcode_list, scan_type_list, artifact_list, prediction_list, target_list

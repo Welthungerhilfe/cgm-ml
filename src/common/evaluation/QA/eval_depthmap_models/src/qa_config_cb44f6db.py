@@ -5,7 +5,7 @@ MODEL_CONFIG = Bunch(dict(
     EXPERIMENT_NAME='q3-depthmap-plaincnn-height-95k',
 
     # RUN_ID='q3-depthmap-plaincnn-height-95k_1597988908_42c4ef33',  # Run 3
-    RUN_ID = 'q3-depthmap-plaincnn-height-95k_1600451633_cb44f6db',     #Run 17
+    RUN_ID='q3-depthmap-plaincnn-height-95k_1600451633_cb44f6db',  # Run 17
 
     INPUT_LOCATION='outputs',
     NAME='best_model.h5',
@@ -30,7 +30,7 @@ EVAL_CONFIG = Bunch(dict(
     CLUSTER_NAME="gpu-cluster",
 
     # Used for Debug the QA pipeline
-    DEBUG_RUN=True,
+    DEBUG_RUN=False,
 
     # Will run eval on specified # of scan instead of full dataset
     DEBUG_NUMBER_OF_SCAN=5,
@@ -41,7 +41,8 @@ EVAL_CONFIG = Bunch(dict(
 # Details of Evaluation Dataset
 DATA_CONFIG = Bunch(dict(
     # Name of evaluation dataset
-    NAME='anon-depthmap-rgb-timestamp',
+    # NAME='anon-realtime-testdata', # For evaluation
+    NAME='anon-depthmap-rgb-timestamp',  # For evlautaion with filter(Contains RGBs)
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
     # Batch size for evaluation

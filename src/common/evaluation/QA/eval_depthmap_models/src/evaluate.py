@@ -1,21 +1,20 @@
 import argparse
-from importlib import import_module
 import os
-import random
 import pickle
-import glob2 as glob
+import random
 import time
+from importlib import import_module
 
+import glob2 as glob
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from tensorflow.keras.models import load_model
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
+from tensorflow.keras.models import load_model
 
 import utils
-from utils import download_dataset, get_dataset_path, draw_age_scatterplot, calculate_performance, calculate_performance_age
-from constants import REPO_DIR, DATA_DIR_ONLINE_RUN
+from constants import DATA_DIR_ONLINE_RUN, REPO_DIR
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--qa_config_module", default="qa_config_42c4ef33", help="Configuration file")
@@ -29,13 +28,17 @@ RESULT_CONFIG = qa_config.RESULT_CONFIG
 FILTER_CONFIG = qa_config.FILTER_CONFIG
 
 # Function for loading and processing depthmaps.
+
+
 def tf_load_pickle(path, max_value):
     '''
     Utility to load the depthmap pickle file
     '''
     def py_load_pickle(path, max_value):
-        #depthmap, targets = pickle.load(open(path.numpy(), "rb"))
-        depthmap, targets, image = pickle.load(open(path.numpy(), "rb"))
+        if FILTER_CONFIG.IS_ENABLED:
+            depthmap, targets, image = pickle.load(open(path.numpy(), "rb"))  # for filter (Contains RGBs)
+        else:
+            depthmap, targets = pickle.load(open(path.numpy(), "rb"))
         depthmap = utils.preprocess_depthmap(depthmap)
         depthmap = depthmap / max_value
         depthmap = tf.image.resize(depthmap, (DATA_CONFIG.IMAGE_TARGET_HEIGHT, DATA_CONFIG.IMAGE_TARGET_WIDTH))
@@ -133,14 +136,11 @@ if __name__ == "__main__":
 
     print("Using {} artifact files for evaluation.".format(len(paths_evaluation)))
 
-    standing = load_model(FILTER_CONFIG.NAME)
     new_paths_evaluation = paths_evaluation
 
     if FILTER_CONFIG.IS_ENABLED:
+        standing = load_model(FILTER_CONFIG.NAME)
         new_paths_evaluation = utils.filter_dataset(paths_evaluation, standing)
-
-    print(len(new_paths_evaluation))
-    print(len(paths_evaluation))
 
     print("Creating dataset for training.")
     paths = new_paths_evaluation
@@ -159,14 +159,13 @@ if __name__ == "__main__":
         model_path = f"{MODEL_CONFIG.INPUT_LOCATION}/{MODEL_CONFIG.NAME}"
     else:
         raise NameError(f"{MODEL_CONFIG.NAME}'s path extension not supported")
-    print(model_path)
     prediction_list_one = get_prediction(model_path, dataset_evaluation)
 
     print("Prediction made by model on the depthmaps...")
     print(prediction_list_one)
 
     qrcode_list, scantype_list, artifact_list, prediction_list, target_list = utils.get_column_list(
-        new_paths_evaluation , prediction_list_one, DATA_CONFIG)
+        new_paths_evaluation, prediction_list_one, DATA_CONFIG, FILTER_CONFIG)
 
     df = pd.DataFrame({
         'qrcode': qrcode_list,
@@ -190,17 +189,17 @@ if __name__ == "__main__":
     csv_file = f"{RESULT_CONFIG.SAVE_PATH}/{MODEL_CONFIG.RUN_ID}.csv"
     print(f"Calculate and save the results to {csv_file}")
     utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, csv_file,
-                                     DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
+                                     DATA_CONFIG, RESULT_CONFIG, fct=utils.calculate_performance)
 
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
         csv_file = f"{RESULT_CONFIG.SAVE_PATH}/age_evaluation_{MODEL_CONFIG.RUN_ID}.csv"
         print(f"Calculate and save age results to {csv_file}")
         utils.calculate_and_save_results(MAE, EVAL_CONFIG.NAME, csv_file,
-                                         DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
+                                         DATA_CONFIG, RESULT_CONFIG, fct=utils.calculate_performance_age)
 
         csv_file = f"{RESULT_CONFIG.SAVE_PATH}/age_evaluation_scatter_{MODEL_CONFIG.RUN_ID}.png"
         print(f"Calculate and save scatterplot results to {csv_file}")
-        draw_age_scatterplot(df, csv_file)
+        utils.draw_age_scatterplot(df, csv_file)
 
     # Done.
     run.complete()

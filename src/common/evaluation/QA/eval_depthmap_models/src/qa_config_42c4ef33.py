@@ -12,7 +12,7 @@ MODEL_CONFIG = Bunch(dict(
 ))
 
 FILTER_CONFIG = Bunch(dict(
-    IS_ENABLED=False,  # 'False'
+    IS_ENABLED=True,  # 'False'
     EXPERIMENT_NAME='q4-rgb-plaincnn-classifaction-standing-lying-8k',
 
     RUN_ID='q4-rgb-plaincnn-classifaction-standing-lying-8k_1602316038_3ebdb326',  # Run 3
@@ -31,7 +31,7 @@ EVAL_CONFIG = Bunch(dict(
     CLUSTER_NAME="gpu-cluster",
 
     # Used for Debug the QA pipeline
-    DEBUG_RUN=True,
+    DEBUG_RUN=False,
 
     # Will run eval on specified # of scan instead of full dataset
     DEBUG_NUMBER_OF_SCAN=5,
@@ -42,7 +42,8 @@ EVAL_CONFIG = Bunch(dict(
 # Details of Evaluation Dataset
 DATA_CONFIG = Bunch(dict(
     # Name of evaluation dataset
-    NAME='anon-depthmap-rgb-timestamp',
+    # NAME='anon-realtime-testdata', # For evaluation
+    NAME='anon-depthmap-rgb-timestamp',  # For evlautaion with filter(Contains RGBs)
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
     # Batch size for evaluation
