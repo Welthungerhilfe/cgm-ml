@@ -5,12 +5,21 @@ MODEL_CONFIG = Bunch(dict(
     EXPERIMENT_NAME='q3-depthmap-plaincnn-height-95k',
 
     # RUN_ID='q3-depthmap-plaincnn-height-95k_1597988908_42c4ef33',  # Run 3
-    RUN_ID='q3-depthmap-plaincnn-height-95k_1600451633_cb44f6db',  # Run 17
+    RUN_ID = 'q3-depthmap-plaincnn-height-95k_1600451633_cb44f6db',     #Run 17
 
     INPUT_LOCATION='outputs',
     NAME='best_model.h5',
 ))
 
+FILTER_CONFIG = Bunch(dict(
+    IS_ENABLED=True,  # 'False'
+    EXPERIMENT_NAME='q4-rgb-plaincnn-classifaction-standing-lying-8k',
+
+    RUN_ID='q4-rgb-plaincnn-classifaction-standing-lying-8k_1602316038_3ebdb326',
+
+    INPUT_LOCATION='outputs',
+    NAME='best_filter.h5',
+))
 
 EVAL_CONFIG = Bunch(dict(
     # Name of evaluation
@@ -29,29 +38,15 @@ EVAL_CONFIG = Bunch(dict(
     SPLIT_SEED=0,
 ))
 
-FILTER_CONFIG = Bunch(dict(
-    IS_ENABLED=True,  # 'False'
-    EXPERIMENT_NAME='q4-rgb-plaincnn-classifaction-standing-lying-8k',
-
-    RUN_ID='q4-rgb-plaincnn-classifaction-standing-lying-8k_1602316038_3ebdb326',  # Run 3
-    # RUN_ID = 'q3-depthmap-plaincnn-height-95k_1600451633_cb44f6db',     #Run 17
-
-    INPUT_LOCATION='outputs',
-    NAME='best_filter.h5',
-))
-
 # Details of Evaluation Dataset
 DATA_CONFIG = Bunch(dict(
     # Name of evaluation dataset
     NAME='anon-depthmap-rgb-timestamp',
-
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
-
     # Batch size for evaluation
     BATCH_SIZE=512,
     NORMALIZATION_VALUE=7.5,
-
     # Parameters for dataset generation.
     TARGET_INDEXES=[0, 3],  # 0 is height, 1 is weight.
 
@@ -64,7 +59,6 @@ DATA_CONFIG = Bunch(dict(
         '202': '_lyingback',
     }
 ))
-
 
 # Result configuration for result generation after evaluation is done
 RESULT_CONFIG = Bunch(dict(
