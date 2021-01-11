@@ -45,9 +45,6 @@ RESULT_CONFIG = qa_config.RESULT_CONFIG
 
 RUN_ID = MODEL_CONFIG.RUN_ID
 
-NUM_PREDICTIONS = 16
-DROPOUT_STRENGTH = 1  # 1.0 means like original model
-
 
 # Function for loading and processing depthmaps.
 def tf_load_pickle(path, max_value):
@@ -87,7 +84,7 @@ def predict_uncertainty(X: np.array, model: tf.keras.Model) -> float:
     Returns:
         The standard deviation of multiple predictions
     """
-    one_batch = np.repeat(X, NUM_PREDICTIONS, axis=0)
+    one_batch = np.repeat(X, RESULT_CONFIG.NUM_DROPOUT_PREDICTIONS, axis=0)
     predictions = model(one_batch, training=True)
     std = tf.math.reduce_std(predictions)
     return std
@@ -105,7 +102,7 @@ def get_prediction_uncertainty(model_path: str, dataset_evaluation: tf.data.Data
     """
     print(f"loading model from {model_path}")
     model = load_model(model_path, compile=False)
-    model = change_dropout_strength(model, DROPOUT_STRENGTH)
+    model = change_dropout_strength(model, RESULT_CONFIG.DROPOUT_STRENGTH)
 
     dataset = dataset_evaluation.batch(1)
 
