@@ -11,17 +11,6 @@ MODEL_CONFIG = Bunch(dict(
     NAME='best_model.h5',
 ))
 
-FILTER_CONFIG = Bunch(dict(
-    IS_ENABLED=True,  # 'False'
-    EXPERIMENT_NAME='q4-rgb-plaincnn-classifaction-standing-lying-8k',
-
-    RUN_ID='q4-rgb-plaincnn-classifaction-standing-lying-8k_1602316038_3ebdb326',  # Run 3
-    # RUN_ID = 'q3-depthmap-plaincnn-height-95k_1600451633_cb44f6db',     #Run 17
-
-    INPUT_LOCATION='outputs',
-    NAME='best_filter.h5',
-))
-
 EVAL_CONFIG = Bunch(dict(
     # Name of evaluation
     NAME='q3-depthmap-plaincnn-height-95k-run_03',
@@ -42,8 +31,7 @@ EVAL_CONFIG = Bunch(dict(
 # Details of Evaluation Dataset
 DATA_CONFIG = Bunch(dict(
     # Name of evaluation dataset
-    # NAME='anon-realtime-testdata', # For evaluation
-    NAME='anon-depthmap-rgb-timestamp',  # For evlautaion with filter(Contains RGBs)
+    NAME='anon-realtime-testdata',
     IMAGE_TARGET_HEIGHT=240,
 
     IMAGE_TARGET_WIDTH=180,
