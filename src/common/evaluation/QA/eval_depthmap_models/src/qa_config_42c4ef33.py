@@ -54,7 +54,7 @@ RESULT_CONFIG = Bunch(dict(
 
     COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],
 
-    USE_UNCERTAINTY=False,
+    USE_UNCERTAINTY=False,  # Flag to enable model uncertainty calculation
 
     #path of csv file in the experiment which final result is stored
     SAVE_PATH='./outputs/height',
