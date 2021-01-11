@@ -90,6 +90,7 @@ if __name__ == "__main__":
         "glob2",
         "opencv-python==4.1.2.30",
         "matplotlib",
+        "tensorflow==2.3.1",
         "tensorflow-addons==0.11.2",
         "bunch==1.0.1"
     ]
