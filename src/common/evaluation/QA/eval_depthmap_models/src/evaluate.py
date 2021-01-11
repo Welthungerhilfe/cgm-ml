@@ -290,11 +290,11 @@ if __name__ == "__main__":
         assert len(df_sample) == len(uncertainties)
         df_sample['uncertainties'] = uncertainties
 
-        png_file = f"{OUTPUT_CSV_PATH}/uncertainty_distribution_dropoutstrength{DROPOUT_STRENGTH}_{RUN_ID}.png"
+        png_file = f"{OUTPUT_CSV_PATH}/uncertainty_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
         draw_uncertainty_goodbad_plot(df_sample, png_file)
 
         df_sample_100 = df_sample.iloc[df_sample.index.get_level_values('scantype') == '100']
-        png_file = f"{OUTPUT_CSV_PATH}/uncertainty_code100_distribution_dropoutstrength{DROPOUT_STRENGTH}_{RUN_ID}.png"
+        png_file = f"{OUTPUT_CSV_PATH}/uncertainty_code100_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
         draw_uncertainty_goodbad_plot(df_sample_100, png_file)
 
     # Done.

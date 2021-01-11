@@ -10,7 +10,6 @@ from azureml.core.run import Run
 from azureml.core.workspace import Workspace
 from tensorflow.keras import callbacks
 from tensorflow.keras.models import Sequential
-from tensorflow.python.keras import layers
 
 
 def change_dropout_strength(model: tf.keras.Model, dropout_strength: float) -> tf.keras.Model:
