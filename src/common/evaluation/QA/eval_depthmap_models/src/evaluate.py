@@ -289,9 +289,9 @@ if __name__ == "__main__":
         dataset_sample = prepare_sample_dataset(df_sample, dataset_path)
 
         # Predict uncertainty
-        uncertainty_list_one = get_prediction_uncertainty(model_path, dataset_sample)
-        assert len(df_sample) == len(uncertainty_list_one)
-        df_sample['uncertainties'] = uncertainty_list_one
+        uncertainties = get_prediction_uncertainty(model_path, dataset_sample)
+        assert len(df_sample) == len(uncertainties)
+        df_sample['uncertainties'] = uncertainties
 
         png_file = f"{OUTPUT_CSV_PATH}/uncertainty_distribution_dropoutstrength{DROPOUT_STRENGTH}_{RUN_ID}.png"
         draw_uncertainty_goodbad_plot(df_sample, png_file)
