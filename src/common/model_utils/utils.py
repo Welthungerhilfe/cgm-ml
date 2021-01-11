@@ -1,3 +1,4 @@
+import copy
 import datetime
 import os
 from pathlib import Path
@@ -8,6 +9,19 @@ from tensorflow.keras import models, layers
 from azureml.core.run import Run
 from azureml.core.workspace import Workspace
 from tensorflow.keras import callbacks
+from tensorflow.keras.models import Sequential
+from tensorflow.python.keras import layers
+
+
+def change_dropout_strength(model: tf.keras.Model, dropout_strength: float) -> tf.keras.Model:
+    """Duplicate a model while adjusting the dropout rate"""
+    new_model = Sequential(name="new_model")
+    for layer_ in model.layers:
+        layer = copy.copy(layer_)
+        if isinstance(layer, layers.core.Dropout):
+            layer.rate = min(0.999, layer.rate * dropout_strength)
+        new_model.add(layer)
+    return new_model
 
 
 def create_base_cnn(input_shape, dropout):

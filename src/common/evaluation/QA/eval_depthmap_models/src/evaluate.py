@@ -1,8 +1,8 @@
 import argparse
-import copy
 import os
 import pickle
 import random
+import sys
 import time
 from importlib import import_module
 from pathlib import Path
@@ -13,8 +13,7 @@ import pandas as pd
 import tensorflow as tf
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
-from tensorflow.keras.models import load_model, Sequential
-from tensorflow.python.keras import layers
+from tensorflow.keras.models import load_model
 
 import utils
 from constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR
@@ -25,6 +24,10 @@ from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD,
                    download_dataset, draw_age_scatterplot,
                    draw_uncertainty_goodbad_plot, get_dataset_path,
                    get_model_path)
+
+sys.path.append(str(Path(__file__).parents[4]))  # common
+
+from model_utils.utils import change_dropout_strength  # noqa: E402
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -88,17 +91,6 @@ def predict_uncertainty(X: np.array, model: tf.keras.Model) -> float:
     predictions = model(one_batch, training=True)
     std = tf.math.reduce_std(predictions)
     return std
-
-
-def change_dropout_strength(model: tf.keras.Model, dropout_strength: float) -> tf.keras.Model:
-    """Duplicate a model while adjusting the dropout rate"""
-    new_model = Sequential(name="new_model")
-    for layer_ in model.layers:
-        layer = copy.copy(layer_)
-        if isinstance(layer, layers.core.Dropout):
-            layer.rate = min(0.999, layer.rate * dropout_strength)
-        new_model.add(layer)
-    return new_model
 
 
 def get_prediction_uncertainty(model_path: str, dataset_evaluation: tf.data.Dataset) -> np.array:
