@@ -5,12 +5,14 @@ from pathlib import Path
 from typing import Callable, List
 
 import glob2 as glob
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 from azureml.core import Experiment, Run, Workspace
 from bunch import Bunch
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt  # noqa: E402
 
 DAYS_IN_YEAR = 365
 
@@ -237,6 +239,38 @@ def calculate_performance_age(code: str, df_mae: pd.DataFrame, result_config: Bu
     df_out.columns = [f"{age_min} to {age_max}" for age_min, age_max in age_buckets]
 
     return df_out
+
+
+def draw_uncertainty_goodbad_plot(df_: pd.DataFrame, csv_out_fpath: str):
+    """Take all good samples and plot error distributions. Do the same for bad samples.
+
+    Args:
+        df: Dataframe with columns: goodbad and uncertainties
+        csv_out_fpath (str): File path where plot image will be saved
+    """
+    df = df_[df_.uncertainties.notna()]
+    df_good = df[df[COLUMN_NAME_GOODBAD] == 1.0]
+    df_bad = df[df[COLUMN_NAME_GOODBAD] == 0.0]
+
+    good = list(df_good.uncertainties)
+    bad = list(df_bad.uncertainties)
+
+    bins = np.linspace(0, 10, 30)
+
+    plt.hist(good, bins, alpha=0.5, label='good')
+    plt.hist(bad, bins, alpha=0.5, label='bad')
+    plt.title(f"Uncertainty plot: n_good={len(good)}, n_bad={len(bad)}")
+    plt.xlabel("uncertainty in cm")
+    plt.ylabel("occurrence count")
+    plt.legend(loc='upper right')
+
+    mean_good = float(df_good.uncertainties.mean())
+    mean_bad = float(df_bad.uncertainties.mean())
+    plt.axvline(mean_good, color='g', linestyle='dashed', linewidth=2)
+    plt.axvline(mean_bad, color='r', linestyle='dashed', linewidth=2)
+
+    plt.savefig(csv_out_fpath)
+    plt.close()
 
 
 def draw_age_scatterplot(df_: pd.DataFrame, csv_out_fpath: str):

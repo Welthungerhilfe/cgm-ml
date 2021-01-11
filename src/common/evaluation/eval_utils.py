@@ -12,6 +12,21 @@ REPO_DIR = Path(os.getcwd()).parents[2]
 EVALUATION_ACCURACIES = [.2, .4, .8, 1.2, 2., 2.5, 3., 4., 5., 6.]
 MODEL_CKPT_FILENAME = "best_model.ckpt"
 
+DAYS_IN_YEAR = 365
+
+HEIGHT_IDX = 0
+WEIGHT_IDX = 1
+MUAC_IDX = 2
+AGE_IDX = 3
+SEX_IDX = 4
+GOODBAD_IDX = 5
+
+SEX_DICT = {'female': 0., 'male': 1.}
+GOODBAD_DICT = {'bad': 0., 'good': 1.}
+
+COLUMN_NAME_AGE = 'GT_age'
+COLUMN_NAME_SEX = 'GT_sex'
+COLUMN_NAME_GOODBAD = 'GT_goodbad'
 CODE_TO_SCANTYPE = {
     '100': '_standingfront',
     '101': '_standing360',
@@ -26,7 +41,7 @@ CONFIG = Bunch(dict(
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
     NORMALIZATION_VALUE=7.5,
-    TARGET_INDEXES=[0],  # 0 is height, 1 is weight.
+    TARGET_INDEXES=[0, 3, 5],  # 0 is height, 1 is weight.
     N_ARTIFACTS=5,
     CODES_FOR_POSE_AND_SCANSTEP=("100", ),
 ))
@@ -92,6 +107,15 @@ def preprocess(path):
 
 
 def preprocess_targets(targets, targets_indices):
+    if SEX_IDX in targets_indices:
+        targets[SEX_IDX] = SEX_DICT[targets[SEX_IDX]]
+    if GOODBAD_IDX in targets_indices:
+        try:
+            targets[GOODBAD_IDX] = GOODBAD_DICT[targets[GOODBAD_IDX]]
+        except KeyError:
+            print(f"Key '{targets[GOODBAD_IDX]}' not found in GOODBAD_DICT")
+            targets[GOODBAD_IDX] = 0.  # unknown target values will be categorized as 'bad'
+
     if targets_indices is not None:
         targets = targets[targets_indices]
     return targets.astype("float32")

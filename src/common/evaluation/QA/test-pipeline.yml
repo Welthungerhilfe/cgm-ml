@@ -2,8 +2,8 @@ trigger:
   branches:
     include:
     - releases/*
-pr: none
 
+pr: none
 
 jobs:
 - job: EvaluationJob

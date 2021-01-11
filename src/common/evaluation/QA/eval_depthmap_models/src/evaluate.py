@@ -1,10 +1,11 @@
 import argparse
+import copy
 import os
 import pickle
 import random
 import time
-from pathlib import Path
 from importlib import import_module
+from pathlib import Path
 
 import glob2 as glob
 import numpy as np
@@ -12,22 +13,28 @@ import pandas as pd
 import tensorflow as tf
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
-from tensorflow.keras.models import load_model
+from tensorflow.keras.models import Sequential, load_model
+from tensorflow.python import keras
 
 import utils
-from constants import DATA_DIR_ONLINE_RUN, REPO_DIR, DEFAULT_CONFIG
+from constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR
 from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD,
                    COLUMN_NAME_SEX, GOODBAD_IDX, SEX_IDX,
                    calculate_performance, calculate_performance_age,
                    calculate_performance_goodbad, calculate_performance_sex,
-                   download_dataset, draw_age_scatterplot, get_dataset_path,
+                   download_dataset, draw_age_scatterplot,
+                   draw_uncertainty_goodbad_plot, get_dataset_path,
                    get_model_path)
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--qa_config_module", default=DEFAULT_CONFIG, help="Configuration file")
-args = parser.parse_args()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--qa_config_module", default=DEFAULT_CONFIG, help="Configuration file")
+    args = parser.parse_args()
+    qa_config = import_module(args.qa_config_module)
+else:
+    qa_config = import_module(DEFAULT_CONFIG)
 
-qa_config = import_module(args.qa_config_module)
+
 MODEL_CONFIG = qa_config.MODEL_CONFIG
 EVAL_CONFIG = qa_config.EVAL_CONFIG
 DATA_CONFIG = qa_config.DATA_CONFIG
@@ -59,16 +66,80 @@ def tf_load_pickle(path, max_value):
     return depthmap, targets
 
 
-def get_prediction(model_path, dataset_evaluation):
+def prepare_sample_dataset(df_sample, dataset_path):
+    df_sample['artifact_path'] = df_sample.apply(
+        lambda x: f"{dataset_path}/{x['qrcode']}/{x['scantype']}/{x['artifact']}", axis=1)
+    paths_evaluation = list(df_sample['artifact_path'])
+    dataset_sample = tf.data.Dataset.from_tensor_slices(paths_evaluation)
+    dataset_sample = dataset_sample.map(lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE))
+    dataset_sample = dataset_sample.cache()
+    dataset_sample = dataset_sample.prefetch(tf.data.experimental.AUTOTUNE)
+    return dataset_sample
+
+
+def predict_uncertainty(X: np.array, model: tf.keras.Model) -> float:
+    """Predict standard deviation of multiple predictions with different dropouts
+
+    Args:
+        X: Sample image with shape (1, h, w, 1)
+        model: keras model
+
+    Returns:
+        The standard deviation of multiple predictions
+    """
+    one_batch = np.repeat(X, RESULT_CONFIG.NUM_DROPOUT_PREDICTIONS, axis=0)
+    predictions = model(one_batch, training=True)
+    std = tf.math.reduce_std(predictions)
+    return std
+
+
+def change_dropout_strength(model: tf.keras.Model, dropout_strength: float) -> tf.keras.Model:
+    """Duplicate a model while adjusting the dropout rate"""
+    new_model = Sequential(name="new_model")
+    for layer_ in model.layers:
+        layer = copy.copy(layer_)
+        if isinstance(layer, keras.layers.core.Dropout):
+            # Set the dropout rate a ratio from range [0.0, 1.0]
+            layer.rate = min(0.999, layer.rate * dropout_strength)
+        new_model.add(layer)
+    return new_model
+
+
+def get_prediction_uncertainty(model_path: str, dataset_evaluation: tf.data.Dataset) -> np.array:
+    """Predict standard deviation of multiple predictions with different dropouts
+
+    Args:
+        model_path: Path of the trained model
+        dataset_evaluation: dataset in which the evaluation need to performed
+
+    Returns:
+        predictions, array shape (N_SAMPLES, )
+    """
+    print(f"loading model from {model_path}")
+    model = load_model(model_path, compile=False)
+    model = change_dropout_strength(model, RESULT_CONFIG.DROPOUT_STRENGTH)
+
+    dataset = dataset_evaluation.batch(1)
+
+    print("starting predicting uncertainty")
+    start = time.time()
+    std_list = [predict_uncertainty(X, model) for X, y in dataset.as_numpy_iterator()]
+    end = time.time()
+    print(f"Total time for uncertainty prediction experiment: {end - start:.3} sec")
+
+    return np.array(std_list)
+
+
+def get_prediction(model_path: str, dataset_evaluation: tf.data.Dataset) -> np.array:
     """Perform the prediction on the dataset with the given model
 
     Args:
         model_path: Path of the trained model
-        dataset_evaluation: dataset in which Evaluation need to performed
-
+        dataset_evaluation: dataset in which the evaluation need to performed
     Returns:
-        prediction_list
+        predictions, array shape (N_SAMPLES, )
     """
+    print(f"loading model from {model_path}")
     model = load_model(model_path, compile=False)
 
     dataset = dataset_evaluation.batch(DATA_CONFIG.BATCH_SIZE)
@@ -77,7 +148,7 @@ def get_prediction(model_path, dataset_evaluation):
     start = time.time()
     predictions = model.predict(dataset, batch_size=DATA_CONFIG.BATCH_SIZE)
     end = time.time()
-    print("Total time for prediction experiment: {} sec".format(end - start))
+    print(f"Total time for prediction experiment: {end - start:.3} sec")
 
     prediction_list = np.squeeze(predictions)
     return prediction_list
@@ -92,8 +163,7 @@ if __name__ == "__main__":
     # Get the current run.
     run = Run.get_context()
 
-    OUTPUT_CSV_PATH = str(
-        REPO_DIR / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
+    OUTPUT_CSV_PATH = str(REPO_DIR / 'data' / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
     MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if run.id.startswith("OfflineRun") else Path('.')
 
     # Offline run. Download the sample dataset and run locally. Still push results to Azure.
@@ -168,7 +238,6 @@ if __name__ == "__main__":
 
     model_path = MODEL_BASE_DIR / get_model_path(MODEL_CONFIG)
     prediction_list_one = get_prediction(model_path, dataset_evaluation)
-
     print("Prediction made by model on the depthmaps...")
     print(prediction_list_one)
 
@@ -211,9 +280,9 @@ if __name__ == "__main__":
         utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
 
-        csv_file = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{RUN_ID}.png"
-        print(f"Calculate and save scatterplot results to {csv_file}")
-        draw_age_scatterplot(df, csv_file)
+        png_file = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{RUN_ID}.png"
+        print(f"Calculate and save scatterplot results to {png_file}")
+        draw_age_scatterplot(df, png_file)
 
     if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_file = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"
@@ -225,6 +294,28 @@ if __name__ == "__main__":
         print(f"Calculate performance on bad/good scans and save results to {csv_file}")
         utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_goodbad)
+
+    if RESULT_CONFIG.USE_UNCERTAINTY:
+        assert GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES
+        assert COLUMN_NAME_GOODBAD in df
+
+        # Sample one artifact per scan (qrcode, scantype combination)
+        df_sample = df.groupby(['qrcode', 'scantype']).apply(lambda x: x.sample(1))
+
+        # Prepare uncertainty prediction on these artifacts
+        dataset_sample = prepare_sample_dataset(df_sample, dataset_path)
+
+        # Predict uncertainty
+        uncertainties = get_prediction_uncertainty(model_path, dataset_sample)
+        assert len(df_sample) == len(uncertainties)
+        df_sample['uncertainties'] = uncertainties
+
+        png_file = f"{OUTPUT_CSV_PATH}/uncertainty_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
+        draw_uncertainty_goodbad_plot(df_sample, png_file)
+
+        df_sample_100 = df_sample.iloc[df_sample.index.get_level_values('scantype') == '100']
+        png_file = f"{OUTPUT_CSV_PATH}/uncertainty_code100_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
+        draw_uncertainty_goodbad_plot(df_sample_100, png_file)
 
     # Done.
     run.complete()
