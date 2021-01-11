@@ -39,8 +39,8 @@ MODEL_CONFIG = qa_config.MODEL_CONFIG
 EVAL_CONFIG = qa_config.EVAL_CONFIG
 DATA_CONFIG = qa_config.DATA_CONFIG
 RESULT_CONFIG = qa_config.RESULT_CONFIG
-if args.qa_config_module == 'qa_config_filter':
-    FILTER_CONFIG = qa_config.FILTER_CONFIG
+FILTER_CONFIG = qa_config.FILTER_CONFIG if getattr(qa_config, 'FILTER_CONFIG', False) else None
+
 
 RUN_ID = MODEL_CONFIG.RUN_ID
 
@@ -50,7 +50,7 @@ RUN_ID = MODEL_CONFIG.RUN_ID
 def tf_load_pickle(path, max_value):
     """Utility to load the depthmap pickle file"""
     def py_load_pickle(path, max_value):
-        if args.qa_config_module == 'qa_config_filter':
+        if FILTER_CONFIG is not None:
             depthmap, targets, image = pickle.load(open(path.numpy(), "rb"))  # for filter (Contains RGBs)
         else:
             depthmap, targets = pickle.load(open(path.numpy(), "rb"))
@@ -222,7 +222,7 @@ if __name__ == "__main__":
 
     new_paths_evaluation = paths_evaluation
 
-    if args.qa_config_module == 'qa_config_filter' and FILTER_CONFIG.IS_ENABLED:
+    if FILTER_CONFIG is not None and FILTER_CONFIG.IS_ENABLED:
         standing = load_model(FILTER_CONFIG.NAME)
         new_paths_evaluation = utils.filter_dataset(paths_evaluation, standing)
 
@@ -242,7 +242,7 @@ if __name__ == "__main__":
     print(prediction_list_one)
 
     qrcode_list, scantype_list, artifact_list, prediction_list, target_list = utils.get_column_list(
-        new_paths_evaluation, prediction_list_one, DATA_CONFIG, args.qa_config_module)
+        new_paths_evaluation, prediction_list_one, DATA_CONFIG, FILTER_CONFIG)
 
     df = pd.DataFrame({
         'qrcode': qrcode_list,

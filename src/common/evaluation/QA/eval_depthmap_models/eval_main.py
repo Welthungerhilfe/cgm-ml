@@ -29,8 +29,7 @@ if __name__ == "__main__":
     EVAL_CONFIG = qa_config.EVAL_CONFIG
     DATA_CONFIG = qa_config.DATA_CONFIG
     RESULT_CONFIG = qa_config.RESULT_CONFIG
-    if args.qa_config_module == 'qa_config_filter':
-        FILTER_CONFIG = qa_config.FILTER_CONFIG
+    FILTER_CONFIG = qa_config.FILTER_CONFIG if getattr(qa_config, 'FILTER_CONFIG', False) else None
 
     # Create a temp folder
     code_dir = CWD / "src"
@@ -64,10 +63,10 @@ if __name__ == "__main__":
                    output_location=MODEL_BASE_DIR)
 
     # Copy filter to temp folder
-    if args.qa_config_module == 'qa_config_filter' and FILTER_CONFIG.IS_ENABLED:
+    if FILTER_CONFIG is not None and FILTER_CONFIG.IS_ENABLED:
         download_model(ws=ws, experiment_name=FILTER_CONFIG.EXPERIMENT_NAME, run_id=FILTER_CONFIG.RUN_ID, input_location=os.path.join(
             FILTER_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME), output_location=str(temp_path / FILTER_CONFIG.NAME))
-        azureml._restclient.snapshots_client. SNAPSHOT_MAX_SIZE_BYTES = 500000000
+        azureml._restclient.snapshots_client.SNAPSHOT_MAX_SIZE_BYTES = 500000000
 
     experiment = Experiment(workspace=ws, name=EVAL_CONFIG.EXPERIMENT_NAME)
 
