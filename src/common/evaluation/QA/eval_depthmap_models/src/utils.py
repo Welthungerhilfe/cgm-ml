@@ -90,7 +90,7 @@ def get_depthmap_files(paths: List[str]) -> List[str]:
     return pickle_paths
 
 
-def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CONFIG: Bunch, qa_config_module: String):
+def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CONFIG: Bunch, qa_config_module: str):
     """Prepare the list of all artifact with its corresponding scantype, qrcode, target and prediction"""
     qrcode_list, scan_type_list, artifact_list, prediction_list, target_list = [], [], [], [], []
 
