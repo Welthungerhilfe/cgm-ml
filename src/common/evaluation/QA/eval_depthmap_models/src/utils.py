@@ -90,12 +90,12 @@ def get_depthmap_files(paths: List[str]) -> List[str]:
     return pickle_paths
 
 
-def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CONFIG: Bunch, FILTER_CONFIG: Bunch):
+def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CONFIG: Bunch, qa_config_module: String):
     """Prepare the list of all artifact with its corresponding scantype, qrcode, target and prediction"""
     qrcode_list, scan_type_list, artifact_list, prediction_list, target_list = [], [], [], [], []
 
     for idx, path in enumerate(depthmap_path_list):
-        if FILTER_CONFIG.IS_ENABLED:
+        if qa_config_module == 'qa_config_filter':
             _, targets, _ = pickle.load(open(path, "rb"))  # For filter(contains RGBs) dataset
         else:
             _, targets = pickle.load(open(path, "rb"))

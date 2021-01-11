@@ -32,7 +32,8 @@ MODEL_CONFIG = qa_config.MODEL_CONFIG
 EVAL_CONFIG = qa_config.EVAL_CONFIG
 DATA_CONFIG = qa_config.DATA_CONFIG
 RESULT_CONFIG = qa_config.RESULT_CONFIG
-FILTER_CONFIG = qa_config.FILTER_CONFIG
+if args.qa_config_module == 'qa_config_filter':
+    FILTER_CONFIG = qa_config.FILTER_CONFIG
 
 RUN_ID = MODEL_CONFIG.RUN_ID
 
@@ -42,7 +43,7 @@ RUN_ID = MODEL_CONFIG.RUN_ID
 def tf_load_pickle(path, max_value):
     """Utility to load the depthmap pickle file"""
     def py_load_pickle(path, max_value):
-        if FILTER_CONFIG.IS_ENABLED:
+        if args.qa_config_module == 'qa_config_filter':
             depthmap, targets, image = pickle.load(open(path.numpy(), "rb"))  # for filter (Contains RGBs)
         else:
             depthmap, targets = pickle.load(open(path.numpy(), "rb"))
@@ -91,7 +92,8 @@ if __name__ == "__main__":
     # Get the current run.
     run = Run.get_context()
 
-    OUTPUT_CSV_PATH = str(REPO_DIR / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
+    OUTPUT_CSV_PATH = str(
+        REPO_DIR / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
     MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if run.id.startswith("OfflineRun") else Path('.')
 
     # Offline run. Download the sample dataset and run locally. Still push results to Azure.
@@ -150,7 +152,7 @@ if __name__ == "__main__":
 
     new_paths_evaluation = paths_evaluation
 
-    if FILTER_CONFIG.IS_ENABLED:
+    if args.qa_config_module == 'qa_config_filter' and FILTER_CONFIG.IS_ENABLED:
         standing = load_model(FILTER_CONFIG.NAME)
         new_paths_evaluation = utils.filter_dataset(paths_evaluation, standing)
 
@@ -171,7 +173,7 @@ if __name__ == "__main__":
     print(prediction_list_one)
 
     qrcode_list, scantype_list, artifact_list, prediction_list, target_list = utils.get_column_list(
-        new_paths_evaluation, prediction_list_one, DATA_CONFIG, FILTER_CONFIG)
+        new_paths_evaluation, prediction_list_one, DATA_CONFIG, args.qa_config_module)
 
     df = pd.DataFrame({
         'qrcode': qrcode_list,
