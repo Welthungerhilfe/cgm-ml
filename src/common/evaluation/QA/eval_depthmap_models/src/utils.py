@@ -10,12 +10,12 @@ import numpy as np
 import pandas as pd
 from azureml.core import Experiment, Run, Workspace
 from bunch import Bunch
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt  # noqa: E402
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.python import keras
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt  # noqa: E402
 
 DAYS_IN_YEAR = 365
 

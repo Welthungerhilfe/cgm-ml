@@ -2,7 +2,6 @@ import argparse
 import os
 import pickle
 import random
-import sys
 import time
 from importlib import import_module
 from pathlib import Path
