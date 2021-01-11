@@ -1,3 +1,4 @@
+import copy
 import datetime
 import os
 import pickle
@@ -12,6 +13,9 @@ from bunch import Bunch
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt  # noqa: E402
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.python import keras
 
 DAYS_IN_YEAR = 365
 
@@ -36,6 +40,18 @@ CODE_TO_SCANTYPE = {
     '201': '_lyingrot',
     '202': '_lyingback',
 }
+
+
+def change_dropout_strength(model: tf.keras.Model, dropout_strength: float) -> tf.keras.Model:
+    """Duplicate a model while adjusting the dropout rate"""
+    new_model = Sequential(name="new_model")
+    for layer_ in model.layers:
+        layer = copy.copy(layer_)
+        if isinstance(layer, keras.layers.core.Dropout):
+            # Set the dropout rate a ratio from range [0.0, 1.0]
+            layer.rate = min(0.999, layer.rate * dropout_strength)
+        new_model.add(layer)
+    return new_model
 
 
 def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):

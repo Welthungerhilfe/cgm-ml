@@ -21,13 +21,9 @@ from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD,
                    COLUMN_NAME_SEX, GOODBAD_IDX, SEX_IDX,
                    calculate_performance, calculate_performance_age,
                    calculate_performance_goodbad, calculate_performance_sex,
-                   download_dataset, draw_age_scatterplot,
-                   draw_uncertainty_goodbad_plot, get_dataset_path,
-                   get_model_path)
-
-sys.path.append(str(Path(__file__).parents[4]))  # common
-
-from model_utils.utils import change_dropout_strength  # noqa: E402
+                   change_dropout_strength, download_dataset,
+                   draw_age_scatterplot, draw_uncertainty_goodbad_plot,
+                   get_dataset_path, get_model_path)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
