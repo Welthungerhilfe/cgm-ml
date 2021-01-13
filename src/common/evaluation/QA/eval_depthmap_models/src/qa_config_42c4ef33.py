@@ -2,29 +2,29 @@ from bunch import Bunch
 
 # Details of model used for evaluation
 MODEL_CONFIG = Bunch(dict(
-    EXPERIMENT_NAME='q3-depthmap-plaincnn-height-95k',
+    EXPERIMENT_NAME='q1-ensemble-warmup',
 
-    RUN_ID='q3-depthmap-plaincnn-height-95k_1597988908_42c4ef33',  # Run 3
+    RUN_ID='q1-ensemble-warmup_1610544610_eb44bfe2',  # Run 3
     # RUN_ID='q3-depthmap-plaincnn-height-95k_1600451633_cb44f6db',  #Run 17
 
     INPUT_LOCATION='outputs',
-    NAME='best_model.h5',
+    NAME='best_model.ckpt',
 ))
 
 
 EVAL_CONFIG = Bunch(dict(
     # Name of evaluation
-    NAME='q3-depthmap-plaincnn-height-95k_run_03',
+    NAME='q1-ensemble-warmup_run_01',
 
     # Experiment in Azure ML which will be used for evaluation
     EXPERIMENT_NAME="QA-pipeline",
     CLUSTER_NAME="gpu-cluster",
 
     # Used for Debug the QA pipeline
-    DEBUG_RUN=False,
+    DEBUG_RUN=True,
 
     # Will run eval on specified # of scan instead of full dataset
-    DEBUG_NUMBER_OF_SCAN=5,
+    DEBUG_NUMBER_OF_SCAN=100,
 
     SPLIT_SEED=0,
 ))

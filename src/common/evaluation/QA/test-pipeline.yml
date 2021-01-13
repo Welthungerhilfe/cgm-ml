@@ -3,8 +3,6 @@ trigger:
     include:
     - releases/*
 
-pr: none
-
 jobs:
 - job: EvaluationJob
   timeoutInMinutes: 300
