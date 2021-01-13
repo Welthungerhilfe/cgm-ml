@@ -24,7 +24,7 @@ SEX_IDX = 4
 GOODBAD_IDX = 5
 
 SEX_DICT = {'female': 0., 'male': 1.}
-GOODBAD_DICT = {'bad': 0., 'good': 1.}
+GOODBAD_DICT = {'bad': 0., 'good': 1., 'delete': 2.}
 
 COLUMN_NAME_AGE = 'GT_age'
 COLUMN_NAME_SEX = 'GT_sex'
@@ -77,7 +77,7 @@ def preprocess_targets(targets, targets_indices):
             targets[GOODBAD_IDX] = GOODBAD_DICT[targets[GOODBAD_IDX]]
         except KeyError:
             print(f"Key '{targets[GOODBAD_IDX]}' not found in GOODBAD_DICT")
-            targets[GOODBAD_IDX] = 0.  # unknown target values will be categorized as 'bad'
+            targets[GOODBAD_IDX] = GOODBAD_DICT['delete']  # unknown target values will be categorized as 'delete'
 
     if targets_indices is not None:
         targets = targets[targets_indices]

@@ -19,7 +19,7 @@ from tensorflow.python import keras
 import utils
 from constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR
 from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD,
-                   COLUMN_NAME_SEX, GOODBAD_IDX, SEX_IDX,
+                   COLUMN_NAME_SEX, GOODBAD_IDX, GOODBAD_DICT, SEX_IDX,
                    calculate_performance, calculate_performance_age,
                    calculate_performance_goodbad, calculate_performance_sex,
                    download_dataset, draw_age_scatterplot,
@@ -63,7 +63,7 @@ def tf_load_pickle(path, max_value):
     depthmap, targets = tf.py_function(py_load_pickle, [path, max_value], [tf.float32, tf.float32])
     depthmap.set_shape((DATA_CONFIG.IMAGE_TARGET_HEIGHT, DATA_CONFIG.IMAGE_TARGET_WIDTH, 1))
     targets.set_shape((len(DATA_CONFIG.TARGET_INDEXES,)))
-    return depthmap, targets
+    return path, depthmap, targets
 
 
 def prepare_sample_dataset(df_sample, dataset_path):
@@ -72,6 +72,7 @@ def prepare_sample_dataset(df_sample, dataset_path):
     paths_evaluation = list(df_sample['artifact_path'])
     dataset_sample = tf.data.Dataset.from_tensor_slices(paths_evaluation)
     dataset_sample = dataset_sample.map(lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE))
+    dataset_sample = dataset_sample.map(lambda _path, depthmap, targets: (depthmap, targets))
     dataset_sample = dataset_sample.cache()
     dataset_sample = dataset_sample.prefetch(tf.data.experimental.AUTOTUNE)
     return dataset_sample
@@ -230,13 +231,27 @@ if __name__ == "__main__":
     paths = new_paths_evaluation
     dataset = tf.data.Dataset.from_tensor_slices(paths)
     dataset_norm = dataset.map(lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE))
+
+    # filter goodbad==delete
+    dataset_norm = dataset_norm.filter(lambda _path, _depthmap, targets: targets[2] != GOODBAD_DICT['delete'])  # TODO refactor: replace 2 with inferred goodbad target idx
+
     dataset_norm = dataset_norm.cache()
     dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
-    dataset_evaluation = dataset_norm
+    tmp_dataset_evaluation = dataset_norm
     del dataset_norm
     print("Created dataset for training.")
 
     model_path = MODEL_BASE_DIR / get_model_path(MODEL_CONFIG)
+
+    # Update new_paths_evaluation after filtering
+    dataset_paths = tmp_dataset_evaluation.map(lambda path, _depthmap, _targets: path)
+    dataset_paths_take = dataset_paths.take(1000000000)
+    list_paths = list(dataset_paths_take.as_numpy_iterator())
+    new_paths_evaluation = [x.decode() for x in list_paths]
+
+    dataset_evaluation = tmp_dataset_evaluation.map(lambda _path, depthmap, targets: (depthmap, targets))
+    del tmp_dataset_evaluation
+
     prediction_list_one = get_prediction(model_path, dataset_evaluation)
     print("Prediction made by model on the depthmaps...")
     print(prediction_list_one)
@@ -251,6 +266,7 @@ if __name__ == "__main__":
         'GT': [el[0] for el in target_list],
         'predicted': prediction_list
     }, columns=RESULT_CONFIG.COLUMNS)
+    print("df.shape:", df.shape)
 
     df['GT'] = df['GT'].astype('float64')
     df['predicted'] = df['predicted'].astype('float64')
