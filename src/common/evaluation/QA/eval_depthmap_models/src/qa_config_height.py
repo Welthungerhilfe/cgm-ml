@@ -21,10 +21,10 @@ EVAL_CONFIG = Bunch(dict(
     CLUSTER_NAME="gpu-cluster",
 
     #Used for Debug the QA pipeline
-    DEBUG_RUN=True,
+    DEBUG_RUN=False,
 
     #Will run eval on specified # of scan instead of full dataset
-    DEBUG_NUMBER_OF_SCAN=2,
+    DEBUG_NUMBER_OF_SCAN=5,
 
     SPLIT_SEED=0,
 ))
@@ -38,7 +38,7 @@ DATA_CONFIG = Bunch(dict(
     IMAGE_TARGET_WIDTH=180,
 
     #Batch size for evaluation
-    BATCH_SIZE=4,
+    BATCH_SIZE=512,
     NORMALIZATION_VALUE=7.5,
 
     # Parameters for dataset generation.
