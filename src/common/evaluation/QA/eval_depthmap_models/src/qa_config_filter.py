@@ -6,7 +6,7 @@ MODEL_CONFIG = Bunch(dict(
     RUN_ID='q3-depthmap-plaincnn-height-95k_1597988908_42c4ef33',  # Run 3
 
     INPUT_LOCATION='outputs',
-    NAME='best_model.h5',
+    NAME='best_model.ckpt',
 ))
 
 FILTER_CONFIG = Bunch(dict(
