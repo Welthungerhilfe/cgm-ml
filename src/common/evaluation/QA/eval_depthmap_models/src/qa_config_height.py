@@ -6,7 +6,7 @@ MODEL_CONFIG = Bunch(dict(
     RUN_ID='q3-depthmap-plaincnn-height-95k_1610709896_ef7f755d',  # Run 5
 
     INPUT_LOCATION='outputs',
-    NAME='best_model.h5',
+    NAME='best_model.ckpt',
 ))
 
 
