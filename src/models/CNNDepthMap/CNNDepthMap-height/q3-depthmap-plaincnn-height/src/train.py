@@ -8,6 +8,9 @@ import glob2 as glob
 import tensorflow as tf
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
+import wandb
+from wandb.keras import WandbCallback
+
 
 from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
@@ -173,10 +176,12 @@ checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     save_best_only=True,
     verbose=1
 )
+wandb.init(config=CONFIG)
 training_callbacks = [
     AzureLogCallback(run),
     create_tensorboard_callback(),
     checkpoint_callback,
+    WandbCallback(),
 ]
 
 optimizer = get_optimizer(CONFIG.USE_ONE_CYCLE,
