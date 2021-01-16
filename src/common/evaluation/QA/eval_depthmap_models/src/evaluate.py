@@ -6,7 +6,6 @@ import random
 import time
 from importlib import import_module
 from pathlib import Path
-import json
 
 import glob2 as glob
 import numpy as np
@@ -16,21 +15,16 @@ from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.python import keras
-from cgmzscore import Calculator
-from sklearn.metrics import confusion_matrix
-import matplotlib.pyplot as plt
-
 
 import utils
-import seaborn as sns
 from constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR
-from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD,
+from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, HEIGHT_IDX,
                    COLUMN_NAME_SEX, GOODBAD_IDX, SEX_IDX,
                    calculate_performance, calculate_performance_age,
                    calculate_performance_goodbad, calculate_performance_sex,
                    download_dataset, draw_age_scatterplot,
-                   draw_uncertainty_goodbad_plot, get_dataset_path,
-                   get_model_path,SEX_DICT)
+                   draw_uncertainty_goodbad_plot, get_dataset_path, draw_stunting_diagnosis,
+                   get_model_path)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -169,7 +163,8 @@ if __name__ == "__main__":
     # Get the current run.
     run = Run.get_context()
 
-    OUTPUT_CSV_PATH = str(REPO_DIR / 'data' / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
+    OUTPUT_CSV_PATH = str(REPO_DIR / 'data'
+                          / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
     MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if run.id.startswith("OfflineRun") else Path('.')
 
     # Offline run. Download the sample dataset and run locally. Still push results to Azure.
@@ -243,7 +238,8 @@ if __name__ == "__main__":
     print("Created dataset for training.")
 
     model_path = MODEL_BASE_DIR / get_model_path(MODEL_CONFIG)
-    prediction_list_one = get_prediction('/Users/prajwalsingh/cgm-ml/src/common/evaluation/QA/eval_depthmap_models/tmp_eval/best_model.h5', dataset_evaluation)
+    prediction_list_one = get_prediction(
+        model_path, dataset_evaluation)
     print("Prediction made by model on the depthmaps...")
     print(prediction_list_one)
 
@@ -273,30 +269,6 @@ if __name__ == "__main__":
 
     df_grouped = df.groupby(['qrcode', 'scantype']).mean()
     #print("Mean Avg Error: ", df_grouped)
-    predicted_stunting=[]
-    actual_stunting=[]
-    not_processedData=[]
-    for index, row in df.iterrows():
-        sex='M'
-        if row['GT_sex']==SEX_DICT['female']:
-            sex='F'
-        elif row['GT_sex']==SEX_DICT['male']:
-            sex='M'
-        
-        if row['GT']> 45 and row['GT'] <=120 and row['predicted']> 45 and row['predicted']<=120 and row['GT_age']<=1856.0:
-            v = json.loads(Calculator().zScore_withclass(weight="0",muac="0",age_in_days=int(row['GT_age']),sex=sex,height=row['GT']))
-            actual_stunting.append(v['Class_HFA'])
-            k = json.loads(Calculator().zScore_withclass(weight="0",muac="0",age_in_days=int(row['GT_age']),sex=sex,height=row['predicted']))
-            predicted_stunting.append(k['Class_HFA'])
-        else:
-            not_processedData.append(row['qrcode'])
-
-    print(confusion_matrix(actual_stunting, predicted_stunting, labels=["Healthy", "Severly Stunted", "Moderately Stunted"]))
-    plt.figure(figsize=(10,7))
-    sns.heatmap(confusion_matrix(actual_stunting, predicted_stunting, labels=["Healthy", "Severly Stunted", "Moderately Stunted"]), annot=True)
-    plt.savefig("mygraph.png")
-
-
 
     df_grouped['error'] = df_grouped.apply(utils.avgerror, axis=1)
     print(df_grouped)
@@ -310,10 +282,14 @@ if __name__ == "__main__":
         print(f"Calculate and save age results to {csv_file}")
         utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
-
         png_file = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{RUN_ID}.png"
         print(f"Calculate and save scatterplot results to {png_file}")
         draw_age_scatterplot(df, png_file)
+
+    if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES:
+        png_file = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{RUN_ID}.png"
+        print(f"Calculate and save confusion matrix results to {png_file}")
+        draw_stunting_diagnosis(df, png_file)
 
     if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_file = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"

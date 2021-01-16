@@ -1,16 +1,21 @@
 import datetime
+import json
 import os
 import pickle
 from pathlib import Path
 from typing import Callable, List
 
 import glob2 as glob
+import matplotlib
 import numpy as np
 import pandas as pd
+import seaborn as sns
 import tensorflow as tf
 from azureml.core import Experiment, Run, Workspace
 from bunch import Bunch
-import matplotlib
+from cgmzscore import Calculator
+from sklearn.metrics import confusion_matrix
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt  # noqa: E402
 
@@ -290,6 +295,35 @@ def draw_age_scatterplot(df_: pd.DataFrame, csv_out_fpath: str):
     axes = plt.gca()
     axes.set_xlim([0, 2500])
     axes.set_ylim([0, 5])
+    Path(csv_out_fpath).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(csv_out_fpath)
+    plt.close()
+
+
+def draw_stunting_diagnosis(df: pd.DataFrame, csv_out_fpath: str):
+    predicted_stunting = []
+    actual_stunting = []
+    not_processedData = []
+    for index, row in df.iterrows():
+        sex = 'M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F'
+
+        if row['GT'] > 45 and row['GT'] <= 120 and row['predicted'] > 45 and row['predicted'] <= 120 and row[COLUMN_NAME_AGE] <= 1856.0:
+            v = json.loads(Calculator().zScore_withclass(weight="0", muac="0",
+                                                         age_in_days=int(row[COLUMN_NAME_AGE]), sex=sex, height=row['GT']))
+            actual_stunting.append(v['Class_HFA'])
+            k = json.loads(Calculator().zScore_withclass(weight="0", muac="0",
+                                                         age_in_days=int(row[COLUMN_NAME_AGE]), sex=sex, height=row['predicted']))
+            predicted_stunting.append(k['Class_HFA'])
+        else:
+            not_processedData.append(row['qrcode'])
+    data = confusion_matrix(actual_stunting, predicted_stunting)
+    df_cm = pd.DataFrame(data, columns=np.unique(actual_stunting), index=np.unique(actual_stunting))
+    df_cm.index.name = 'Actual'
+    df_cm.columns.name = 'Predicted'
+    plt.figure(figsize=(10, 7))
+    sns.set(font_scale=0.8)  # for label size
+    sns.heatmap(df_cm, cmap="Blues", annot=True, annot_kws={"size": 16}, fmt="d")  # font size
+    plt.title("Stunting Diagnosis")
     Path(csv_out_fpath).parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(csv_out_fpath)
     plt.close()
