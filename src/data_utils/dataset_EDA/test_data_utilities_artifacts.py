@@ -84,6 +84,3 @@ def test_calculate_code_age_distribution():
     artifacts = _generate_df()
     result = calculate_code_age_distribution(artifacts)
     assert result.sum().sum() == artifacts.shape[0]
-
-if __name__ == "__main__":
-    test_calculate_code_age_distribution()

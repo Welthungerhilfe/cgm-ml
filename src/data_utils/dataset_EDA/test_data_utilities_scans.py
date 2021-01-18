@@ -57,7 +57,3 @@ def test_draw_sex_distribution():
 def test_draw_age_distribution():
     scans = _generate_df()
     draw_age_distribution(scans)
-
-
-if __name__ == "__main__":
-    test_draw_age_distribution()
