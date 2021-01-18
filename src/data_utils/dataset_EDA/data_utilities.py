@@ -30,8 +30,8 @@ def draw_sex_distribution(scans: pd.DataFrame):
 
 def _count_rows_per_age_bucket(artifacts):
     age_buckets = list(range(5))
-    l = [artifacts[artifacts['Years'] == age].shape[0] for age in age_buckets]
-    df_out = pd.DataFrame(l)
+    count_per_age_group = [artifacts[artifacts['Years'] == age].shape[0] for age in age_buckets]
+    df_out = pd.DataFrame(count_per_age_group)
     df_out = df_out.T
     df_out.columns = age_buckets
     return df_out

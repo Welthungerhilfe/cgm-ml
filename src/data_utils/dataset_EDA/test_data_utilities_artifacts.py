@@ -12,7 +12,6 @@ from data_utilities import calculate_code_age_distribution, extractqrcode
 # 4	pc_1584997475-0195z663pl_1591588126306_100_004...	DQKAiT6cSJkQW2ya_artifact-scan-pcd_15698880000...	qrcode/1584997475-0195z663pl/measure/159158812...	85.7	9.45	100.0	good	1584997475-0195z663pl
 
 
-
 def _generate_df():
     artifacts = [
         "pc_1584997475-0195z663pl_1591588126306_100_000",
@@ -71,7 +70,7 @@ def _generate_df():
     ]
 
     artifacts = pd.DataFrame(list(zip(artifacts, storage_path, height, weight, key, tag, years)),
-                             columns =['artifacts', 'storage_path', 'height', 'weight', 'key', 'tag', 'Years'])
+                             columns=['artifacts', 'storage_path', 'height', 'weight', 'key', 'tag', 'Years'])
     return artifacts
 
 

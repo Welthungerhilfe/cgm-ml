@@ -12,7 +12,6 @@ from data_utilities import draw_age_distribution, draw_sex_distribution
 # 4		8SMAKMkY79LovcBU_person_1570838400000_nMpSBNek...	1320	female	4
 
 
-
 def _generate_df():
     qrcode = [
         "1584997475-0195z663pl",
@@ -47,12 +46,14 @@ def _generate_df():
     ]
 
     scans = pd.DataFrame(list(zip(qrcode, age, sex, years)),
-                         columns =['qrcode', 'age', 'sex', 'Years'])
+                         columns=['qrcode', 'age', 'sex', 'Years'])
     return scans
+
 
 def test_draw_sex_distribution():
     scans = _generate_df()
     draw_sex_distribution(scans)
+
 
 def test_draw_age_distribution():
     scans = _generate_df()
