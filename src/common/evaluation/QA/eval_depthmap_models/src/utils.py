@@ -8,7 +8,6 @@ from typing import Callable, List
 import glob2 as glob
 import numpy as np
 import pandas as pd
-import seaborn as sns
 import tensorflow as tf
 from azureml.core import Experiment, Run, Workspace
 from bunch import Bunch
