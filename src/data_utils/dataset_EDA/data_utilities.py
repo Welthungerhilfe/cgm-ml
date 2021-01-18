@@ -6,7 +6,4 @@ def convert_age_from_days_to_years(age_in_days):
 
 def extractqrcode(row):
     """Extract just the qrcode from them path"""
-    complete_path = row['storage_path']
-    path = complete_path.split('/')
-    qrcode = path[1]
-    return qrcode
+    return row['storage_path'].split('/')[1]
