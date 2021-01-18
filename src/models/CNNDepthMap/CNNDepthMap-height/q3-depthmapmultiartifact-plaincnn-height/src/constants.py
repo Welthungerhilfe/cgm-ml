@@ -1,6 +1,4 @@
 from pathlib import Path
-from src.models.CNNDepthMap.CNNDepthMap-height.q3-depthmap-plaincnn-height.src.constants import (
-    PIP_PACKAGES)
 
 REPO_DIR = Path(__file__).parents[6].absolute()
 
