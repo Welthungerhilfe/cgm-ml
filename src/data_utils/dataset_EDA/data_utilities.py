@@ -10,14 +10,16 @@ def extractqrcode(row):
 
 
 def draw_age_distribution(scans):
-    age_ax = scans['Years'].value_counts().plot(kind='bar')
+    value_counts = scans['Years'].value_counts()
+    age_ax = value_counts.plot(kind='bar')
     age_ax.set_xlabel('age')
     age_ax.set_ylabel('no. of children')
-    print(scans['Years'].value_counts())
+    print(value_counts)
 
 
 def draw_sex_distribution(scans):
-    ax = scans['sex'].value_counts().plot(kind='bar')
+    value_counts = scans['sex'].value_counts()
+    ax = value_counts.plot(kind='bar')
     ax.set_xlabel('gender')
     ax.set_ylabel('no. of children')
-    print(scans['sex'].value_counts())
+    print(value_counts)
