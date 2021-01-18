@@ -17,7 +17,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt  # noqa: E402
 from cgmzscore import Calculator  # noqa: E402
-
+import seaborn as sns  # noqa: E402
 
 DAYS_IN_YEAR = 365
 
