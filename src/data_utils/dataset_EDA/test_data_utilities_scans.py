@@ -61,4 +61,3 @@ def test_draw_age_distribution():
 
 if __name__ == "__main__":
     test_draw_age_distribution()
-    aaa = True

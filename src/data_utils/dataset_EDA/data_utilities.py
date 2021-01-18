@@ -26,3 +26,25 @@ def draw_sex_distribution(scans: pd.DataFrame):
     ax.set_xlabel('gender')
     ax.set_ylabel('no. of scans')
     print(value_counts)
+
+
+def _count_rows_per_age_bucket(artifacts):
+    age_buckets = list(range(5))
+    l = [artifacts[artifacts['Years'] == age].shape[0] for age in age_buckets]
+    df_out = pd.DataFrame(l)
+    df_out = df_out.T
+    df_out.columns = age_buckets
+    return df_out
+
+
+def calculate_code_age_distribution(artifacts: pd.DataFrame):
+    codes = list(artifacts['key'].unique())
+    dfs = []
+    for code in codes:
+        df = _count_rows_per_age_bucket(artifacts[artifacts['key'] == code])
+        df.rename(index={0: code}, inplace=True)
+        dfs.append(df)
+    result = pd.concat(dfs)
+    result.index.name = 'codes'
+    print(result)
+    return result

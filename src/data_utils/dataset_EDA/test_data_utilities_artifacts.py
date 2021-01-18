@@ -1,6 +1,6 @@
 import pandas as pd
 
-from data_utilities import extractqrcode
+from data_utilities import calculate_code_age_distribution, extractqrcode
 
 # Test data: rebuilding the following from code
 
@@ -25,9 +25,9 @@ def _generate_df():
     storage_path = [
         "qrcode/1584997475-0195z663pl/measure/159158812...",
         "qrcode/1584997475-0195z663pl/measure/159158812...",
-        "qrcode/1584997475-0195z663pl/measure/159158812...",
-        "qrcode/1584997475-0195z663pl/measure/159158812...",
-        "qrcode/1584997475-0195z663pl/measure/159158812...",
+        "qrcode/qrcodeqrco-qrcodeqrco/measure/159158812...",
+        "qrcode/qrcodeqrco-qrcodeqrco/measure/159158812...",
+        "qrcode/qrcodeqrco-qrcodeqrco/measure/159158812...",
     ]
 
     height = [
@@ -47,8 +47,8 @@ def _generate_df():
     ]
 
     key = [
-        100.0,
-        100.0,
+        200.0,
+        200.0,
         100.0,
         100.0,
         100.0,
@@ -62,14 +62,28 @@ def _generate_df():
         "good",
     ]
 
-    scans = pd.DataFrame(list(zip(artifacts, storage_path, height, weight, key, tag)),
-                         columns =['artifacts', 'storage_path', 'height', 'weight', 'key', 'tag'])
-    return scans
+    years = [
+        1,
+        1,
+        1,
+        2,
+        3,
+    ]
+
+    artifacts = pd.DataFrame(list(zip(artifacts, storage_path, height, weight, key, tag, years)),
+                             columns =['artifacts', 'storage_path', 'height', 'weight', 'key', 'tag', 'Years'])
+    return artifacts
+
 
 def test_extractqrcode():
-    scans = _generate_df()
-    scans['qrcode'] = scans.apply(extractqrcode, axis=1)
+    artifacts = _generate_df()
+    artifacts['qrcode'] = artifacts.apply(extractqrcode, axis=1)
+
+
+def test_calculate_code_age_distribution():
+    artifacts = _generate_df()
+    result = calculate_code_age_distribution(artifacts)
+    assert result.sum().sum() == artifacts.shape[0]
 
 if __name__ == "__main__":
-    test_extractqrcode()
-    aaa = 1
+    test_calculate_code_age_distribution()
