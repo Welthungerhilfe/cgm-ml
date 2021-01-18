@@ -243,10 +243,6 @@ if __name__ == "__main__":
     print("Created dataset for training.")
 
     model_path = MODEL_BASE_DIR / get_model_path(MODEL_CONFIG)
-<<<<<<< HEAD
-    prediction_list_one = get_prediction(
-        model_path, dataset_evaluation)
-=======
 
     # Update new_paths_evaluation after filtering
     dataset_paths = tmp_dataset_evaluation.map(lambda path, _depthmap, _targets: path)
@@ -257,7 +253,6 @@ if __name__ == "__main__":
     del tmp_dataset_evaluation
 
     prediction_list_one = get_prediction(model_path, dataset_evaluation)
->>>>>>> origin/main
     print("Prediction made by model on the depthmaps...")
     print(prediction_list_one)
 
