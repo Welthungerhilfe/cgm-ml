@@ -282,10 +282,9 @@ if __name__ == "__main__":
         df[COLUMN_NAME_GOODBAD] = [el[idx] for el in target_list]
 
     df_grouped = df.groupby(['qrcode', 'scantype']).mean()
-    #print("Mean Avg Error: ", df_grouped)
+    print("Mean Avg Error: ", df_grouped)
 
     df_grouped['error'] = df_grouped.apply(utils.avgerror, axis=1)
-    print(df_grouped)
 
     csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
     print(f"Calculate and save the results to {csv_file}")
