@@ -99,7 +99,10 @@ if __name__ == "__main__":
         "opencv-python==4.1.2.30",
         "matplotlib",
         "tensorflow-addons==0.11.2",
-        "bunch==1.0.1"
+        "bunch==1.0.1",
+        "seaborn",
+        "cgmzscore",
+        "scikit-learn"
     ]
 
     # Create the estimator.
