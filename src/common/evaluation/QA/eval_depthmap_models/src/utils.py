@@ -12,11 +12,12 @@ import seaborn as sns
 import tensorflow as tf
 from azureml.core import Experiment, Run, Workspace
 from bunch import Bunch
-from cgmzscore import Calculator
 from sklearn.metrics import confusion_matrix
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt  # noqa: E402
+from cgmzscore import Calculator  # noqa: E402
+
 
 DAYS_IN_YEAR = 365
 
