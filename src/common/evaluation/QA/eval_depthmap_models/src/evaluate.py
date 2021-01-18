@@ -245,8 +245,7 @@ if __name__ == "__main__":
 
     # Update new_paths_evaluation after filtering
     dataset_paths = tmp_dataset_evaluation.map(lambda path, _depthmap, _targets: path)
-    dataset_paths_take = dataset_paths.take(1000000000)
-    list_paths = list(dataset_paths_take.as_numpy_iterator())
+    list_paths = list(dataset_paths.as_numpy_iterator())
     new_paths_evaluation = [x.decode() for x in list_paths]
 
     dataset_evaluation = tmp_dataset_evaluation.map(lambda _path, depthmap, targets: (depthmap, targets))
