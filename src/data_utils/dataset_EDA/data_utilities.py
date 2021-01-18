@@ -1,25 +1,28 @@
-def convert_age_from_days_to_years(age_in_days):
+import pandas as pd
+
+
+def convert_age_from_days_to_years(age_in_days: pd.Series) -> int:
     """Convert age in days into age in years"""
     age_in_years = age_in_days['age'] / 365
     return round(age_in_years)
 
 
-def extractqrcode(row):
+def extractqrcode(row: pd.Series) -> str:
     """Extract just the qrcode from them path"""
     return row['storage_path'].split('/')[1]
 
 
-def draw_age_distribution(scans):
+def draw_age_distribution(scans: pd.DataFrame):
     value_counts = scans['Years'].value_counts(sort=False, ascending=True)
     age_ax = value_counts.plot(kind='bar')
     age_ax.set_xlabel('age')
-    age_ax.set_ylabel('no. of children')
+    age_ax.set_ylabel('no. of scans')
     print(value_counts)
 
 
-def draw_sex_distribution(scans):
+def draw_sex_distribution(scans: pd.DataFrame):
     value_counts = scans['sex'].value_counts(sort=False, ascending=True)
     ax = value_counts.plot(kind='bar')
     ax.set_xlabel('gender')
-    ax.set_ylabel('no. of children')
+    ax.set_ylabel('no. of scans')
     print(value_counts)
