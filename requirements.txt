@@ -22,5 +22,5 @@ torch==1.7.0
 torchvision==0.8.1
 bunch==1.0.1
 seaborn
-cgmzscore
 scikit-learn
+cgmzscore
