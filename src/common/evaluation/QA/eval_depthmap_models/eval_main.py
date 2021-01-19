@@ -100,9 +100,9 @@ if __name__ == "__main__":
         "matplotlib",
         "tensorflow-addons==0.11.2",
         "bunch==1.0.1",
-        "seaborn",
-        "cgmzscore",
-        "scikit-learn"
+        "seaborn==0.11.1",
+        "cgmzscore==2.0.3",
+        "scikit-image==0.22.2.post1"
     ]
 
     # Create the estimator.
