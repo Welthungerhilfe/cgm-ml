@@ -102,7 +102,7 @@ if __name__ == "__main__":
         "bunch==1.0.1",
         "seaborn==0.11.1",
         "cgmzscore==2.0.3",
-        "scikit-image==0.22.2.post1"
+        "scikit-learn==0.22.2.post1"
     ]
 
     # Create the estimator.
