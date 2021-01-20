@@ -11,12 +11,11 @@ import pandas as pd
 import tensorflow as tf
 from azureml.core import Experiment, Run, Workspace
 from bunch import Bunch
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt  # noqa: E402
 from cgmzscore import Calculator  # noqa: E402
-import seaborn as sns  # noqa: E402
 
 DAYS_IN_YEAR = 365
 
@@ -41,6 +40,12 @@ CODE_TO_SCANTYPE = {
     '201': '_lyingrot',
     '202': '_lyingback',
 }
+
+MIN_HEIGHT = 45
+MAX_HEIGHT = 120
+MAX_AGE = 1856.0
+
+STUNTING_DIAGNOSIS = ["Healthy", "Moderately Stunted", "Severly Stunted"]
 
 
 def process_image(data):
@@ -305,23 +310,21 @@ def draw_stunting_diagnosis(df: pd.DataFrame, csv_out_fpath: str):
     not_processedData = []
     for index, row in df.iterrows():
         sex = 'M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F'
-
-        if row['GT'] > 45 and row['GT'] <= 120 and row['predicted'] > 45 and row['predicted'] <= 120 and row[COLUMN_NAME_AGE] <= 1856.0:
-            v = json.loads(Calculator().zScore_withclass(weight="0", muac="0",
-                                                         age_in_days=int(row[COLUMN_NAME_AGE]), sex=sex, height=row['GT']))
-            actual_stunting.append(v['Class_HFA'])
-            k = json.loads(Calculator().zScore_withclass(weight="0", muac="0",
-                                                         age_in_days=int(row[COLUMN_NAME_AGE]), sex=sex, height=row['predicted']))
-            predicted_stunting.append(k['Class_HFA'])
+        age_days = int(row[COLUMN_NAME_AGE])
+        if MIN_HEIGHT < row['GT'] <= MAX_HEIGHT and MIN_HEIGHT < row['predicted'] <= MAX_HEIGHT and row[COLUMN_NAME_AGE] <= MAX_AGE:
+            actual_calcuated = Calculator().zScore_withclass(
+                weight="0", muac="0", age_in_days=age_days, sex=sex, height=row['GT'])
+            actual_json = json.loads(actual_calcuated)
+            actual_stunting.append(actual_json['Class_HFA'])
+            predicted_calculated = Calculator().zScore_withclass(
+                weight="0", muac="0", age_in_days=age_days, sex=sex, height=row['predicted'])
+            predicted_json = json.loads(predicted_calculated)
+            predicted_stunting.append(predicted_json['Class_HFA'])
         else:
             not_processedData.append(row['qrcode'])
     data = confusion_matrix(actual_stunting, predicted_stunting)
-    df_cm = pd.DataFrame(data, columns=np.unique(actual_stunting), index=np.unique(actual_stunting))
-    df_cm.index.name = 'Actual'
-    df_cm.columns.name = 'Predicted'
-    plt.figure(figsize=(10, 7))
-    sns.set(font_scale=0.8)  # for label size
-    sns.heatmap(df_cm, cmap="Blues", annot=True, annot_kws={"size": 16}, fmt="d")  # font size
+    disp = ConfusionMatrixDisplay(confusion_matrix=data, display_labels=STUNTING_DIAGNOSIS)
+    disp.plot(cmap='Blues', values_format='d')
     plt.title("Stunting Diagnosis")
     Path(csv_out_fpath).parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(csv_out_fpath)
