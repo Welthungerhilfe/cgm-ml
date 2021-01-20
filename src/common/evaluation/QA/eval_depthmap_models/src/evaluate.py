@@ -24,7 +24,7 @@ from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD,
                    calculate_performance_goodbad, calculate_performance_sex,
                    download_dataset, draw_age_scatterplot,
                    draw_uncertainty_goodbad_plot, get_dataset_path,
-                   get_model_path)
+                   get_model_path, draw_uncertainty_scatterplot)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -331,6 +331,9 @@ if __name__ == "__main__":
         df_sample_100 = df_sample.iloc[df_sample.index.get_level_values('scantype') == '100']
         png_file = f"{OUTPUT_CSV_PATH}/uncertainty_code100_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
         draw_uncertainty_goodbad_plot(df_sample_100, png_file)
+
+        png_file = f"{OUTPUT_CSV_PATH}/uncertainty_scatter_distribution_{RUN_ID}.png"
+        draw_uncertainty_scatterplot(df_sample, png_file)
 
     # Done.
     run.complete()

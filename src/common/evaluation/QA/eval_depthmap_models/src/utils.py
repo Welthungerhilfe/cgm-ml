@@ -6,6 +6,7 @@ from typing import Callable, List
 
 import glob2 as glob
 import numpy as np
+from scipy.stats.stats import pearsonr
 import pandas as pd
 import tensorflow as tf
 from azureml.core import Experiment, Run, Workspace
@@ -273,12 +274,12 @@ def draw_uncertainty_goodbad_plot(df_: pd.DataFrame, csv_out_fpath: str):
     plt.close()
 
 
-def draw_age_scatterplot(df_: pd.DataFrame, csv_out_fpath: str):
+def draw_age_scatterplot(df_: pd.DataFrame, png_out_fpath: str):
     """Draw error over age scatterplot
 
     Args:
         df_: Dataframe with columns: qrcode, scantype, COLUMN_NAME_AGE, GT, predicted
-        csv_out_fpath: File path where plot image will be saved
+        png_out_fpath: File path where plot image will be saved
     """
     df = df_[df_.scantype == '100'].groupby('qrcode').mean()
     df['error'] = df.apply(avgerror, axis=1).abs()
@@ -290,8 +291,33 @@ def draw_age_scatterplot(df_: pd.DataFrame, csv_out_fpath: str):
     axes = plt.gca()
     axes.set_xlim([0, 2500])
     axes.set_ylim([0, 5])
-    Path(csv_out_fpath).parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(csv_out_fpath)
+    Path(png_out_fpath).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(png_out_fpath)
+    plt.close()
+
+
+def draw_uncertainty_scatterplot(df: pd.DataFrame, png_out_fpath: str):
+    """Draw error over age scatterplot
+
+    Args:
+        df_: Dataframe with columns: qrcode, scantype, COLUMN_NAME_AGE, GT, predicted
+        png_out_fpath: File path where plot image will be saved
+    """
+    df['error'] = df.apply(avgerror, axis=1).abs()
+    plt.scatter(df['error'], df['uncertainties'], s=2)
+    plt.grid()
+
+    correlation, _ = pearsonr(df['error'], df['uncertainties'])
+    print("correlation:", correlation)
+
+    plt.title(f"Per-scan sample artifact: Error over uncertainty (correlation={correlation:.3})")
+    plt.xlabel("error")
+    plt.ylabel("uncertainty (stdev of MC Dropout)")
+    axes = plt.gca()
+    axes.set_xlim([0, 5])
+    axes.set_ylim([0, 10])
+    Path(png_out_fpath).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(png_out_fpath)
     plt.close()
 
 
