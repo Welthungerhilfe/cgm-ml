@@ -327,8 +327,9 @@ def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
             predicted_json = json.loads(predicted_calculated)
             predicted_stunting.append(predicted_json['Class_HFA'])
         else:
-            not_processedData.append(row['qrcode'])
+            not_processed_data.append(row['qrcode'])
     data = confusion_matrix(actual_stunting, predicted_stunting)
+    plt.rcParams.update({'font.size': 8})
     disp = ConfusionMatrixDisplay(confusion_matrix=data, display_labels=STUNTING_DIAGNOSIS)
     disp.plot(cmap='Blues', values_format='d')
     plt.title("Stunting Diagnosis")
