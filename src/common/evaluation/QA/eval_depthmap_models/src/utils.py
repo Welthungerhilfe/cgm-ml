@@ -329,17 +329,17 @@ def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
         else:
             not_processed_data.append(row['qrcode'])
     data = confusion_matrix(actual_stunting, predicted_stunting)
-    T1,FP1,FP2,FN1,T2,FP3,FN2,FN3,T3=data.ravel()
-    sum=T1+FP1+FP2+FN1+T2+FP3+FN2+FN3+T3
-    T=((T1+T2+T3)/sum)*100
-    FP=((FP1+FP2+FP3)/sum)*100
-    FN=((FN1+FN2+FN3)/sum)*100
+    T1, FP1, FP2, FN1, T2, FP3, FN2, FN3, T3 = data.ravel()
+    sum = T1 + FP1 + FP2 + FN1 + T2 + FP3 + FN2 + FN3 + T3
+    T = ((T1 + T2 + T3) / sum) * 100
+    FP = ((FP1 + FP2 + FP3) / sum) * 100
+    FN = ((FN1 + FN2 + FN3) / sum) * 100
     fig = plt.figure(figsize=(15, 15))
     ax = fig.add_subplot(111)
     disp = ConfusionMatrixDisplay(confusion_matrix=data, display_labels=STUNTING_DIAGNOSIS)
-    disp.plot(cmap='Blues', values_format='d',ax=ax)
-    s="True:-"+str(round(T,2))+" False Positive:-"+str(round(FP,2))+" False Negative:-"+str(round(FN,2))
-    plt.text(0.5, 0.5,s, size=10,bbox=dict(boxstyle="square",facecolor='white'))
+    disp.plot(cmap='Blues', values_format='d', ax=ax)
+    s = "True:-" + str(round(T, 2)) + " False Positive:-" + str(round(FP, 2)) + " False Negative:-" + str(round(FN, 2))
+    plt.text(0.5, 0.5, s, size=10, bbox=dict(boxstyle="square", facecolor='white'))
     ax.set_title("Stunting Diagnosis")
     Path(png_out_fpath).parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(png_out_fpath)
