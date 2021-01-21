@@ -313,7 +313,7 @@ def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
     """
     predicted_stunting = []
     actual_stunting = []
-    not_processedData = []
+    not_processed_data = []
     for index, row in df.iterrows():
         sex = 'M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F'
         age_days = int(row[COLUMN_NAME_AGE])
