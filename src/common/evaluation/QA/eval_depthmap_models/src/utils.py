@@ -250,12 +250,12 @@ def calculate_performance_age(code: str, df_mae: pd.DataFrame, result_config: Bu
     return df_out
 
 
-def draw_uncertainty_goodbad_plot(df_: pd.DataFrame, csv_out_fpath: str):
+def draw_uncertainty_goodbad_plot(df_: pd.DataFrame, png_out_fpath: str):
     """Take all good samples and plot error distributions. Do the same for bad samples.
 
     Args:
         df: Dataframe with columns: goodbad and uncertainties
-        csv_out_fpath (str): File path where plot image will be saved
+        png_out_fpath (str): File path where plot image will be saved
     """
     df = df_[df_.uncertainties.notna()]
     df_good = df[df[COLUMN_NAME_GOODBAD] == 1.0]
@@ -278,16 +278,16 @@ def draw_uncertainty_goodbad_plot(df_: pd.DataFrame, csv_out_fpath: str):
     plt.axvline(mean_good, color='g', linestyle='dashed', linewidth=2)
     plt.axvline(mean_bad, color='r', linestyle='dashed', linewidth=2)
 
-    plt.savefig(csv_out_fpath)
+    plt.savefig(png_out_fpath)
     plt.close()
 
 
-def draw_age_scatterplot(df_: pd.DataFrame, csv_out_fpath: str):
+def draw_age_scatterplot(df_: pd.DataFrame, png_out_fpath: str):
     """Draw error over age scatterplot
 
     Args:
         df_: Dataframe with columns: qrcode, scantype, COLUMN_NAME_AGE, GT, predicted
-        csv_out_fpath: File path where plot image will be saved
+        png_out_fpath: File path where plot image will be saved
     """
     df = df_[df_.scantype == '100'].groupby('qrcode').mean()
     df['error'] = df.apply(avgerror, axis=1).abs()
@@ -299,12 +299,18 @@ def draw_age_scatterplot(df_: pd.DataFrame, csv_out_fpath: str):
     axes = plt.gca()
     axes.set_xlim([0, 2500])
     axes.set_ylim([0, 5])
-    Path(csv_out_fpath).parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(csv_out_fpath)
+    Path(png_out_fpath).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(png_out_fpath)
     plt.close()
 
 
-def draw_stunting_diagnosis(df: pd.DataFrame, csv_out_fpath: str):
+def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
+    """Draw stunting Confusion Matrix
+
+    Args:
+        df_: Dataframe with columns: qrcode, scantype, COLUMN_NAME_AGE, GT, predicted
+        png_out_fpath: File path where plot image will be saved
+    """
     predicted_stunting = []
     actual_stunting = []
     not_processedData = []
@@ -326,8 +332,8 @@ def draw_stunting_diagnosis(df: pd.DataFrame, csv_out_fpath: str):
     disp = ConfusionMatrixDisplay(confusion_matrix=data, display_labels=STUNTING_DIAGNOSIS)
     disp.plot(cmap='Blues', values_format='d')
     plt.title("Stunting Diagnosis")
-    Path(csv_out_fpath).parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(csv_out_fpath)
+    Path(png_out_fpath).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(png_out_fpath)
     plt.close()
 
 
