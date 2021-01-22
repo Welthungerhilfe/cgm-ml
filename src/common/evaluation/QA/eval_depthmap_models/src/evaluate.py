@@ -299,10 +299,10 @@ if __name__ == "__main__":
         print(f"Calculate and save scatterplot results to {png_file}")
         draw_age_scatterplot(df, png_file)
 
-    if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES:
-        png_file = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{RUN_ID}.png"
-        print(f"Calculate and save confusion matrix results to {png_file}")
-        draw_stunting_diagnosis(df, png_file)
+    # if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES:
+    #     png_file = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{RUN_ID}.png"
+    #     print(f"Calculate and save confusion matrix results to {png_file}")
+    #     draw_stunting_diagnosis(df, png_file)
 
     if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_file = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"
@@ -336,6 +336,14 @@ if __name__ == "__main__":
         df_sample_100 = df_sample.iloc[df_sample.index.get_level_values('scantype') == '100']
         png_file = f"{OUTPUT_CSV_PATH}/uncertainty_code100_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
         draw_uncertainty_goodbad_plot(df_sample_100, png_file)
+
+        # Filter for certain scans and calculate their accuracy/results
+        df_sample['error'] = df_sample.apply(utils.avgerror, axis=1).abs()
+        df_sample_better_2cm = df_sample[df_sample['uncertainties'] > 2.0]
+        csv_file = f"{OUTPUT_CSV_PATH}/uncertainty_smaller_than_2cm_{RUN_ID}.csv"
+        print(f"Uncertainty: For more certain than 2cm, calculate and save the results to {csv_file}")
+        utils.calculate_and_save_results(df_sample_better_2cm, EVAL_CONFIG.NAME, csv_file,
+                                         DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 
     # Done.
     run.complete()
