@@ -189,7 +189,7 @@ training_callbacks = [
     AzureLogCallback(run),
     create_tensorboard_callback(),
     checkpoint_callback,
-    WandbCallback(),
+    WandbCallback(log_weights=True, log_gradients=True, training_data=dataset_training.batch(CONFIG.BATCH_SIZE)),
 ]
 
 optimizer = get_optimizer(CONFIG.USE_ONE_CYCLE,
