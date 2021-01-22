@@ -330,7 +330,7 @@ def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
             not_processed_data.append(row['qrcode'])
     data = confusion_matrix(actual_stunting, predicted_stunting)
     T1, FP1, FP2, FN1, T2, FP3, FN2, FN3, T3 = data.ravel()
-    sum = T1 + FP1 + FP2 + FN1 + T2 + FP3 + FN2 + FN3 + T3
+    sum = sum(T1, FP1, FP2, FN1, T2, FP3, FN2, FN3, T3)
     T = ((T1 + T2 + T3) / sum) * 100
     FP = ((FP1 + FP2 + FP3) / sum) * 100
     FN = ((FN1 + FN2 + FN3) / sum) * 100
