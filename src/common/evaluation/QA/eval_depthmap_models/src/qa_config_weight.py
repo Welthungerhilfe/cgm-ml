@@ -2,7 +2,7 @@ from bunch import Bunch
 
 # Details of model used for evaluation
 MODEL_CONFIG = Bunch(dict(
-    EXPERIMENT_NAME='q4-depthmap-plaincnn-weight-95k',
+    EXPERIMENT_NAME='q4-depthmap-plaincnn-weight-95k', # TODO
     RUN_ID='q4-depthmap-plaincnn-weight-95k_1605774694_c216f6c5',
     INPUT_LOCATION='outputs',
     NAME='best_model.ckpt',
@@ -11,7 +11,7 @@ MODEL_CONFIG = Bunch(dict(
 
 EVAL_CONFIG = Bunch(dict(
     # Name of evaluation
-    NAME='q4-depthmap-plaincnn-weight-95k-run_12',
+    NAME='q4-depthmap-plaincnn-weight-95k-run_12',  # TODO
 
     # Experiment in Azure ML which will be used for evaluation
     EXPERIMENT_NAME="QA-pipeline",
