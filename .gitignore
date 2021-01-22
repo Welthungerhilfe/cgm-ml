@@ -1,4 +1,5 @@
 # Custom
+wandb/
 old/cgm_database/dbconnection.json
 *.ply
 *.png

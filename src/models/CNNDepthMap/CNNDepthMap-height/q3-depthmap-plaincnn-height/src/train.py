@@ -3,6 +3,7 @@ import os
 import pickle
 import random
 import shutil
+import subprocess
 
 import glob2 as glob
 import tensorflow as tf
@@ -176,7 +177,14 @@ checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     save_best_only=True,
     verbose=1
 )
-wandb.init(config=CONFIG)
+
+WANDB_API_KEY_MH = "237ca046c5dcd915945761dc477207549ef2c42c"
+wandb_login = subprocess.run(["wandb", "login", WANDB_API_KEY_MH])
+assert wandb_login.returncode == 0
+
+
+wandb.init(project="ml-project", entity="cgm-team")
+wandb.config.update(CONFIG)
 training_callbacks = [
     AzureLogCallback(run),
     create_tensorboard_callback(),
