@@ -338,7 +338,7 @@ def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
     ax = fig.add_subplot(111)
     disp = ConfusionMatrixDisplay(confusion_matrix=data, display_labels=STUNTING_DIAGNOSIS)
     disp.plot(cmap='Blues', values_format='d', ax=ax)
-    s = "True:-" + str(round(T, 2)) + " False Positive:-" + str(round(FP, 2)) + " False Negative:-" + str(round(FN, 2))
+    s = f"True: {round(T, 2)} False Positive: {round(FP, 2)} False Negative: {round(FN, 2)}"
     plt.text(0.5, 0.5, s, size=10, bbox=dict(boxstyle="square", facecolor='white'))
     ax.set_title("Stunting Diagnosis")
     Path(png_out_fpath).parent.mkdir(parents=True, exist_ok=True)
