@@ -6,6 +6,7 @@ from typing import Callable, List
 
 import glob2 as glob
 import numpy as np
+from scipy.stats.stats import pearsonr
 import pandas as pd
 import tensorflow as tf
 from azureml.core import Experiment, Run, Workspace
@@ -24,7 +25,7 @@ SEX_IDX = 4
 GOODBAD_IDX = 5
 
 SEX_DICT = {'female': 0., 'male': 1.}
-GOODBAD_DICT = {'bad': 0., 'good': 1.}
+GOODBAD_DICT = {'bad': 0., 'good': 1., 'delete': 2.}
 
 COLUMN_NAME_AGE = 'GT_age'
 COLUMN_NAME_SEX = 'GT_sex'
@@ -77,7 +78,7 @@ def preprocess_targets(targets, targets_indices):
             targets[GOODBAD_IDX] = GOODBAD_DICT[targets[GOODBAD_IDX]]
         except KeyError:
             print(f"Key '{targets[GOODBAD_IDX]}' not found in GOODBAD_DICT")
-            targets[GOODBAD_IDX] = 0.  # unknown target values will be categorized as 'bad'
+            targets[GOODBAD_IDX] = GOODBAD_DICT['delete']  # unknown target values will be categorized as 'delete'
 
     if targets_indices is not None:
         targets = targets[targets_indices]
@@ -273,12 +274,12 @@ def draw_uncertainty_goodbad_plot(df_: pd.DataFrame, csv_out_fpath: str):
     plt.close()
 
 
-def draw_age_scatterplot(df_: pd.DataFrame, csv_out_fpath: str):
+def draw_age_scatterplot(df_: pd.DataFrame, png_out_fpath: str):
     """Draw error over age scatterplot
 
     Args:
         df_: Dataframe with columns: qrcode, scantype, COLUMN_NAME_AGE, GT, predicted
-        csv_out_fpath: File path where plot image will be saved
+        png_out_fpath: File path where plot image will be saved
     """
     df = df_[df_.scantype == '100'].groupby('qrcode').mean()
     df['error'] = df.apply(avgerror, axis=1).abs()
@@ -290,8 +291,33 @@ def draw_age_scatterplot(df_: pd.DataFrame, csv_out_fpath: str):
     axes = plt.gca()
     axes.set_xlim([0, 2500])
     axes.set_ylim([0, 5])
-    Path(csv_out_fpath).parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(csv_out_fpath)
+    Path(png_out_fpath).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(png_out_fpath)
+    plt.close()
+
+
+def draw_uncertainty_scatterplot(df: pd.DataFrame, png_out_fpath: str):
+    """Draw error over age scatterplot
+
+    Args:
+        df_: Dataframe with columns: qrcode, scantype, COLUMN_NAME_AGE, GT, predicted
+        png_out_fpath: File path where plot image will be saved
+    """
+    df['error'] = df.apply(avgerror, axis=1).abs()
+    plt.scatter(df['error'], df['uncertainties'], s=2)
+    plt.grid()
+
+    correlation, _ = pearsonr(df['error'], df['uncertainties'])
+    print("correlation:", correlation)
+
+    plt.title(f"Per-scan sample artifact: Error over uncertainty (correlation={correlation:.3})")
+    plt.xlabel("error")
+    plt.ylabel("uncertainty (stdev of MC Dropout)")
+    axes = plt.gca()
+    axes.set_xlim([0, 5])
+    axes.set_ylim([0, 10])
+    Path(png_out_fpath).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(png_out_fpath)
     plt.close()
 
 
