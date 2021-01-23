@@ -2,8 +2,8 @@ from bunch import Bunch
 
 # Details of model used for evaluation
 MODEL_CONFIG = Bunch(dict(
-    EXPERIMENT_NAME='q3-depthmap-plaincnn-height-95k',
-    RUN_ID='q3-depthmap-plaincnn-height-95k_1610709896_ef7f755d',  # Run 5
+    EXPERIMENT_NAME='q1-ensemble-warmup',
+    RUN_IDS='all',
 
     INPUT_LOCATION='outputs',
     NAME='best_model.ckpt',

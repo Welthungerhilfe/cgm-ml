@@ -329,6 +329,20 @@ def get_model_path(MODEL_CONFIG: Bunch) -> str:
     raise NameError(f"{MODEL_CONFIG.NAME}'s path extension not supported")
 
 
+def get_run_ids(ws, experiment_name):
+    """Gets the runs of an experiment.
+
+    Args:
+         ws: workspace to access the experiment
+         experiment_name: Name of the experiment in which model is saved
+    """
+    experiment = Experiment(workspace=ws, name=experiment_name)
+    runs = list(experiment.get_runs())
+    run_ids = [run.id for run in runs]
+    return run_ids
+
+
+
 def download_model(ws, experiment_name, run_id, input_location, output_location):
     """Download the pretrained model
 

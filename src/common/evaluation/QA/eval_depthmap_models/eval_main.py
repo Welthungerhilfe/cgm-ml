@@ -13,7 +13,7 @@ from azureml.core.compute_target import ComputeTargetException
 from azureml.core.run import Run
 from azureml.train.dnn import TensorFlow
 
-from src.utils import download_model
+from src.utils import get_run_ids, download_model
 from src.constants import REPO_DIR, DEFAULT_CONFIG
 
 CWD = Path(__file__).parent
@@ -24,6 +24,7 @@ if __name__ == "__main__":
     parser.add_argument("--qa_config_module", default=DEFAULT_CONFIG, help="Configuration file")
     args = parser.parse_args()
 
+    print(f"Using qa_config {args.qa_config_module}")
     qa_config = import_module(f'src.{args.qa_config_module}')
     MODEL_CONFIG = qa_config.MODEL_CONFIG
     EVAL_CONFIG = qa_config.EVAL_CONFIG
@@ -55,12 +56,22 @@ if __name__ == "__main__":
     print('MODEL_BASE_DIR:', MODEL_BASE_DIR)
     os.makedirs(MODEL_BASE_DIR, exist_ok=True)
 
-    # Copy model to temp folder
-    download_model(ws=ws,
-                   experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
-                   run_id=MODEL_CONFIG.RUN_ID,
-                   input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
-                   output_location=MODEL_BASE_DIR)
+    # Get run ids. Either defined by the user or get all.
+    run_ids = MODEL_CONFIG.RUN_IDS
+    if run_ids == "all":
+        run_ids = get_run_ids(ws=ws, experiment_name=MODEL_CONFIG.EXPERIMENT_NAME)
+    print(f"Using run ids: {run_ids}")
+
+    # Download all models.
+    for run_id in run_ids:
+        print(f"Downloading run {run_id}")
+        download_model(
+            ws=ws,
+            experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
+            run_id=run_id,
+            input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
+            output_location=os.path.join(MODEL_BASE_DIR, run_id)
+        )
 
     # Copy filter to temp folder
     if FILTER_CONFIG is not None and FILTER_CONFIG.IS_ENABLED:
@@ -69,6 +80,7 @@ if __name__ == "__main__":
         azureml._restclient.snapshots_client.SNAPSHOT_MAX_SIZE_BYTES = 500000000
 
     experiment = Experiment(workspace=ws, name=EVAL_CONFIG.EXPERIMENT_NAME)
+    print(f"Will use experiment {experiment}.")
 
     # Find/create a compute target.
     try:

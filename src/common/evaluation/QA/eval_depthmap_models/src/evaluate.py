@@ -30,10 +30,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--qa_config_module", default=DEFAULT_CONFIG, help="Configuration file")
     args = parser.parse_args()
+    print(f"Using qa_config {args.qa_config_module}")
     qa_config = import_module(args.qa_config_module)
 else:
+    print(f"Using qa_config {DEFAULT_CONFIG}")
     qa_config = import_module(DEFAULT_CONFIG)
-
 
 MODEL_CONFIG = qa_config.MODEL_CONFIG
 EVAL_CONFIG = qa_config.EVAL_CONFIG
@@ -42,11 +43,10 @@ RESULT_CONFIG = qa_config.RESULT_CONFIG
 FILTER_CONFIG = qa_config.FILTER_CONFIG if getattr(qa_config, 'FILTER_CONFIG', False) else None
 
 
-RUN_ID = MODEL_CONFIG.RUN_ID
+#RUN_IDS = MODEL_CONFIG.RUN_IDS
+#print(f"Using runs: {RUN_IDS}")
 
 # Function for loading and processing depthmaps.
-
-
 def tf_load_pickle(path, max_value):
     """Utility to load the depthmap pickle file"""
     def py_load_pickle(path, max_value):
@@ -116,15 +116,21 @@ def get_prediction_uncertainty(model_path: str, dataset_evaluation: tf.data.Data
     Returns:
         predictions, array shape (N_SAMPLES, )
     """
-    print(f"loading model from {model_path}")
-    model = load_model(model_path, compile=False)
-    model = change_dropout_strength(model, RESULT_CONFIG.DROPOUT_STRENGTH)
 
     dataset = dataset_evaluation.batch(1)
 
     print("starting predicting uncertainty")
+
+    # Go through all models and compute STD of predictions.
     start = time.time()
-    std_list = [predict_uncertainty(X, model) for X, y in dataset.as_numpy_iterator()]
+    std_list = []
+    for model_path in model_paths:
+        print(f"loading model from {model_path}")
+        model = load_model(model_path, compile=False)
+        std_list += [[model.predict(X)[0] for X, y in dataset.as_numpy_iterator()]]
+    std_list = np.array(std_list)
+    std_list = np.std(std_list, axis=0)
+    std_list = std_list.reshape((-1))
     end = time.time()
     print(f"Total time for uncertainty prediction experiment: {end - start:.3} sec")
 
@@ -163,9 +169,21 @@ if __name__ == "__main__":
 
     # Get the current run.
     run = Run.get_context()
+    print(f"Using run {run}")
 
     OUTPUT_CSV_PATH = str(REPO_DIR / 'data' / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
-    MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if run.id.startswith("OfflineRun") else Path('.')
+    print(f"OUTPUT_CSV_PATH: {OUTPUT_CSV_PATH}")
+
+    MODEL_BASE_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path('.')
+    MODEL_BASE_DIR = Path(".") # TODO remove this!
+    print(f"MODEL_BASE_DIR: {MODEL_BASE_DIR}")
+
+    # TODO Why do I have to append the path?
+    model_paths = [os.path.join(path, "outputs", "best_model.ckpt") for path in glob.glob(os.path.join(MODEL_BASE_DIR, "*")) if os.path.isdir(path) and path.split("/")[-1].startswith(MODEL_CONFIG.EXPERIMENT_NAME)]
+    model_paths = model_paths[0:2] # TODO remove this!
+    print(f"Models paths ({len(model_paths)}):")
+    print("\t" + "\n\t".join(model_paths))
+    del MODEL_BASE_DIR
 
     # Offline run. Download the sample dataset and run locally. Still push results to Azure.
     if run.id.startswith("OfflineRun"):
@@ -182,6 +200,7 @@ if __name__ == "__main__":
         dataset_name = DATA_CONFIG.NAME
         dataset_path = str(REPO_DIR / "data" / dataset_name)
         if not os.path.exists(dataset_path):
+            print("Downloading...")
             dataset = workspace.datasets[dataset_name]
             dataset.download(target_path=dataset_path, overwrite=False)
 
@@ -202,6 +221,7 @@ if __name__ == "__main__":
     # print(glob.glob(os.path.join(dataset_path, "*"))) # Debug
     print("Getting QR code paths...")
     qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
+    qrcode_paths = qrcode_paths[0:1] # TODO remove this!
     print("QR code paths: ", len(qrcode_paths))
     assert len(qrcode_paths) != 0
 
@@ -233,7 +253,8 @@ if __name__ == "__main__":
     dataset_norm = dataset.map(lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE))
 
     # filter goodbad==delete
-    dataset_norm = dataset_norm.filter(lambda _path, _depthmap, targets: targets[2] != GOODBAD_DICT['delete'])  # TODO refactor: replace 2 with inferred goodbad target idx
+    # TODO make this work again!
+    #dataset_norm = dataset_norm.filter(lambda _path, _depthmap, targets: targets[2] != GOODBAD_DICT['delete'])  # TODO refactor: replace 2 with inferred goodbad target idx
 
     dataset_norm = dataset_norm.cache()
     dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
@@ -241,7 +262,8 @@ if __name__ == "__main__":
     del dataset_norm
     print("Created dataset for training.")
 
-    model_path = MODEL_BASE_DIR / get_model_path(MODEL_CONFIG)
+    # TODO Get model paths. Plural.
+    #model_path = MODEL_BASE_DIR / get_model_path(MODEL_CONFIG)
 
     # Update new_paths_evaluation after filtering
     dataset_paths = tmp_dataset_evaluation.map(lambda path, _depthmap, _targets: path)
@@ -251,22 +273,35 @@ if __name__ == "__main__":
     dataset_evaluation = tmp_dataset_evaluation.map(lambda _path, depthmap, targets: (depthmap, targets))
     del tmp_dataset_evaluation
 
-    prediction_list_one = get_prediction(model_path, dataset_evaluation)
-    print("Prediction made by model on the depthmaps...")
-    print(prediction_list_one)
+    # TODO make this work. Either have 16 predictions or somehow merge.
+    # TODO I guess compute mean and std
+    print("Predicting...")
+    prediction_list_one = []
+    for model_index, model_path in enumerate(model_paths):
+        print(f"Model {model_index + 1}/{len(model_paths)}")
+        prediction_list_one += [get_prediction(model_path, dataset_evaluation)]
+        print("Prediction made by model on the depthmaps...")
+    prediction_list_one = np.array(prediction_list_one)
+    prediction_list_mean = np.mean(prediction_list_one, axis=0) 
+    print(prediction_list_mean)
+    del prediction_list_one
 
-    qrcode_list, scantype_list, artifact_list, prediction_list, target_list = utils.get_column_list(
-        new_paths_evaluation, prediction_list_one, DATA_CONFIG, FILTER_CONFIG)
 
+    # Get column data. Includes the targets from the pickle files.
+    qrcode_list, scantype_list, artifact_list, prediction_list_mean, target_list = utils.get_column_list(
+        new_paths_evaluation, prediction_list_mean, DATA_CONFIG, FILTER_CONFIG)
+
+    # Create the data frame.
     df = pd.DataFrame({
         'qrcode': qrcode_list,
         'artifact': artifact_list,
         'scantype': scantype_list,
-        'GT': [el[0] for el in target_list],
-        'predicted': prediction_list
+        'GT': [el for el in target_list],
+        'predicted': prediction_list_mean,
     }, columns=RESULT_CONFIG.COLUMNS)
     print("df.shape:", df.shape)
 
+    # Set some types.
     df['GT'] = df['GT'].astype('float64')
     df['predicted'] = df['predicted'].astype('float64')
 
@@ -284,6 +319,9 @@ if __name__ == "__main__":
     print("Mean Avg Error: ", df_grouped)
 
     df_grouped['error'] = df_grouped.apply(utils.avgerror, axis=1)
+
+    # We use multiple run ids.
+    RUN_ID = "ALL RUNS"
 
     csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
     print(f"Calculate and save the results to {csv_file}")
@@ -310,30 +348,35 @@ if __name__ == "__main__":
         utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_goodbad)
 
-    if RESULT_CONFIG.USE_UNCERTAINTY:
-        assert GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES
-        assert COLUMN_NAME_GOODBAD in df
+    # Now evaluate.
 
-        # Sample one artifact per scan (qrcode, scantype combination)
-        df_sample = df.groupby(['qrcode', 'scantype']).apply(lambda x: x.sample(1))
+    # TODO Make this work again.
+    #assert GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES
+    #assert COLUMN_NAME_GOODBAD in df
 
-        # Prepare uncertainty prediction on these artifacts
-        dataset_sample = prepare_sample_dataset(df_sample, dataset_path)
+    # Sample one artifact per scan (qrcode, scantype combination)
+    df_sample = df.groupby(['qrcode', 'scantype']).apply(lambda x: x.sample(1))
 
-        # Predict uncertainty
-        uncertainties = get_prediction_uncertainty(model_path, dataset_sample)
-        assert len(df_sample) == len(uncertainties)
-        df_sample['uncertainties'] = uncertainties
+    # Prepare uncertainty prediction on these artifacts
+    dataset_sample = prepare_sample_dataset(df_sample, dataset_path)
 
-        png_file = f"{OUTPUT_CSV_PATH}/uncertainty_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
-        draw_uncertainty_goodbad_plot(df_sample, png_file)
+    # Predict uncertainty
+    uncertainties = get_prediction_uncertainty(model_path, dataset_sample)
+    assert len(df_sample) == len(uncertainties)
+    df_sample['uncertainties'] = uncertainties
 
-        df_sample_100 = df_sample.iloc[df_sample.index.get_level_values('scantype') == '100']
-        png_file = f"{OUTPUT_CSV_PATH}/uncertainty_code100_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
-        draw_uncertainty_goodbad_plot(df_sample_100, png_file)
+    # TODO make this work again.
+    #png_file = f"{OUTPUT_CSV_PATH}/uncertainty_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
+    #draw_uncertainty_goodbad_plot(df_sample, png_file)
 
-        png_file = f"{OUTPUT_CSV_PATH}/uncertainty_scatter_distribution_{RUN_ID}.png"
-        draw_uncertainty_scatterplot(df_sample, png_file)
+    # TODO make this work again.
+    #df_sample_100 = df_sample.iloc[df_sample.index.get_level_values('scantype') == '100']
+    #png_file = f"{OUTPUT_CSV_PATH}/uncertainty_code100_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
+    #draw_uncertainty_goodbad_plot(df_sample_100, png_file)
+
+    png_file = f"{OUTPUT_CSV_PATH}/uncertainty_scatter_distribution_{RUN_ID}.png"
+    draw_uncertainty_scatterplot(df_sample, png_file)
+    print(png_file)
 
     # Done.
     run.complete()
