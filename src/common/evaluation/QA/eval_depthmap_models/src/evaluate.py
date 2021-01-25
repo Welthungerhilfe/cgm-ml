@@ -339,7 +339,7 @@ if __name__ == "__main__":
         png_file = f"{OUTPUT_CSV_PATH}/uncertainty_code100_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
         draw_uncertainty_goodbad_plot(df_sample_100, png_file)
 
-        # Filter for certain scans and calculate their accuracy/results
+        # Filter for scans with high certainty and calculate their accuracy/results
         df_sample['error'] = df_sample.apply(utils.avgerror, axis=1).abs()
         THRESHOLD_IN_CM = 4.
         df_sample_better_threshold = df_sample[df_sample['uncertainties'] < THRESHOLD_IN_CM]
