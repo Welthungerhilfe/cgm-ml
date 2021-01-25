@@ -309,7 +309,7 @@ def draw_uncertainty_scatterplot(df: pd.DataFrame, png_out_fpath: str):
     """Draw error over age scatterplot
 
     Args:
-        df_: Dataframe with columns: qrcode, scantype, COLUMN_NAME_AGE, GT, predicted
+        df: Dataframe with columns: qrcode, scantype, COLUMN_NAME_AGE, GT, predicted
         png_out_fpath: File path where plot image will be saved
     """
     df['error'] = df.apply(avgerror, axis=1).abs()
