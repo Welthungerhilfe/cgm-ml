@@ -234,7 +234,9 @@ if __name__ == "__main__":
     dataset_norm = dataset.map(lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE))
 
     # filter goodbad==delete
-    dataset_norm = dataset_norm.filter(lambda _path, _depthmap, targets: targets[2] != GOODBAD_DICT['delete'])  # TODO refactor: replace 2 with inferred goodbad target idx
+    if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
+        goodbad_index = DATA_CONFIG.TARGET_INDEXES.index(GOODBAD_IDX)
+        dataset_norm = dataset_norm.filter(lambda _path, _depthmap, targets: targets[goodbad_index] != GOODBAD_DICT['delete'])
 
     dataset_norm = dataset_norm.cache()
     dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
