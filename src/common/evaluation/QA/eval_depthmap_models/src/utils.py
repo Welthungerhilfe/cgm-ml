@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 import pickle
 from pathlib import Path
@@ -11,9 +12,11 @@ import pandas as pd
 import tensorflow as tf
 from azureml.core import Experiment, Run, Workspace
 from bunch import Bunch
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt  # noqa: E402
+from cgmzscore import Calculator  # noqa: E402
 
 DAYS_IN_YEAR = 365
 
@@ -38,6 +41,12 @@ CODE_TO_SCANTYPE = {
     '201': '_lyingrot',
     '202': '_lyingback',
 }
+
+MIN_HEIGHT = 45
+MAX_HEIGHT = 120
+MAX_AGE = 1856.0
+
+STUNTING_DIAGNOSIS = ["Healthy", "Moderately Stunted", "Severly Stunted"]
 
 
 def process_image(data):
@@ -242,12 +251,12 @@ def calculate_performance_age(code: str, df_mae: pd.DataFrame, result_config: Bu
     return df_out
 
 
-def draw_uncertainty_goodbad_plot(df_: pd.DataFrame, csv_out_fpath: str):
+def draw_uncertainty_goodbad_plot(df_: pd.DataFrame, png_out_fpath: str):
     """Take all good samples and plot error distributions. Do the same for bad samples.
 
     Args:
         df: Dataframe with columns: goodbad and uncertainties
-        csv_out_fpath (str): File path where plot image will be saved
+        png_out_fpath (str): File path where plot image will be saved
     """
     df = df_[df_.uncertainties.notna()]
     df_good = df[df[COLUMN_NAME_GOODBAD] == 1.0]
@@ -270,7 +279,7 @@ def draw_uncertainty_goodbad_plot(df_: pd.DataFrame, csv_out_fpath: str):
     plt.axvline(mean_good, color='g', linestyle='dashed', linewidth=2)
     plt.axvline(mean_bad, color='r', linestyle='dashed', linewidth=2)
 
-    plt.savefig(csv_out_fpath)
+    plt.savefig(png_out_fpath)
     plt.close()
 
 
@@ -316,6 +325,48 @@ def draw_uncertainty_scatterplot(df: pd.DataFrame, png_out_fpath: str):
     axes = plt.gca()
     axes.set_xlim([0, 5])
     axes.set_ylim([0, 10])
+    Path(png_out_fpath).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(png_out_fpath)
+    plt.close()
+
+
+def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
+    """Draw stunting Confusion Matrix
+
+    Args:
+        df_: Dataframe with columns: qrcode, scantype, COLUMN_NAME_AGE, GT, predicted
+        png_out_fpath: File path where plot image will be saved
+    """
+    predicted_stunting = []
+    actual_stunting = []
+    not_processed_data = []
+    for index, row in df.iterrows():
+        sex = 'M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F'
+        age_days = int(row[COLUMN_NAME_AGE])
+        if MIN_HEIGHT < row['GT'] <= MAX_HEIGHT and MIN_HEIGHT < row['predicted'] <= MAX_HEIGHT and row[COLUMN_NAME_AGE] <= MAX_AGE:
+            actual_calcuated = Calculator().zScore_withclass(
+                weight="0", muac="0", age_in_days=age_days, sex=sex, height=row['GT'])
+            actual_json = json.loads(actual_calcuated)
+            actual_stunting.append(actual_json['Class_HFA'])
+            predicted_calculated = Calculator().zScore_withclass(
+                weight="0", muac="0", age_in_days=age_days, sex=sex, height=row['predicted'])
+            predicted_json = json.loads(predicted_calculated)
+            predicted_stunting.append(predicted_json['Class_HFA'])
+        else:
+            not_processed_data.append(row['qrcode'])
+    data = confusion_matrix(actual_stunting, predicted_stunting)
+    T1, FP1, FP2, FN1, T2, FP3, FN2, FN3, T3 = data.ravel()
+    Total = sum(data.ravel())
+    T = ((T1 + T2 + T3) / Total) * 100
+    FP = ((FP1 + FP2 + FP3) / Total) * 100
+    FN = ((FN1 + FN2 + FN3) / Total) * 100
+    fig = plt.figure(figsize=(15, 15))
+    ax = fig.add_subplot(111)
+    disp = ConfusionMatrixDisplay(confusion_matrix=data, display_labels=STUNTING_DIAGNOSIS)
+    disp.plot(cmap='Blues', values_format='d', ax=ax)
+    s = f"True: {round(T, 2)} False Positive: {round(FP, 2)} False Negative: {round(FN, 2)}"
+    plt.text(0.5, 0.5, s, size=10, bbox=dict(boxstyle="square", facecolor='white'))
+    ax.set_title("Stunting Diagnosis")
     Path(png_out_fpath).parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(png_out_fpath)
     plt.close()
