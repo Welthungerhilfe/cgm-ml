@@ -182,6 +182,7 @@ WANDB_API_KEY_MH = "237ca046c5dcd915945761dc477207549ef2c42c"
 wandb_login = subprocess.run(["wandb", "login", WANDB_API_KEY_MH])
 assert wandb_login.returncode == 0
 
+dataset_batches = dataset_training.batch(CONFIG.BATCH_SIZE)
 
 wandb.init(project="ml-project", entity="cgm-team")
 wandb.config.update(CONFIG)
@@ -189,7 +190,7 @@ training_callbacks = [
     AzureLogCallback(run),
     create_tensorboard_callback(),
     checkpoint_callback,
-    WandbCallback(log_weights=True, log_gradients=True, training_data=dataset_training.batch(CONFIG.BATCH_SIZE)),
+    WandbCallback(log_weights=True, log_gradients=True, training_data=dataset_batches),
 ]
 
 optimizer = get_optimizer(CONFIG.USE_ONE_CYCLE,
@@ -206,7 +207,7 @@ model.compile(
 # Train the model.
 model.fit(
     dataset_training.batch(CONFIG.BATCH_SIZE),
-    validation_data=dataset_validation.batch(CONFIG.BATCH_SIZE),
+    validation_data=dataset_batches,
     epochs=CONFIG.EPOCHS,
     callbacks=training_callbacks,
     verbose=2
