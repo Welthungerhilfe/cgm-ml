@@ -341,10 +341,11 @@ if __name__ == "__main__":
 
         # Filter for certain scans and calculate their accuracy/results
         df_sample['error'] = df_sample.apply(utils.avgerror, axis=1).abs()
-        df_sample_better_2cm = df_sample[df_sample['uncertainties'] < 4.0]
-        csv_file = f"{OUTPUT_CSV_PATH}/uncertainty_smaller_than_2cm_{RUN_ID}.csv"
-        print(f"Uncertainty: For more certain than 2cm, calculate and save the results to {csv_file}")
-        utils.calculate_and_save_results(df_sample_better_2cm, EVAL_CONFIG.NAME, csv_file,
+        THRESHOLD_IN_CM = 4.
+        df_sample_better_threshold = df_sample[df_sample['uncertainties'] < THRESHOLD_IN_CM]
+        csv_file = f"{OUTPUT_CSV_PATH}/uncertainty_smaller_than_{THRESHOLD_IN_CM}cm_{RUN_ID}.csv"
+        print(f"Uncertainty: For more certain than {THRESHOLD_IN_CM}cm, calculate and save the results to {csv_file}")
+        utils.calculate_and_save_results(df_sample_better_threshold, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 
     # Done.
