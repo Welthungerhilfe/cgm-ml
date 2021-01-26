@@ -299,10 +299,10 @@ if __name__ == "__main__":
         print(f"Calculate and save scatterplot results to {png_file}")
         draw_age_scatterplot(df, png_file)
 
-    if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES:
-        png_file = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{RUN_ID}.png"
-        print(f"Calculate and save confusion matrix results to {png_file}")
-        draw_stunting_diagnosis(df, png_file)
+    # if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES:
+    #     png_file = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{RUN_ID}.png"
+    #     print(f"Calculate and save confusion matrix results to {png_file}")
+    #     draw_stunting_diagnosis(df, png_file)
 
     if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_file = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"
