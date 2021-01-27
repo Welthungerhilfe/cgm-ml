@@ -24,7 +24,7 @@ from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD,
                    calculate_performance_goodbad, calculate_performance_sex,
                    download_dataset, draw_age_scatterplot,
                    draw_uncertainty_goodbad_plot, get_dataset_path,
-                   get_model_path, draw_uncertainty_scatterplot, draw_stunting_diagnosis)
+                   get_model_path, draw_uncertainty_scatterplot)
 
 
 if __name__ == "__main__":
