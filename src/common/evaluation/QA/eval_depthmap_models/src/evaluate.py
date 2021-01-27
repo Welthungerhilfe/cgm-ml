@@ -18,13 +18,14 @@ from tensorflow.python import keras
 
 import utils
 from constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR
-from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, HEIGHT_IDX,
+from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD,
                    COLUMN_NAME_SEX, GOODBAD_IDX, GOODBAD_DICT, SEX_IDX,
                    calculate_performance, calculate_performance_age,
                    calculate_performance_goodbad, calculate_performance_sex,
                    download_dataset, draw_age_scatterplot,
                    draw_uncertainty_goodbad_plot, get_dataset_path,
                    get_model_path, draw_uncertainty_scatterplot, draw_stunting_diagnosis)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -299,10 +300,10 @@ if __name__ == "__main__":
         print(f"Calculate and save scatterplot results to {png_file}")
         draw_age_scatterplot(df, png_file)
 
-    if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES:
-        png_file = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{RUN_ID}.png"
-        print(f"Calculate and save confusion matrix results to {png_file}")
-        draw_stunting_diagnosis(df, png_file)
+    # if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES:
+    #     png_file = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{RUN_ID}.png"
+    #     print(f"Calculate and save confusion matrix results to {png_file}")
+    #     draw_stunting_diagnosis(df, png_file)
 
     if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_file = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"
