@@ -46,5 +46,4 @@ def calculate_code_age_distribution(artifacts: pd.DataFrame):
         dfs.append(df)
     result = pd.concat(dfs)
     result.index.name = 'codes'
-    print(result)
     return result
