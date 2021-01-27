@@ -2,8 +2,8 @@ from bunch import Bunch
 
 # Details of model used for evaluation
 MODEL_CONFIG = Bunch(dict(
-    EXPERIMENT_NAME='q3-depthmap-plaincnn-height-95k',
-    RUN_ID='q3-depthmap-plaincnn-height-95k_1610709869_2e00a6ef',  # Run 4
+    EXPERIMENT_NAME='q4-depthmap-plaincnn-weight-95k',
+    RUN_ID='q4-depthmap-plaincnn-weight-95k_1611336518_642a9c58',
     INPUT_LOCATION='outputs',
     NAME='best_model.ckpt',
 ))
@@ -11,7 +11,7 @@ MODEL_CONFIG = Bunch(dict(
 
 EVAL_CONFIG = Bunch(dict(
     # Name of evaluation
-    NAME='q3-depthmap-plaincnn-height-95k_run_04',
+    NAME='q4-depthmap-plaincnn-weight-95k_run_02',
 
     # Experiment in Azure ML which will be used for evaluation
     EXPERIMENT_NAME="QA-pipeline",
@@ -21,7 +21,7 @@ EVAL_CONFIG = Bunch(dict(
     DEBUG_RUN=False,
 
     # Will run eval on specified # of scan instead of full dataset
-    DEBUG_NUMBER_OF_SCAN=25,
+    DEBUG_NUMBER_OF_SCAN=5,
 
     SPLIT_SEED=0,
 ))
@@ -36,15 +36,16 @@ DATA_CONFIG = Bunch(dict(
     BATCH_SIZE=512,  # Batch size for evaluation
     NORMALIZATION_VALUE=7.5,
 
-    TARGET_INDEXES=[0, 3, 4, 5],  # 0 is height, 1 is weight, 2 is muac, 3 is age, 4 is sex('male' or 'female'), 5 is quality ('good' or 'bad'), 6 is test
+    TARGET_INDEXES=[1, 3, 4, 5],  # 0 is height, 1 is weight, 2 is muac, 3 is age, 4 is sex('male' or 'female'), 5 is quality ('good' or 'bad'), 6 is test
     CODES=['100', '101', '102', '200', '201', '202']
 ))
 
-# Result configuration for result generation after evaluation is done
+
+#Result configuration for result generation after evaluation is done
 RESULT_CONFIG = Bunch(dict(
     # Error margin on various ranges
     ACCURACIES=[.2, .4, .6, 1., 1.2, 2., 2.5, 3., 4., 5., 6.],  # 0.2cm, 0.4cm, 0.6cm, 1cm, ...
-    ACCURACY_MAIN_HEIGHT_THRESH=1.0,  # 1cm
+    ACCURACY_MAIN_WEIGHT_THRESH=210,  # 210gms
     AGE_BUCKETS=[0, 1, 2, 3, 4, 5],
 
     COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],

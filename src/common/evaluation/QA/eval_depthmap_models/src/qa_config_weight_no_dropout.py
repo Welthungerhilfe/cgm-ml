@@ -2,8 +2,8 @@ from bunch import Bunch
 
 # Details of model used for evaluation
 MODEL_CONFIG = Bunch(dict(
-    EXPERIMENT_NAME='q4-depthmap-plaincnn-weight-95k', # TODO
-    RUN_ID='q4-depthmap-plaincnn-weight-95k_1605774694_c216f6c5',
+    EXPERIMENT_NAME='q4-depthmap-plaincnn-weight-95k',
+    RUN_ID='q4-depthmap-plaincnn-weight-95k_1611336384_5d22b7c1',
     INPUT_LOCATION='outputs',
     NAME='best_model.ckpt',
 ))
@@ -11,7 +11,7 @@ MODEL_CONFIG = Bunch(dict(
 
 EVAL_CONFIG = Bunch(dict(
     # Name of evaluation
-    NAME='q4-depthmap-plaincnn-weight-95k-run_12',  # TODO
+    NAME='q4-depthmap-plaincnn-weight-95k-run_1',
 
     # Experiment in Azure ML which will be used for evaluation
     EXPERIMENT_NAME="QA-pipeline",
@@ -45,8 +45,13 @@ DATA_CONFIG = Bunch(dict(
 RESULT_CONFIG = Bunch(dict(
     # Error margin on various ranges
     ACCURACIES=[0.04, 0.1, 0.21, 0.42],  # 40 gms, 100 gms, 210 gms, 420 gms
+    ACCURACY_MAIN_WEIGHT_THRESH=210,  # 210gms
+    AGE_BUCKETS=[0, 1, 2, 3, 4, 5],
 
     COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],
+
+    # uncertainty
+    USE_UNCERTAINTY=False,  # Flag to enable model uncertainty calculation
 
     # path of csv file in the experiment which final result is stored
     SAVE_PATH='./outputs/result.csv',
