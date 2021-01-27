@@ -18,3 +18,5 @@ dependencies:
     - tensorflow==2.3.1
     - tensorflow-addons==0.11.2
     - bunch==1.0.1
+    - cgmzscore==2.0.3
+    - scikit-learn==0.22.2.post1

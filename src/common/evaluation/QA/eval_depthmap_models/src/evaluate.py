@@ -164,7 +164,8 @@ if __name__ == "__main__":
     # Get the current run.
     run = Run.get_context()
 
-    OUTPUT_CSV_PATH = str(REPO_DIR / 'data' / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
+    OUTPUT_CSV_PATH = str(REPO_DIR / 'data'
+                          / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
     MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if run.id.startswith("OfflineRun") else Path('.')
 
     # Offline run. Download the sample dataset and run locally. Still push results to Azure.
@@ -294,10 +295,14 @@ if __name__ == "__main__":
         print(f"Calculate and save age results to {csv_file}")
         utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
-
         png_file = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{RUN_ID}.png"
         print(f"Calculate and save scatterplot results to {png_file}")
         draw_age_scatterplot(df, png_file)
+
+    # if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES:
+    #     png_file = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{RUN_ID}.png"
+    #     print(f"Calculate and save confusion matrix results to {png_file}")
+    #     draw_stunting_diagnosis(df, png_file)
 
     if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_file = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"
