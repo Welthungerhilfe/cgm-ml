@@ -18,12 +18,12 @@ from tensorflow.python import keras
 
 import utils
 from constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR
-from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, HEIGHT_IDX,
+from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD,
                    COLUMN_NAME_SEX, GOODBAD_IDX, GOODBAD_DICT, SEX_IDX,
                    calculate_performance, calculate_performance_age,
                    calculate_performance_goodbad, calculate_performance_sex,
                    download_dataset, draw_age_scatterplot,
-                   draw_uncertainty_goodbad_plot, get_dataset_path, draw_stunting_diagnosis,
+                   draw_uncertainty_goodbad_plot, get_dataset_path,
                    get_model_path)
 
 if __name__ == "__main__":
