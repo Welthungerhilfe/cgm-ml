@@ -13,7 +13,7 @@ def extractqrcode(row: pd.Series) -> str:
 
 
 def draw_age_distribution(scans: pd.DataFrame):
-    value_counts = scans['Years'].value_counts(sort=False, ascending=True)
+    value_counts = scans['Years'].value_counts().sort_index(ascending=True)
     age_ax = value_counts.plot(kind='bar')
     age_ax.set_xlabel('age')
     age_ax.set_ylabel('no. of scans')
@@ -21,7 +21,7 @@ def draw_age_distribution(scans: pd.DataFrame):
 
 
 def draw_sex_distribution(scans: pd.DataFrame):
-    value_counts = scans['sex'].value_counts(sort=False, ascending=True)
+    value_counts = scans['sex'].value_counts().sort_index(ascending=True)
     ax = value_counts.plot(kind='bar')
     ax.set_xlabel('gender')
     ax.set_ylabel('no. of scans')
