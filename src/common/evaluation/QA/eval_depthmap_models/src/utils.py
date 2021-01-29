@@ -184,7 +184,7 @@ def calculate_and_save_results(df_grouped: pd.DataFrame, complete_name: str, csv
 def calculate_performance_sex(code: str, df_mae: pd.DataFrame, result_config: Bunch) -> pd.DataFrame:
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
     accuracy_list = []
-    accuracy_thresh = result_config.ACCURACY_MAIN_HEIGHT_THRESH
+    accuracy_thresh = result_config.ACCURACY_MAIN_THRESH
     for _, sex_id in SEX_DICT.items():
         selection = (df_mae_filtered[COLUMN_NAME_SEX] == sex_id)
         df = df_mae_filtered[selection]
@@ -205,7 +205,7 @@ def calculate_performance_sex(code: str, df_mae: pd.DataFrame, result_config: Bu
 def calculate_performance_goodbad(code: str, df_mae: pd.DataFrame, result_config: Bunch) -> pd.DataFrame:
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
     accuracy_list = []
-    accuracy_thresh = result_config.ACCURACY_MAIN_HEIGHT_THRESH
+    accuracy_thresh = result_config.ACCURACY_MAIN_THRESH
     for _, goodbad_id in GOODBAD_DICT.items():
         selection = (df_mae_filtered[COLUMN_NAME_GOODBAD] == goodbad_id)
         df = df_mae_filtered[selection]
@@ -226,7 +226,7 @@ def calculate_performance_goodbad(code: str, df_mae: pd.DataFrame, result_config
 def calculate_performance_age(code: str, df_mae: pd.DataFrame, result_config: Bunch) -> pd.DataFrame:
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
     accuracy_list = []
-    accuracy_thresh = result_config.ACCURACY_MAIN_HEIGHT_THRESH
+    accuracy_thresh = result_config.ACCURACY_MAIN_THRESH
     age_thresholds = result_config.AGE_BUCKETS
     age_buckets = list(zip(age_thresholds[:-1], age_thresholds[1:]))
     for age_min_years, age_max_years in age_buckets:
