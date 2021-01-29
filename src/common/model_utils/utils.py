@@ -1,6 +1,7 @@
 import datetime
 import os
 from pathlib import Path
+import subprocess
 
 import tensorflow as tf
 import tensorflow_addons as tfa
@@ -131,3 +132,11 @@ def create_tensorboard_callback() -> callbacks.TensorBoard:
         embeddings_data=None,
         update_freq="epoch"
     )
+
+
+WANDB_API_KEY_MH = "237ca046c5dcd915945761dc477207549ef2c42c"
+
+
+def setup_wandb():
+    wandb_login = subprocess.run(["wandb", "login", WANDB_API_KEY_MH])
+    assert wandb_login.returncode == 0

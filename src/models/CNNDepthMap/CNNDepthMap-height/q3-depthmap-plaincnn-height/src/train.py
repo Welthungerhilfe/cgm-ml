@@ -3,7 +3,6 @@ import os
 import pickle
 import random
 import shutil
-import subprocess
 
 import glob2 as glob
 import tensorflow as tf
@@ -34,7 +33,7 @@ if run.id.startswith("OfflineRun"):
 
 from model import create_cnn  # noqa: E402
 from tmp_model_util.preprocessing import preprocess_depthmap, preprocess_targets  # noqa: E402
-from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer  # noqa: E402
+from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, setup_wandb  # noqa: E402
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
@@ -178,10 +177,6 @@ checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     verbose=1
 )
 
-WANDB_API_KEY_MH = "237ca046c5dcd915945761dc477207549ef2c42c"
-wandb_login = subprocess.run(["wandb", "login", WANDB_API_KEY_MH])
-assert wandb_login.returncode == 0
-
 dataset_batches = dataset_training.batch(CONFIG.BATCH_SIZE)
 
 training_callbacks = [
@@ -191,6 +186,7 @@ training_callbacks = [
 ]
 
 if getattr(CONFIG, 'USE_WANDB', False):
+    setup_wandb()
     wandb.init(project="ml-project", entity="cgm-team")
     wandb.config.update(CONFIG)
     training_callbacks.append(WandbCallback(log_weights=True, log_gradients=True, training_data=dataset_batches))
