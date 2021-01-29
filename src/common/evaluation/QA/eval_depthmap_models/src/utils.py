@@ -334,7 +334,7 @@ def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
     """Draw stunting Confusion Matrix
 
     Args:
-        df_: Dataframe with columns: qrcode, scantype, COLUMN_NAME_AGE, GT, predicted
+        df: Dataframe with columns: qrcode, scantype, COLUMN_NAME_AGE, GT, predicted
         png_out_fpath: File path where plot image will be saved
     """
     predicted_stunting = []

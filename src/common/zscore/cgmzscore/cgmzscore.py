@@ -105,7 +105,8 @@ class Calculator(object):
             'wfl_boys_0_2_zscores.json', 'wfl_girls_0_2_zscores.json',
             'wfh_boys_2_5_zscores.json', 'wfh_girls_2_5_zscores.json',
             'wfa_boys_0_5_zscores.json', 'wfa_girls_0_5_zscores.json',
-            'lhfa_boys_0_5_zscores.json', 'lhfa_girls_0_5_zscores.json', ]
+            'lhfa_boys_0_5_zscores.json', 'lhfa_girls_0_5_zscores.json',
+        ]
 
         table_dir = os.path.join(module_dir, 'tables')
         table_to_load = WHO_tables
@@ -113,8 +114,7 @@ class Calculator(object):
         for table in table_to_load:
             table_file = os.path.join(table_dir, table)
             with open(table_file, 'r') as f:
-                table_name, underscore, zscore_part = table.split('.')[
-                    0].rpartition('_')
+                table_name, underscore, zscore_part = table.split('.')[0].rpartition('_')
                 setattr(self, table_name, json.load(f))
                 self.__reformat_table(table_name)
 
@@ -137,19 +137,14 @@ class Calculator(object):
     def zScore(self, weight=None, muac=None, age_in_days=None, sex=None, height=None):
         wfa = self.zScore_wfa(
             weight=weight, age_in_days=age_in_days, sex=sex)
-        dummy = ''
         if D(age_in_days) > 731:
             dummy = 'Z_score_WFH'
-            wfl = self.zScore_wfh(
-                weight=weight, age_in_days=age_in_days, sex=sex, height=height)
+            wfl = self.zScore_wfh(weight=weight, age_in_days=age_in_days, sex=sex, height=height)
         else:
             dummy = 'Z_score_WFL'
-            wfl = self.zScore_wfl(
-                weight=weight, age_in_days=age_in_days, sex=sex, height=height)
-        lhfa = self.zScore_lhfa(
-            age_in_days=age_in_days, sex=sex, height=height)
-        zscore = json.dumps(
-            {'Z_score_WFA': wfa, dummy: wfl, "Z_score_HFA": lhfa})
+            wfl = self.zScore_wfl(weight=weight, age_in_days=age_in_days, sex=sex, height=height)
+        lhfa = self.zScore_lhfa(age_in_days=age_in_days, sex=sex, height=height)
+        zscore = json.dumps({'Z_score_WFA': wfa, dummy: wfl, "Z_score_HFA": lhfa})
         return zscore
 
     def zScore_withclass(self, weight=None, muac=None, age_in_days=None, sex=None, height=None):
@@ -162,8 +157,6 @@ class Calculator(object):
         else:
             class_wfa = 'Healthy'
 
-        dummy = ''
-        dummy_class = ""
         if D(age_in_days) > 24:
             dummy = 'Z_score_WFH'
             dummy_class = "Class_WFH"
