@@ -28,15 +28,15 @@ EVAL_CONFIG = Bunch(dict(
 
 #Details of Evaluation Dataset
 DATA_CONFIG = Bunch(dict(
-    NAME='anon-depthmap-testset',  # Name of evaluation dataset
+    NAME='anon-realtime-testdata',  # Name of evaluation dataset
 
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
 
-    BATCH_SIZE=256,  # Batch size for evaluation
+    BATCH_SIZE=512,  # Batch size for evaluation
     NORMALIZATION_VALUE=7.5,
 
-    TARGET_INDEXES=[1],  # 0 is height, 1 is weight.
+    TARGET_INDEXES=[1, 3, 4, 5],  # 0 is height, 1 is weight.
     CODES=['100', '101', '102', '200', '201', '202']
 ))
 
@@ -54,5 +54,5 @@ RESULT_CONFIG = Bunch(dict(
     USE_UNCERTAINTY=False,  # Flag to enable model uncertainty calculation
 
     # path of csv file in the experiment which final result is stored
-    SAVE_PATH='./outputs/result.csv',
+    SAVE_PATH='./outputs/height',
 ))
