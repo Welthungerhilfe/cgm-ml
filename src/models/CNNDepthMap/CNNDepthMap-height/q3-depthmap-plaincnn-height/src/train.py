@@ -184,14 +184,16 @@ assert wandb_login.returncode == 0
 
 dataset_batches = dataset_training.batch(CONFIG.BATCH_SIZE)
 
-wandb.init(project="ml-project", entity="cgm-team")
-wandb.config.update(CONFIG)
 training_callbacks = [
     AzureLogCallback(run),
     create_tensorboard_callback(),
     checkpoint_callback,
-    WandbCallback(log_weights=True, log_gradients=True, training_data=dataset_batches),
 ]
+
+if getattr(CONFIG, 'USE_WANDB', False):
+    wandb.init(project="ml-project", entity="cgm-team")
+    wandb.config.update(CONFIG)
+    training_callbacks.append(WandbCallback(log_weights=True, log_gradients=True, training_data=dataset_batches))
 
 optimizer = get_optimizer(CONFIG.USE_ONE_CYCLE,
                           lr=CONFIG.LEARNING_RATE,
