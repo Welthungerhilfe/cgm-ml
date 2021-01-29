@@ -44,8 +44,8 @@ DATA_CONFIG = Bunch(dict(
 # Result configuration for result generation after evaluation is done
 RESULT_CONFIG = Bunch(dict(
     # Error margin on various ranges
-    ACCURACIES=[0.04, 0.1, 0.21, 0.42],  # 40 gms, 100 gms, 210 gms, 420 gms
-    ACCURACY_MAIN_THRESH=210,  # 210gms
+    ACCURACIES=[0.04, 0.1, 0.21, 0.42],  # 40gms, 100gms, 210gms, 420gms
+    ACCURACY_MAIN_THRESH=0.21,  # 210gms
     AGE_BUCKETS=[0, 1, 2, 3, 4, 5],
 
     COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],
