@@ -3,6 +3,8 @@ wandb/
 old/cgm_database/dbconnection.json
 *.ply
 *.png
+*.ipynb.amltemp
+.ipynb_aml_checkpoints/
 test-output.xml
 data/
 vandelay-py.js
