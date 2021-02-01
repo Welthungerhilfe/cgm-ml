@@ -1,4 +1,8 @@
+import os
+
 from bunch import Bunch
+
+CONFIG_NAME = os.path.splitext(os.path.basename(__file__))[0]
 
 # Details of model used for evaluation
 MODEL_CONFIG = Bunch(dict(
@@ -57,5 +61,5 @@ RESULT_CONFIG = Bunch(dict(
     UNCERTAINTY_THRESHOLD_IN_CM=4.,
 
     # path of csv file in the experiment which final result is stored
-    SAVE_PATH='./outputs/height',
+    SAVE_PATH=f'./outputs/{CONFIG_NAME}',
 ))
