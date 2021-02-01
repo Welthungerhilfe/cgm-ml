@@ -54,5 +54,5 @@ RESULT_CONFIG = Bunch(dict(
     USE_UNCERTAINTY=False,  # Flag to enable model uncertainty calculation
 
     # path of csv file in the experiment which final result is stored
-    SAVE_PATH='./outputs/height',
+    SAVE_PATH='./outputs/weight',
 ))
