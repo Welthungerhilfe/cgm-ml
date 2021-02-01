@@ -193,7 +193,7 @@ if getattr(CONFIG, 'USE_WANDB', False):
 
 optimizer = get_optimizer(CONFIG.USE_ONE_CYCLE,
                           lr=CONFIG.LEARNING_RATE,
-                          n_steps=len(paths_training) / CONFIG.BATCH_SIZE)
+                          n_steps=int(4 * len(paths_training) / CONFIG.BATCH_SIZE))
 
 # Compile the model.
 model.compile(
