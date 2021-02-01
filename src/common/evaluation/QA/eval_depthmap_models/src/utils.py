@@ -1,6 +1,8 @@
+from multiprocessing import Pool
 import datetime
 import json
 import os
+import time
 import pickle
 from pathlib import Path
 from typing import Callable, List
@@ -340,26 +342,15 @@ def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
     predicted_stunting = []
     actual_stunting = []
     not_processed_data = []
-    for index, row in df.iterrows():
-        sex = 'M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F'
-        age_days = int(row[COLUMN_NAME_AGE])
-        if MIN_HEIGHT < row['GT'] <= MAX_HEIGHT and MIN_HEIGHT < row['predicted'] <= MAX_HEIGHT and row[COLUMN_NAME_AGE] <= MAX_AGE:
-            actual_calcuated = Calculator().zScore_withclass(
-                weight="0", muac="0", age_in_days=age_days, sex=sex, height=row['GT'])
-            actual_json = json.loads(actual_calcuated)
-            actual_stunting.append(actual_json['Class_HFA'])
-            predicted_calculated = Calculator().zScore_withclass(
-                weight="0", muac="0", age_in_days=age_days, sex=sex, height=row['predicted'])
-            predicted_json = json.loads(predicted_calculated)
-            predicted_stunting.append(predicted_json['Class_HFA'])
-        else:
-            not_processed_data.append(row['qrcode'])
-    data = confusion_matrix(actual_stunting, predicted_stunting)
-    T1, FP1, FP2, FN1, T2, FP3, FN2, FN3, T3 = data.ravel()
-    Total = sum(data.ravel())
-    T = ((T1 + T2 + T3) / Total) * 100
-    FP = ((FP1 + FP2 + FP3) / Total) * 100
-    FN = ((FN1 + FN2 + FN3) / Total) * 100
+    start = time.time()
+    v = df['GT_sex'].values
+    # print(df.loc[v]['GT'])
+    # data = calculate_confusion_matrix(df)
+    df = parallelize_dataframe(df, calculate_confusion_matrix)
+    # if MIN_HEIGHT < df.loc[v]['GT'] <= MAX_HEIGHT and MIN_HEIGHT < df.loc[v]['predicted'] <= MAX_HEIGHT and df.loc[v][COLUMN_NAME_AGE] <= MAX_AGE:
+    print(df)
+    data = confusion_matrix(df['actual_stunting'].values, df['predicted_stunting'].values)
+    T, FP, FN = calculate_percentage_confusion_matrix(data)
     fig = plt.figure(figsize=(15, 15))
     ax = fig.add_subplot(111)
     disp = ConfusionMatrixDisplay(confusion_matrix=data, display_labels=STUNTING_DIAGNOSIS)
@@ -370,6 +361,38 @@ def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
     Path(png_out_fpath).parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(png_out_fpath)
     plt.close()
+    end = time.time()
+    print(f"Total time for plot prediction experiment: {end - start:.3} sec")
+
+
+def calculate_confusion_matrix(df):
+    actual_stunting = []
+    predicted_stunting = []
+
+    df['actual_stunting'] = df.apply(lambda row: json.loads(Calculator().zScore_withclass(weight="0", muac="0", age_in_days=int(
+        row[COLUMN_NAME_AGE]), sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['GT']))['Class_HFA'], axis=1)
+    df['predicted_stunting'] = df.apply(lambda row: json.loads(Calculator().zScore_withclass(weight="0", muac="0", age_in_days=int(
+        row[COLUMN_NAME_AGE]), sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['predicted']))['Class_HFA'], axis=1)
+
+    return df
+
+
+def parallelize_dataframe(df, calculate_confusion_matrix, n_cores=8):
+    df_split = np.array_split(df, n_cores)
+    pool = Pool(n_cores)
+    df = pd.concat(pool.map(calculate_confusion_matrix, df_split))
+    pool.close()
+    pool.join()
+    return df
+
+
+def calculate_percentage_confusion_matrix(data):
+    T1, FP1, FP2, FN1, T2, FP3, FN2, FN3, T3 = data.ravel()
+    Total = sum(data.ravel())
+    T = ((T1 + T2 + T3) / Total) * 100
+    FP = ((FP1 + FP2 + FP3) / Total) * 100
+    FN = ((FN1 + FN2 + FN3) / Total) * 100
+    return T, FP, FN
 
 
 def get_model_path(MODEL_CONFIG: Bunch) -> str:
