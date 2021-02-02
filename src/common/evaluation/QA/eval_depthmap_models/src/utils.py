@@ -1,8 +1,6 @@
 from multiprocessing import Pool
 import datetime
-import json
 import os
-import time
 import pickle
 from pathlib import Path
 from typing import Callable, List
@@ -340,8 +338,10 @@ def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
         png_out_fpath: File path where plot image will be saved
     """
     df = parallelize_dataframe(df, calculate_confusion_matrix_stunting)
-    actual = np.where(df['Z_actual'].values<-3,'Severly Stunted',np.where(df['Z_actual'].values>-2,'Not Stunted','Moderately Stunted'))
-    predicted = np.where(df['Z_predicted'].values<-3,'Severly Stunted',np.where(df['Z_predicted'].values>-2,'Not Stunted','Moderately Stunted'))
+    actual = np.where(df['Z_actual'].values < -3, 'Severly Stunted',
+                      np.where(df['Z_actual'].values > -2, 'Not Stunted', 'Moderately Stunted'))
+    predicted = np.where(df['Z_predicted'].values < -3, 'Severly Stunted',
+                         np.where(df['Z_predicted'].values > -2, 'Not Stunted', 'Moderately Stunted'))
     data = confusion_matrix(actual, predicted)
     T, FP, FN = calculate_percentage_confusion_matrix(data)
     fig = plt.figure(figsize=(15, 15))
@@ -358,7 +358,7 @@ def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
 
 def calculate_confusion_matrix_stunting(df):
     cal = Calculator()
-    
+
     def utils(age_in_days, height, sex):
         if MIN_HEIGHT < height <= MAX_HEIGHT and age_in_days <= MAX_AGE:
             return cal.zScore_lhfa(age_in_days=age_in_days, sex=sex, height=height)
