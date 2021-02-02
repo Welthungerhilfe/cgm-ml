@@ -48,7 +48,7 @@ MIN_HEIGHT = 45
 MAX_HEIGHT = 120
 MAX_AGE = 1856.0
 
-STUNTING_DIAGNOSIS = ["Healthy", "Moderately Stunted", "Severly Stunted"]
+STUNTING_DIAGNOSIS = ["Not Stunted", "Moderately Stunted", "Severly Stunted"]
 
 
 def process_image(data):
@@ -339,17 +339,10 @@ def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
         df_: Dataframe with columns: qrcode, scantype, COLUMN_NAME_AGE, GT, predicted
         png_out_fpath: File path where plot image will be saved
     """
-    predicted_stunting = []
-    actual_stunting = []
-    not_processed_data = []
-    start = time.time()
-    v = df['GT_sex'].values
-    # print(df.loc[v]['GT'])
-    # data = calculate_confusion_matrix(df)
-    df = parallelize_dataframe(df, calculate_confusion_matrix)
-    # if MIN_HEIGHT < df.loc[v]['GT'] <= MAX_HEIGHT and MIN_HEIGHT < df.loc[v]['predicted'] <= MAX_HEIGHT and df.loc[v][COLUMN_NAME_AGE] <= MAX_AGE:
-    print(df)
-    data = confusion_matrix(df['actual_stunting'].values, df['predicted_stunting'].values)
+    df = parallelize_dataframe(df, calculate_confusion_matrix_stunting)
+    actual = np.where(df['Z_actual'].values<-3,'Severly Stunted',np.where(df['Z_actual'].values>-2,'Not Stunted','Moderately Stunted'))
+    predicted = np.where(df['Z_predicted'].values<-3,'Severly Stunted',np.where(df['Z_predicted'].values>-2,'Not Stunted','Moderately Stunted'))
+    data = confusion_matrix(actual, predicted)
     T, FP, FN = calculate_percentage_confusion_matrix(data)
     fig = plt.figure(figsize=(15, 15))
     ax = fig.add_subplot(111)
@@ -361,18 +354,19 @@ def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
     Path(png_out_fpath).parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(png_out_fpath)
     plt.close()
-    end = time.time()
-    print(f"Total time for plot prediction experiment: {end - start:.3} sec")
 
 
-def calculate_confusion_matrix(df):
-    actual_stunting = []
-    predicted_stunting = []
+def calculate_confusion_matrix_stunting(df):
+    cal = Calculator()
+    
+    def utils(age_in_days, height, sex):
+        if MIN_HEIGHT < height <= MAX_HEIGHT and age_in_days <= MAX_AGE:
+            return cal.zScore_lhfa(age_in_days=age_in_days, sex=sex, height=height)
 
-    df['actual_stunting'] = df.apply(lambda row: json.loads(Calculator().zScore_withclass(weight="0", muac="0", age_in_days=int(
-        row[COLUMN_NAME_AGE]), sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['GT']))['Class_HFA'], axis=1)
-    df['predicted_stunting'] = df.apply(lambda row: json.loads(Calculator().zScore_withclass(weight="0", muac="0", age_in_days=int(
-        row[COLUMN_NAME_AGE]), sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['predicted']))['Class_HFA'], axis=1)
+    df['Z_actual'] = df.apply(lambda row: utils(age_in_days=int(row[COLUMN_NAME_AGE]),
+                                                sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['GT']), axis=1)
+    df['Z_predicted'] = df.apply(lambda row: utils(age_in_days=int(
+        row[COLUMN_NAME_AGE]), sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['predicted']), axis=1)
 
     return df
 
