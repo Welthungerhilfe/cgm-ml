@@ -18,12 +18,12 @@ from tensorflow.python import keras
 
 import utils
 from constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR
-from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, HEIGHT_IDX,WEIGHT_IDX,
+from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, HEIGHT_IDX, WEIGHT_IDX,
                    COLUMN_NAME_SEX, GOODBAD_IDX, GOODBAD_DICT, SEX_IDX,
                    calculate_performance, calculate_performance_age,
                    calculate_performance_goodbad, calculate_performance_sex,
                    download_dataset, draw_age_scatterplot, draw_stunting_diagnosis,
-                   draw_uncertainty_goodbad_plot, get_dataset_path,draw_wasting_diagnosis,
+                   draw_uncertainty_goodbad_plot, get_dataset_path, draw_wasting_diagnosis,
                    get_model_path, draw_uncertainty_scatterplot)
 
 
@@ -237,7 +237,8 @@ if __name__ == "__main__":
     # filter goodbad==delete
     if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
         goodbad_index = DATA_CONFIG.TARGET_INDEXES.index(GOODBAD_IDX)
-        dataset_norm = dataset_norm.filter(lambda _path, _depthmap, targets: targets[goodbad_index] != GOODBAD_DICT['delete'])
+        dataset_norm = dataset_norm.filter(
+            lambda _path, _depthmap, targets: targets[goodbad_index] != GOODBAD_DICT['delete'])
 
     dataset_norm = dataset_norm.cache()
     dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
@@ -261,7 +262,7 @@ if __name__ == "__main__":
 
     qrcode_list, scantype_list, artifact_list, prediction_list, target_list = utils.get_column_list(
         new_paths_evaluation, prediction_list_one, DATA_CONFIG, FILTER_CONFIG)
-    
+
     df = pd.DataFrame({
         'qrcode': qrcode_list,
         'artifact': artifact_list,
@@ -306,7 +307,7 @@ if __name__ == "__main__":
         png_file = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{RUN_ID}.png"
         print(f"Calculate and save confusion matrix results to {png_file}")
         draw_stunting_diagnosis(df, png_file)
-    
+
     if WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES:
         png_file = f"{OUTPUT_CSV_PATH}/wasting_diagnosis_{RUN_ID}.png"
         print(f"Calculate and save confusion matrix results to {png_file}")
