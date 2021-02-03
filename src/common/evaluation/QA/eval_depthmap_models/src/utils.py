@@ -49,6 +49,7 @@ MAX_AGE = 1856.0
 STUNTING_DIAGNOSIS = ["Not Stunted", "Moderately Stunted", "Severly Stunted"]
 WASTING_DIAGNOSIS = ["Not Under-weight", "Moderately Under-weight", "Severly Under-weight"]
 
+
 def process_image(data):
     img = tf.convert_to_tensor(data)
     img = tf.cast(img, tf.float32) * (1. / 256)
@@ -370,6 +371,7 @@ def calculate_confusion_matrix_stunting(df):
 
     return df
 
+
 def draw_wasting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
     """Draw wasting Confusion Matrix
 
@@ -409,6 +411,7 @@ def calculate_confusion_matrix_wasting(df):
         row[COLUMN_NAME_AGE]), sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', weight=row['predicted']), axis=1)
 
     return df
+
 
 def parallelize_dataframe(df, calculate_confusion_matrix, n_cores=8):
     df_split = np.array_split(df, n_cores)
