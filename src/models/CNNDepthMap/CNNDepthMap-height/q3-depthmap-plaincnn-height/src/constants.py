@@ -9,7 +9,7 @@ PIP_PACKAGES = [
     "glob2",
     "opencv-python==4.1.2.30",
     "matplotlib",
-    "tensorflow-addons==0.12.1",
+    "tensorflow-addons==0.11.2",
     "bunch==1.0.1",
     "wandb==0.10.13",
 ]
