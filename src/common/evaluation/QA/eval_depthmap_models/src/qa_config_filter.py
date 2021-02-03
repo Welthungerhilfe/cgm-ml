@@ -1,4 +1,8 @@
+import os
+
 from bunch import Bunch
+
+CONFIG_NAME = os.path.splitext(os.path.basename(__file__))[0]
 
 # Details of model used for evaluation
 MODEL_CONFIG = Bunch(dict(
@@ -58,7 +62,7 @@ RESULT_CONFIG = Bunch(dict(
     # Error margin on various ranges
     #EVALUATION_ACCURACIES = [.2, .4, .8, 1.2, 2., 2.5, 3., 4., 5., 6.]
     ACCURACIES=[.2, .4, .6, 1., 1.2, 2., 2.5, 3., 4., 5., 6.],  # 0.2cm, 0.4cm, 0.6cm, 1cm, ...
-    ACCURACY_MAIN_HEIGHT_THRESH=1.0,  # 1cm
+    ACCURACY_MAIN_THRESH=1.0,  # 1cm
     AGE_BUCKETS=[0, 1, 2, 3, 4, 5],
 
     COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],
@@ -69,5 +73,5 @@ RESULT_CONFIG = Bunch(dict(
     DROPOUT_STRENGTH=1,  # 1.0 means like original model
 
     # path of csv file in the experiment which final result is stored
-    SAVE_PATH='./outputs/height',
+    SAVE_PATH=f'./outputs/{CONFIG_NAME}',
 ))

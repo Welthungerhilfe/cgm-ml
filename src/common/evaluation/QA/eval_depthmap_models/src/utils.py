@@ -49,7 +49,6 @@ MAX_AGE = 1856.0
 STUNTING_DIAGNOSIS = ["Not Stunted", "Moderately Stunted", "Severly Stunted"]
 WASTING_DIAGNOSIS = ["Not Under-weight", "Moderately Under-weight", "Severly Under-weight"]
 
-
 def process_image(data):
     img = tf.convert_to_tensor(data)
     img = tf.cast(img, tf.float32) * (1. / 256)
@@ -185,7 +184,7 @@ def calculate_and_save_results(df_grouped: pd.DataFrame, complete_name: str, csv
 def calculate_performance_sex(code: str, df_mae: pd.DataFrame, result_config: Bunch) -> pd.DataFrame:
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
     accuracy_list = []
-    accuracy_thresh = result_config.ACCURACY_MAIN_HEIGHT_THRESH
+    accuracy_thresh = result_config.ACCURACY_MAIN_THRESH
     for _, sex_id in SEX_DICT.items():
         selection = (df_mae_filtered[COLUMN_NAME_SEX] == sex_id)
         df = df_mae_filtered[selection]
@@ -206,7 +205,7 @@ def calculate_performance_sex(code: str, df_mae: pd.DataFrame, result_config: Bu
 def calculate_performance_goodbad(code: str, df_mae: pd.DataFrame, result_config: Bunch) -> pd.DataFrame:
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
     accuracy_list = []
-    accuracy_thresh = result_config.ACCURACY_MAIN_HEIGHT_THRESH
+    accuracy_thresh = result_config.ACCURACY_MAIN_THRESH
     for _, goodbad_id in GOODBAD_DICT.items():
         selection = (df_mae_filtered[COLUMN_NAME_GOODBAD] == goodbad_id)
         df = df_mae_filtered[selection]
@@ -227,7 +226,7 @@ def calculate_performance_goodbad(code: str, df_mae: pd.DataFrame, result_config
 def calculate_performance_age(code: str, df_mae: pd.DataFrame, result_config: Bunch) -> pd.DataFrame:
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
     accuracy_list = []
-    accuracy_thresh = result_config.ACCURACY_MAIN_HEIGHT_THRESH
+    accuracy_thresh = result_config.ACCURACY_MAIN_THRESH
     age_thresholds = result_config.AGE_BUCKETS
     age_buckets = list(zip(age_thresholds[:-1], age_thresholds[1:]))
     for age_min_years, age_max_years in age_buckets:
@@ -335,7 +334,7 @@ def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
     """Draw stunting Confusion Matrix
 
     Args:
-        df_: Dataframe with columns: qrcode, scantype, COLUMN_NAME_AGE, GT, predicted
+        df: Dataframe with columns: qrcode, scantype, COLUMN_NAME_AGE, GT, predicted
         png_out_fpath: File path where plot image will be saved
     """
     df = parallelize_dataframe(df, calculate_confusion_matrix_stunting)
@@ -370,7 +369,6 @@ def calculate_confusion_matrix_stunting(df):
         row[COLUMN_NAME_AGE]), sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['predicted']), axis=1)
 
     return df
-
 
 def draw_wasting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
     """Draw wasting Confusion Matrix
@@ -411,7 +409,6 @@ def calculate_confusion_matrix_wasting(df):
         row[COLUMN_NAME_AGE]), sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', weight=row['predicted']), axis=1)
 
     return df
-
 
 def parallelize_dataframe(df, calculate_confusion_matrix, n_cores=8):
     df_split = np.array_split(df, n_cores)

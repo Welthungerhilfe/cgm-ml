@@ -105,7 +105,8 @@ class Calculator(object):
             'wfl_boys_0_2_zscores.json', 'wfl_girls_0_2_zscores.json',
             'wfh_boys_2_5_zscores.json', 'wfh_girls_2_5_zscores.json',
             'wfa_boys_0_5_zscores.json', 'wfa_girls_0_5_zscores.json',
-            'lhfa_boys_0_5_zscores.json', 'lhfa_girls_0_5_zscores.json', ]
+            'lhfa_boys_0_5_zscores.json', 'lhfa_girls_0_5_zscores.json',
+        ]
 
         table_dir = os.path.join(module_dir, 'tables')
         table_to_load = WHO_tables
@@ -113,8 +114,7 @@ class Calculator(object):
         for table in table_to_load:
             table_file = os.path.join(table_dir, table)
             with open(table_file, 'r') as f:
-                table_name, underscore, zscore_part = table.split('.')[
-                    0].rpartition('_')
+                table_name, underscore, zscore_part = table.split('.')[0].rpartition('_')
                 setattr(self, table_name, json.load(f))
                 self.__reformat_table(table_name)
 
@@ -122,12 +122,12 @@ class Calculator(object):
         return self.z_score_measurement('wfa', weight=weight, muac=None, age_in_days=age_in_days, sex=sex, height=None)
 
     def zScore_wfl(self, weight=None, muac=None, age_in_days=None, sex=None, height=None):
-        if(D(age_in_days) > 731):
+        if D(age_in_days) > 731:
             return self.zScore_wfh(weight, muac, age_in_days, sex, height)
         return self.z_score_measurement('wfl', weight=weight, muac=None, age_in_days=age_in_days, sex=sex, height=height)
 
     def zScore_wfh(self, weight=None, muac=None, age_in_days=None, sex=None, height=None):
-        if(D(age_in_days) <= 731):
+        if D(age_in_days) <= 731:
             return self.zScore_wfl(weight, muac, age_in_days, sex, height)
         return self.z_score_measurement('wfh', weight=weight, muac=None, age_in_days=age_in_days, sex=sex, height=height)
 
@@ -137,19 +137,14 @@ class Calculator(object):
     def zScore(self, weight=None, muac=None, age_in_days=None, sex=None, height=None):
         wfa = self.zScore_wfa(
             weight=weight, age_in_days=age_in_days, sex=sex)
-        dummy = ''
-        if(D(age_in_days) > 731):
+        if D(age_in_days) > 731:
             dummy = 'Z_score_WFH'
-            wfl = self.zScore_wfh(
-                weight=weight, age_in_days=age_in_days, sex=sex, height=height)
+            wfl = self.zScore_wfh(weight=weight, age_in_days=age_in_days, sex=sex, height=height)
         else:
             dummy = 'Z_score_WFL'
-            wfl = self.zScore_wfl(
-                weight=weight, age_in_days=age_in_days, sex=sex, height=height)
-        lhfa = self.zScore_lhfa(
-            age_in_days=age_in_days, sex=sex, height=height)
-        zscore = json.dumps(
-            {'Z_score_WFA': wfa, dummy: wfl, "Z_score_HFA": lhfa})
+            wfl = self.zScore_wfl(weight=weight, age_in_days=age_in_days, sex=sex, height=height)
+        lhfa = self.zScore_lhfa(age_in_days=age_in_days, sex=sex, height=height)
+        zscore = json.dumps({'Z_score_WFA': wfa, dummy: wfl, "Z_score_HFA": lhfa})
         return zscore
 
     def zScore_withclass(self, weight=None, muac=None, age_in_days=None, sex=None, height=None):
@@ -162,9 +157,7 @@ class Calculator(object):
         else:
             class_wfa = 'Healthy'
 
-        dummy = ''
-        dummy_class = ""
-        if(D(age_in_days) > 24):
+        if D(age_in_days) > 24:
             dummy = 'Z_score_WFH'
             dummy_class = "Class_WFH"
             wfl = self.zScore_wfh(
@@ -192,15 +185,15 @@ class Calculator(object):
     def SAM_MAM(self, weight=None, muac=None, age_in_days=None, sex=None, height=None):
         assert muac is not None
 
-        if(D(age_in_days) > 731):
+        if D(age_in_days) > 731:
             wfl = self.zScore_wfh(
                 weight=weight, age_in_days=age_in_days, sex=sex, height=height)
         else:
             wfl = self.zScore_wfl(
                 weight=weight, age_in_days=age_in_days, sex=sex, height=height)
-        if(wfl < -3 or D(muac) < 11.5):
+        if wfl < -3 or D(muac) < 11.5:
             return "SAM"
-        elif ((wfl >= -3 and wfl < -2) or D(muac) < 12.5):
+        elif (wfl >= -3 and wfl < -2) or D(muac) < 12.5:
             return "MAM"
         else:
             return "Healthy"
@@ -226,12 +219,12 @@ class Calculator(object):
         #   Zind =  -----------------
         #               S(t)L(t)
         ###
-        if(chart == 'wfa' or chart == 'wfl' or chart == 'wfh'):
+        if chart == 'wfa' or chart == 'wfl' or chart == 'wfh':
             y = D(weight)
-        elif(chart == 'lhfa'):
+        elif chart == 'lhfa':
             y = D(height)
 
-        numerator = ((y / median)**skew) - D(1.0)
+        numerator = (y / median)**skew - D(1.0)
         denomenator = skew * cofficient
         zScore = numerator / denomenator
 
@@ -257,7 +250,7 @@ class Calculator(object):
             stdev = median * value
             return stdev
 
-        if(D(zScore) > D(3)):
+        if D(zScore) > D(3):
             SD2pos = calc_stdev(2)
             SD3pos = calc_stdev(3)
 
@@ -267,7 +260,7 @@ class Calculator(object):
 
             zScore = float(zScore.quantize(D('0.01')))
 
-        elif(D(zScore) < -3):
+        elif D(zScore) < -3:
             SD2neg = calc_stdev(-2)
             SD3neg = calc_stdev(-3)
 
@@ -300,7 +293,7 @@ class Chart():
             return self.zScore_chart('lhfa_girls', weight, age_in_days, sex, height)
 
     def zScore_wfl_chart(self, weight=None, muac=None, age_in_days=None, sex=None, height=None):
-        if(max(age_in_days) <= 731):
+        if max(age_in_days) <= 731:
             if sex == 'M':
                 return self.zScore_chart('wfl_boys', weight, age_in_days, sex, height)
             if sex == 'F':
@@ -309,7 +302,7 @@ class Chart():
             raise Exception("MAX AGE IS MORE THEN 2 YEARS. Use zScore_wfh_full_chart")
 
     def zScore_wfh_chart(self, weight=None, muac=None, age_in_days=None, sex=None, height=None):
-        if(min(age_in_days) >= 731):
+        if min(age_in_days) >= 731:
             if sex == 'M':
                 return self.zScore_chart('wfh_boys_2_5', weight, age_in_days, sex, height)
             if sex == 'F':
@@ -324,16 +317,16 @@ class Chart():
             return self.zScore_chart('wfh_girls_0_5', weight, age_in_days, sex, height)
 
     def zScore_chart(self, chart=None, weight=None, age_in_days=None, sex=None, height=None):
-        if(chart == 'wfa_boys' or chart == 'wfa_girls' or chart == 'lhfa_boys' or chart == 'lhfa_girls'):
+        if chart == 'wfa_boys' or chart == 'wfa_girls' or chart == 'lhfa_boys' or chart == 'lhfa_girls':
             df = pd.read_json(str(module_dir) + '/tables/' + chart + '_0_5_zscores.json')
             x = df['Day'].values.tolist()
-        elif(chart == 'wfl_boys' or chart == 'wfl_girls'):
+        elif chart == 'wfl_boys' or chart == 'wfl_girls':
             df = pd.read_json(str(module_dir) + 'tables/' + chart + '_0_2_zscores.json')
             x = df['Length'].values.tolist()
-        elif(chart == 'wfh_boys_2_5' or chart == 'wfh_girls_2_5'):
+        elif chart == 'wfh_boys_2_5' or chart == 'wfh_girls_2_5':
             df = pd.read_json(str(module_dir) + 'tables/' + chart + '_zscores.json')
             x = df['Height'].values.tolist()
-        elif(chart == 'wfh_boys_0_5' or chart == 'wfh_girls_0_5'):
+        elif chart == 'wfh_boys_0_5' or chart == 'wfh_girls_0_5':
             df = pd.read_json(str(module_dir) + 'tables/' + chart + '_zscores.json')
             x = df['Height'].values.tolist()
 
@@ -357,7 +350,7 @@ class Chart():
         plt.plot(x, f, color='red', linewidth=0.8, label='-2')
         plt.plot(x, g, color='black', linewidth=0.8, label='-3')
 
-        if(chart == 'wfa_boys' or chart == 'wfa_girls'):
+        if chart == 'wfa_boys' or chart == 'wfa_girls':
             plt.plot(age_in_days, weight, 'o-', label='z score')
             for i in range(len(age_in_days)):
                 plt.text(age_in_days[i], weight[i], str(Calculator().zScore_wfa(
@@ -368,7 +361,7 @@ class Chart():
             plt.xticks(np.arange(0, 1865, 90))
             plt.yticks(np.arange(0, 30, 2))
             plt.title('Z score weight vs age')
-        elif(chart == 'lhfa_boys' or chart == 'lhfa_girls'):
+        elif chart == 'lhfa_boys' or chart == 'lhfa_girls':
             plt.plot(age_in_days, height, 'o-', label='z score')
             for i in range(len(age_in_days)):
                 plt.text(age_in_days[i], height[i], str(Calculator().zScore_lhfa(
@@ -379,7 +372,7 @@ class Chart():
             plt.xticks(np.arange(0, 1865, 90))
             plt.yticks(np.arange(35, 110, 5))
             plt.title('Z score height vs age')
-        elif(chart == 'wfl_boys' or chart == 'wfl_girls'):
+        elif chart == 'wfl_boys' or chart == 'wfl_girls':
             plt.plot(height, weight, 'o-', label='z score')
             for i in range(len(height)):
                 plt.text(height[i], weight[i], str(Calculator().zScore_wfl(
@@ -390,7 +383,7 @@ class Chart():
             plt.xticks(np.arange(45, 110, 5))
             plt.yticks(np.arange(0, 24, 2))
             plt.title('Z score weight vs length')
-        elif(chart == 'wfh_boys_2_5' or chart == 'wfh_girls_2_5'):
+        elif chart == 'wfh_boys_2_5' or chart == 'wfh_girls_2_5':
             plt.plot(height, weight, 'o-', label='z score')
             for i in range(len(height)):
                 plt.text(height[i], weight[i], str(Calculator().zScore_wfh(
@@ -402,7 +395,7 @@ class Chart():
             plt.yticks(np.arange(0, 32, 2))
             plt.title('Z score weight vs length')
 
-        elif(chart == 'wfh_boys_0_5' or chart == 'wfh_girls_0_5'):
+        elif chart == 'wfh_boys_0_5' or chart == 'wfh_girls_0_5':
             plt.plot(height, weight, 'o-', label='z score')
             for i in range(len(height)):
                 plt.text(height[i], weight[i], str(Calculator().zScore_wfh(
