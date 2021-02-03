@@ -304,8 +304,11 @@ if __name__ == "__main__":
 
     if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES:
         png_file = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{RUN_ID}.png"
-        print(f"Calculate and save confusion matrix results to {png_file}")
+        print(f"Calculate zscores and save confusion matrix results to {png_file}")
+        start = time.time()
         draw_stunting_diagnosis(df, png_file)
+        end = time.time()
+        print(f"Total time for Calculate zscores and save confusion matrix: {end - start:.3} sec")
 
     if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_file = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"
