@@ -313,7 +313,7 @@ if __name__ == "__main__":
 
     if WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES:
         png_file = f"{OUTPUT_CSV_PATH}/wasting_diagnosis_{RUN_ID}.png"
-        print(f"Calculate and save confusion matrix results to {png_file}")
+        print(f"Calculate and save wasting confusion matrix results to {png_file}")
         start = time.time()
         draw_wasting_diagnosis(df, png_file)
         end = time.time()
