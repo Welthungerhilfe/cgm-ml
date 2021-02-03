@@ -317,7 +317,7 @@ if __name__ == "__main__":
         start = time.time()
         draw_wasting_diagnosis(df, png_file)
         end = time.time()
-        print(f"Total time for Calculate zscores and save confusion matrix: {end - start:.3} sec")
+        print(f"Total time for Calculate zscores and save wasting confusion matrix: {end - start:.3} sec")
 
     if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_file = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"
