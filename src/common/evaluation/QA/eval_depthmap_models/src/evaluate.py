@@ -262,7 +262,7 @@ if __name__ == "__main__":
     qrcode_list, scantype_list, artifact_list, prediction_list, target_list = utils.get_column_list(
         new_paths_evaluation, prediction_list_one, DATA_CONFIG, FILTER_CONFIG)
     
-    print("el",el)
+    print("el",target_list)
 
     df = pd.DataFrame({
         'qrcode': qrcode_list,
