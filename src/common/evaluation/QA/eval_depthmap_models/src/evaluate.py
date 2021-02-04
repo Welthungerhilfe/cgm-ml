@@ -289,6 +289,9 @@ if __name__ == "__main__":
     
     df_grouped['error'] = df_grouped.apply(utils.avgerror, axis=1)
     
+    ##checking the dataframe
+    
+    print("df grouped")
     print(df_grouped)
 
     csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
