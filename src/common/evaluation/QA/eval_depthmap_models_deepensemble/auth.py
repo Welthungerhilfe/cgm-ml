@@ -7,6 +7,7 @@ def get_auth():
     '''
     Azure CLI Authentication to access workspace
     '''
+    auth = None
     try:
         auth = AzureCliAuthentication()
         auth.get_authentication_header()

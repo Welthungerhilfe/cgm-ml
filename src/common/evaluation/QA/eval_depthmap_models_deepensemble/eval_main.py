@@ -13,8 +13,8 @@ from azureml.core.compute_target import ComputeTargetException
 from azureml.core.run import Run
 from azureml.train.dnn import TensorFlow
 
-from src.utils import get_run_ids, download_model
-from src.constants import REPO_DIR, DEFAULT_CONFIG
+from src.utils import download_model
+from src.constants import DEFAULT_CONFIG
 
 CWD = Path(__file__).parent
 TAGS = {}
@@ -52,9 +52,7 @@ if __name__ == "__main__":
     # When we run scripts locally(e.g. for debugging), we want to use another directory
     USE_LOCAL = False
 
-    
-
-    # Copy filter to temp folder
+    # Copy filter to temp folder.
     if FILTER_CONFIG is not None and FILTER_CONFIG.IS_ENABLED:
         download_model(ws=ws, experiment_name=FILTER_CONFIG.EXPERIMENT_NAME, run_id=FILTER_CONFIG.RUN_ID, input_location=os.path.join(
             FILTER_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME), output_location=str(temp_path / FILTER_CONFIG.NAME))

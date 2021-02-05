@@ -27,7 +27,7 @@ EVAL_CONFIG = Bunch(dict(
     SPLIT_SEED=0,
 ))
 
-#Details of Evaluation Dataset
+# Details of Evaluation Dataset
 DATA_CONFIG = Bunch(dict(
     NAME='anon-realtime-testdata',  # Name of evaluation dataset
 

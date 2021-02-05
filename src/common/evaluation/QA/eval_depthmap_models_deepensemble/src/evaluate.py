@@ -16,17 +16,20 @@ from azureml.core.run import Run
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.python import keras
 
-from utils import get_run_ids, download_model
-
 import utils
+from utils import get_run_ids, download_model
 from constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR
 from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD,
-                   COLUMN_NAME_SEX, GOODBAD_IDX, GOODBAD_DICT, SEX_IDX,
+                   COLUMN_NAME_SEX, GOODBAD_IDX,
+                   # GOODBAD_DICT,
+                   SEX_IDX,
                    calculate_performance, calculate_performance_age,
                    calculate_performance_goodbad, calculate_performance_sex,
                    download_dataset, draw_age_scatterplot,
-                   draw_uncertainty_goodbad_plot, get_dataset_path,
-                   get_model_path, draw_uncertainty_scatterplot)
+                   # draw_uncertainty_goodbad_plot,
+                   get_dataset_path,
+                   # get_model_path,
+                   draw_uncertainty_scatterplot)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -177,8 +180,8 @@ if __name__ == "__main__":
     print(f"OUTPUT_CSV_PATH: {OUTPUT_CSV_PATH}")
 
     MODEL_BASE_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path('.')
-    MODEL_BASE_DIR = Path(".") # TODO remove this!
-    
+    MODEL_BASE_DIR = Path(".")  # TODO Is this correct?
+
     # Offline run. Download the sample dataset and run locally. Still push results to Azure.
     if run.id.startswith("OfflineRun"):
         print("Running in offline mode...")
@@ -229,21 +232,19 @@ if __name__ == "__main__":
         )
 
     # TODO Why do I have to append the path?
-    model_paths = [os.path.join(path, "outputs", "best_model.ckpt") for path in glob.glob(os.path.join(MODEL_BASE_DIR, "*")) if os.path.isdir(path) and path.split("/")[-1].startswith(MODEL_CONFIG.EXPERIMENT_NAME)]
-    #model_paths = model_paths[0:2] # TODO remove this!
+    model_paths = glob.glob(os.path.join(MODEL_BASE_DIR, "*"))
+    model_paths = [path for path in model_paths if os.path.isdir(path)]
+    model_paths = [path for path in model_paths if path.split("/")[-1].startswith(MODEL_CONFIG.EXPERIMENT_NAME)]
+    model_paths = [os.path.join(path, "outputs", "best_model.ckpt") for path in model_paths]
     print(f"Models paths ({len(model_paths)}):")
     print("\t" + "\n\t".join(model_paths))
     del MODEL_BASE_DIR
 
-
-
     # Get the QR-code paths.
     dataset_path = os.path.join(dataset_path, "scans")
     print("Dataset path:", dataset_path)
-    # print(glob.glob(os.path.join(dataset_path, "*"))) # Debug
     print("Getting QR code paths...")
     qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
-    #qrcode_paths = qrcode_paths[0:1] # TODO remove this!
     print("QR code paths: ", len(qrcode_paths))
     assert len(qrcode_paths) != 0
 
@@ -253,7 +254,6 @@ if __name__ == "__main__":
 
     print("Paths for evaluation:")
     print("\t" + "\n\t".join(qrcode_paths))
-
     print(len(qrcode_paths))
 
     # Get the pointclouds.
@@ -276,7 +276,7 @@ if __name__ == "__main__":
 
     # filter goodbad==delete
     # TODO make this work again!
-    #dataset_norm = dataset_norm.filter(lambda _path, _depthmap, targets: targets[2] != GOODBAD_DICT['delete'])  # TODO refactor: replace 2 with inferred goodbad target idx
+    # dataset_norm = dataset_norm.filter(lambda _path, _depthmap, targets: targets[2] != GOODBAD_DICT['delete'])  # TODO refactor: replace 2 with inferred goodbad target idx
 
     dataset_norm = dataset_norm.cache()
     dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
@@ -284,17 +284,16 @@ if __name__ == "__main__":
     del dataset_norm
     print("Created dataset for training.")
 
-
     # Update new_paths_evaluation after filtering
     dataset_paths = tmp_dataset_evaluation.map(lambda path, _depthmap, _targets: path)
     list_paths = list(dataset_paths.as_numpy_iterator())
     new_paths_evaluation = [x.decode() for x in list_paths]
 
+    # Create dataset for evaluation.
     dataset_evaluation = tmp_dataset_evaluation.map(lambda _path, depthmap, targets: (depthmap, targets))
     del tmp_dataset_evaluation
 
-    # TODO make this work. Either have 16 predictions or somehow merge.
-    # TODO I guess compute mean and std
+    # Predict for all models and compute mean.
     print("Predicting...")
     prediction_list_one = []
     for model_index, model_path in enumerate(model_paths):
@@ -302,10 +301,9 @@ if __name__ == "__main__":
         prediction_list_one += [get_prediction(model_path, dataset_evaluation)]
         print("Prediction made by model on the depthmaps...")
     prediction_list_one = np.array(prediction_list_one)
-    prediction_list_mean = np.mean(prediction_list_one, axis=0) 
+    prediction_list_mean = np.mean(prediction_list_one, axis=0)
     print(prediction_list_mean)
     del prediction_list_one
-
 
     # Get column data. Includes the targets from the pickle files.
     qrcode_list, scantype_list, artifact_list, prediction_list_mean, target_list = utils.get_column_list(
@@ -368,11 +366,11 @@ if __name__ == "__main__":
         utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_goodbad)
 
-    # Now evaluate.
+    # Now evaluate...
 
     # TODO Make this work again.
-    #assert GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES
-    #assert COLUMN_NAME_GOODBAD in df
+    # assert GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES
+    # assert COLUMN_NAME_GOODBAD in df
 
     # Sample one artifact per scan (qrcode, scantype combination)
     df_sample = df.groupby(['qrcode', 'scantype']).apply(lambda x: x.sample(1))
@@ -386,13 +384,13 @@ if __name__ == "__main__":
     df_sample['uncertainties'] = uncertainties
 
     # TODO make this work again.
-    #png_file = f"{OUTPUT_CSV_PATH}/uncertainty_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
-    #draw_uncertainty_goodbad_plot(df_sample, png_file)
+    # png_file = f"{OUTPUT_CSV_PATH}/uncertainty_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
+    # draw_uncertainty_goodbad_plot(df_sample, png_file)
 
     # TODO make this work again.
-    #df_sample_100 = df_sample.iloc[df_sample.index.get_level_values('scantype') == '100']
-    #png_file = f"{OUTPUT_CSV_PATH}/uncertainty_code100_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
-    #draw_uncertainty_goodbad_plot(df_sample_100, png_file)
+    # df_sample_100 = df_sample.iloc[df_sample.index.get_level_values('scantype') == '100']
+    # png_file = f"{OUTPUT_CSV_PATH}/uncertainty_code100_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
+    # draw_uncertainty_goodbad_plot(df_sample_100, png_file)
 
     png_file = f"{OUTPUT_CSV_PATH}/uncertainty_scatter_distribution_{RUN_ID}.png"
     draw_uncertainty_scatterplot(df_sample, png_file)

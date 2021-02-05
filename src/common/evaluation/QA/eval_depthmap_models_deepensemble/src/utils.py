@@ -342,7 +342,6 @@ def get_run_ids(ws, experiment_name):
     return run_ids
 
 
-
 def download_model(ws, experiment_name, run_id, input_location, output_location):
     """Download the pretrained model
 
