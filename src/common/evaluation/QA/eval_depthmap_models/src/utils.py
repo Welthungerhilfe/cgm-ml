@@ -348,6 +348,9 @@ def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
 
 
 def calculate_zscore_lhfa(df):
+    '''
+    lhfa : length/height for age
+    '''
     cal = Calculator()
 
     def utils(age_in_days, height, sex):
@@ -379,6 +382,9 @@ def draw_wasting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
 
 
 def calculate_zscore_wfa(df):
+    '''
+    wfa: Weight for age
+    '''
     cal = Calculator()
 
     def utils(age_in_days, weight, sex):
