@@ -52,26 +52,7 @@ if __name__ == "__main__":
     # When we run scripts locally(e.g. for debugging), we want to use another directory
     USE_LOCAL = False
 
-    MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if USE_LOCAL else temp_path
-    print('MODEL_BASE_DIR:', MODEL_BASE_DIR)
-    os.makedirs(MODEL_BASE_DIR, exist_ok=True)
-
-    # Get run ids. Either defined by the user or get all.
-    run_ids = MODEL_CONFIG.RUN_IDS
-    if run_ids == "all":
-        run_ids = get_run_ids(ws=ws, experiment_name=MODEL_CONFIG.EXPERIMENT_NAME)
-    print(f"Using run ids: {run_ids}")
-
-    # Download all models.
-    for run_id in run_ids:
-        print(f"Downloading run {run_id}")
-        download_model(
-            ws=ws,
-            experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
-            run_id=run_id,
-            input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
-            output_location=os.path.join(MODEL_BASE_DIR, run_id)
-        )
+    
 
     # Copy filter to temp folder
     if FILTER_CONFIG is not None and FILTER_CONFIG.IS_ENABLED:

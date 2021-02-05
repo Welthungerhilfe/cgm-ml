@@ -16,6 +16,8 @@ from azureml.core.run import Run
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.python import keras
 
+from utils import get_run_ids, download_model
+
 import utils
 from constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR
 from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD,
@@ -106,7 +108,7 @@ def change_dropout_strength(model: tf.keras.Model, dropout_strength: float) -> t
     return new_model
 
 
-def get_prediction_uncertainty(model_path: str, dataset_evaluation: tf.data.Dataset) -> np.array:
+def get_prediction_uncertainty(model_paths: list, dataset_evaluation: tf.data.Dataset) -> np.array:
     """Predict standard deviation of multiple predictions with different dropouts
 
     Args:
@@ -176,15 +178,7 @@ if __name__ == "__main__":
 
     MODEL_BASE_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path('.')
     MODEL_BASE_DIR = Path(".") # TODO remove this!
-    print(f"MODEL_BASE_DIR: {MODEL_BASE_DIR}")
-
-    # TODO Why do I have to append the path?
-    model_paths = [os.path.join(path, "outputs", "best_model.ckpt") for path in glob.glob(os.path.join(MODEL_BASE_DIR, "*")) if os.path.isdir(path) and path.split("/")[-1].startswith(MODEL_CONFIG.EXPERIMENT_NAME)]
-    model_paths = model_paths[0:2] # TODO remove this!
-    print(f"Models paths ({len(model_paths)}):")
-    print("\t" + "\n\t".join(model_paths))
-    del MODEL_BASE_DIR
-
+    
     # Offline run. Download the sample dataset and run locally. Still push results to Azure.
     if run.id.startswith("OfflineRun"):
         print("Running in offline mode...")
@@ -215,13 +209,41 @@ if __name__ == "__main__":
         dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
         download_dataset(workspace, dataset_name, dataset_path)
 
+    print(f"MODEL_BASE_DIR: {MODEL_BASE_DIR}")
+
+    # Get run ids. Either defined by the user or get all.
+    run_ids = MODEL_CONFIG.RUN_IDS
+    if run_ids == "all":
+        run_ids = get_run_ids(ws=workspace, experiment_name=MODEL_CONFIG.EXPERIMENT_NAME)
+    print(f"Using run ids: {run_ids}")
+
+    # Download all models.
+    for run_id in run_ids:
+        print(f"Downloading run {run_id}")
+        download_model(
+            ws=workspace,
+            experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
+            run_id=run_id,
+            input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
+            output_location=os.path.join(MODEL_BASE_DIR, run_id)
+        )
+
+    # TODO Why do I have to append the path?
+    model_paths = [os.path.join(path, "outputs", "best_model.ckpt") for path in glob.glob(os.path.join(MODEL_BASE_DIR, "*")) if os.path.isdir(path) and path.split("/")[-1].startswith(MODEL_CONFIG.EXPERIMENT_NAME)]
+    #model_paths = model_paths[0:2] # TODO remove this!
+    print(f"Models paths ({len(model_paths)}):")
+    print("\t" + "\n\t".join(model_paths))
+    del MODEL_BASE_DIR
+
+
+
     # Get the QR-code paths.
     dataset_path = os.path.join(dataset_path, "scans")
     print("Dataset path:", dataset_path)
     # print(glob.glob(os.path.join(dataset_path, "*"))) # Debug
     print("Getting QR code paths...")
     qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
-    qrcode_paths = qrcode_paths[0:1] # TODO remove this!
+    #qrcode_paths = qrcode_paths[0:1] # TODO remove this!
     print("QR code paths: ", len(qrcode_paths))
     assert len(qrcode_paths) != 0
 
@@ -262,8 +284,6 @@ if __name__ == "__main__":
     del dataset_norm
     print("Created dataset for training.")
 
-    # TODO Get model paths. Plural.
-    #model_path = MODEL_BASE_DIR / get_model_path(MODEL_CONFIG)
 
     # Update new_paths_evaluation after filtering
     dataset_paths = tmp_dataset_evaluation.map(lambda path, _depthmap, _targets: path)
@@ -361,7 +381,7 @@ if __name__ == "__main__":
     dataset_sample = prepare_sample_dataset(df_sample, dataset_path)
 
     # Predict uncertainty
-    uncertainties = get_prediction_uncertainty(model_path, dataset_sample)
+    uncertainties = get_prediction_uncertainty(model_paths, dataset_sample)
     assert len(df_sample) == len(uncertainties)
     df_sample['uncertainties'] = uncertainties
 
