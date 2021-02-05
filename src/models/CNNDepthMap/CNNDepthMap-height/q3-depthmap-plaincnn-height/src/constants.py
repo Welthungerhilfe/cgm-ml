@@ -11,4 +11,5 @@ PIP_PACKAGES = [
     "matplotlib",
     "tensorflow-addons==0.11.2",
     "bunch==1.0.1",
+    "wandb",
 ]

@@ -8,6 +8,9 @@ import glob2 as glob
 import tensorflow as tf
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
+import wandb
+from wandb.keras import WandbCallback
+
 
 from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
@@ -30,7 +33,7 @@ if run.id.startswith("OfflineRun"):
 
 from model import create_cnn  # noqa: E402
 from tmp_model_util.preprocessing import preprocess_depthmap, preprocess_targets  # noqa: E402
-from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer  # noqa: E402
+from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, setup_wandb  # noqa: E402
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
@@ -173,11 +176,20 @@ checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     save_best_only=True,
     verbose=1
 )
+
+dataset_batches = dataset_training.batch(CONFIG.BATCH_SIZE)
+
 training_callbacks = [
     AzureLogCallback(run),
     create_tensorboard_callback(),
     checkpoint_callback,
 ]
+
+if getattr(CONFIG, 'USE_WANDB', False):
+    setup_wandb()
+    wandb.init(project="ml-project", entity="cgm-team")
+    wandb.config.update(CONFIG)
+    training_callbacks.append(WandbCallback(log_weights=True, log_gradients=True, training_data=dataset_batches))
 
 optimizer = get_optimizer(CONFIG.USE_ONE_CYCLE,
                           lr=CONFIG.LEARNING_RATE,
@@ -193,7 +205,7 @@ model.compile(
 # Train the model.
 model.fit(
     dataset_training.batch(CONFIG.BATCH_SIZE),
-    validation_data=dataset_validation.batch(CONFIG.BATCH_SIZE),
+    validation_data=dataset_batches,
     epochs=CONFIG.EPOCHS,
     callbacks=training_callbacks,
     verbose=2
