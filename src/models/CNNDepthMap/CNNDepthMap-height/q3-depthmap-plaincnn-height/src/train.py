@@ -10,7 +10,7 @@ from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 import wandb
 from wandb.keras import WandbCallback
-import evidential_deep_learning as edl
+
 
 from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
@@ -198,7 +198,7 @@ optimizer = get_optimizer(CONFIG.USE_ONE_CYCLE,
 # Compile the model.
 model.compile(
     optimizer=optimizer,
-    loss=edl.losses.EvidentialRegression,
+    loss="mse",
     metrics=["mae"]
 )
 

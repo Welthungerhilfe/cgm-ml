@@ -17,5 +17,4 @@ dependencies:
     - pyyaml
     - bunch==1.0.1
     - scikit-learn==0.22.2.post1
-    - evidential-deep-learning
     - wandb
