@@ -300,8 +300,8 @@ if __name__ == "__main__":
     print(f"Calculate and save the results to {csv_file}")
     utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                      DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
-      
-   
+    sample_csv_file = f"{OUTPUT_CSV_PATH}/sample.csv"  
+    df_grouped.to_csv(sample_csv_file,index=False)
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
         csv_file = f"{OUTPUT_CSV_PATH}/age_evaluation_{RUN_ID}.csv"
         print(f"Calculate and save age results to {csv_file}")
