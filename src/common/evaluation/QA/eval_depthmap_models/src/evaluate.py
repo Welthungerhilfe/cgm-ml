@@ -294,6 +294,7 @@ if __name__ == "__main__":
     
     print("df grouped")
     print(df_grouped)
+    print("model_id:",RUN_ID)
 
     csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
     print(f"Calculate and save the results to {csv_file}")
