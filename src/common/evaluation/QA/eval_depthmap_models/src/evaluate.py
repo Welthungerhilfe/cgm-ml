@@ -296,6 +296,7 @@ if __name__ == "__main__":
     print(df_grouped)
     print("model_id:",RUN_ID)
     
+    Path(OUTPUT_CSV_PATH).parent.mkdir(parents=True, exist_ok=True)
     df_grouped.to_csv(f"{OUTPUT_CSV_PATH}/sample.csv",index=False)
 
     csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
