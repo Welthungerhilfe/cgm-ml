@@ -45,6 +45,8 @@ FILTER_CONFIG = qa_config.FILTER_CONFIG if getattr(qa_config, 'FILTER_CONFIG', F
 
 RUN_ID = MODEL_CONFIG.RUN_ID
 
+ACC = 2
+
 # Function for loading and processing depthmaps.
 
 
@@ -257,7 +259,6 @@ if __name__ == "__main__":
 
     prediction_list_one = get_prediction(model_path, dataset_evaluation)
     print("Prediction made by model on the depthmaps...")
-    print(prediction_list_one)
 
     qrcode_list, scantype_list, artifact_list, prediction_list, target_list = utils.get_column_list(
         new_paths_evaluation, prediction_list_one, DATA_CONFIG, FILTER_CONFIG)
@@ -270,7 +271,6 @@ if __name__ == "__main__":
         'GT': [el[0] for el in target_list],
         'predicted': prediction_list
     }, columns=RESULT_CONFIG.COLUMNS)
-    print("df.shape:", df.shape)
 
     df['GT'] = df['GT'].astype('float64')
     df['predicted'] = df['predicted'].astype('float64')
@@ -291,17 +291,15 @@ if __name__ == "__main__":
     df_grouped['error'] = df_grouped.apply(utils.avgerror, axis=1)
     
     ##checking the dataframe
-    
-    print("df grouped")
-    print(df_grouped)
     print("model_id:",RUN_ID)
   
     csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
     print(f"Calculate and save the results to {csv_file}")
     utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                      DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
+    accuracy_df = utils.filter_scans(df_grouped,ACC)
     sample_csv_file = f"{OUTPUT_CSV_PATH}/sample.csv"  
-    df_grouped.to_csv(sample_csv_file,index=True)
+    accuracy_df.to_csv(sample_csv_file,index=True)
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
         csv_file = f"{OUTPUT_CSV_PATH}/age_evaluation_{RUN_ID}.csv"
         print(f"Calculate and save age results to {csv_file}")
