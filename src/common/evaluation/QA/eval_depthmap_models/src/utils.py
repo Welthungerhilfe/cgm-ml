@@ -103,7 +103,8 @@ def get_depthmap_files(paths: List[str]) -> List[str]:
 
 
 def filter_scans(dataframe: pd.DataFrame,accuracy: int):
-    return error = dataframe[(dataframe['error'] >= accuracy) | (dataframe['error'] <= -accuracy)]
+    error = dataframe[(dataframe['error'] >= accuracy) | (dataframe['error'] <= -accuracy)]
+    return error
 
 def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CONFIG: Bunch, FILTER_CONFIG: Bunch):
     """Prepare the list of all artifact with its corresponding scantype, qrcode, target and prediction"""
