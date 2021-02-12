@@ -4,6 +4,7 @@ import pickle
 import random
 import shutil
 import sys
+import logging
 
 import glob2 as glob
 import tensorflow as tf
@@ -118,7 +119,9 @@ paths_validate = get_depthmap_files(qrcode_paths_validate)
 del qrcode_paths_training
 del qrcode_paths_validate
 
-print("Using {} files for training.".format(len(paths_training)))
+import ipdb; ipdb.set_trace()
+
+logging.info("Using {} files for training.".format(len(paths_training)))
 print("Using {} files for validation.".format(len(paths_validate)))
 
 
