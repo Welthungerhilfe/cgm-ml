@@ -119,8 +119,6 @@ paths_validate = get_depthmap_files(qrcode_paths_validate)
 del qrcode_paths_training
 del qrcode_paths_validate
 
-import ipdb; ipdb.set_trace()
-
 logging.info("Using {} files for training.".format(len(paths_training)))
 print("Using {} files for validation.".format(len(paths_validate)))
 
