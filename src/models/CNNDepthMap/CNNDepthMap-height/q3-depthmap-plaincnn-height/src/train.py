@@ -48,7 +48,7 @@ print(f"DATA_DIR: {DATA_DIR}")
 # Offline run. Download the sample dataset and run locally. Still push results to Azure.
 if run.id.startswith("OfflineRun"):
     #print("Running in offline mode...")
-    logging.info('Running in offline mode...')
+    logging.info('Running in offline mode...gitCheck')
 
     # Access workspace.
     print("Accessing workspace...")
