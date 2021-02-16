@@ -16,7 +16,7 @@ from wandb.keras import WandbCallback
 from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
 
-import logging 
+import logging
 
 # Get the current run.
 run = Run.get_context()
