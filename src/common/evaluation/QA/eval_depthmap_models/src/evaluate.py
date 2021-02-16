@@ -289,17 +289,17 @@ if __name__ == "__main__":
     print("Mean Avg Error: ", df_grouped)
     
     df_grouped['error'] = df_grouped.apply(utils.avgerror, axis=1)
-    
-    ##checking the dataframe
-    print("model_id:",RUN_ID)
   
     csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
     print(f"Calculate and save the results to {csv_file}")
     utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                      DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
+    
     accuracy_df = utils.filter_scans(df_grouped,ACC)
-    sample_csv_file = f"{OUTPUT_CSV_PATH}/sample.csv"  
+    sample_csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}_inaccurate_scan.csv"     
+    accuracy_df['name'] = accuracy_df.apply(utils.merge_qrc,axis=1)  
     accuracy_df.to_csv(sample_csv_file,index=True)
+    
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
         csv_file = f"{OUTPUT_CSV_PATH}/age_evaluation_{RUN_ID}.csv"
         print(f"Calculate and save age results to {csv_file}")
