@@ -17,6 +17,11 @@ from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
 
 import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s  %(pathname)s %(lineno)d')
+# try to import file for config
+#logging.config.fileConfig("logging.conf")
+logger.info('JTEST JTEST JUICYTEST')
 
 # Get the current run.
 run = Run.get_context()
@@ -51,7 +56,7 @@ if run.id.startswith("OfflineRun"):
     logging.info('Running in offline mode...gitCheck')
 
     # Access workspace.
-    print("Accessing workspace...")
+    print("Accessing workspace J ...")
     workspace = Workspace.from_config()
     experiment = Experiment(workspace, "training-junkyard")
     run = experiment.start_logging(outputs=None, snapshot_directory=None)
