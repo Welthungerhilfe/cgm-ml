@@ -107,9 +107,7 @@ print("\t" + "\n\t".join(qrcode_paths_training))
 logging.info('Paths for validation:')
 print("\t" + "\n\t".join(qrcode_paths_validate))
 
-#print(len(qrcode_paths_training))
 logging.info('Nbr of qrcode_paths for training: %d', len(qrcode_paths_training))
-#print(len(qrcode_paths_validate))
 logging.info('Nbr of qrcode_paths for validation: %d', len(qrcode_paths_validate))
 
 assert len(qrcode_paths_training) > 0 and len(qrcode_paths_validate) > 0
@@ -130,9 +128,7 @@ paths_validate = get_depthmap_files(qrcode_paths_validate)
 del qrcode_paths_training
 del qrcode_paths_validate
 
-print("Using {} files for training.".format(len(paths_training)))
 logging.info('Using %d files for training.', len(paths_training))
-print("Using {} files for validation.".format(len(paths_validate)))
 logging.info('Using %d files for validation.', len(paths_validate))
 
 
