@@ -4,6 +4,8 @@ import pickle
 import random
 import shutil
 import sys
+import logging
+import logging.config
 
 import glob2 as glob
 import tensorflow as tf
@@ -16,10 +18,8 @@ from wandb.keras import WandbCallback
 from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
 
-import logging
-import logging.config
 
-logging.config.fileConfig("logging.conf")
+logging.config.fileConfig(REPO_DIR / "logging.conf")
 logging.debug('debug JTEST JTEST')
 logging.info('info JJ')
 logging.warning('warning you')
@@ -102,10 +102,8 @@ qrcode_paths_validate = qrcode_paths[split_index:]
 del qrcode_paths
 
 # Show split.
-logging.info('Paths for training:')
-print("\t" + "\n\t".join(qrcode_paths_training))
-logging.info('Paths for validation:')
-print("\t" + "\n\t".join(qrcode_paths_validate))
+logging.info('Paths for training: \n\t' + '\n\t'.join(qrcode_paths_training))
+logging.info('Paths for validation: \n\t' + '\n\t'.join(qrcode_paths_validate))
 
 logging.info('Nbr of qrcode_paths for training: %d', len(qrcode_paths_training))
 logging.info('Nbr of qrcode_paths for validation: %d', len(qrcode_paths_validate))
