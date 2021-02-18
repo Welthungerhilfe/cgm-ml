@@ -101,7 +101,7 @@ def get_depthmap_files(paths: List[str]) -> List[str]:
         pickle_paths.extend(glob.glob(os.path.join(path, "**", "*.p")))
     return pickle_paths
 
-def merge_qrc(row : pd.Dataframe.row):
+def merge_qrc(row):
     scans = str(row['qrcode'])+'_'+str(row['scantype'])
     return scans
 
