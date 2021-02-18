@@ -296,7 +296,8 @@ if __name__ == "__main__":
                                      DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
     
 #     accuracy_df = utils.filter_scans(df_grouped,ACC)
-#     sample_csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}_inaccurate_scan.csv"     
+    sample_csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}_inaccurate_scan.csv"   
+    df_grouped.to_csv(sample_csv_file,index=True)
 #     accuracy_df['name'] = accuracy_df.apply(utils.merge_qrc,axis=1)  
 #     accuracy_df.to_csv(sample_csv_file,index=True)
     
