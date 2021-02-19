@@ -38,12 +38,7 @@ def inaccurate_scans(csv_file_list: List[str]):
         
     
 
-if __name__ == "__main__":
-    paths = {
-        'height': 'outputs/height',
-        'weight': 'outputs/weight'
-    }
-    
-    csv_path = f"{result_path}/*_inaccurate_scan.csv"
+if __name__ == "__main__":    
+    csv_path = f"./outputs/**/*_inaccurate_scan.csv"
     csv_files = glob(csv_path)
     inaccurate_scans(csv_files)

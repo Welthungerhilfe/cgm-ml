@@ -101,13 +101,7 @@ def get_depthmap_files(paths: List[str]) -> List[str]:
         pickle_paths.extend(glob.glob(os.path.join(path, "**", "*.p")))
     return pickle_paths
 
-def merge_qrc(row):
-    scans = str(row['qrcode'])+'_'+str(row['scantype'])
-    return scans
 
-def filter_scans(dataframe: pd.DataFrame,accuracy: int):
-    error = dataframe[(dataframe['error'] >= accuracy) | (dataframe['error'] <= -accuracy)]
-    return error
 
 def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CONFIG: Bunch, FILTER_CONFIG: Bunch):
     """Prepare the list of all artifact with its corresponding scantype, qrcode, target and prediction"""
