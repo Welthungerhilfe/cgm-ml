@@ -44,7 +44,7 @@ def inaccurate_scans(csv_file_list: List[str]):
         grouped_result = result_list.groupby(['qrcode','scantype'],as_index=False).mean()
         accuracy_df = utils.filter_scans(grouped_result,ACC)
         accuracy_df['name'] = accuracy_df.apply(utils.merge_qrc,axis=1)
-        csv_file = f'./outputs/{count}.csv"
+        csv_file = f"./outputs/{count}.csv"
         count+=1
         
     
