@@ -11,7 +11,6 @@ from tensorflow.keras import callbacks, layers, models
 
 from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
-from model import create_head, get_base_model
 from augmentation import tf_augment_sample
 from preprocessing_multiartifact import tf_load_pickle
 
@@ -32,7 +31,8 @@ if run.id.startswith("OfflineRun"):
         shutil.copy(p, temp_model_util_dir)
 
 from tmp_model_util.preprocessing import create_samples  # noqa: E402
-from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer  # noqa: E402
+from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, create_head  # noqa: E402
+from model import get_base_model
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
@@ -85,9 +85,9 @@ assert len(qrcode_paths) != 0
 random.seed(CONFIG.SPLIT_SEED)
 random.shuffle(qrcode_paths)
 split_index = int(len(qrcode_paths) * 0.8)
-qrcode_paths_training = qrcode_paths[:split_index]
+qrcode_paths_training = qrcode_paths[:split_index][:20]
 
-qrcode_paths_validate = qrcode_paths[split_index:]
+qrcode_paths_validate = qrcode_paths[split_index:][:20]
 
 del qrcode_paths
 
