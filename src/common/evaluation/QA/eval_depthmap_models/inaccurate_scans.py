@@ -27,20 +27,18 @@ def inaccurate_scans(csv_file_list: List[str]):
     if len(csv_file_list) <= 0:
         logging.warning("No csv files found in output directory to combine")
         return
-    count = 0
     for file in csv_file_list:
-        print("filename",file)
+        file_path = file.rsplit('/',1)[0]
         result_list = pd.read_csv(file)
         grouped_result = result_list.groupby(['qrcode','scantype'],as_index=False).mean()
         accuracy_df = filter_scans(grouped_result,ACC)
         accuracy_df['name'] = accuracy_df.apply(merge_qrc,axis=1)
-        csv_file = f"./outputs/{count}.csv"
-        count+=1
+        csv_file = f'{file_path}/inaccurate_scan.csv'
+        accuracy_df.to_csv(csv_file,index=True)
         
     
 
 if __name__ == "__main__":    
-    csv_path = f"./outputs/**/*_inaccurate_scan.csv"
+    csv_path = f"./outputs/**/*_scans.csv"
     csv_files = glob(csv_path)
-    print("csv_file",csv_files)
     inaccurate_scans(csv_files)
