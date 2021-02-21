@@ -42,5 +42,5 @@ def inaccurate_scans(csv_file_list: List[str]):
 if __name__ == "__main__":    
     csv_path = f"./outputs/**/*_inaccurate_scan.csv"
     csv_files = glob(csv_path)
-    print("csv_file",csv_file)
+    print("csv_file",csv_files)
     inaccurate_scans(csv_files)
