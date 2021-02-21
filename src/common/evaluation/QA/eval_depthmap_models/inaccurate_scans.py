@@ -29,6 +29,7 @@ def inaccurate_scans(csv_file_list: List[str]):
         return
     count = 0
     for file in csv_file_list:
+        print("filename",file)
         result_list = pd.read_csv(file)
         grouped_result = result_list.groupby(['qrcode','scantype'],as_index=False).mean()
         accuracy_df = filter_scans(grouped_result,ACC)
@@ -41,4 +42,5 @@ def inaccurate_scans(csv_file_list: List[str]):
 if __name__ == "__main__":    
     csv_path = f"./outputs/**/*_inaccurate_scan.csv"
     csv_files = glob(csv_path)
+    print("csv_file",csv_file)
     inaccurate_scans(csv_files)
