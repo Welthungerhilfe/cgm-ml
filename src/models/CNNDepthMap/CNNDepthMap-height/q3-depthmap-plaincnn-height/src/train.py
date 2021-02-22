@@ -4,6 +4,7 @@ import pickle
 import random
 import shutil
 import sys
+import yaml
 import logging
 import logging.config
 
@@ -19,7 +20,12 @@ from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
 
 
-logging.config.fileConfig(REPO_DIR / "logging.conf")
+#logging.config.fileConfig(REPO_DIR / "logging.conf")
+#try yaml
+with open(REPO_DIR / 'logging.yaml', 'r') as f:
+    log_config = yaml.safe_load(f.read())
+logging.config.dictConfig(log_config)
+
 logging.debug('debug JTEST JTEST')
 logging.info('info JJ')
 logging.warning('warning you')
