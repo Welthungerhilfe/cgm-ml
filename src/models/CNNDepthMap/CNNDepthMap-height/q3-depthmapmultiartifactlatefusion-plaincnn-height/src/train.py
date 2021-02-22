@@ -32,7 +32,7 @@ if run.id.startswith("OfflineRun"):
 
 from tmp_model_util.preprocessing import create_samples  # noqa: E402
 from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, create_head  # noqa: E402
-from model import get_base_model
+from model import get_base_model  # noqa: E402
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
