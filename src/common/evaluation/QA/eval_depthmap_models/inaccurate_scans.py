@@ -65,6 +65,6 @@ if __name__ == "__main__":
     
     Union_set = calculate_union(scan_sets[0],scan_sets[1])
     Intersection_set = calculate_intersection(scan_sets[0],scan_sets[1])
-    percentage  = (len(intersection_set)/len(total_set)) *100
+    percentage  = (len(Intersection_set)/len(total_set)) *100
     print("overlap_percentage:",percentage)
     
