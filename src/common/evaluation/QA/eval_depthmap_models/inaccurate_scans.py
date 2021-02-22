@@ -58,9 +58,8 @@ venn2(subsets = (len(drop_error),len(intersection_set), len(dropout_error)), set
 if __name__ == "__main__":    
     csv_path = f"./outputs/**/*_scans.csv"
     csv_files = glob(csv_path)
-     if len(csv_file_list) <= 0:
+    if len(csv_file_list) <= 0:
         logging.warning("No csv files found in output directory to combine")
-        return
     scan_sets = []
     for file in csv_file_list:
         frame_set = inaccurate_scans(file)
