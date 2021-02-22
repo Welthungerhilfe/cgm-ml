@@ -56,10 +56,10 @@ def inaccurate_scans(file: List[str]):
 if __name__ == "__main__":    
     csv_path = f"./outputs/**/*_scans.csv"
     csv_files = glob(csv_path)
-    if len(csv_file_list) <= 0:
+    if len(csv_files) <= 0:
         logging.warning("No csv files found in output directory to combine")
     scan_sets = []
-    for file in csv_file_list:
+    for file in csv_files:
         frame_set = inaccurate_scans(file)
         scan_sets.append(frame_set)
     
