@@ -18,7 +18,7 @@ def filter_scans(dataframe: pd.DataFrame,accuracy: int):
     error = dataframe[(dataframe['error'] >= accuracy) | (dataframe['error'] <= -accuracy)]
     return error
 
-def frame_to_set(dataframe: pd.DataFrame)-> set[str]:
+def frame_to_set(dataframe: pd.DataFrame):
     return set(dataframe['name'].to_list())
 
 def calculate_union(set1:set,set2:set):
@@ -39,8 +39,6 @@ def inaccurate_scans(file: List[str]):
         csv_file_list: list containing absolute path of csv file
         output_path: target folder path where to save result csv file
     """
-   
-    
     file_path = file.rsplit('/',1)[0]
     result_list = pd.read_csv(file)
     grouped_result = result_list.groupby(['qrcode','scantype'],as_index=False).mean()
