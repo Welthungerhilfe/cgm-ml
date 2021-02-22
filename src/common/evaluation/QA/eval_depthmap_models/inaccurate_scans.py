@@ -51,7 +51,7 @@ def inaccurate_scans(file: List[str]):
     r
         
     
-venn2(subsets = (len(drop_error),len(intersection_set), len(dropout_error)), set_labels = ('dropout', 'no_dropout'))
+#venn2(subsets = (len(drop_error),len(intersection_set), len(dropout_error)), set_labels = ('dropout', 'no_dropout'))
 
 if __name__ == "__main__":    
     csv_path = f"./outputs/**/*_scans.csv"
