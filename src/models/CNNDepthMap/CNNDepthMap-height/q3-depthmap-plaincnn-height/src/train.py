@@ -4,7 +4,6 @@ import pickle
 import random
 import shutil
 import sys
-import yaml
 import logging
 import logging.config
 
@@ -19,10 +18,7 @@ from wandb.keras import WandbCallback
 from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
 
-
-with open(REPO_DIR / 'logging.yaml', 'r') as f:
-    log_config = yaml.safe_load(f.read())
-logging.config.dictConfig(log_config)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 # Get the current run.
 run = Run.get_context()
