@@ -42,7 +42,7 @@ def create_multiartifact_paths(qrcode_path: str, n_artifacts: int, CONFIG) -> Li
     list_of_pickle_file_paths = sorted(glob.glob(path_with_wildcard))
 
     # Split if there are multiple scans on different days
-    scans = [list(v) for _unixepoch, v in groupby(list_of_pickle_file_paths, _get_epoch)]
+    scans = [list(v) for _unixepoch, v in groupby(list_of_pickle_file_paths, _get_epoch) if _unixepoch]
 
     # Filter to keep scans with enough artifacts
     scans = list(filter(lambda x: len(x) > n_artifacts, scans))
@@ -94,7 +94,10 @@ def sample_systematic_from_artifacts(artifacts: list, n_artifacts: int) -> list:
 
 def _get_epoch(fname: str) -> str:
     match_result = REGEX_PICKLE.search(fname)
-    return match_result.group("unixepoch")
+    if match_result:
+        return match_result.group("unixepoch")
+    else:
+        print(f"{fname} doesn't match REGEX_PICKLE")
 
 
 def preprocess_depthmap(depthmap: np.array) -> np.array:
