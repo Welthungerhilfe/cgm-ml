@@ -44,11 +44,12 @@ def inaccurate_scans(file: List[str]):
     grouped_result = result_list.groupby(['qrcode','scantype'],as_index=False).mean()
     accuracy_df = filter_scans(grouped_result,ACC)
     accuracy_df['name'] = accuracy_df.apply(merge_qrc,axis=1)
+    print("Length of the accuracy_df:",len(accuracy_df))
     frame_set = frame_to_set(accuracy_df)
     return frame_set
 #         csv_file = f'{file_path}/inaccurate_scan.csv'
 #         accuracy_df.to_csv(csv_file,index=True)
-    r
+   
         
     
 #venn2(subsets = (len(drop_error),len(intersection_set), len(dropout_error)), set_labels = ('dropout', 'no_dropout'))
