@@ -4,7 +4,8 @@ import logging
 from typing import List
 
 from glob2 import glob
-from matplotlib_venn import venn2    
+from matplotlib_venn import venn2   
+from matplotlib import pyplot as plt
 
 OUTPUT_FILE_NAME = 'evaluated_models_result.csv'
 
