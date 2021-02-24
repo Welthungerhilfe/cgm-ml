@@ -52,7 +52,7 @@ def inaccurate_scans(file: List[str]):
    
         
     
-#venn2(subsets = (len(drop_error),len(intersection_set), len(dropout_error)), set_labels = ('dropout', 'no_dropout'))
+
 
 if __name__ == "__main__":    
     csv_path = f"./outputs/**/*_scans.csv"
@@ -69,3 +69,5 @@ if __name__ == "__main__":
     percentage  = (len(Intersection_set)/len(Union_set)) *100
     print("overlap_percentage:",percentage)
     
+venn2(subsets = (len(scan_sets[0]),len(Intersection_set), len(scan_sets[1])), set_labels = ('dropout', 'no_dropout'))
+plt.savefig('venn.png')
