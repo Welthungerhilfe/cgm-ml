@@ -20,17 +20,9 @@ from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
 
 
-#logging.config.fileConfig(REPO_DIR / "logging.conf")
-#try yaml
 with open(REPO_DIR / 'logging.yaml', 'r') as f:
     log_config = yaml.safe_load(f.read())
 logging.config.dictConfig(log_config)
-
-logging.debug('debug JTEST JTEST')
-logging.info('info JJ')
-logging.warning('warning you')
-logging.error('error oops')
-logging.critical('critical ouch')
 
 # Get the current run.
 run = Run.get_context()
@@ -93,10 +85,10 @@ else:
 # Get the QR-code paths.
 dataset_path = os.path.join(dataset_path, "scans")
 logging.info('Dataset path: %s', dataset_path)
-#print(glob.glob(os.path.join(dataset_path, "*"))) # Debug
+#logging.info(glob.glob(os.path.join(dataset_path, "*"))) # Debug
 logging.info('Getting QR-code paths...')
 qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
-logging.info('qrcode_paths: %d', len(qrcode_paths))  # warum hier len?????????????
+logging.info('qrcode_paths: %d', len(qrcode_paths))
 assert len(qrcode_paths) != 0
 
 # Shuffle and split into train and validate.
