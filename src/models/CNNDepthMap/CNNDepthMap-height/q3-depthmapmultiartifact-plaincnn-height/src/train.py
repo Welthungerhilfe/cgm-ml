@@ -1,6 +1,8 @@
 import os
 import random
 from typing import List
+import logging
+import logging.config
 
 import glob2 as glob
 import tensorflow as tf
@@ -12,6 +14,8 @@ from config import CONFIG
 from constants import REPO_DIR
 from model import create_cnn
 from preprocessing_multi import create_multiartifact_paths, tf_load_pickle, tf_augment_sample
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 # Make experiment reproducible
