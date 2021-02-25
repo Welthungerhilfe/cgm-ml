@@ -54,14 +54,13 @@ if __name__ == "__main__":
         logging.warning("No csv files found in output directory to combine.")
     scan_sets = []
     for file in csv_files:
-        print('files:',file)
         frame_set = inaccurate_scans(file)
         scan_sets.append(frame_set)
-    
+        
     Union_set = calculate_union(scan_sets[0],scan_sets[1])
     Intersection_set = calculate_intersection(scan_sets[0],scan_sets[1])
     percentage  = (len(Intersection_set)/len(Union_set)) *100
     print("overlap_percentage:",percentage)
 
-venn2(subsets = (len(scan_sets[0]),len(Intersection_set), len(scan_sets[1])), set_labels = ('dropout', 'no_dropout'))
+venn2(subsets = (len(scan_sets[0]),len(Intersection_set), len(scan_sets[1])), set_labels = (csv_files[0], csv_files[1]))
 plt.savefig('venn.png')
