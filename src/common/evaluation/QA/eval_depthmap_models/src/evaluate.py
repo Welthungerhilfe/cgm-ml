@@ -298,8 +298,7 @@ if __name__ == "__main__":
 #     accuracy_df = utils.filter_scans(df_grouped,ACC)
     sample_csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}_scans.csv"   
     df_grouped.to_csv(sample_csv_file,index=True)
-#     accuracy_df['name'] = accuracy_df.apply(utils.merge_qrc,axis=1)  
-#     accuracy_df.to_csv(sample_csv_file,index=True)
+
     
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
         csv_file = f"{OUTPUT_CSV_PATH}/age_evaluation_{RUN_ID}.csv"
