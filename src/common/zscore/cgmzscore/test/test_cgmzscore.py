@@ -10,7 +10,7 @@ from cgmzscore import Calculator
 module_dir = str(os.path.split(os.path.abspath(__file__))[0])
 
 
-df = pd.read_csv(module_dir + '/test_data/test_data.csv')
+df = pd.read_csv(module_dir + '/testdata.csv')
 
 # 1 for male
 # 2 for female
