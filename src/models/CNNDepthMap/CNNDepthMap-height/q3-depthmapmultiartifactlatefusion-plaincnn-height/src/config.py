@@ -33,9 +33,9 @@ CONFIG = Bunch(dict(
     DATA_AUGMENTATION_MODE=DATA_AUGMENTATION_NO,
     SAMPLING_STRATEGY=SAMPLING_STRATEGY_SYSTEMATIC,
     USE_DROPOUT=False,
+    USE_ONE_CYCLE=False,
 
-    # PRETRAINED_RUN="q3-depthmap-plaincnn-height-95k_1600451633_cb44f6db",  # Run17 (baseline: min(val_mae)=2.21cm)
-    PRETRAINED_RUN="q3-depthmap-plaincnn-height-95k_1597988908_42c4ef33",  # Run3 (baseline: min(val_mae)=1.96cm)
+    PRETRAINED_RUN="q3-depthmap-plaincnn-height-95k_1610709869_2e00a6ef",  # Run4 (baseline: min(val_mae)=1.78cm)
 
     SHOULD_FREEZE_BASE=True,
 ))

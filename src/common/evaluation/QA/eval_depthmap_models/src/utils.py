@@ -403,7 +403,7 @@ def draw_confusion_matrix(data, png_out_fpath, display_labels, title):
     T, FP, FN = calculate_percentage_confusion_matrix(data)
     fig = plt.figure(figsize=(15, 15))
     ax = fig.add_subplot(111)
-    disp = ConfusionMatrixDisplay(confusion_matrix=data, display_labels=WASTING_DIAGNOSIS)
+    disp = ConfusionMatrixDisplay(confusion_matrix=data, display_labels=display_labels)
     disp.plot(cmap='Blues', values_format='d', ax=ax)
     s = f"True: {round(T, 2)} False Positive: {round(FP, 2)} False Negative: {round(FN, 2)}"
     plt.text(0.5, 0.5, s, size=10, bbox=dict(boxstyle="square", facecolor='white'))

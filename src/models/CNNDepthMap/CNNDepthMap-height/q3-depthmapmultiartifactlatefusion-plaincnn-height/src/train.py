@@ -11,7 +11,6 @@ from tensorflow.keras import callbacks, layers, models
 
 from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
-from model import create_head, get_base_model
 from augmentation import tf_augment_sample
 from preprocessing_multiartifact import tf_load_pickle
 
@@ -32,7 +31,8 @@ if run.id.startswith("OfflineRun"):
         shutil.copy(p, temp_model_util_dir)
 
 from tmp_model_util.preprocessing import create_samples  # noqa: E402
-from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer  # noqa: E402
+from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, create_head  # noqa: E402
+from model import get_base_model  # noqa: E402
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
@@ -144,7 +144,7 @@ assert base_model.output_shape == (None, 128)
 
 # Create the head
 head_input_shape = (128 * CONFIG.N_ARTIFACTS,)
-head_model = create_head(head_input_shape, dropout=CONFIG.USE_CROPOUT)
+head_model = create_head(head_input_shape, dropout=CONFIG.USE_DROPOUT)
 
 # Implement artifact flow through the same model
 model_input = layers.Input(

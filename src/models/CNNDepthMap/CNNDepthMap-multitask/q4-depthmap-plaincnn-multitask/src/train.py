@@ -3,6 +3,7 @@ import os
 import pickle
 import random
 import shutil
+import sys
 
 import glob2 as glob
 import tensorflow as tf
@@ -63,7 +64,7 @@ else:
 
     # Mount or download
     if CONFIG.DATASET_MODE == DATASET_MODE_MOUNT:
-        dataset_path = run.input_datasets["dataset"]
+        dataset_path = sys.argv[1]  # This expects the dataset_path to be the first argument to this script
     elif CONFIG.DATASET_MODE == DATASET_MODE_DOWNLOAD:
         dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
         download_dataset(workspace, dataset_name, dataset_path)

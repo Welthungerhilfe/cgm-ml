@@ -20,9 +20,9 @@ jobs:
       id: cache-venv
       with:
         path: ./.venv/
-        key: ${{ runner.os }}-venv-${{ hashFiles('requirements.txt') }}
+        key: ${{ runner.os }}-cache-v2-${{ hashFiles('requirements.txt') }}
         restore-keys: |
-          ${{ runner.os }}-venv-
+          ${{ runner.os }}-cache-v2-
     - run: python -m venv ./.venv && . ./.venv/bin/activate &&
            python -m pip install --upgrade pip && pip install setuptools==50.3.2 wheel==0.36.2 && pip install -r requirements.txt
       if: steps.cache-venv.outputs.cache-hit != 'true'
