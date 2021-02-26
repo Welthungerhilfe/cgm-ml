@@ -6,13 +6,13 @@ from azureml.core.run import Run
 from tensorflow.keras import models
 
 from config import CONFIG
-from constants import MODEL_H5_FILENAME
+from constants import MODEL_CKPT_FILENAME
 from tmp_model_util.utils import create_base_cnn
 
 
 def get_base_model(workspace: Workspace, data_dir: Path) -> models.Sequential:
     if CONFIG.PRETRAINED_RUN:
-        model_fpath = data_dir / "pretrained/" / CONFIG.PRETRAINED_RUN / MODEL_H5_FILENAME
+        model_fpath = data_dir / "pretrained" / CONFIG.PRETRAINED_RUN
         if not os.path.exists(model_fpath):
             download_pretrained_model(workspace, model_fpath)
         print(f"Loading pretrained model from {model_fpath}")
@@ -23,16 +23,42 @@ def get_base_model(workspace: Workspace, data_dir: Path) -> models.Sequential:
     return base_model
 
 
+def download_model(ws, experiment_name, run_id, input_location, output_location):
+    """Download the pretrained model
+
+    Args:
+         ws: workspace to access the experiment
+         experiment_name: Name of the experiment in which model is saved
+         run_id: Run Id of the experiment in which model is pre-trained
+         input_location: Input location in a RUN Id
+         output_location: Location for saving the model
+    """
+    experiment = Experiment(workspace=ws, name=experiment_name)
+    # Download the model on which evaluation need to be done
+    run = Run(experiment, run_id=run_id)
+    if input_location.endswith(".h5"):
+        run.download_file(input_location, output_location)
+    elif input_location.endswith(".ckpt"):
+        run.download_files(prefix=input_location, output_directory=output_location)
+    else:
+        raise NameError(f"{input_location}'s path extension not supported")
+    print("Successfully downloaded model")
+
+
 def download_pretrained_model(workspace: Workspace, output_model_fpath: str):
     print(f"Downloading pretrained model from {CONFIG.PRETRAINED_RUN}")
-    previous_experiment = Experiment(workspace=workspace, name=CONFIG.PRETRAINED_EXPERIMENT)
-    previous_run = Run(previous_experiment, CONFIG.PRETRAINED_RUN)
-    previous_run.download_file(f"outputs/{MODEL_H5_FILENAME}", output_model_fpath)
+    download_model(ws=workspace,
+                   experiment_name=CONFIG.PRETRAINED_EXPERIMENT,
+                   run_id=CONFIG.PRETRAINED_RUN,
+                   input_location=f"outputs/{MODEL_CKPT_FILENAME}",
+                   output_location=output_model_fpath)
 
 
 def load_base_cgm_model(model_fpath: str, should_freeze: bool = False) -> models.Sequential:
     # load model
-    loaded_model = models.load_model(model_fpath)
+    loaded_model = models.load_model(
+        str(Path(model_fpath) / "outputs" / MODEL_CKPT_FILENAME)
+    )
 
     # cut off last layer (https://stackoverflow.com/a/59304656/5497962)
     beheaded_model = models.Sequential(name="base_model_beheaded")
