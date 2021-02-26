@@ -1,11 +1,9 @@
 import argparse
 import pandas as pd
 import logging
+
 from typing import List
-
 from glob2 import glob
-
-
 
 OUTPUT_FILE_NAME = 'evaluated_models_result.csv'
 
@@ -19,7 +17,7 @@ def combine_model_results(csv_file_list: List[str], output_path: str):
     """
     if len(csv_file_list) <= 0:
         logging.warning("No csv files found in output directory to combine")
-        return        
+        return
     result_list = [pd.read_csv(results, index_col=0) for results in csv_file_list]
     final_result = pd.concat(result_list, axis=0)
     final_result = final_result.rename_axis("Model")
@@ -46,7 +44,8 @@ if __name__ == "__main__":
         Returns: args_string
         """
         if args_string not in paths.keys():
-            raise argparse.ArgumentTypeError(f"{args_string} is an invalid argument value. Valid options ared: {paths.keys()}")
+            raise argparse.ArgumentTypeError(
+                f"{args_string} is an invalid argument value. Valid options ared: {paths.keys()}")
         return args_string
 
     parser = argparse.ArgumentParser()
