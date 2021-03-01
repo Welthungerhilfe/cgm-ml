@@ -2,11 +2,10 @@ import pandas as pd
 import logging
 
 from glob2 import glob
-from matplotlib_venn import venn2
 from matplotlib import pyplot as plt
 from pathlib import Path
 
-ACC = 2
+ACCURACY_THRESHOLD = 2
 CSV_PATH = "./outputs/**/*_scans.csv"
 FIGURE_NAME = 'common_inaccurate_scans.png'
 
@@ -19,7 +18,7 @@ def merge_qrc(row):
     return scans
 
 
-def filter_scans(dataframe: pd.DataFrame, accuracy: int):
+def filter_scans(dataframe: pd.DataFrame, accuracy: int) -> pd.Dataframe:
     """
     Function that filter dataframe for the fiven accuracy number
     """
@@ -27,14 +26,14 @@ def filter_scans(dataframe: pd.DataFrame, accuracy: int):
     return error
 
 
-def frame_to_set(dataframe: pd.DataFrame):
+def frame_to_set(dataframe: pd.DataFrame) -> pd.Dataframe:
     """
     Function to convert dataframe column to list
     """
     return set(dataframe['name'].to_list())
 
 
-def calculate_union(set1: set, set2: set):
+def calculate_union(set1: set, set2: set) -> set:
     """
     Function to calculate union of two sets
     """
@@ -42,7 +41,7 @@ def calculate_union(set1: set, set2: set):
     return union_set
 
 
-def calculate_intersection(set1: set, set2: set):
+def calculate_intersection(set1: set, set2: set) ->set:
     """
     Function to calculate intersection of two sets
     """
@@ -65,10 +64,12 @@ def inaccurate_scans(file):  # noqa: E402
     Args:
         csv_file_list: list containing absolute path of csv file
         output_path: target folder path where to save result csv file
+    Returns: 
+        panda dataframe: dataframe with filter results based on accuracy
     """
     result_list = pd.read_csv(file)
     grouped_result = result_list.groupby(['qrcode', 'scantype'], as_index=False).mean()
-    accuracy_df = filter_scans(grouped_result, ACC)
+    accuracy_df = filter_scans(grouped_result, ACCURACY_THRESHOLD)
     accuracy_df['name'] = accuracy_df.apply(merge_qrc, axis=1)
     frame_set = frame_to_set(accuracy_df)
     return frame_set
@@ -84,13 +85,12 @@ if __name__ == "__main__":
         frame_set = inaccurate_scans(file)
         scan_sets.append(frame_set)
 
-    Union_set = calculate_union(scan_sets[0], scan_sets[1])
-    Intersection_set = calculate_intersection(scan_sets[0], scan_sets[1])
-    percentage = (len(Intersection_set) / len(Union_set)) * 100
-
+    union_set = calculate_union(scan_sets[0], scan_sets[1])
+    intersection_set = calculate_intersection(scan_sets[0], scan_sets[1])
+    percentage = (len(intersection_set) / len(union_set)) * 100
+    print("Percentage:",percentage)
+    print("Union_set:",len(union_set))
+    print("intersection_set:",len(intersection_set))
     first_model_name = extract_model_name(csv_files[0])
     second_model_name = extract_model_name(csv_files[1])
-
-    venn2(subsets=(len(scan_sets[0]), len(Intersection_set), len(scan_sets[1])),
-          set_labels=(first_model_name, second_model_name))
-    plt.savefig(FIGURE_NAME)
+    

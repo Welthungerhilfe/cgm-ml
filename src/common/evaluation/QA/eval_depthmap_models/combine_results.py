@@ -2,13 +2,12 @@ import argparse
 import pandas as pd
 import logging
 
-from typing import List
+
 from glob2 import glob
 
 OUTPUT_FILE_NAME = 'evaluated_models_result.csv'
 
-
-def combine_model_results(csv_file_list: List[str], output_path: str):
+def combine_model_results(csv_file_list, output_path: str):
     """Function to combine the models resultant csv files into a single file
 
     Args:
