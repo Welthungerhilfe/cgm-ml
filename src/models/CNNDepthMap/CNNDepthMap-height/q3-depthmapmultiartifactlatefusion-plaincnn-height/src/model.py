@@ -13,6 +13,7 @@ from tmp_model_util.utils import create_base_cnn
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
+
 def get_base_model(workspace: Workspace, data_dir: Path) -> models.Sequential:
     if CONFIG.PRETRAINED_RUN:
         model_fpath = data_dir / "pretrained" / CONFIG.PRETRAINED_RUN

@@ -10,6 +10,7 @@ from config import CONFIG
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
+
 @tf.function(input_signature=[tf.TensorSpec(None, tf.string)])   # List of length n_artifacts
 def tf_load_pickle(paths):
     """Load and process depthmaps"""
@@ -41,7 +42,6 @@ def create_multiartifact_sample(artifacts: List[str]) -> Tuple[tf.Tensor, tf.Ten
     targets = targets_list[0]
     if not np.all(targets_list == targets):
         logging.info('Warning: Not all targets are the same!! \n' + 'target_list: %s', targets_list + 'artifacts: %s', artifacts)
-
 
     return depthmaps, targets
 

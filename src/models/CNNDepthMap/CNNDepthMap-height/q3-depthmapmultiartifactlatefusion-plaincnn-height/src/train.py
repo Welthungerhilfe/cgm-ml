@@ -55,7 +55,7 @@ if run.id.startswith("OfflineRun"):
     workspace = Workspace.from_config()
     experiment = Experiment(workspace, "training-junkyard")
     run = experiment.start_logging(outputs=None, snapshot_directory=None)
-    
+
     logging.info('Accessing dataset...')
     dataset_name = CONFIG.DATASET_NAME_LOCAL
     dataset_path = get_dataset_path(DATA_DIR, dataset_name)
