@@ -95,7 +95,7 @@ if __name__ == "__main__":
     first_model_name = extract_model_name(csv_files[0])
     second_model_name = extract_model_name(csv_files[1])
     
-    model_name = [first_model_name,second_model_name,percentage,len(union_set),len(intersection_set)]
+    model_name = [[first_model_name,second_model_name,percentage,len(union_set),len(intersection_set)]]
     columns= ['model_1','model_2','percentage','union,intersection']
     frame = pd.DataFrame(model_name,columns=columns)
     frame.to_csv('combination.csv')
