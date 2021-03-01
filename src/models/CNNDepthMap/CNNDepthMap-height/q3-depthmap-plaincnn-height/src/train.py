@@ -3,7 +3,6 @@ import os
 import pickle
 import random
 import shutil
-import sys
 import logging
 import logging.config
 
@@ -14,9 +13,8 @@ from azureml.core.run import Run
 import wandb
 from wandb.keras import WandbCallback
 
-
-from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
-from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
+from config import CONFIG
+from constants import MODEL_CKPT_FILENAME, REPO_DIR
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
