@@ -24,7 +24,7 @@ We compare 2 different sampling strategies:
 
 ### Architecture
 
-We devide the neural network in a **base network** and a **network head**.
+We divide the neural network in a **base network** and a **network head**.
 
 The base network is shared by all the `N` artifacts.
 Each artifact goes through the base network.
