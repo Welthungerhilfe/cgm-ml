@@ -18,11 +18,12 @@ def merge_qrc(row):
     return scans
 
 
-def filter_scans(dataframe: pd.DataFrame, accuracy: int) -> pd.Dataframe:
+def filter_scans(dataframe: pd.DataFrame, accuracy: int) -> pd.DataFrame:
     """
     Function that filter dataframe for the fiven accuracy number
     """
-    error = dataframe[(dataframe['error'] >= accuracy) | (dataframe['error'] <= -accuracy)]
+#     error = dataframe[(dataframe['error'] >= accuracy) | (dataframe['error'] <= -accuracy)]
+    error = dataframe[dataframe['error'].abs() >= accuracy]
     return error
 
 
@@ -89,8 +90,15 @@ if __name__ == "__main__":
     intersection_set = calculate_intersection(scan_sets[0], scan_sets[1])
     percentage = (len(intersection_set) / len(union_set)) * 100
     print("Percentage:",percentage)
-    print("Union_set:",len(union_set))
+    print("union_set:",len(union_set))
     print("intersection_set:",len(intersection_set))
     first_model_name = extract_model_name(csv_files[0])
     second_model_name = extract_model_name(csv_files[1])
+    
+    model_name = [first_model_name,second_model_name,percentage,len(union_set),len(intersection_set)]
+    columns= ['model_1','model_2','percentage','union,intersection']
+    frame = pd.DataFrame(model_name,columns=columns)
+    frame.to_csv('combination.csv')
+    
+    
     
