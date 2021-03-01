@@ -14,9 +14,8 @@ from azureml.core.run import Run
 import wandb
 from wandb.keras import WandbCallback
 
-
 from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
-from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
+from constants import BLACKLIST_QRCODES, DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
@@ -86,6 +85,19 @@ logging.info('Getting QR-code paths...')
 qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
 logging.info('qrcode_paths: %d', len(qrcode_paths))
 assert len(qrcode_paths) != 0
+
+
+def filter_blacklisted_qrcodes(qrcode_paths):
+    qrcode_paths_filtered = []
+    for qrcode_path in qrcode_paths:
+        qrcode_str = qrcode_path.split('/')[-1]
+        assert '-' in qrcode_str and len(qrcode_str) == 21, qrcode_str
+        if qrcode_str in BLACKLIST_QRCODES:
+            continue
+        qrcode_paths_filtered.append(qrcode_path)
+    return qrcode_paths_filtered
+
+qrcode_paths = filter_blacklisted_qrcodes(qrcode_paths)
 
 # Shuffle and split into train and validate.
 random.shuffle(qrcode_paths)
