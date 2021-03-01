@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/Welthungerhilfe/cgm-ml/branch/main/graph/badge.svg?token=LG8Q3NTVE1)](https://codecov.io/gh/Welthungerhilfe/cgm-ml)
+
 # Child Growth Monitor Machine Learning
 
 [Child Growth Monitor (CGM)](https://childgrowthmonitor.org) is a
