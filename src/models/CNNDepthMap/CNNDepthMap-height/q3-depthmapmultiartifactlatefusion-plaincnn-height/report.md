@@ -39,7 +39,7 @@ The network head is composed of dense layers that should combine and weigh the f
 Using the single artifact approach, we trained a network (Experiment is called `q3-depthmap-plaincnn-height`).
 This network achieves a `min(val_mae)` of `1.96cm` to `2.21cm`.
 
-We use the all but the last layer(s) of this network to initialize our base network.
+We use all but the last layer(s) of this network to initialize our base network.
 
 We initialize the network head randomly.
 
