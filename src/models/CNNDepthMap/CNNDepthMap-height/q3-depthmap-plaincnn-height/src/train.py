@@ -49,7 +49,7 @@ logging.info('DATA_DIR: %s', DATA_DIR)
 
 # Offline run. Download the sample dataset and run locally. Still push results to Azure.
 if run.id.startswith("OfflineRun"):
-    logging.info('Running in offline mode...gitCheck')
+    logging.info('Running in offline mode...')
 
     # Access workspace.
     logging.info('Accessing workspace...')

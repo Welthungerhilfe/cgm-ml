@@ -2,6 +2,8 @@ import argparse
 import os
 import pickle
 import random
+import logging
+import logging.config
 
 import cv2
 import glob2 as glob
@@ -15,6 +17,8 @@ from tensorflow.keras import callbacks
 from model import create_res_net
 from preprocessing import preprocess_depthmap, preprocess_targets
 from utils import GradCAM, make_grid
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 # Parse command line arguments.
 parser = argparse.ArgumentParser(description="Training script.")
@@ -41,34 +45,34 @@ args = parser.parse_args()
 
 # Get the split seed.
 split_seed = args.split_seed[0]
-print("split_seed", split_seed)
+logging.info('split_seed: %d', split_seed)
 
 # Get the image target size.
 target_size = args.target_size[0].split("x")
 image_target_width = int(target_size[0])
 image_target_height = int(target_size[1])
-print("image_target_width", image_target_width)
-print("image_target_height", image_target_height)
+logging.info('image_target_width: %d', image_target_width)
+logging.info('image_target_height: %d', image_target_height)
 
 # Get batch size and epochs
 batch_size = args.batch_size[0]
 epochs = args.epochs[0]
 batch_size = int(batch_size)
 epochs = int(epochs)
-print("batch_size", batch_size)
-print("epochs", epochs)
+logging.info('batch_size: %d', batch_size)
+logging.info('epochs: %d', epochs)
 
 # Get normalization value.
 normalization_value = float(args.normalization_value[0])
-print("normalization_value", normalization_value)
+logging.info('normalization_value: %d', normalization_value)
 
 # Get res_blocks.
 res_blocks = [int(x) for x in args.res_blocks[0].split(",")]
-print("res_blocks", res_blocks)
+logging.info('res_blocks: %s', res_blocks)
 
 # Get dropouts.
 dropouts = [float(x) for x in args.dropouts[0].split(",")]
-print("dropouts", dropouts)
+logging.info('dropouts: %s', dropouts)
 
 # Should have the same length.
 assert len(res_blocks) == len(dropouts)
@@ -78,16 +82,16 @@ run = Run.get_context()
 
 # Offline run. Download the sample dataset and run locally. Still push results to Azure.
 if run.id.startswith("OfflineRun"):
-    print("Running in offline mode...")
+    logging.info('Running in offline mode...')
 
     # Access workspace.
-    print("Accessing workspace...")
+    logging.info('Accessing workspace...')
     workspace = Workspace.from_config()
     experiment = Experiment(workspace, "training-junkyard")
     run = experiment.start_logging(outputs=None, snapshot_directory=None)
 
     # Get dataset.
-    print("Accessing dataset...")
+    logging.info('Accessing dataset...')
     if not os.path.exists("dataset"):
         dataset_name = "anon-depthmap-mini"
         dataset = workspace.datasets[dataset_name]
@@ -96,18 +100,18 @@ if run.id.startswith("OfflineRun"):
 
 # Online run. Use dataset provided by training notebook.
 else:
-    print("Running in online mode...")
+    logging.info('Running in online mode...')
     experiment = run.experiment
     workspace = experiment.workspace
     dataset_path = run.input_datasets["dataset"]
 
 # Get the QR-code paths.
 dataset_path = os.path.join(dataset_path, "scans")
-print("Dataset path:", dataset_path)
-print(glob.glob(os.path.join(dataset_path, "*")))  # Debug
-print("Getting QR-code paths...")
+logging.info('Dataset path: %s', dataset_path)
+logging.info(glob.glob(os.path.join(dataset_path, "*")))  # Debug
+logging.info('Getting QR-code paths...')
 qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
-print("qrcode_paths: ", len(qrcode_paths))
+logging.info('qrcode_paths: %d', len(qrcode_paths))
 assert len(qrcode_paths) != 0
 
 # Shuffle and split into train and validate.
@@ -122,15 +126,12 @@ qrcode_paths_activation = [qrcode_paths_activation]
 del qrcode_paths
 
 # Show split.
-print("Paths for training:")
-print("\t" + "\n\t".join(qrcode_paths_training))
-print("Paths for validation:")
-print("\t" + "\n\t".join(qrcode_paths_validate))
-print("Paths for activation:")
-print("\t" + "\n\t".join(qrcode_paths_activation))
+logging.info('Paths for training: \n\t' + '\n\t'.join(qrcode_paths_training))
+logging.info('Paths for validation: \n\t' + '\n\t'.join(qrcode_paths_validate))
+logging.info('Paths for activation: \n\t' + '\n\t'.join(qrcode_paths_activation))
 
-print(len(qrcode_paths_training))
-print(len(qrcode_paths_validate))
+logging.info('Nbr of qrcode_paths for training: %d', len(qrcode_paths_training))
+logging.info('Nbr of qrcode_paths for validation: %d', len(qrcode_paths_validate))
 
 assert len(qrcode_paths_training) > 0 and len(qrcode_paths_validate) > 0
 
@@ -143,7 +144,7 @@ def get_depthmap_files(paths):
 
 
 # Get the pointclouds.
-print("Getting depthmap paths...")
+logging.info('Getting depthmap paths...')
 paths_training = get_depthmap_files(qrcode_paths_training)
 paths_validate = get_depthmap_files(qrcode_paths_validate)
 paths_activate = get_depthmap_files(qrcode_paths_activation)
@@ -152,9 +153,9 @@ del qrcode_paths_training
 del qrcode_paths_validate
 del qrcode_paths_activation
 
-print("Using {} files for training.".format(len(paths_training)))
-print("Using {} files for validation.".format(len(paths_validate)))
-print("Using {} files for validation.".format(len(paths_activate)))
+logging.info('Using %d files for training.', len(paths_training))
+logging.info('Using %d files for validation.', len(paths_validate))
+logging.info('Using %d files for activation.', len(paths_activate))
 
 
 # Function for loading and processing depthmaps.
