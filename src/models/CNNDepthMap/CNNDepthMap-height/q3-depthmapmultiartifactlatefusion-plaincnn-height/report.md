@@ -24,7 +24,7 @@ We compare 2 different sampling strategies:
 
 ### Architecture
 
-We divide the neural network in a **base network** and a **network head**.
+We divide the neural network into a **base network** and a **network head**.
 
 The base network is shared by all the `N` artifacts.
 Each artifact goes through the base network.
@@ -32,7 +32,7 @@ This can also be viewed as a feature extraction,
 s.t. for each artifact features are extracted.
 To combine the features of multiple artifacts, we concatenate all features.
 
-The network head is composed of dense layers that should combine and weight the features.
+The network head is composed of dense layers that should combine and weigh the features.
 
 ### Pretraining
 
