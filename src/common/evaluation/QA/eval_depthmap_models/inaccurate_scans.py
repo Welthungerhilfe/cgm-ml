@@ -26,7 +26,7 @@ def filter_scans(dataframe: pd.DataFrame, accuracy: int) -> pd.Dataframe:
     return error
 
 
-def frame_to_set(dataframe: pd.DataFrame) -> pd.Dataframe:
+def frame_to_set(dataframe: pd.DataFrame) -> pd.DataFrame:
     """
     Function to convert dataframe column to list
     """
