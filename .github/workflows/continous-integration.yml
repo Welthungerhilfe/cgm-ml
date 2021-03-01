@@ -32,3 +32,9 @@ jobs:
     - name: pytest
       run: |
         . ./.venv/bin/activate && pytest --cov=src
+    - name: Generate coverage report
+      run: |
+        pip install pytest
+        pip install pytest-cov
+        pytest --cov=./ --cov-report=xml
+
