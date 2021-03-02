@@ -102,7 +102,6 @@ def get_depthmap_files(paths: List[str]) -> List[str]:
     return pickle_paths
 
 
-
 def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CONFIG: Bunch, FILTER_CONFIG: Bunch):
     """Prepare the list of all artifact with its corresponding scantype, qrcode, target and prediction"""
     qrcode_list, scan_type_list, artifact_list, prediction_list, target_list = [], [], [], [], []
@@ -180,6 +179,7 @@ def calculate_and_save_results(df_grouped: pd.DataFrame, complete_name: str, csv
     # Save the model results in csv file
     Path(csv_out_fpath).parent.mkdir(parents=True, exist_ok=True)
     result.to_csv(csv_out_fpath, index=True)
+
 
 def calculate_performance_sex(code: str, df_mae: pd.DataFrame, result_config: Bunch) -> pd.DataFrame:
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]

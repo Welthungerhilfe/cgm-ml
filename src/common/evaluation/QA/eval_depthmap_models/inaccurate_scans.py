@@ -7,6 +7,7 @@ from pathlib import Path
 ACCURACY_THRESHOLD = 2
 CSV_PATH = "./outputs/**/*_scans.csv"
 FIGURE_NAME = 'common_inaccurate_scans.png'
+REPORT_CSV = 'inaccurate_scan_report.csv'
 
 
 def merge_qrc(row):
@@ -21,7 +22,6 @@ def filter_scans(dataframe: pd.DataFrame, accuracy: int) -> pd.DataFrame:
     """
     Function that filter dataframe for the fiven accuracy number
     """
-#     error = dataframe[(dataframe['error'] >= accuracy) | (dataframe['error'] <= -accuracy)]
     error = dataframe[dataframe['error'].abs() >= accuracy]
     return error
 
@@ -51,21 +51,16 @@ def calculate_intersection(set1: set, set2: set) -> set:
 
 def extract_model_name(path_name) -> str:
     """
-    Function to extract the model name from the path. 
+    Function to extract the model name from the path.
     """
     assert path_name.endswith('.csv')
     model_name = Path(path_name).resolve().stem
     return model_name
 
 
-def inaccurate_scans(file) -> pd.DataFrame:  # noqa: E402
-    """                                
+def inaccurate_scans(file) -> pd.DataFrame:
+    """                
     Function to combine the models resultant csv files into a single file
-    Args:
-        csv_file_list: list containing absolute path of csv file
-        output_path: target folder path where to save result csv file
-    Returns: 
-        panda dataframe: dataframe with filter results based on accuracy
     """
     result_list = pd.read_csv(file)
     grouped_result = result_list.groupby(['qrcode', 'scantype'], as_index=False).mean()
@@ -76,7 +71,6 @@ def inaccurate_scans(file) -> pd.DataFrame:  # noqa: E402
 
 
 if __name__ == "__main__":
-
     csv_files = glob(CSV_PATH)
     if len(csv_files) != 2:
         logging.warning("path contains 0 or more than 2 csv files")
@@ -92,4 +86,4 @@ if __name__ == "__main__":
         csv_files[1]), percentage, len(union_set), len(intersection_set)]]
     columns = ['model_1', 'model_2', 'overlap_percentage', 'Total_scanstype', 'intersection']
     frame = pd.DataFrame(model_name, columns=columns)
-    frame.to_csv('inaccurate_scan_report.csv')
+    frame.to_csv(REPORT_CSV)
