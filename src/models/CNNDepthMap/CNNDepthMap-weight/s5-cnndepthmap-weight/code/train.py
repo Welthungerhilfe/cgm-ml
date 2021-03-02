@@ -46,7 +46,7 @@ else:
 
 # Get the QR-code paths.
 logging.info('Dataset path: %s', dataset_path)
-logging.info(glob.glob(os.path.join(dataset_path, "*"))) # Debug
+logging.info(glob.glob(os.path.join(dataset_path, "*")))  # Debug
 logging.info('Getting QR-code paths...')
 qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
 
