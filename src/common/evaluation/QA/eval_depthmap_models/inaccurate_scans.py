@@ -89,17 +89,10 @@ if __name__ == "__main__":
     union_set = calculate_union(scan_sets[0], scan_sets[1])
     intersection_set = calculate_intersection(scan_sets[0], scan_sets[1])
     percentage = (len(intersection_set) / len(union_set)) * 100
-    print("Percentage:",percentage)
-    print("union_set:",len(union_set))
-    print("intersection_set:",len(intersection_set))
-    first_model_name = extract_model_name(csv_files[0])
-    second_model_name = extract_model_name(csv_files[1])
-    
-    model_name = [[first_model_name,second_model_name,percentage,len(union_set),len(intersection_set)]]
-    print(model_name)
-    columns= ['model_1','model_2','percentage','union','intersection']
+    model_name = [[extract_model_name(csv_files[0]),extract_model_name(csv_files[1]),percentage,len(union_set),len(intersection_set)]]
+    columns= ['model_1','model_2','overlap_percentage','Total_scanstype','intersection']
     frame = pd.DataFrame(model_name,columns=columns)
-    frame.to_csv('combination.csv')
+    frame.to_csv('inaccurate_scan_report.csv')
     
     
     
