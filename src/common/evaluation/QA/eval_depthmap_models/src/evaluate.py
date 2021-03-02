@@ -83,7 +83,6 @@ def prepare_sample_dataset(df_sample, dataset_path):
 
 def predict_uncertainty(X: np.array, model: tf.keras.Model) -> float:
     """Predict standard deviation of multiple predictions with different dropouts
-
     Args:
         X: Sample image with shape (1, h, w, 1)
         model: keras model
@@ -135,7 +134,7 @@ def get_prediction_uncertainty(model_path: str, dataset_evaluation: tf.data.Data
 
 
 def get_prediction(model_path: str, dataset_evaluation: tf.data.Dataset) -> np.array:
-    """Perform the prediction on the dataset with the given model
+    """Perform the prediction on the dataset with the given model.
 
     Args:
         model_path: Path of the trained model
