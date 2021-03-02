@@ -2,7 +2,6 @@ import pandas as pd
 import logging
 
 from glob2 import glob
-from matplotlib import pyplot as plt
 from pathlib import Path
 
 ACCURACY_THRESHOLD = 2
@@ -42,7 +41,7 @@ def calculate_union(set1: set, set2: set) -> set:
     return union_set
 
 
-def calculate_intersection(set1: set, set2: set) ->set:
+def calculate_intersection(set1: set, set2: set) -> set:
     """
     Function to calculate intersection of two sets
     """
@@ -50,7 +49,7 @@ def calculate_intersection(set1: set, set2: set) ->set:
     return intersection_set
 
 
-def extract_model_name(path_name):
+def extract_model_name(path_name) -> str:
     """
     Function to extract the model name from the path. 
     """
@@ -59,7 +58,7 @@ def extract_model_name(path_name):
     return model_name
 
 
-def inaccurate_scans(file):  # noqa: E402
+def inaccurate_scans(file) -> pd.DataFrame:  # noqa: E402
     """                                
     Function to combine the models resultant csv files into a single file
     Args:
@@ -89,10 +88,8 @@ if __name__ == "__main__":
     union_set = calculate_union(scan_sets[0], scan_sets[1])
     intersection_set = calculate_intersection(scan_sets[0], scan_sets[1])
     percentage = (len(intersection_set) / len(union_set)) * 100
-    model_name = [[extract_model_name(csv_files[0]),extract_model_name(csv_files[1]),percentage,len(union_set),len(intersection_set)]]
-    columns= ['model_1','model_2','overlap_percentage','Total_scanstype','intersection']
-    frame = pd.DataFrame(model_name,columns=columns)
+    model_name = [[extract_model_name(csv_files[0]), extract_model_name(
+        csv_files[1]), percentage, len(union_set), len(intersection_set)]]
+    columns = ['model_1', 'model_2', 'overlap_percentage', 'Total_scanstype', 'intersection']
+    frame = pd.DataFrame(model_name, columns=columns)
     frame.to_csv('inaccurate_scan_report.csv')
-    
-    
-    
