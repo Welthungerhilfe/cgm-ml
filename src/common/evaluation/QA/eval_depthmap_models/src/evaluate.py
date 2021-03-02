@@ -238,7 +238,8 @@ if __name__ == "__main__":
     # filter goodbad==delete
     if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
         goodbad_index = DATA_CONFIG.TARGET_INDEXES.index(GOODBAD_IDX)
-        dataset_norm = dataset_norm.filter(lambda _path, _depthmap, targets: targets[goodbad_index] != GOODBAD_DICT['delete'])
+        dataset_norm = dataset_norm.filter(
+            lambda _path, _depthmap, targets: targets[goodbad_index] != GOODBAD_DICT['delete'])
 
     dataset_norm = dataset_norm.cache()
     dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
@@ -261,7 +262,6 @@ if __name__ == "__main__":
 
     qrcode_list, scantype_list, artifact_list, prediction_list, target_list = utils.get_column_list(
         new_paths_evaluation, prediction_list_one, DATA_CONFIG, FILTER_CONFIG)
-    
 
     df = pd.DataFrame({
         'qrcode': qrcode_list,
@@ -286,19 +286,18 @@ if __name__ == "__main__":
 
     df_grouped = df.groupby(['qrcode', 'scantype']).mean()
     print("Mean Avg Error: ", df_grouped)
-    
+
     df_grouped['error'] = df_grouped.apply(utils.avgerror, axis=1)
-  
+
     csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
     print(f"Calculate and save the results to {csv_file}")
     utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                      DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
-    
-#     accuracy_df = utils.filter_scans(df_grouped,ACC)
-    sample_csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}_scans.csv"   
-    df_grouped.to_csv(sample_csv_file,index=True)
 
-    
+#     accuracy_df = utils.filter_scans(df_grouped,ACC)
+    sample_csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}_scans.csv"
+    df_grouped.to_csv(sample_csv_file, index=True)
+
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
         csv_file = f"{OUTPUT_CSV_PATH}/age_evaluation_{RUN_ID}.csv"
         print(f"Calculate and save age results to {csv_file}")
