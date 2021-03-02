@@ -59,7 +59,7 @@ def extract_model_name(path_name) -> str:
 
 
 def inaccurate_scans(file) -> pd.DataFrame:
-    """                
+    """
     Function to combine the models resultant csv files into a single file
     """
     result_list = pd.read_csv(file)
