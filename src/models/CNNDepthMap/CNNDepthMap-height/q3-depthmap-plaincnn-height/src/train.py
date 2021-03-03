@@ -68,7 +68,7 @@ else:
     dataset_name = CONFIG.DATASET_NAME
 
     # Mount or download
-    dataset_path = run.input_datasets['input_1']
+    dataset_path = run.input_datasets['cgm_dataset']
 
 # Get the QR-code paths.
 dataset_path = os.path.join(dataset_path, "scans")
