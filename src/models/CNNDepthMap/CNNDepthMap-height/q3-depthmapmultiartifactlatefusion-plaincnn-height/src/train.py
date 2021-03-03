@@ -9,8 +9,8 @@ from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 from tensorflow.keras import callbacks, layers, models
 
-from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
-from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
+from config import CONFIG
+from constants import MODEL_CKPT_FILENAME, REPO_DIR
 from augmentation import tf_augment_sample
 from preprocessing_multiartifact import tf_load_pickle
 
@@ -64,13 +64,7 @@ else:
     dataset_name = CONFIG.DATASET_NAME
 
     # Mount or download
-    if CONFIG.DATASET_MODE == DATASET_MODE_MOUNT:
-        dataset_path = run.input_datasets["dataset"]
-    elif CONFIG.DATASET_MODE == DATASET_MODE_DOWNLOAD:
-        dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
-        download_dataset(workspace, dataset_name, dataset_path)
-    else:
-        raise NameError(f"Unknown DATASET_MODE: {CONFIG.DATASET_MODE}")
+    dataset_path = run.input_datasets['cgm_dataset']
 
 # Get the QR-code paths.
 dataset_scans_path = os.path.join(dataset_path, "scans")
