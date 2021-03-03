@@ -295,7 +295,7 @@ if __name__ == "__main__":
                                      DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 
 #     accuracy_df = utils.filter_scans(df_grouped,ACC)
-    sample_csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}_scans.csv"
+    sample_csv_file = f"{OUTPUT_CSV_PATH}/scans_{RUN_ID}.csv"
     df_grouped.to_csv(sample_csv_file, index=True)
 
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():

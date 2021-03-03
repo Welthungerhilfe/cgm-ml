@@ -5,7 +5,7 @@ from glob2 import glob
 from pathlib import Path
 
 ACCURACY_THRESHOLD = 2
-CSV_PATH = "./outputs/**/*_scans.csv"
+CSV_PATH = "./outputs/**/inaccurate_scans_*.csv"
 FIGURE_NAME = 'common_inaccurate_scans.png'
 REPORT_CSV = 'inaccurate_scan_report.csv'
 
@@ -26,7 +26,7 @@ def filter_scans(dataframe: pd.DataFrame, accuracy: int) -> pd.DataFrame:
     return error
 
 
-def frame_to_set(dataframe: pd.DataFrame) -> pd.DataFrame:
+def frame_to_set(dataframe: pd.DataFrame) -> set:
     """
     Function to convert dataframe column to list
     """
@@ -58,11 +58,12 @@ def extract_model_name(path_name) -> str:
     return model_name
 
 
-def inaccurate_scans(file) -> pd.DataFrame:
+def inaccurate_scans(csv_filepath: str) -> set:
     """
     Function to combine the models resultant csv files into a single file
     """
-    result_list = pd.read_csv(file)
+    assert csv_filepath.endswith('.csv')
+    result_list = pd.read_csv(csv_filepath)
     grouped_result = result_list.groupby(['qrcode', 'scantype'], as_index=False).mean()
     accuracy_df = filter_scans(grouped_result, ACCURACY_THRESHOLD)
     accuracy_df['name'] = accuracy_df.apply(merge_qrc, axis=1)
@@ -74,10 +75,8 @@ if __name__ == "__main__":
     csv_files = glob(CSV_PATH)
     if len(csv_files) != 2:
         logging.warning("path contains 0 or more than 2 csv files")
-    scan_sets = []
-    for file in csv_files:
-        frame_set = inaccurate_scans(file)
-        scan_sets.append(frame_set)
+
+    scan_sets = [inaccurate_scans(filepath) for filepath in csv_files]
 
     union_set = calculate_union(scan_sets[0], scan_sets[1])
     intersection_set = calculate_intersection(scan_sets[0], scan_sets[1])
