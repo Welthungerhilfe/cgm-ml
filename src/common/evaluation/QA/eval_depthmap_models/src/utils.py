@@ -425,9 +425,9 @@ def parallelize_dataframe(df, calculate_confusion_matrix, n_cores=8):
 def calculate_percentage_confusion_matrix(data):
     T1, FP1, FP2, FN1, T2, FP3, FN2, FN3, T3 = data.ravel()
     Total = sum(data.ravel())
-    T = ((T1 + T2 + T3) / Total) * 100
-    FP = ((FP1 + FP2 + FP3) / Total) * 100
-    FN = ((FN1 + FN2 + FN3) / Total) * 100
+    T = round(((T1 + T2 + T3) / Total) * 100, 2)
+    FP = round(((FP1 + FP2 + FP3) / Total) * 100, 2)
+    FN = round(((FN1 + FN2 + FN3) / Total) * 100, 2)
     return T, FP, FN
 
 
