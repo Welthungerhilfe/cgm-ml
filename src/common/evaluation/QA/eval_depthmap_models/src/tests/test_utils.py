@@ -7,9 +7,9 @@ import pandas as pd
 
 sys.path.append(str(Path(__file__).parents[1]))
 
-from utils import COLUMN_NAME_GOODBAD  # noqa: E402
-from utils import (calculate_percentage_confusion_matrix,  # noqa: E402
-                   draw_uncertainty_goodbad_plot)
+from utils import (COLUMN_NAME_GOODBAD,
+                   calculate_percentage_confusion_matrix,
+                   draw_uncertainty_goodbad_plot, get_dataset_path)# noqa :E402;
 
 
 def test_draw_uncertainty_goodbad_plot():
@@ -29,3 +29,8 @@ def test_calculate_percentage_confusion_matrix():
     assert T == 40
     assert FP == 33.33
     assert FN == 26.67
+
+def test_get_dataset_path():
+    result=get_dataset_path(Path("/tmp/data/"),"test")
+    assert result == '/tmp/data/test'
+
