@@ -197,7 +197,7 @@ def create_point_net(input_shape, output_size, hidden_sizes=[512, 256], use_lamb
         Model: A model.
     """
 
-    print('Input Shape: ' + str(input_shape))
+    logging.info('Input Shape: %s', str(input_shape))
 
     num_points = input_shape[0]
 
