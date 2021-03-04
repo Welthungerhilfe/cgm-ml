@@ -1,5 +1,6 @@
 [![codecov](https://codecov.io/gh/Welthungerhilfe/cgm-ml/branch/main/graph/badge.svg?token=LG8Q3NTVE1)](https://codecov.io/gh/Welthungerhilfe/cgm-ml)
 [![Python package](https://github.com/Welthungerhilfe/cgm-ml/actions/workflows/continous-integration.yml/badge.svg?branch=main)](https://github.com/Welthungerhilfe/cgm-ml/actions/workflows/continous-integration.yml)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Welthungerhilfe/cgm-ml/HEAD)
 
 # Child Growth Monitor Machine Learning
 
