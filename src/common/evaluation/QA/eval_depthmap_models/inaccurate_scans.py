@@ -6,7 +6,6 @@ from pathlib import Path
 
 ACCURACY_THRESHOLD = 2
 CSV_PATH = "./outputs/**/inaccurate_scans_*.csv"
-FIGURE_NAME = 'common_inaccurate_scans.png'
 REPORT_CSV = 'inaccurate_scan_report.csv'
 
 
@@ -58,7 +57,7 @@ def extract_model_name(path_name) -> str:
     return model_name
 
 
-def inaccurate_scans(csv_filepath: str) -> set:
+def calculate_inaccurate_scans(csv_filepath: str) -> set:
     """
     Function to combine the models resultant csv files into a single file
     """
@@ -76,13 +75,12 @@ if __name__ == "__main__":
     if len(csv_files) != 2:
         logging.warning("path contains 0 or more than 2 csv files")
 
-    scan_sets = [inaccurate_scans(filepath) for filepath in csv_files]
-
+    scan_sets = [calculate_inaccurate_scans(filepath) for filepath in csv_files]
     union_set = calculate_union(scan_sets[0], scan_sets[1])
     intersection_set = calculate_intersection(scan_sets[0], scan_sets[1])
     percentage = (len(intersection_set) / len(union_set)) * 100
-    model_name = [[extract_model_name(csv_files[0]), extract_model_name(
+    inaccurate_scan_data = [[extract_model_name(csv_files[0]), extract_model_name(
         csv_files[1]), percentage, len(union_set), len(intersection_set)]]
-    columns = ['model_1', 'model_2', 'overlap_percentage', 'Total_scanstype', 'intersection']
-    frame = pd.DataFrame(model_name, columns=columns)
+    columns = ['model_1', 'model_2', 'overlap_percentage', 'Total_scanstype', 'common_scans']
+    frame = pd.DataFrame(inaccurate_scan_data, columns=columns)
     frame.to_csv(REPORT_CSV)
