@@ -78,7 +78,7 @@ CONFIG_DEV = Bunch(dict(
     LATENT_DIM=2,
 
     KL_LOSS_FACTOR=0.5,
-    EPOCHS=2,
+    EPOCHS=40,
     BATCH_SIZE=512,
     SHUFFLE_BUFFER_SIZE=2560,
     RENDER=True,

@@ -71,7 +71,7 @@ def make_grid(image_dir):
         axes[x_position, y_position].imshow(plt_image)
     #logging.info('%d / %d: %s', (current_file_number+1), images_count, images_filename)
 
-    current_file_number += 1
+        current_file_number += 1
 
     plt.subplots_adjust(left=0.0, right=1.0, bottom=0.0, top=1.0)
     save_location = '{}/grid'.format(image_dir)
