@@ -66,6 +66,9 @@ def calculate_inaccurate_scans(csv_filepath: str) -> set:
     grouped_result = result_list.groupby(['qrcode', 'scantype'], as_index=False).mean()
     accuracy_df = filter_scans(grouped_result, ACCURACY_THRESHOLD)
     accuracy_df['name'] = accuracy_df.apply(merge_qrc, axis=1)
+    csv_name = csv_filepath.split('/')[-1]
+    file_name = f"file_{csv_name}"
+    accuracy_df.to_csv(file_name,index=False)
     frame_set = frame_to_set(accuracy_df)
     return frame_set
 
