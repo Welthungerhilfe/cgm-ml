@@ -49,9 +49,10 @@ We freeze the base network in order to keep the well-trained parameters.
 
 This baseline achieved a `min(val_mae)` of `1.96cm`.
 
-This approach achieved a `min(val_mae)` of `0.83cm` (
-see [q3-depthmapmultiartifactlatefusion-plaincnn-height-95k - Run 26](https://ml.azure.com/experiments/id/da5aef2b-b171-44bd-8480-749dcfdd5258/runs/q3-depthmapmultiartifactlatefusion-plaincnn-height-95k_1601382575_b8b06f8d?wsid=/subscriptions/9b82ecea-6780-4b85-8acf-d27d79028f07/resourceGroups/cgm-ml-prod/providers/Microsoft.MachineLearningServices/workspaces/cgm-azureml-prod&tid=006dabd7-456d-465b-a87f-f7d557e319c8)
+This approach achieved a `min(val_mae)` of `0.53cm` (
+see [q3-depthmapmultiartifactlatefusion-plaincnn-height-95k - Run 6](https://ml.azure.com/experiments/id/f42711e3-7642-426d-ba53-a616a07e076b/runs/q3-depthmapmultiartifactlatefusion-plaincnn-height-95k_1614177517_ecd7b6e2?wsid=/subscriptions/9b5bbfae-d5d1-4aae-a2ca-75159c0c887d/resourceGroups/cgm-ml-prod-we-rg/providers/Microsoft.MachineLearningServices/workspaces/cgm-ml-prod-we-azml&tid=3a27c573-ec1a-4734-9cd3-3208af51794b)
 )
+- This was trained on all codes.
 
 ## Future work
 
