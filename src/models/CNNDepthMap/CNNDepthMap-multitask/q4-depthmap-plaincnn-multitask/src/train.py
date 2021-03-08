@@ -3,7 +3,6 @@ import os
 import pickle
 import random
 import shutil
-import sys
 import logging
 import logging.config
 
