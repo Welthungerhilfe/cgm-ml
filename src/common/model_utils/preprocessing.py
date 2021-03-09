@@ -1,5 +1,7 @@
 import os
 import re
+import sys
+from pathlib import Path
 from functools import partial
 from itertools import groupby, islice
 from typing import Iterator, List
@@ -7,7 +9,9 @@ from typing import Iterator, List
 import glob2 as glob
 import numpy as np
 
-from .model_utils_constants import SAMPLING_STRATEGY_SYSTEMATIC, SAMPLING_STRATEGY_WINDOW
+sys.path.append(str(Path(__file__).parent))
+
+from model_utils_constants import SAMPLING_STRATEGY_SYSTEMATIC, SAMPLING_STRATEGY_WINDOW  # noqa: E402
 
 REGEX_PICKLE = re.compile(
     r"pc_(?P<qrcode>[a-zA-Z0-9]+-[a-zA-Z0-9]+)_(?P<unixepoch>\d+)_(?P<code>\d{3})_(?P<idx>\d{3}).p$"
@@ -38,7 +42,7 @@ def create_multiartifact_paths(qrcode_path: str, n_artifacts: int, CONFIG) -> Li
     list_of_pickle_file_paths = sorted(glob.glob(path_with_wildcard))
 
     # Split if there are multiple scans on different days
-    scans = [list(v) for _unixepoch, v in groupby(list_of_pickle_file_paths, _get_epoch)]
+    scans = [list(v) for _unixepoch, v in groupby(list_of_pickle_file_paths, _get_epoch) if _unixepoch]
 
     # Filter to keep scans with enough artifacts
     scans = list(filter(lambda x: len(x) > n_artifacts, scans))
@@ -90,7 +94,10 @@ def sample_systematic_from_artifacts(artifacts: list, n_artifacts: int) -> list:
 
 def _get_epoch(fname: str) -> str:
     match_result = REGEX_PICKLE.search(fname)
-    return match_result.group("unixepoch")
+    if match_result:
+        return match_result.group("unixepoch")
+    else:
+        print(f"{fname} doesn't match REGEX_PICKLE")
 
 
 def preprocess_depthmap(depthmap: np.array) -> np.array:

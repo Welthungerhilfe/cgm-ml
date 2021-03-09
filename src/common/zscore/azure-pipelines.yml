@@ -35,5 +35,5 @@ steps:
 - script: |
     cd src/common/zscore
     pip install twine
-    python -m twine upload --skip-existing --verbose -p $(Pypi Token) -u __token__ --repository cgmzscore --repository-url https://upload.pypi.org/legacy/ dist/*.whl
+    python -m twine upload --skip-existing --verbose -p $(PYPITOKEN1) -u __token__ --repository cgmzscore --repository-url https://upload.pypi.org/legacy/ dist/*.whl
   displayName: 'Upload package'

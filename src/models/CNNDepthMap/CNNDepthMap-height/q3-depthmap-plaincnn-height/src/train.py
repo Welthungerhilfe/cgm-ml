@@ -3,7 +3,6 @@ import os
 import pickle
 import random
 import shutil
-import sys
 import logging
 import logging.config
 
@@ -14,9 +13,8 @@ from azureml.core.run import Run
 import wandb
 from wandb.keras import WandbCallback
 
-
-from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
-from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
+from config import CONFIG
+from constants import MODEL_CKPT_FILENAME, REPO_DIR
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
@@ -70,13 +68,7 @@ else:
     dataset_name = CONFIG.DATASET_NAME
 
     # Mount or download
-    if CONFIG.DATASET_MODE == DATASET_MODE_MOUNT:
-        dataset_path = sys.argv[1]  # This expects the dataset_path to be the first argument to this script
-    elif CONFIG.DATASET_MODE == DATASET_MODE_DOWNLOAD:
-        dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
-        download_dataset(workspace, dataset_name, dataset_path)
-    else:
-        raise NameError(f"Unknown DATASET_MODE: {CONFIG.DATASET_MODE}")
+    dataset_path = run.input_datasets['cgm_dataset']
 
 # Get the QR-code paths.
 dataset_path = os.path.join(dataset_path, "scans")
