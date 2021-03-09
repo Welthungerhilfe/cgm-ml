@@ -1,4 +1,8 @@
+import logging
+import logging.config
 import numpy as np
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 def quaternion_mult(q: list, r: list) -> list:
@@ -91,7 +95,7 @@ def export_obj(filename, triangulate):
                         #check if the triangle size is valid (to prevent generating triangle connecting child and background)
                         if abs(d11 - d10) + abs(d11 - d01) + abs(d10 - d01) < maxDiff:
                             file.write('f ' + str(int(indices[x + 1][y + 1])) + ' ' + str(int(indices[x + 1][y])) + ' ' + str(int(indices[x][y + 1])) + '\n')
-        print('Pointcloud exported into ' + filename)
+        logging.info('Pointcloud exported into %s', filename)
 
 
 def export_pcd(filename):
@@ -117,7 +121,7 @@ def export_pcd(filename):
                     if res:
                         file.write(str(-res[0]) + ' ' + str(res[1]) + ' '
                                    + str(res[2]) + ' ' + str(parse_confidence(x, y)) + '\n')
-        print('Pointcloud exported into ' + filename)
+        logging.info('Pointcloud exported into %s', filename)
 
 
 def _get_count():
@@ -139,13 +143,13 @@ def parse_calibration(filepath):
         calibration = []
         file.readline()[:-1]
         calibration.append(parse_numbers(file.readline()))
-        #print(str(calibration[0]) + '\n') #color camera intrinsics - fx, fy, cx, cy
+        #logging.info(str(calibration[0]) + '\n') #color camera intrinsics - fx, fy, cx, cy
         file.readline()[:-1]
         calibration.append(parse_numbers(file.readline()))
-        #print(str(calibration[1]) + '\n') #depth camera intrinsics - fx, fy, cx, cy
+        #logging.info(str(calibration[1]) + '\n') #depth camera intrinsics - fx, fy, cx, cy
         file.readline()[:-1]
         calibration.append(parse_numbers(file.readline()))
-        #print(str(calibration[2]) + '\n') #depth camera position relativelly to color camera in meters
+        #logging.info(str(calibration[2]) + '\n') #depth camera position relativelly to color camera in meters
         calibration[2][1] *= 8.0  # workaround for wrong calibration data
     return calibration
 

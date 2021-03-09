@@ -5,11 +5,16 @@ import random
 import re
 from pathlib import Path
 
+import logging
+import logging.config
+
 import glob2 as glob
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
 from common.model_utils.preprocessing import preprocess_depthmap, preprocess_targets
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 REPO_DIR = Path(os.getcwd()).parent
 
@@ -42,7 +47,7 @@ def show_pickle(pickle_file_path):
     depthmap, _targets = py_load_pickle(pickle_file_path)
     depthmap = tf.reshape(depthmap, (IMAGE_TARGET_HEIGHT, IMAGE_TARGET_WIDTH))
     plt.imshow(depthmap.numpy(), cmap='gray', vmin=0, vmax=1)
-    print(f"height: {_targets[0]:.2f} cm")
+    logging.info('Height: %s cm', _targets[0])
 
 
 def _get_epoch(fpath: str) -> str:
