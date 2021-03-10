@@ -10,13 +10,19 @@ for height prediction. We use a Convolutional Neural Network (CNN).
 ![Fusion strategies](docs/fusion-strategies.jpg)
 Figure: In the bottom, there is a video containing multiple frames. "Single Frame" only uses a single frame to make a prediction. "Late Fusion" uses multiple frames where each frames is processed by a network independently and only in the end (a.k.a. late) the results are combined to a single prediction.
 
+![Late Fusion](docs/latefusion.png)
+Figure: Comparison between ”Single Frame” CNN and Multiartifact LateFusion
+
 ## Approach
 
 We use the "late fusion" idea in our approach.
 
+This approach introduced a way for combining multiple frames of a video.
+
 ### Sampling
 
 We sample `N` artifacts from a scan.
+In practice `N=5` gives the best results for us.
 We compare 2 different sampling strategies:
 
 - sliding window
@@ -24,12 +30,13 @@ We compare 2 different sampling strategies:
 
 ### Architecture
 
-We divide the neural network into a **base network** and a **network head**.
+For the neural network architecture, we divide the neural network into a **base network** and a **network head**.
 
+The Figures show the convolutional layers of the base network and the fully-connected layers of the network head.
 The base network is shared by all the `N` artifacts.
-Each artifact goes through the base network.
+Each artifact uses the same base network.
 This can also be viewed as a feature extraction,
-s.t. for each artifact features are extracted.
+i.e., features are extracted for each artifact.
 To combine the features of multiple artifacts, we concatenate all features.
 
 The network head is composed of dense layers that should combine and weigh the features.
