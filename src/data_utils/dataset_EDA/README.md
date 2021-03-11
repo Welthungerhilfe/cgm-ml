@@ -10,11 +10,7 @@ Start new compute instance in AzuremL and clone `cgm-ml` repo.
 Then run:
 
 ```bash
-cd cgm-ml
-cd src/common/evaluation/QA/eval_depthmap_models/
-conda env update --file environment.yml
-conda activate CGM_QA_Pipeline
-cd ../../../..
+cd cgm-ml/src
 conda install notebook ipykernel
 ipython kernel install --user --name CGM_QA_Pipeline
 ```
@@ -22,12 +18,13 @@ ipython kernel install --user --name CGM_QA_Pipeline
 In order to mount all datasets at the same time run:
 
 ```bash
-cd /root/
-vim connection.cfg  # get this from a collegue (e.g. Shanshank or Gracjan)
+cd / # /*root*
+vim connection.cfg  # create this in the root of your compute instance, get details from a collegue (e.g. Shanshank or Gracjan)
 cd /mnt
 mkdir datasets
-blobfuse /mnt/datasets/ --tmp-path=/mnt/tmp -o attr_timeout=240 -o  entry_timeout=240 -o negative_timeout=120 -o allow_other --config-file=/root/connection.cfg
-cd datasets
+blobfuse /mnt/datasets/ --tmp-path=/mnt/tmp -o attr_timeout=240 -o  entry_timeout=240 -o negative_timeout=120 -o allow_other --config-file=/connection.cfg # change link to connection.cfg here if you created it elsewhere
+cd datasets 
+ls # you should see all datasets in folders
 cd realtime_evaluation  # for example
 ```
 
