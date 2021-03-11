@@ -1,9 +1,10 @@
 from multiprocessing import Pool
-import datetime
 import os
 import pickle
 from pathlib import Path
 from typing import Callable, List
+import logging
+import logging.config
 
 import glob2 as glob
 import numpy as np
@@ -17,6 +18,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt  # noqa: E402
 from cgmzscore import Calculator  # noqa: E402
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 DAYS_IN_YEAR = 365
 
@@ -60,15 +63,13 @@ def process_image(data):
 
 
 def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
-    print("Accessing dataset...")
+    logging.info("Accessing dataset...")
     if os.path.exists(dataset_path):
         return
     dataset = workspace.datasets[dataset_name]
-    print(f"Downloading dataset {dataset_name}.. Current date and time: ",
-          datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    logging.info("Downloading dataset %s", dataset_name)
     dataset.download(target_path=dataset_path, overwrite=False)
-    print(f"Finished downloading {dataset_name}, Current date and time: ",
-          datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    logging.info("Finished downloading %s", dataset_name)
 
 
 def get_dataset_path(data_dir: Path, dataset_name: str):
@@ -87,7 +88,7 @@ def preprocess_targets(targets, targets_indices):
         try:
             targets[GOODBAD_IDX] = GOODBAD_DICT[targets[GOODBAD_IDX]]
         except KeyError:
-            print(f"Key '{targets[GOODBAD_IDX]}' not found in GOODBAD_DICT")
+            logging.info("Key %s not found in GOODBAD_DICT", targets[GOODBAD_IDX])
             targets[GOODBAD_IDX] = GOODBAD_DICT['delete']  # unknown target values will be categorized as 'delete'
 
     if targets_indices is not None:
@@ -318,7 +319,7 @@ def draw_uncertainty_scatterplot(df: pd.DataFrame, png_out_fpath: str):
     plt.grid()
 
     correlation, _ = pearsonr(df['error'], df['uncertainties'])
-    print("correlation:", correlation)
+    logging.info("correlation: %d", correlation)
 
     plt.title(f"Per-scan sample artifact: Error over uncertainty (correlation={correlation:.3})")
     plt.xlabel("error")
@@ -458,7 +459,7 @@ def download_model(ws, experiment_name, run_id, input_location, output_location)
         run.download_files(prefix=input_location, output_directory=output_location)
     else:
         raise NameError(f"{input_location}'s path extension not supported")
-    print("Successfully downloaded model")
+    logging.info("Successfully downloaded model")
 
 
 def filter_dataset(paths_evaluation, standing):

@@ -1,10 +1,14 @@
 import os
+import logging
+import logging.config
 from pathlib import Path
 import pickle
 import tensorflow as tf
 
 from bunch import Bunch
 import pandas as pd
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 REPO_DIR = Path(os.getcwd()).parents[2]
 
@@ -65,7 +69,7 @@ def calculate_performance(code, df_mae):
             accuracy = len(good_predictions) / len(df_mae_filtered) * 100
         else:
             accuracy = 0.
-        # print(f"Accuracy {acc:.1f} for {code}: {accuracy}")
+        # logging.info("Accuracy %d for code %s: %d", acc, code, accuracy)
         accuracy_list.append(accuracy)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
@@ -122,7 +126,7 @@ def preprocess_targets(targets, targets_indices):
         try:
             targets[GOODBAD_IDX] = GOODBAD_DICT[targets[GOODBAD_IDX]]
         except KeyError:
-            print(f"Key '{targets[GOODBAD_IDX]}' not found in GOODBAD_DICT")
+            logging.info("Key %s not found in GOODBAD_DICT", targets[GOODBAD_IDX])
             targets[GOODBAD_IDX] = GOODBAD_DICT['delete']  # unknown target values will be categorized as 'delete'
 
     if targets_indices is not None:

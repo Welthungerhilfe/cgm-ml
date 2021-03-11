@@ -450,8 +450,8 @@ def get_mean_error(date_times, all_history_paths, start_index, end_index=100090,
                 if key_suffix is not None and key_suffix in key:
                     lst = history[key][start_index:end_index]
                     avg_error = sum(lst) / len(lst)
-                    logging.info('avg %d %d %d between epoch %s and %s = %s',key,split[2],date_time,
-                                str(start_index),str(end_index),str(avg_error))
+                    logging.info('avg %d %d %d between epoch %s and %s = %s', key, split[2], date_time,
+                                 str(start_index), str(end_index), str(avg_error))
 
 
 def find_all_history_paths(root_path):

@@ -1,6 +1,8 @@
 import os
 import re
 import sys
+import logging
+import logging.config
 from pathlib import Path
 from functools import partial
 from itertools import groupby, islice
@@ -12,6 +14,8 @@ import numpy as np
 sys.path.append(str(Path(__file__).parent))
 
 from model_utils_constants import SAMPLING_STRATEGY_SYSTEMATIC, SAMPLING_STRATEGY_WINDOW  # noqa: E402
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 REGEX_PICKLE = re.compile(
     r"pc_(?P<qrcode>[a-zA-Z0-9]+-[a-zA-Z0-9]+)_(?P<unixepoch>\d+)_(?P<code>\d{3})_(?P<idx>\d{3}).p$"
@@ -97,7 +101,7 @@ def _get_epoch(fname: str) -> str:
     if match_result:
         return match_result.group("unixepoch")
     else:
-        print(f"{fname} doesn't match REGEX_PICKLE")
+        logging.info("%s doesn't match REGEX_PICKLE", fname)
 
 
 def preprocess_depthmap(depthmap: np.array) -> np.array:

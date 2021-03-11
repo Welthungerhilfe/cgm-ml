@@ -17,6 +17,7 @@
 #
 
 import logging
+import logging.config
 import os
 from typing import Iterable
 
@@ -27,6 +28,8 @@ from pyntcloud import PyntCloud
 
 from cgm_fusion.calibration import get_extrinsic_matrix, get_intrinsic_matrix, get_k
 from cgm_fusion.utility import fuse_point_cloud
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 def project_points(pcd_points, calibration_file):
@@ -49,31 +52,31 @@ def project_points(pcd_points, calibration_file):
 
 def get_depth_image_from_point_cloud(calibration_file, pcd_file, output_file):
     if not os.path.exists(pcd_file):  # check all files exist
-        logging.error('Point cloud does not exist')
+        logging.info('Point cloud does not exist')
         return
 
     if not os.path.exists(calibration_file):  # check if the califile exists
-        logging.error('Calibration does not exist')
+        logging.info('Calibration does not exist')
         return
 
     try:
         cloud = PyntCloud.from_file(pcd_file)  # load the data from the files
     except ValueError:
-        logging.error(" Error reading point cloud ")
+        logging.info(" Error reading point cloud ")
         raise
 
     # points       = cloud.points.values[:, :3]
     z = cloud.points.values[:, 3]
 
-    print(cloud.points.values.shape)
+    logging.info(cloud.points.values.shape)
 
     #height = 172  # todo: get this from calibration file
 
     z = (z - min(z)) / (max(z) - min(z))  # normalize the data to 0 to 1
 
-    # print (z)
+    # logging.info(z)
 
-    # print (z.size)
+    # logging.info(z.size)
 
     # iterat of the points and calculat the x y coordinates in the image
     # get the data for calibration

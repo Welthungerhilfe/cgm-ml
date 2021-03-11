@@ -1,6 +1,8 @@
 import argparse
 import copy
 import os
+import logging
+import logging.config
 import pickle
 import random
 import time
@@ -26,6 +28,7 @@ from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, HEIGHT_IDX, WE
                    draw_uncertainty_goodbad_plot, get_dataset_path, draw_wasting_diagnosis,
                    get_model_path, draw_uncertainty_scatterplot)
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -117,17 +120,17 @@ def get_prediction_uncertainty(model_path: str, dataset_evaluation: tf.data.Data
     Returns:
         predictions, array shape (N_SAMPLES, )
     """
-    print(f"loading model from {model_path}")
+    logging.info("loading model from %s", model_path)
     model = load_model(model_path, compile=False)
     model = change_dropout_strength(model, RESULT_CONFIG.DROPOUT_STRENGTH)
 
     dataset = dataset_evaluation.batch(1)
 
-    print("starting predicting uncertainty")
+    logging.info("starting predicting uncertainty")
     start = time.time()
     std_list = [predict_uncertainty(X, model) for X, y in dataset.as_numpy_iterator()]
     end = time.time()
-    print(f"Total time for uncertainty prediction experiment: {end - start:.3} sec")
+    logging.info("Total time for uncertainty prediction experiment: %d sec", end - start)
 
     return np.array(std_list)
 
@@ -141,16 +144,16 @@ def get_prediction(model_path: str, dataset_evaluation: tf.data.Dataset) -> np.a
     Returns:
         predictions, array shape (N_SAMPLES, )
     """
-    print(f"loading model from {model_path}")
+    logging.info("loading model from %s", model_path)
     model = load_model(model_path, compile=False)
 
     dataset = dataset_evaluation.batch(DATA_CONFIG.BATCH_SIZE)
 
-    print("starting predicting")
+    logging.info("starting predicting")
     start = time.time()
     predictions = model.predict(dataset, batch_size=DATA_CONFIG.BATCH_SIZE)
     end = time.time()
-    print(f"Total time for prediction experiment: {end - start:.3} sec")
+    logging.info("Total time for uncertainty prediction experiment: %d sec", end - start)
 
     prediction_list = np.squeeze(predictions)
     return prediction_list
@@ -171,16 +174,16 @@ if __name__ == "__main__":
 
     # Offline run. Download the sample dataset and run locally. Still push results to Azure.
     if run.id.startswith("OfflineRun"):
-        print("Running in offline mode...")
+        logging.info("Running in offline mode...")
 
         # Access workspace.
-        print("Accessing workspace...")
+        logging.info("Accessing workspace...")
         workspace = Workspace.from_config()
         experiment = Experiment(workspace, EVAL_CONFIG.EXPERIMENT_NAME)
         run = experiment.start_logging(outputs=None, snapshot_directory=None)
 
         # Get dataset.
-        print("Accessing dataset...")
+        logging.info("Accessing dataset...")
         dataset_name = DATA_CONFIG.NAME
         dataset_path = str(REPO_DIR / "data" / dataset_name)
         if not os.path.exists(dataset_path):
@@ -189,7 +192,7 @@ if __name__ == "__main__":
 
     # Online run. Use dataset provided by training notebook.
     else:
-        print("Running in online mode...")
+        logging.info("Running in online mode...")
         experiment = run.experiment
         workspace = experiment.workspace
         dataset_name = DATA_CONFIG.NAME
@@ -200,28 +203,27 @@ if __name__ == "__main__":
 
     # Get the QR-code paths.
     dataset_path = os.path.join(dataset_path, "scans")
-    print("Dataset path:", dataset_path)
-    # print(glob.glob(os.path.join(dataset_path, "*"))) # Debug
-    print("Getting QR code paths...")
+    logging.info('Dataset path: %s', dataset_path)
+    #logging.info(glob.glob(os.path.join(dataset_path, "*"))) # Debug
+    logging.info('Getting QR-code paths...')
     qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
-    print("QR code paths: ", len(qrcode_paths))
+    logging.info('qrcode_paths: %d', len(qrcode_paths))
     assert len(qrcode_paths) != 0
 
     if EVAL_CONFIG.DEBUG_RUN and len(qrcode_paths) > EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN:
         qrcode_paths = qrcode_paths[:EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN]
-        print("Executing on {} qrcodes for FAST RUN".format(EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN))
+        logging.info("Executing on %d qrcodes for FAST RUN", EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN)
 
-    print("Paths for evaluation:")
-    print("\t" + "\n\t".join(qrcode_paths))
+    logging.info('Paths for evaluation: \n\t' + '\n\t'.join(qrcode_paths))
 
-    print(len(qrcode_paths))
+    logging.info(len(qrcode_paths))
 
     # Get the pointclouds.
-    print("Getting Depthmap paths...")
+    logging.info("Getting Depthmap paths...")
     paths_evaluation = utils.get_depthmap_files(qrcode_paths)
     del qrcode_paths
 
-    print("Using {} artifact files for evaluation.".format(len(paths_evaluation)))
+    logging.info("Using %d artifact files for evaluation.", len(paths_evaluation))
 
     new_paths_evaluation = paths_evaluation
 
@@ -229,7 +231,7 @@ if __name__ == "__main__":
         standing = load_model(FILTER_CONFIG.NAME)
         new_paths_evaluation = utils.filter_dataset(paths_evaluation, standing)
 
-    print("Creating dataset for training.")
+    logging.info("Creating dataset for training.")
     paths = new_paths_evaluation
     dataset = tf.data.Dataset.from_tensor_slices(paths)
     dataset_norm = dataset.map(lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE))
@@ -244,7 +246,7 @@ if __name__ == "__main__":
     dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
     tmp_dataset_evaluation = dataset_norm
     del dataset_norm
-    print("Created dataset for training.")
+    logging.info("Created dataset for training.")
 
     model_path = MODEL_BASE_DIR / get_model_path(MODEL_CONFIG)
 
@@ -257,8 +259,8 @@ if __name__ == "__main__":
     del tmp_dataset_evaluation
 
     prediction_list_one = get_prediction(model_path, dataset_evaluation)
-    print("Prediction made by model on the depthmaps...")
-    print(prediction_list_one)
+    logging.info("Prediction made by model on the depthmaps...")
+    logging.info(prediction_list_one)
 
     qrcode_list, scantype_list, artifact_list, prediction_list, target_list = utils.get_column_list(
         new_paths_evaluation, prediction_list_one, DATA_CONFIG, FILTER_CONFIG)
@@ -270,7 +272,7 @@ if __name__ == "__main__":
         'GT': [el[0] for el in target_list],
         'predicted': prediction_list
     }, columns=RESULT_CONFIG.COLUMNS)
-    print("df.shape:", df.shape)
+    logging.info("df.shape: %s", df.shape)
 
     df['GT'] = df['GT'].astype('float64')
     df['predicted'] = df['predicted'].astype('float64')
@@ -286,47 +288,47 @@ if __name__ == "__main__":
         df[COLUMN_NAME_GOODBAD] = [el[idx] for el in target_list]
 
     df_grouped = df.groupby(['qrcode', 'scantype']).mean()
-    print("Mean Avg Error: ", df_grouped)
+    logging.info("Mean Avg Error: %d", df_grouped)
 
     df_grouped['error'] = df_grouped.apply(utils.avgerror, axis=1)
 
     csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
-    print(f"Calculate and save the results to {csv_file}")
+    logging.info("Calculate and save the results to %s", csv_file)
     utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                      DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
         csv_file = f"{OUTPUT_CSV_PATH}/age_evaluation_{RUN_ID}.csv"
-        print(f"Calculate and save age results to {csv_file}")
+        logging.info("Calculate and save age results to %s", csv_file)
         utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
         png_file = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{RUN_ID}.png"
-        print(f"Calculate and save scatterplot results to {png_file}")
+        logging.info("Calculate and save scatterplot results to %s", png_file)
         draw_age_scatterplot(df, png_file)
 
     if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES:
         png_file = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{RUN_ID}.png"
-        print(f"Calculate zscores and save confusion matrix results to {png_file}")
+        logging.info("Calculate zscores and save confusion matrix results to %s", png_file)
         start = time.time()
         draw_stunting_diagnosis(df, png_file)
         end = time.time()
-        print(f"Total time for Calculate zscores and save confusion matrix: {end - start:.3} sec")
+        logging.info("Total time for Calculate zscores and save confusion matrix: %d", end - start)
 
     if WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES:
         png_file = f"{OUTPUT_CSV_PATH}/wasting_diagnosis_{RUN_ID}.png"
-        print(f"Calculate and save wasting confusion matrix results to {png_file}")
+        logging.info("Calculate and save wasting confusion matrix results to %s", png_file)
         start = time.time()
         draw_wasting_diagnosis(df, png_file)
         end = time.time()
-        print(f"Total time for Calculate zscores and save wasting confusion matrix: {end - start:.3} sec")
+        logging.info("Total time for Calculate zscores and save wasting confusion matrix: %d", end - start)
 
     if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_file = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"
-        print(f"Calculate and save sex results to {csv_file}")
+        logging.info("Calculate and save sex results to %s", csv_file)
         utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_sex)
     if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_file = f"{OUTPUT_CSV_PATH}/goodbad_evaluation_{RUN_ID}.csv"
-        print(f"Calculate performance on bad/good scans and save results to {csv_file}")
+        logging.info("Calculate performance on bad/good scans and save results to %s", csv_file)
         utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_goodbad)
 
@@ -359,8 +361,7 @@ if __name__ == "__main__":
         df_sample['error'] = df_sample.apply(utils.avgerror, axis=1).abs()
         df_sample_better_threshold = df_sample[df_sample['uncertainties'] < RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM]
         csv_file = f"{OUTPUT_CSV_PATH}/uncertainty_smaller_than_{RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM}cm_{RUN_ID}.csv"
-        print(f"Uncertainty: For more certain than {RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM}cm, "
-              f"calculate and save the results to {csv_file}")
+        logging.info("Uncertainty: For more certain than %d cm, calculate and save the results to %s", RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM, csv_file)
         utils.calculate_and_save_results(df_sample_better_threshold, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 

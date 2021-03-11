@@ -1,6 +1,10 @@
 import argparse
+import logging
+import logging.config
 from azureml.core import Workspace
 from azureml.core.authentication import AuthenticationException, AzureCliAuthentication
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 def get_auth():
@@ -11,7 +15,7 @@ def get_auth():
         auth = AzureCliAuthentication()
         auth.get_authentication_header()
     except AuthenticationException:
-        print("Authentication Error Occured")
+        logging.info("Authentication Error Occured")
 
     return auth
 
@@ -29,10 +33,10 @@ if __name__ == "__main__":
                    workspace_name=args.workspace_name,
                    auth=get_auth())
 
-    print("Workspace Details")
-    print(ws.get_details())
+    logging.info("Workspace Details")
+    logging.info(ws.get_details())
 
-    print("Success of Authentication and Workspace Setup")
+    logging.info("Success of Authentication and Workspace Setup")
 
     ws.write_config()
-    print("Saved config file")
+    logging.info("Saved config file")
