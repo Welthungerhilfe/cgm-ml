@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 REPO_DIR = Path(os.getcwd()).parents[2]
 
 # Error margin on various ranges
-EVALUATION_ACCURACIES = [.2, .4, .6, 1.0, 1.2, 2., 2.5, 3., 4., 5., 6.]
+EVALUATION_ACCURACIES = [.2, .4, .6, 1., 1.2, 2., 2.5, 3., 4., 5., 6.]
 MODEL_CKPT_FILENAME = "best_model.ckpt"
 
 DAYS_IN_YEAR = 365
