@@ -45,8 +45,6 @@ FILTER_CONFIG = qa_config.FILTER_CONFIG if getattr(qa_config, 'FILTER_CONFIG', F
 
 RUN_ID = MODEL_CONFIG.RUN_ID
 
-ACC = 2
-
 # Function for loading and processing depthmaps.
 
 
@@ -294,7 +292,6 @@ if __name__ == "__main__":
     utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                      DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 
-#     accuracy_df = utils.filter_scans(df_grouped,ACC)
     sample_csv_file = f"{OUTPUT_CSV_PATH}/inaccurate_scans_{RUN_ID}.csv"
     df_grouped.to_csv(sample_csv_file, index=True)
 

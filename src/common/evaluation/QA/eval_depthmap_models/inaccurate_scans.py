@@ -13,7 +13,7 @@ def merge_qrc(row):
     """
     Function to combine qrcodes with scantypes
     """
-    scans = str(row['qrcode']) + '_' + str(row['scantype'])
+    scans = r"{row['qrcode']}_{row['scantype']}"
     return scans
 
 
@@ -53,7 +53,7 @@ def extract_model_name(path_name) -> str:
     Function to extract the model name from the path.
     """
     assert path_name.endswith('.csv')
-    model_name = Path(path_name).resolve().stem
+    model_name = Path(path_name).stem
     return model_name
 
 
@@ -65,7 +65,7 @@ def calculate_inaccurate_scans(csv_filepath: str) -> set:
     result_list = pd.read_csv(csv_filepath)
     grouped_result = result_list.groupby(['qrcode', 'scantype'], as_index=False).mean()
     accuracy_df = filter_scans(grouped_result, ACCURACY_THRESHOLD)
-    accuracy_df['name'] = accuracy_df.apply(merge_qrc, axis=1)
+    accuracy_df['scan_code'] = accuracy_df.apply(merge_qrc, axis=1)
     csv_name = csv_filepath.split('/')[-1]
     file_name = f"file_{csv_name}"
     accuracy_df.to_csv(file_name,index=False)
@@ -80,10 +80,10 @@ if __name__ == "__main__":
 
     scan_sets = [calculate_inaccurate_scans(filepath) for filepath in csv_files]
     union_set = calculate_union(scan_sets[0], scan_sets[1])
-    intersection_set = calculate_intersection(scan_sets[0], scan_sets[1])
-    percentage = (len(intersection_set) / len(union_set)) * 100
+    inaccurate_scans_intersection = calculate_intersection(scan_sets[0], scan_sets[1])
+    inaccurate_scans_intersection_ratio = (len(inaccurate_scans_intersection) / len(union_set)) * 100
     inaccurate_scan_data = [[extract_model_name(csv_files[0]), extract_model_name(
         csv_files[1]), percentage, len(union_set), len(intersection_set)]]
-    columns = ['model_1', 'model_2', 'overlap_percentage', 'Total_scanstype', 'common_scans']
+    columns = ['model_1', 'model_2', 'ratio_intersection_over_union', 'number_of_union_of_inaccurate_scans', 'number_of_common_inaccurate_scans']
     frame = pd.DataFrame(inaccurate_scan_data, columns=columns)
     frame.to_csv(REPORT_CSV)
