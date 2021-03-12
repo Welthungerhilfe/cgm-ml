@@ -207,8 +207,8 @@ if __name__ == "__main__":
         for p in utils_paths:
             shutil.copy(p, temp_model_utils_dir)
 
-    from tmp_model_utils.preprocessing import preprocess_depthmap, preprocess_targets, create_samples  # noqa: E402
-    from preprocessing_multiartifact import create_multiartifact_sample  # noqa: E402
+    from tmp_model_utils.preprocessing import preprocess_depthmap, preprocess_targets, create_samples  # noqa: E402, F401
+    from preprocessing_multiartifact import create_multiartifact_sample  # noqa: E402, F401
 
     OUTPUT_CSV_PATH = str(REPO_DIR / 'data'
                           / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
