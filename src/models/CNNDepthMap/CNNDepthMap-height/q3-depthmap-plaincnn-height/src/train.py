@@ -15,6 +15,7 @@ from wandb.keras import WandbCallback
 
 from config import CONFIG
 from constants import MODEL_CKPT_FILENAME, REPO_DIR
+from model import create_cnn
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
@@ -24,19 +25,18 @@ run = Run.get_context()
 if run.id.startswith("OfflineRun"):
     utils_dir_path = REPO_DIR / "src/common/model_utils"
     utils_paths = glob.glob(os.path.join(utils_dir_path, "*.py"))
-    temp_model_util_dir = Path(__file__).parent / "tmp_model_util"
+    temp_model_utils_dir = Path(__file__).parent / "tmp_model_utils"
     # Remove old temp_path
-    if os.path.exists(temp_model_util_dir):
-        shutil.rmtree(temp_model_util_dir)
+    if os.path.exists(temp_model_utils_dir):
+        shutil.rmtree(temp_model_utils_dir)
     # Copy
-    os.mkdir(temp_model_util_dir)
-    os.system(f'touch {temp_model_util_dir}/__init__.py')
+    os.mkdir(temp_model_utils_dir)
+    os.system(f'touch {temp_model_utils_dir}/__init__.py')
     for p in utils_paths:
-        shutil.copy(p, temp_model_util_dir)
+        shutil.copy(p, temp_model_utils_dir)
 
-from model import create_cnn  # noqa: E402
-from tmp_model_util.preprocessing import preprocess_depthmap, preprocess_targets  # noqa: E402
-from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, setup_wandb  # noqa: E402
+from tmp_model_utils.preprocessing import preprocess_depthmap, preprocess_targets  # noqa: E402
+from tmp_model_utils.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, setup_wandb  # noqa: E402
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
