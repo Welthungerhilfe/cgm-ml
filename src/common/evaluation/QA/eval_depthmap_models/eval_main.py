@@ -49,6 +49,16 @@ if __name__ == "__main__":
         shutil.copy(p, temp_path)
     logging.info("Done.")
 
+    utils_dir_path = REPO_DIR / "src/common/model_utils"
+    utils_paths = glob.glob(os.path.join(utils_dir_path, "*.py"))
+    temp_model_utils_dir = Path(temp_path) / "tmp_model_utils"
+    if os.path.exists(temp_model_utils_dir):
+        shutil.rmtree(temp_model_utils_dir)
+    os.mkdir(temp_model_utils_dir)
+    os.system(f'touch {temp_model_utils_dir}/__init__.py')
+    for p in utils_paths:
+        shutil.copy(p, temp_model_utils_dir)
+
     ws = Workspace.from_config()
 
     run = Run.get_context()
