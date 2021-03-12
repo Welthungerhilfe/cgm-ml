@@ -16,7 +16,6 @@ import utils
 from constants import REPO_DIR
 from qa_config import DATA_CONFIG, EVAL_CONFIG, MODEL_CONFIG, RESULT_CONFIG
 
-
 class DataGenerator(tf.keras.utils.Sequence):
     '''
     Generator Class to create dataset in batches
