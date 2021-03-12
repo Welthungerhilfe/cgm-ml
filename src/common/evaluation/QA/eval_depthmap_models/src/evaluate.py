@@ -168,6 +168,22 @@ if __name__ == "__main__":
     # Get the current run.
     run = Run.get_context()
 
+    if run.id.startswith("OfflineRun"):
+        utils_dir_path = REPO_DIR / "src/common/model_utils"
+        utils_paths = glob.glob(os.path.join(utils_dir_path, "*.py"))
+        temp_model_utils_dir = Path(__file__).parent / "tmp_model_utils"
+        # Remove old temp_path
+        if os.path.exists(temp_model_utils_dir):
+            shutil.rmtree(temp_model_utils_dir)
+        # Copy
+        os.mkdir(temp_model_utils_dir)
+        os.system(f'touch {temp_model_utils_dir}/__init__.py')
+        for p in utils_paths:
+            shutil.copy(p, temp_model_utils_dir)
+
+    from tmp_model_utils.preprocessing import preprocess_depthmap, preprocess_targets, create_samples  # noqa: E402
+    from preprocessing_multiartifact import create_multiartifact_sample  # noqa: E402
+
     OUTPUT_CSV_PATH = str(REPO_DIR / 'data'
                           / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
     MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if run.id.startswith("OfflineRun") else Path('.')

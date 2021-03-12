@@ -14,7 +14,6 @@ from tensorflow.keras import callbacks, layers, models
 from config import CONFIG
 from constants import MODEL_CKPT_FILENAME, REPO_DIR
 from augmentation import tf_augment_sample
-from preprocessing_multiartifact import tf_load_pickle
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
@@ -35,6 +34,7 @@ if run.id.startswith("OfflineRun"):
         shutil.copy(p, temp_model_util_dir)
 
 from tmp_model_util.preprocessing import create_samples  # noqa: E402
+from tmp_model_util.preprocessing_multiartifact import tf_load_pickle  # noqa: E402
 from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, create_head  # noqa: E402
 from model import get_base_model  # noqa: E402
 
