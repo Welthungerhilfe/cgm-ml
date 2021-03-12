@@ -112,7 +112,12 @@ dataset = tf.data.Dataset.from_tensor_slices(paths)  # TensorSliceDataset  # Lis
 dataset = dataset.cache()
 dataset = dataset.repeat(CONFIG.N_REPEAT_DATASET)
 dataset = dataset.map(
-    lambda path: tf_load_pickle(paths=path),
+    lambda path: tf_load_pickle(path,
+                                CONFIG.NORMALIZATION_VALUE,
+                                CONFIG.IMAGE_TARGET_HEIGHT,
+                                CONFIG.IMAGE_TARGET_WIDTH,
+                                CONFIG.TARGET_INDEXES,
+                                CONFIG.N_ARTIFACTS),
     tf.data.experimental.AUTOTUNE
 )  # (240,180,5), (1,)
 
@@ -126,7 +131,12 @@ dataset_training = dataset
 # Note: No shuffle necessary.
 paths = paths_validate
 dataset = tf.data.Dataset.from_tensor_slices(paths)
-dataset_norm = dataset.map(lambda path: tf_load_pickle(path), tf.data.experimental.AUTOTUNE)
+dataset_norm = dataset.map(lambda path: tf_load_pickle(path,
+                                        CONFIG.NORMALIZATION_VALUE,
+                                        CONFIG.IMAGE_TARGET_HEIGHT,
+                                        CONFIG.IMAGE_TARGET_WIDTH,
+                                        CONFIG.TARGET_INDEXES,
+                                        CONFIG.N_ARTIFACTS), tf.data.experimental.AUTOTUNE)
 dataset_norm = dataset_norm.cache()
 dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
 dataset_validation = dataset_norm

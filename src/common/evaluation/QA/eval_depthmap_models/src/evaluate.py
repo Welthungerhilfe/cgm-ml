@@ -154,7 +154,11 @@ def get_prediction_multiartifact(model_path: str, samples_paths: List[List[str]]
 
     predictions = []
     for sample_paths in samples_paths:
-        depthmap, targets = create_multiartifact_sample(sample_paths)
+        depthmap, targets = create_multiartifact_sample(sample_paths,
+                                                        DATA_CONFIG.NORMALIZATION_VALUE,
+                                                        DATA_CONFIG.IMAGE_TARGET_HEIGHT,
+                                                        DATA_CONFIG.IMAGE_TARGET_WIDTH,
+                                                        DATA_CONFIG.TARGET_INDEXES)
         depthmaps = tf.stack([depthmap])
         pred = model.predict(depthmaps)
         predictions.append([sample_paths[0], float(np.squeeze(pred)), targets[0]])
