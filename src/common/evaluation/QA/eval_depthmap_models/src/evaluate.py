@@ -359,7 +359,7 @@ if __name__ == "__main__":
         logging.info("Calculate and save scatterplot results to %s", png_file)
         draw_age_scatterplot(df, png_file)
 
-    if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES:
+    if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and 'AGE_BUCKETS' in RESULT_CONFIG.keys():
         png_file = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{RUN_ID}.png"
         logging.info("Calculate zscores and save confusion matrix results to %s", png_file)
         start = time.time()
@@ -367,7 +367,7 @@ if __name__ == "__main__":
         end = time.time()
         logging.info("Total time for Calculate zscores and save confusion matrix: %d", end - start)
 
-    if WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES:
+    if WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and 'AGE_BUCKETS' in RESULT_CONFIG.keys():
         png_file = f"{OUTPUT_CSV_PATH}/wasting_diagnosis_{RUN_ID}.png"
         logging.info("Calculate and save wasting confusion matrix results to %s", png_file)
         start = time.time()
