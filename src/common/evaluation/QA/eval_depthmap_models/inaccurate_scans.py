@@ -29,7 +29,7 @@ def frame_to_set(dataframe: pd.DataFrame) -> set:
     """
     Function to convert dataframe column to list
     """
-    return set(dataframe['name'].to_list())
+    return set(dataframe['scan_code'].to_list())
 
 
 def calculate_union(set1: set, set2: set) -> set:
