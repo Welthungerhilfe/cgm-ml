@@ -126,6 +126,17 @@ def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CO
     return qrcode_list, scan_type_list, artifact_list, prediction_list, target_list
 
 
+def extract_qrcode(row):
+    qrc = row['artifacts'].split('/')[-3]
+    return qrc
+
+
+def extract_scantype(row):
+    """https://dev.azure.com/cgmorg/ChildGrowthMonitor/_wiki/wikis/ChildGrowthMonitor.wiki/15/Codes-for-Pose-and-Scan-step"""
+    scans = row['artifacts'].split('/')[-2]
+    return scans
+
+
 def avgerror(row):
     difference = row['GT'] - row['predicted']
     return difference
