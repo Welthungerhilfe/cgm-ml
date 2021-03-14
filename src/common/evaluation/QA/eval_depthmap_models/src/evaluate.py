@@ -256,7 +256,8 @@ if __name__ == "__main__":
     del tmp_dataset_evaluation
 
     prediction_list_one = get_prediction(model_path, dataset_evaluation)
-    print("Prediction made by model on the depthmaps...")
+    logging.info("Prediction made by model on the depthmaps...")
+    logging.info(prediction_list_one)
 
     qrcode_list, scantype_list, artifact_list, prediction_list, target_list = utils.get_column_list(
         new_paths_evaluation, prediction_list_one, DATA_CONFIG, FILTER_CONFIG)
@@ -268,6 +269,7 @@ if __name__ == "__main__":
         'GT': [el[0] for el in target_list],
         'predicted': prediction_list
     }, columns=RESULT_CONFIG.COLUMNS)
+    logging.info("df.shape: %s", df.shape)
 
     df['GT'] = df['GT'].astype('float64')
     df['predicted'] = df['predicted'].astype('float64')
