@@ -15,7 +15,7 @@ def merge_qrc(row):
     """
     qrcode = row['qrcode']
     scantype = row['scantype']
-    scans = r"{qrcode}_{scantype}"
+    scans = f"{qrcode}_{scantype}"
     return scans
 
 
