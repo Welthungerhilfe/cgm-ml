@@ -62,7 +62,7 @@ jobs:
       cd src/common/evaluation/QA/eval_depthmap_models
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
-      python inaccurate_scans.py 
+      python inaccurate_scans.py
       ls -l outputs/
       ls -l
     displayName: 'Find inaccurate results for different models'
