@@ -13,7 +13,9 @@ def merge_qrc(row):
     """
     Function to combine qrcodes with scantypes
     """
-    scans = r"{row['qrcode']}_{row['scantype']}"
+    qrcode = row['qrcode']
+    scantype = row['scantype']
+    scans = r"{qrcode}_{scantype}"
     return scans
 
 
