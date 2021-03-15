@@ -6,6 +6,7 @@ import logging
 import logging.config
 
 import glob2 as glob
+import numpy as np
 import tensorflow as tf
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
@@ -109,15 +110,16 @@ logging.info('Using %d files for validation.', len(paths_validate))
 @tf.function(input_signature=[tf.TensorSpec(None, tf.string)])
 def tf_load_pickle(paths):  # refactor: should be path
     """Load and process depthmaps"""
-
-    depthmap, targets = tf.py_function(create_multiartifact_sample, [paths,
-                                                                     CONFIG.NORMALIZATION_VALUE,
-                                                                     CONFIG.IMAGE_TARGET_HEIGHT,
-                                                                     CONFIG.IMAGE_TARGET_WIDTH,
-                                                                     CONFIG.TARGET_INDEXES,
-                                                                     CONFIG.N_ARTIFACTS], [tf.float32, tf.float32])
-    # depthmap.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, CONFIG.N_ARTIFACTS))
-    # targets.set_shape( (1,)  )  #(len(CONFIG.TARGET_INDEXES)))
+    params = [paths,
+              CONFIG.NORMALIZATION_VALUE,
+              CONFIG.IMAGE_TARGET_HEIGHT,
+              CONFIG.IMAGE_TARGET_WIDTH,
+              np.array(CONFIG.TARGET_INDEXES),
+              CONFIG.N_ARTIFACTS,
+    ]
+    depthmap, targets = tf.py_function(create_multiartifact_sample, params, [tf.float32, tf.float32])
+    depthmap.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, CONFIG.N_ARTIFACTS))
+    targets.set_shape((len(CONFIG.TARGET_INDEXES,)))  #(len(CONFIG.TARGET_INDEXES)))
     return depthmap, targets  # (240,180,5), (1,)
 
 
