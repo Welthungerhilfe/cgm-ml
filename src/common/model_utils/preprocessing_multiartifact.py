@@ -9,7 +9,7 @@ import tensorflow as tf
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
-def create_multiartifact_sample(artifacts: List[str], max_value, image_target_height, image_target_width, targets_indices, n_artifacts) -> Tuple[tf.Tensor, tf.Tensor]:
+def create_multiartifact_sample(artifacts: List[str], normalization_value, image_target_height, image_target_width, targets_indices, n_artifacts) -> Tuple[tf.Tensor, tf.Tensor]:
     """Open pickle files and load data.
 
     Args:
@@ -23,7 +23,7 @@ def create_multiartifact_sample(artifacts: List[str], max_value, image_target_he
     depthmaps = np.zeros((image_target_height, image_target_width, n_artifacts))
 
     for i, artifact_path in enumerate(artifacts):
-        depthmap, targets = _py_load_pickle(artifact_path, max_value, image_target_height, image_target_width, targets_indices)
+        depthmap, targets = _py_load_pickle(artifact_path, normalization_value, image_target_height, image_target_width, targets_indices)
         depthmap.set_shape((image_target_height, image_target_width, 1))
         depthmaps[:, :, i] = tf.squeeze(depthmap, axis=2)
         targets_list.append(targets)
@@ -33,7 +33,7 @@ def create_multiartifact_sample(artifacts: List[str], max_value, image_target_he
     return depthmaps, targets
 
 
-def _py_load_pickle(path, max_value, image_target_height, image_target_width, targets_indices):
+def _py_load_pickle(path, normalization_value, image_target_height, image_target_width, targets_indices):
     path_ = path if isinstance(path, str) else path.numpy()
     try:
         depthmap, targets = pickle.load(open(path_, "rb"))
@@ -42,18 +42,18 @@ def _py_load_pickle(path, max_value, image_target_height, image_target_width, ta
         print(e)
         raise e
     depthmap = _preprocess_depthmap(depthmap)
-    depthmap = depthmap / max_value
+    depthmap = depthmap / normalization_value
     depthmap = tf.image.resize(depthmap, (image_target_height, image_target_width))
     targets = _preprocess_targets(targets, targets_indices)
     return depthmap, targets
 
 
-def _preprocess_depthmap(depthmap):
+def _preprocess_depthmap(depthmap: tf.Tensor) -> tf.Tensor:
     # TODO here be more code.
     return depthmap.astype("float32")
 
 
-def _preprocess_targets(targets, targets_indices_: tf.Tensor):
+def _preprocess_targets(targets: tf.Tensor, targets_indices_: tf.Tensor) -> tf.Tensor:
     targets_indices = targets_indices_.numpy().tolist()
     if targets_indices is not None:
         targets = targets[targets_indices]
