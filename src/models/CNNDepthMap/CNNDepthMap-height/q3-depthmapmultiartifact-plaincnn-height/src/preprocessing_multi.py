@@ -5,6 +5,8 @@ import os
 import pickle
 import re
 from typing import Iterator, List, Tuple
+import logging
+import logging.config
 
 import imgaug.augmenters as iaa
 import numpy as np
@@ -14,6 +16,7 @@ from config import (CONFIG, DATA_AUGMENTATION_SAME_PER_CHANNEL,
                     DATA_AUGMENTATION_NO, DATA_AUGMENTATION_DIFFERENT_EACH_CHANNEL,
                     SAMPLING_STRATEGY_SYSTEMATIC, SAMPLING_STRATEGY_WINDOW)
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 REGEX_PICKLE = re.compile(
     r"pc_(?P<qrcode>[a-zA-Z0-9]+-[a-zA-Z0-9]+)_(?P<unixepoch>\d+)_(?P<code>\d{3})_(?P<idx>\d{3}).p$"
@@ -113,8 +116,7 @@ def create_multiartifact_sample(artifacts: List[str]) -> Tuple[tf.Tensor, tf.Ten
         targets_list.append(targets)
     targets = targets_list[0]
     if not np.all(targets_list == targets):
-        print("Warning: Not all targets are the same!!\n"
-              f"target_list: {str(targets_list)} artifacts: {str(artifacts)}")
+        logging.info('Warning: Not all targets are the same!! \n target_list: %s \n artifacts: %s: ', targets_list, artifacts)
 
     return depthmaps, targets
 

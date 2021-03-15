@@ -7,6 +7,8 @@ Note: It currently works on pointcloud-data only!
 
 from __future__ import absolute_import
 import os
+import logging
+import logging.config
 import numpy as np
 import glob2 as glob
 import random
@@ -16,6 +18,8 @@ import multiprocessing as mp
 import pickle
 from . import utils
 from bunch import Bunch
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 class PreprocessedDataGenerator(object):
@@ -151,15 +155,15 @@ class PreprocessedDataGenerator(object):
     def analyze_files(self):
 
         for qrcode in self.qrcodes:
-            print("QR-code:", qrcode)
-            print("  Number of samples: {}".format(len(self.qrcodes_dictionary[qrcode])))
+            logging.info("QR-code: %s", qrcode)
+            logging.info("  Number of samples: %d", len(self.qrcodes_dictionary[qrcode]))
 
     def generate(self, size, qrcodes_to_use=None, verbose=False, workers=1):
 
         if qrcodes_to_use is None:
             qrcodes_to_use = self.qrcodes
 
-        print("Using {} workers...".format(workers))
+        logging.info("Using %d workers...", workers)
 
         # Main loop for single processing.
         if workers == 1:
@@ -260,7 +264,7 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, return_control="ret
         class_self = Bunch(dict(class_self))
 
     if verbose is True:
-        print("Generating using QR-codes:", qrcodes_to_use)
+        logging.info("Generating QR-codes to be used: %s", qrcodes_to_use)
 
     assert size != 0
 
@@ -428,7 +432,7 @@ def get_input(class_self, pointcloud):
 
 
 def create_datagenerator_from_parameters(dataset_path, dataset_parameters):
-    print("Creating data-generator...")
+    logging.info("Creating data-generator...")
     datagenerator = PreprocessedDataGenerator(
         dataset_path=dataset_path,
         input_type=dataset_parameters["input_type"],

@@ -1,5 +1,7 @@
 import os
 import random
+import logging
+import logging.config
 
 import glob2 as glob
 import numpy as np
@@ -13,6 +15,8 @@ from constants import REPO_DIR
 from model import create_cnn, set_trainable_below_layers
 from preprocessing import process_path
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+
 # Make experiment reproducable
 tf.random.set_seed(CONFIG.SPLIT_SEED)
 random.seed(CONFIG.SPLIT_SEED)
@@ -22,16 +26,16 @@ run = Run.get_context()
 
 # Offline run. Download the sample dataset and run locally. Still push results to Azure.
 if(run.id.startswith("OfflineRun")):
-    print("Running in offline mode...")
+    logging.info('Running in offline mode...')
 
     # Access workspace.
-    print("Accessing workspace...")
+    logging.info('Accessing workspace...')
     workspace = Workspace.from_config()
     experiment = Experiment(workspace, "training-junkyard")
     run = experiment.start_logging(outputs=None, snapshot_directory=None)
 
     # Get dataset.
-    print("Accessing dataset...")
+    logging.info('Accessing dataset...')
     dataset_name = "anon-rgb-classification"
     dataset_path = str(REPO_DIR / "data" / dataset_name)
     if not os.path.exists(dataset_path):
@@ -40,18 +44,18 @@ if(run.id.startswith("OfflineRun")):
 
 # Online run. Use dataset provided by training notebook.
 else:
-    print("Running in online mode...")
+    logging.info('Running in online mode...')
     experiment = run.experiment
     workspace = experiment.workspace
     dataset_path = run.input_datasets["dataset"]
 
 # Get the Image paths.
 dataset_path = os.path.join(dataset_path, "test")
-print("Dataset path:", dataset_path)
-print("Getting image...")
+logging.info('Dataset path: %s', dataset_path)
+logging.info('Getting image...')
 image_paths = glob.glob(os.path.join(dataset_path, "*/*.jpg"))
-print(len(image_paths))
-print(tf.__version__)
+logging.info(len(image_paths))
+logging.info(tf.__version__)
 
 assert len(image_paths) != 0
 
@@ -66,15 +70,13 @@ image_paths_activation = [image_paths_activation]
 del image_paths
 
 # Show split.
-print("Paths for training:")
-print("\t" + "\n\t".join(image_paths_training))
-print("Paths for validation:")
-print("\t" + "\n\t".join(image_paths_validate))
-print("Paths for activation:")
-print("\t" + "\n\t".join(image_paths_activation))
 
-print(len(image_paths_training))
-print(len(image_paths_validate))
+logging.info('Paths for training: \n\t' + '\n\t'.join(image_paths_training))
+logging.info('Paths for validation: \n\t' + '\n\t'.join(image_paths_validate))
+logging.info('Paths for activation: \n\t' + '\n\t'.join(image_paths_activation))
+
+logging.info('Nbr of image_paths for training: %d', len(image_paths_training))
+logging.info('Nbr of image_paths for validation: %d', len(image_paths_validate))
 
 assert len(image_paths_training) > 0 and len(image_paths_validate) > 0
 
@@ -105,7 +107,7 @@ del dataset_norm
 input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 3)
 model = create_cnn(input_shape, dropout=True)
 model.summary()
-print(len(model.trainable_weights))
+logging.info(len(model.trainable_weights))
 # Get ready to add callbacks.
 training_callbacks = []
 

@@ -1,10 +1,14 @@
 import pickle
 from typing import List, Tuple
+import logging
+import logging.config
 
 import numpy as np
 import tensorflow as tf
 
 from config import CONFIG
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 @tf.function(input_signature=[tf.TensorSpec(None, tf.string)])   # List of length n_artifacts
@@ -37,8 +41,7 @@ def create_multiartifact_sample(artifacts: List[str]) -> Tuple[tf.Tensor, tf.Ten
         targets_list.append(targets)
     targets = targets_list[0]
     if not np.all(targets_list == targets):
-        print("Warning: Not all targets are the same!!\n"
-              f"target_list: {str(targets_list)} artifacts: {str(artifacts)}")
+        logging.info('Warning: Not all targets are the same!! \n target_list: %s \n artifacts: %s: ', targets_list, artifacts)
 
     return depthmaps, targets
 

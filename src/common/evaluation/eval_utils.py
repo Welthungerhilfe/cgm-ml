@@ -1,4 +1,6 @@
 import os
+import logging
+import logging.config
 from pathlib import Path
 import pickle
 import tensorflow as tf
@@ -6,10 +8,12 @@ import tensorflow as tf
 from bunch import Bunch
 import pandas as pd
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+
 REPO_DIR = Path(os.getcwd()).parents[2]
 
 # Error margin on various ranges
-EVALUATION_ACCURACIES = [.2, .4, .8, 1.2, 2., 2.5, 3., 4., 5., 6.]
+EVALUATION_ACCURACIES = [.2, .4, .6, 1.0, 1.2, 2., 2.5, 3., 4., 5., 6.]
 MODEL_CKPT_FILENAME = "best_model.ckpt"
 
 DAYS_IN_YEAR = 365
@@ -36,14 +40,23 @@ CODE_TO_SCANTYPE = {
     '202': '_lyingback',
 }
 
+DATA_AUGMENTATION_SAME_PER_CHANNEL = "same_per_channel"
+DATA_AUGMENTATION_DIFFERENT_EACH_CHANNEL = "different_each_channel"
+DATA_AUGMENTATION_NO = "no"
+
+SAMPLING_STRATEGY_SYSTEMATIC = "systematic"
+SAMPLING_STRATEGY_WINDOW = "window"
 
 CONFIG = Bunch(dict(
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
     NORMALIZATION_VALUE=7.5,
-    TARGET_INDEXES=[0, 3, 5],  # 0 is height, 1 is weight.
+    TARGET_INDEXES=[0],  # 0 is height, 1 is weight.
+    DATA_AUGMENTATION_MODE=DATA_AUGMENTATION_NO,
+    SAMPLING_STRATEGY=SAMPLING_STRATEGY_SYSTEMATIC,
     N_ARTIFACTS=5,
-    CODES_FOR_POSE_AND_SCANSTEP=("100", ),
+    N_REPEAT_DATASET=1,
+    CODES_FOR_POSE_AND_SCANSTEP=('100', '101', '102', '200', '201', '202'),
 ))
 
 
@@ -56,7 +69,7 @@ def calculate_performance(code, df_mae):
             accuracy = len(good_predictions) / len(df_mae_filtered) * 100
         else:
             accuracy = 0.
-        # print(f"Accuracy {acc:.1f} for {code}: {accuracy}")
+        # logging.info("Accuracy %d for code %s: %d", acc, code, accuracy)
         accuracy_list.append(accuracy)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
@@ -113,7 +126,7 @@ def preprocess_targets(targets, targets_indices):
         try:
             targets[GOODBAD_IDX] = GOODBAD_DICT[targets[GOODBAD_IDX]]
         except KeyError:
-            print(f"Key '{targets[GOODBAD_IDX]}' not found in GOODBAD_DICT")
+            logging.info("Key %s not found in GOODBAD_DICT", targets[GOODBAD_IDX])
             targets[GOODBAD_IDX] = GOODBAD_DICT['delete']  # unknown target values will be categorized as 'delete'
 
     if targets_indices is not None:

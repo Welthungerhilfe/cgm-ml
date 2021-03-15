@@ -1,6 +1,8 @@
 import os
 import random
 from typing import List
+import logging
+import logging.config
 
 import glob2 as glob
 import tensorflow as tf
@@ -13,6 +15,7 @@ from constants import REPO_DIR
 from model import create_cnn
 from preprocessing_multi import create_multiartifact_paths, tf_load_pickle, tf_augment_sample
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
@@ -23,16 +26,16 @@ run = Run.get_context()
 
 # Offline run. Download the sample dataset and run locally. Still push results to Azure.
 if run.id.startswith("OfflineRun"):
-    print("Running in offline mode...")
+    logging.info('Running in offline mode...')
 
     # Access workspace.
-    print("Accessing workspace...")
+    logging.info('Accessing workspace...')
     workspace = Workspace.from_config()
     experiment = Experiment(workspace, "training-junkyard")
     run = experiment.start_logging(outputs=None, snapshot_directory=None)
 
     # Get dataset.
-    print("Accessing dataset...")
+    logging.info('Accessing dataset...')
     dataset_name = "anon-depthmap-mini"
     dataset_path = str(REPO_DIR / "data" / dataset_name)
     if not os.path.exists(dataset_path):
@@ -41,18 +44,18 @@ if run.id.startswith("OfflineRun"):
 
 # Online run. Use dataset provided by training notebook.
 else:
-    print("Running in online mode...")
+    logging.info('Running in online mode...')
     experiment = run.experiment
     workspace = experiment.workspace
     dataset_path = run.input_datasets["dataset"]
 
 # Get the QR-code paths.
 dataset_scans_path = os.path.join(dataset_path, "scans")
-print("Dataset path:", dataset_scans_path)
-# print(glob.glob(os.path.join(dataset_scans_path, "*"))) # Debug
-print("Getting QR-code paths...")
+logging.info('Dataset path: %s', dataset_scans_path)
+#logging.info(glob.glob(os.path.join(dataset_scans_path, "*")))  # Debug
+logging.info('Getting QR-code paths...')
 qrcode_paths = glob.glob(os.path.join(dataset_scans_path, "*"))
-print("qrcode_paths: ", len(qrcode_paths))
+logging.info('qrcode_paths: %d', len(qrcode_paths))
 assert len(qrcode_paths) != 0
 
 # Shuffle and split into train and validate.
@@ -66,15 +69,12 @@ qrcode_paths_activation = [qrcode_paths_activation]
 del qrcode_paths
 
 # Show split.
-print("Paths for training:")
-print("\t" + "\n\t".join(qrcode_paths_training))
-print("Paths for validation:")
-print("\t" + "\n\t".join(qrcode_paths_validate))
-print("Paths for activation:")
-print("\t" + "\n\t".join(qrcode_paths_activation))
+logging.info('Paths for training: \n\t' + '\n\t'.join(qrcode_paths_training))
+logging.info('Paths for validation: \n\t' + '\n\t'.join(qrcode_paths_validate))
+logging.info('Paths for activation: \n\t' + '\n\t'.join(qrcode_paths_activation))
 
-print(len(qrcode_paths_training))
-print(len(qrcode_paths_validate))
+logging.info('Nbr of qrcode_paths for training: %d', len(qrcode_paths_training))
+logging.info('Nbr of qrcode_paths for validation: %d', len(qrcode_paths_validate))
 
 assert len(qrcode_paths_training) > 0 and len(qrcode_paths_validate) > 0
 
@@ -90,13 +90,13 @@ def create_samples(qrcode_paths: List[str]) -> List[List[str]]:
 
 
 paths_training = create_samples(qrcode_paths_training)
-print(f"Samples for training: {len(paths_training)}")
+logging.info('Using %d files for training.', len(paths_training))
 
 paths_validate = create_samples(qrcode_paths_validate)
-print(f"Samples for validate: {len(paths_validate)}")
+logging.info('Using %d files for validation.', len(paths_validate))
 
 paths_activate = create_samples(qrcode_paths_activation)
-print(f"Samples for activate: {len(paths_activate)}")
+logging.info('Using %d files for activation.', len(paths_activate))
 
 # Create dataset for training.
 paths = paths_training  # list

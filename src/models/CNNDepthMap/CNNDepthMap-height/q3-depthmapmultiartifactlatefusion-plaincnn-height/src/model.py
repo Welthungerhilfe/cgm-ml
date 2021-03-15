@@ -1,5 +1,7 @@
 import os
 from pathlib import Path
+import logging
+import logging.config
 
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
@@ -9,13 +11,15 @@ from config import CONFIG
 from constants import MODEL_CKPT_FILENAME
 from tmp_model_util.utils import create_base_cnn
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+
 
 def get_base_model(workspace: Workspace, data_dir: Path) -> models.Sequential:
     if CONFIG.PRETRAINED_RUN:
         model_fpath = data_dir / "pretrained" / CONFIG.PRETRAINED_RUN
         if not os.path.exists(model_fpath):
             download_pretrained_model(workspace, model_fpath)
-        print(f"Loading pretrained model from {model_fpath}")
+        logging.info('Loading pretrained model from: %s', model_fpath)
         base_model = load_base_cgm_model(model_fpath, should_freeze=CONFIG.SHOULD_FREEZE_BASE)
     else:
         input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1)
@@ -42,11 +46,12 @@ def download_model(ws, experiment_name, run_id, input_location, output_location)
         run.download_files(prefix=input_location, output_directory=output_location)
     else:
         raise NameError(f"{input_location}'s path extension not supported")
-    print("Successfully downloaded model")
+    logging.info("Successfully downloaded model")
 
 
 def download_pretrained_model(workspace: Workspace, output_model_fpath: str):
-    print(f"Downloading pretrained model from {CONFIG.PRETRAINED_RUN}")
+    logging.info('Downloading pretrained model from: %s', CONFIG.PRETRAINED_RUN)
+
     download_model(ws=workspace,
                    experiment_name=CONFIG.PRETRAINED_EXPERIMENT,
                    run_id=CONFIG.PRETRAINED_RUN,

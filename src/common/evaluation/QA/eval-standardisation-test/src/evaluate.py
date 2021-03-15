@@ -2,6 +2,8 @@ import os
 import pickle
 import random
 from pathlib import Path
+import logging
+import logging.config
 
 import glob2 as glob
 import numpy as np
@@ -15,6 +17,8 @@ from tensorflow.keras.models import load_model
 import utils
 from constants import REPO_DIR
 from qa_config import DATA_CONFIG, EVAL_CONFIG, MODEL_CONFIG, RESULT_CONFIG
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 class DataGenerator(tf.keras.utils.Sequence):
@@ -235,43 +239,42 @@ if __name__ == "__main__":
 
     # Offline run. Download the sample dataset and run locally. Still push results to Azure.
     if run.id.startswith("OfflineRun"):
-        print("Running in offline mode...")
+        logging.info("Running in offline mode...")
 
         # Access workspace.
-        print("Accessing workspace...")
+        logging.info("Accessing workspace...")
         workspace = Workspace.from_config()
         experiment = Experiment(workspace, EVAL_CONFIG.EXPERIMENT_NAME)
         run = experiment.start_logging(outputs=None, snapshot_directory=None)
 
         # Get dataset.
-        print("Accessing dataset...")
+        logging.info("Accessing dataset...")
         dataset_name = DATA_CONFIG.NAME
         dataset_path = str(REPO_DIR / "data" / dataset_name)
-        print("Dataset Path: ", dataset_path)
+        logging.info("Dataset Path: %s", dataset_path)
         if not os.path.exists(dataset_path):
             dataset = workspace.datasets[dataset_name]
             dataset.download(target_path=dataset_path, overwrite=False)
 
     # Online run. Use dataset provided by training notebook.
     else:
-        print("Running in online mode...")
+        logging.info("Running in online mode...")
         experiment = run.experiment
         workspace = experiment.workspace
         dataset_path = run.input_datasets["dataset"]
 
     qrcode_path = os.path.join(dataset_path, "qrcode")
-    print("QRcode path:", qrcode_path)
-    print("Getting Depthmap paths...")
+    logging.info("QRcode path: %s", qrcode_path)
+    logging.info("Getting Depthmap paths...")
     depthmap_path_list = glob.glob(os.path.join(qrcode_path, "*/measure/*/depth/*"))
     assert len(depthmap_path_list) != 0
 
     if EVAL_CONFIG.DEBUG_RUN and len(depthmap_path_list) > EVAL_CONFIG.DEBUG_NUMBER_OF_DEPTHMAP:
         depthmap_path_list = depthmap_path_list[:EVAL_CONFIG.DEBUG_NUMBER_OF_DEPTHMAP]
-        print("Executing on {} qrcodes for FAST RUN".format(EVAL_CONFIG.DEBUG_NUMBER_OF_DEPTHMAP))
+        logging.info("Executing on %d qrcodes for FAST RUN", EVAL_CONFIG.DEBUG_NUMBER_OF_DEPTHMAP)
 
-    print("Paths for Depth map Evaluation:")
-    print("\t" + "\n\t".join(depthmap_path_list))
-    print("Using {} artifact files for evaluation.".format(len(depthmap_path_list)))
+    logging.info('Paths for Depth map evaluation: \n\t' + '\n\t'.join(depthmap_path_list))
+    logging.info("Using %d artifact files for evaluation.", len(depthmap_path_list))
 
     # Get the prediction on the artifact
     if MODEL_CONFIG.NAME.endswith(".h5"):

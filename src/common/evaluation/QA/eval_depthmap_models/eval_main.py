@@ -1,6 +1,8 @@
 import argparse
 import glob
 import os
+import logging
+import logging.config
 import shutil
 import time
 from importlib import import_module
@@ -15,6 +17,9 @@ from azureml.train.dnn import TensorFlow
 
 from src.utils import download_model
 from src.constants import REPO_DIR, DEFAULT_CONFIG
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+
 
 CWD = Path(__file__).parent
 TAGS = {}
@@ -34,15 +39,15 @@ if __name__ == "__main__":
     # Create a temp folder
     code_dir = CWD / "src"
     paths = glob.glob(os.path.join(code_dir, "*.py"))
-    print("paths:", paths)
-    print("Creating temp folder...")
+    logging.info("paths: %s", paths)
+    logging.info("Creating temp folder...")
     temp_path = CWD / "tmp_eval"
     if os.path.exists(temp_path):
         shutil.rmtree(temp_path)
     os.mkdir(temp_path)
     for p in paths:
         shutil.copy(p, temp_path)
-    print("Done.")
+    logging.info("Done.")
 
     ws = Workspace.from_config()
 
@@ -52,7 +57,7 @@ if __name__ == "__main__":
     USE_LOCAL = False
 
     MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if USE_LOCAL else temp_path
-    print('MODEL_BASE_DIR:', MODEL_BASE_DIR)
+    logging.info('MODEL_BASE_DIR: %s', MODEL_BASE_DIR)
     os.makedirs(MODEL_BASE_DIR, exist_ok=True)
 
     # Copy model to temp folder
@@ -74,21 +79,21 @@ if __name__ == "__main__":
     try:
         # Compute cluster exists. Just connect to it.
         compute_target = ComputeTarget(workspace=ws, name=EVAL_CONFIG.CLUSTER_NAME)
-        print("Found existing compute target.")
+        logging.info("Found existing compute target.")
     except ComputeTargetException:
-        print("Creating a new compute target...")
+        logging.info("Creating a new compute target...")
         compute_config = AmlCompute.provisioning_configuration(vm_size='Standard_NC6', max_nodes=4)
         compute_target = ComputeTarget.create(ws, EVAL_CONFIG.CLUSTER_NAME, compute_config)
         compute_target.wait_for_completion(show_output=True, min_node_count=None, timeout_in_minutes=20)
-    print("Compute target:", compute_target)
+    logging.info("Compute target: %s", compute_target)
 
     dataset = ws.datasets[DATA_CONFIG.NAME]
-    print("dataset:", dataset)
-    print("TF supported versions:", TensorFlow.get_supported_versions())
+    logging.info("dataset: %s", dataset)
+    logging.info("TF supported versions: %s", TensorFlow.get_supported_versions())
 
     # parameters used in the evaluation
     script_params = {"--qa_config_module": args.qa_config_module}
-    print("script_params:", script_params)
+    logging.info("script_params: %s", script_params)
 
     start = time.time()
 
@@ -123,21 +128,21 @@ if __name__ == "__main__":
     run = experiment.submit(estimator, tags=TAGS)
 
     # Show run.
-    print("Run:", run)
+    logging.info("Run: %s", run)
 
     # Check the logs of the current run until is complete
     run.wait_for_completion(show_output=True)
 
     # Print Completed when run is completed
-    print("Run status:", run.get_status())
+    logging.info("Run status: %s", run.get_status())
 
     end = time.time()
-    print("Total time for evaluation experiment: {} sec".format(end - start))
+    logging.info("Total time for evaluation experiment: %d sec", end - start)
 
     # Download the evaluation results of the model
     GET_CSV_FROM_EXPERIMENT_PATH = '.'
     run.download_files(RESULT_CONFIG.SAVE_PATH, GET_CSV_FROM_EXPERIMENT_PATH)
-    print("Downloaded the result.csv")
+    logging.info("Downloaded the result.csv")
 
     # Delete temp folder
     shutil.rmtree(temp_path)

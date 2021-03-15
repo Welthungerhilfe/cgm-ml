@@ -12,6 +12,10 @@ This libray is Used for measuring Z score of Children (0-5 Years) based on stand
 
 .. image:: https://img.shields.io/pypi/pyversions/cgmzscore.svg
     :target: https://pypi.org/project/cgmzscore/
+    
+.. image:: https://snyk.io/advisor/python/banner/badge.svg
+    :target: https://snyk.io/advisor/python/banner
+    :alt: banner
 
 REQUIREMENTS
 ============

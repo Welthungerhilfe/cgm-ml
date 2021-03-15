@@ -1,5 +1,6 @@
-import datetime
 import os
+import logging
+import logging.config
 from pathlib import Path
 import subprocess
 
@@ -9,6 +10,8 @@ from tensorflow.keras import models, layers
 from azureml.core.run import Run
 from azureml.core.workspace import Workspace
 from tensorflow.keras import callbacks
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 def create_base_cnn(input_shape, dropout):
@@ -94,13 +97,13 @@ def get_optimizer(use_one_cycle: bool, lr: float, n_steps: int) -> tf.python.ker
 
 
 def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
-    print("Accessing dataset...")
+    logging.info("Accessing dataset...")
     if os.path.exists(dataset_path):
         return
     dataset = workspace.datasets[dataset_name]
-    print(f"Downloading dataset {dataset_name}.. Current date and time: ", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    logging.info("Downloading dataset %s", dataset_name)
     dataset.download(target_path=dataset_path, overwrite=False)
-    print(f"Finished downloading {dataset_name}, Current date and time: ", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    logging.info("Finished downloading %s", dataset_name)
 
 
 def get_dataset_path(data_dir: Path, dataset_name: str) -> str:

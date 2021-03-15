@@ -3,6 +3,8 @@ from azureml.core import Workspace
 from azureml.core import Experiment
 from azureml.core.run import Run
 import os
+import logging
+import logging.config
 import glob2 as glob
 import tensorflow as tf
 from tensorflow.keras import models, layers, callbacks, optimizers
@@ -11,21 +13,23 @@ import pickle
 import random
 from preprocessing import preprocess_depthmap, preprocess_targets
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+
 # Get the current run.
 run = Run.get_context()
 
 # Offline run. Download the sample dataset and run locally. Still push results to Azure.
 if(run.id.startswith("OfflineRun")):
-    print("Running in offline mode...")
+    logging.info('Running in offline mode...')
 
     # Access workspace.
-    print("Accessing workspace...")
+    logging.info('Accessing workspace...')
     workspace = Workspace.from_config()
     experiment = Experiment(workspace, "s5-cnndepthmap-weight-offline")
     run = experiment.start_logging(outputs=None, snapshot_directory=".")
 
     # Get dataset.
-    print("Accessing dataset...")
+    logging.info('Accessing dataset...')
     if os.path.exists("premiumfileshare") == False:
         assert False, "Requires small size dataset"
         dataset_name = "cgmmldevpremium-SampleDataset-Example"
@@ -35,15 +39,15 @@ if(run.id.startswith("OfflineRun")):
 
 # Online run. Use dataset provided by training notebook.
 else:
-    print("Running in online mode...")
+    logging.info('Running in online mode...')
     experiment = run.experiment
     workspace = experiment.workspace
     dataset_path = run.input_datasets["dataset"]
 
 # Get the QR-code paths.
-print("Dataset path:", dataset_path)
-print(glob.glob(os.path.join(dataset_path, "*")))  # Debug
-print("Getting QR-code paths...")
+logging.info('Dataset path: %s', dataset_path)
+logging.info(glob.glob(os.path.join(dataset_path, "*"))) # Debug
+logging.info('Getting QR-code paths...')
 qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
 
 # Shuffle and split into train and validate.
@@ -54,13 +58,10 @@ qrcode_paths_validate = qrcode_paths[split_index:]
 del qrcode_paths
 
 # Show split.
-print("Paths for training:")
-print("\t" + "\n\t".join(qrcode_paths_training))
-print("Paths for validation:")
-print("\t" + "\n\t".join(qrcode_paths_validate))
+logging.info('Paths for training: \n\t' + '\n\t'.join(qrcode_paths_training))
+logging.info('Paths for validation: \n\t' + '\n\t'.join(qrcode_paths_validate))
 
 assert len(qrcode_paths_training) > 0 and len(qrcode_paths_validate) > 0
-
 
 def get_depthmap_files(paths):
     pickle_paths = []
@@ -70,13 +71,13 @@ def get_depthmap_files(paths):
 
 
 # Get the pointclouds.
-print("Getting depthmap paths...")
+logging.info('Getting depthmap paths...')
 paths_training = get_depthmap_files(qrcode_paths_training)
 paths_validate = get_depthmap_files(qrcode_paths_validate)
 del qrcode_paths_training
 del qrcode_paths_validate
-print("Using {} files for training.".format(len(paths_training)))
-print("Using {} files for validation.".format(len(paths_validate)))
+logging.info('Using %d files for training.', len(paths_training))
+logging.info('Using %d files for validation.', len(paths_validate))
 
 image_target_height = 224
 image_target_width = 172
@@ -238,13 +239,13 @@ model.fit(
 run.upload_file(name=best_model_path, path_or_stream=best_model_path)
 
 # Save the weights.
-#print("Saving and uploading weights...")
+#logging.info("Saving and uploading weights...")
 #path = "cnndepthmap_weights.h5"
 #model.save_weights(path)
 #run.upload_file(name="cnndepthmap_weights.h5", path_or_stream=path)
 
 # Save the model.
-#print("Saving and uploading model...")
+#logging.info("Saving and uploading model...")
 #path = "cnndepthmap_model"
 #model.save(path)
 #run.upload_folder(name="cnndepthmap", path=path)

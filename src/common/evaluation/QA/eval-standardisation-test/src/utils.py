@@ -1,5 +1,7 @@
 import math
 import os
+import logging
+import logging.config
 import pickle
 from pathlib import Path
 import sys
@@ -14,6 +16,8 @@ from skimage.transform import resize
 sys.path.append(str(Path(__file__).parents[0]))
 
 from qa_config import DATA_CONFIG, EVAL_CONFIG, RESULT_CONFIG  # noqa: E402
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 image_target_height = 240
 image_target_width = 180
@@ -48,7 +52,7 @@ def get_intra_TEM(measure_one, measure_two):
     absolute_TEM = math.sqrt(sum_of_square_of_deviation / (2 * len(measure_one.index)))
 
     if EVAL_CONFIG.DEBUG_LOG:
-        print("Absolute TEM : ", absolute_TEM)
+        logging.info("Absolute TEM : %d", absolute_TEM)
 
     return absolute_TEM
 
@@ -123,7 +127,7 @@ def calculate_performance(code, df_mae):
             accuracy = len(good_predictions) / len(df_mae_filtered) * 100
         else:
             accuracy = 0.
-        # print(f"Accuracy {acc:.1f} for {code}: {accuracy}")
+        # logging.info("Accuracy %d for %d: %d", acc, code, accuracy)
         accuracy_list.append(accuracy)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
@@ -146,7 +150,7 @@ def calculate_and_save_results(MAE, complete_name, CSV_OUT_PATH):
     result = pd.concat(dfs)
     result.index.name = 'Model_Scantype'
     result = result.round(2)
-    print(result)
+    logging.info(result)
 
     # Save the model results in csv file
     result.to_csv(CSV_OUT_PATH, index=True)
@@ -158,7 +162,7 @@ def load_depth(filename):
             line = str(f.readline())[2:-3]
             header = line.split("_")
             res = header[0].split("x")
-            #print(res)
+            #logging.info(res)
             width = int(res[0])
             height = int(res[1])
             depthScale = float(header[1])
@@ -190,7 +194,7 @@ def prepare_depthmap(data, width, height, depthScale):
 
 
 def preprocess(depthmap):
-    #print(depthmap.dtype)
+    #logging.info(depthmap.dtype)
     depthmap = preprocess_depthmap(depthmap)
     #depthmap = depthmap/depthmap.max()
     depthmap = depthmap / 7.5
@@ -231,4 +235,4 @@ def download_model(ws, experiment_name, run_id, input_location, output_location)
         run.download_files(prefix=input_location, output_directory=output_location)
     else:
         raise NameError(f"{input_location}'s path extension not supported")
-    print("Successfully downloaded model")
+    logging.info("Successfully downloaded model")

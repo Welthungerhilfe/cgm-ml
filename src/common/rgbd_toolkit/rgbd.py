@@ -2,6 +2,7 @@ import argparse
 import concurrent.futures
 import datetime
 import logging
+import logging.config
 import os
 import pickle
 import sys
@@ -17,16 +18,16 @@ from tqdm import tqdm
 from cgm_fusion.fusion import fuse_rgbd
 from get_timestamps import get_timestamps_from_pcd, get_timestamps_from_rgb
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+
+
 sys.path.append('../cgm-ml')
 sys.path.append(os.path.dirname(os.getcwd()))
 
 # check core SDK version number
-print("Azure ML SDK Version: ", azureml.core.VERSION)
+logging.info("Azure ML SDK Version: ", azureml.core.VERSION)
 
 warnings.filterwarnings("ignore")
-
-logging.getLogger('').handlers = []
-logging.basicConfig(filename='./RGBD.log', level=logging.DEBUG, format='%(asctime)s %(message)s')
 
 
 def find_closest(rgb, pcd):
@@ -106,7 +107,7 @@ def process_pcd(paths, process_index=0):
         if args.pickled:
             labels = np.array([height, weight])
             if not labels:
-                print("labels dont exist in artifacts.csv..exiting")
+                logging.info("labels dont exist in artifacts.csv..exiting")
                 sys.exit()
             data = (rgbdseg_arr, labels)
             pickle.dump(data, open(rgbd_filename, "wb"))
@@ -132,11 +133,11 @@ def get_files(norm_rgb_time, rgb_path, norm_pcd_time, pcd_path):
     norm_rgb_time = np.asarray(norm_rgb_time)
     files = []
     if len(norm_rgb_time) == 0:
-        print("no rgb images found")
+        logging.info("no rgb images found")
         return []
 
     if len(norm_pcd_time) == 0:
-        print("no pcd images found")
+        logging.info("no pcd images found")
         return []
 
     for i, pcd in enumerate(norm_pcd_time):
@@ -198,7 +199,7 @@ if __name__ == "__main__":
 
     ##validation of input directory
     if not os.path.exists(unique_qr_codes[0]):
-        print("Error:invalid input paths..exiting")
+        logging.info("Error:invalid input paths..exiting")
         sys.exit()
 
     #making output dir for storing rgbd files
@@ -211,7 +212,7 @@ if __name__ == "__main__":
     pcd_paths = []
 
     #read jpg and pcd files of each qr code in the input directory.
-    print("Processing..")
+    logging.info("Processing..")
     start = datetime.datetime.now()
     for qr in set(unique_qr_codes):
         logging.info("reading qr code" + str(qr))
@@ -231,11 +232,11 @@ if __name__ == "__main__":
 
         #processing every pcd file with its nearest rgb using multiprocessing workers
         if args.debug:
-            print("Debug")
+            logging.info("Debug")
             for path in paths:
                 process_pcd(path)
         else:
-            print("Multiprocessing")
+            logging.info("Multiprocessing")
             with concurrent.futures.ProcessPoolExecutor(
                     max_workers=args.num_workers) as executor:
                 res = list(tqdm(executor.map(process_pcd, paths),
@@ -243,5 +244,5 @@ if __name__ == "__main__":
 
     end = datetime.datetime.now()
     diff = end - start
-    print("***Done***")
-    print("total time took is {}".format(diff))
+    logging.info("***Done***")
+    logging.info("total time took is %d", diff)

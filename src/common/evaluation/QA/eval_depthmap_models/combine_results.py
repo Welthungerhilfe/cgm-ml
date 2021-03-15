@@ -5,7 +5,6 @@ from typing import List
 
 from glob2 import glob
 
-
 OUTPUT_FILE_NAME = 'evaluated_models_result.csv'
 
 
@@ -45,7 +44,8 @@ if __name__ == "__main__":
         Returns: args_string
         """
         if args_string not in paths.keys():
-            raise argparse.ArgumentTypeError(f"{args_string} is an invalid argument value. Valid options ared: {paths.keys()}")
+            raise argparse.ArgumentTypeError(
+                f"{args_string} is an invalid argument value. Valid options ared: {paths.keys()}")
         return args_string
 
     parser = argparse.ArgumentParser()
