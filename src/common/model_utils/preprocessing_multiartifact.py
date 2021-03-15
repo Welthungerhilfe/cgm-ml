@@ -9,7 +9,12 @@ import tensorflow as tf
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
-def create_multiartifact_sample(artifacts: List[str], normalization_value, image_target_height, image_target_width, targets_indices, n_artifacts) -> Tuple[tf.Tensor, tf.Tensor]:
+def create_multiartifact_sample(artifacts: List[str],
+                                normalization_value,
+                                image_target_height,
+                                image_target_width,
+                                targets_indices,
+                                n_artifacts) -> Tuple[tf.Tensor, tf.Tensor]:
     """Open pickle files and load data.
 
     Args:
@@ -54,7 +59,7 @@ def _preprocess_depthmap(depthmap: tf.Tensor) -> tf.Tensor:
 
 
 def _preprocess_targets(targets: tf.Tensor, targets_indices_: tf.Tensor) -> tf.Tensor:
-    targets_indices = targets_indices_.numpy().tolist()
+    targets_indices = targets_indices_ if isinstance(targets_indices_, list) else targets_indices_.numpy().tolist()
     if targets_indices is not None:
         targets = targets[targets_indices]
     return targets.astype("float32")
