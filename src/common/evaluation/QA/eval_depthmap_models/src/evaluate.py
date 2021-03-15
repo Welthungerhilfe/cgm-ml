@@ -346,7 +346,7 @@ if __name__ == "__main__":
         df[COLUMN_NAME_GOODBAD] = [el[idx] for el in target_list]
 
     df_grouped = df.groupby(['qrcode', 'scantype']).mean()
-    logging.info("Mean Avg Error: %d", df_grouped)
+    logging.info("Mean Avg Error: %s", df_grouped)
 
     df_grouped['error'] = df_grouped.apply(utils.avgerror, axis=1)
 
