@@ -9,16 +9,32 @@ import tensorflow as tf
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
-@tf.function(input_signature=[tf.TensorSpec(None, tf.string)])   # List of length n_artifacts
-def tf_load_pickle(paths, max_value, image_target_height, image_target_width, targets_indices, n_artifacts):
-    """Load and process depthmaps"""
-    depthmap, targets = tf.py_function(create_multiartifact_sample, [paths, max_value, image_target_height, image_target_width, targets_indices], [tf.float32, tf.float32])
-    depthmap.set_shape((image_target_height, image_target_width, n_artifacts))
-    targets.set_shape((len(targets_indices,)))
-    return depthmap, targets  # (240,180,5), (1,)
+# @tf.function(input_signature=[
+#     tf.TensorSpec(None, tf.string),  #path vs paths?
+#     tf.TensorSpec(None, tf.float16),  # max_value
+#     tf.TensorSpec(None, tf.int8),  # height
+#     tf.TensorSpec(None, tf.int8),
+#     tf.TensorSpec(None, None),  # list
+#     tf.TensorSpec(None, tf.int8),
+#     ])   # List of length n_artifacts
+
+# path,
+# CONFIG.NORMALIZATION_VALUE,
+# CONFIG.IMAGE_TARGET_HEIGHT,
+# CONFIG.IMAGE_TARGET_WIDTH,
+# CONFIG.TARGET_INDEXES,
+# CONFIG.N_ARTIFACTS),
+
+# @tf.function
+# def tf_load_pickle(paths, max_value, image_target_height, image_target_width, targets_indices, n_artifacts):
+#     """Load and process depthmaps"""
+#     depthmap, targets = tf.py_function(create_multiartifact_sample, [paths, max_value, image_target_height, image_target_width, targets_indices], [tf.float32, tf.float32])
+#     depthmap.set_shape((image_target_height, image_target_width, n_artifacts))
+#     targets.set_shape((len(targets_indices,)))
+#     return depthmap, targets  # (240,180,5), (1,)
 
 
-def create_multiartifact_sample(artifacts: List[str], max_value, image_target_height, image_target_width, targets_indices) -> Tuple[tf.Tensor, tf.Tensor]:
+def create_multiartifact_sample(artifacts: List[str], max_value, image_target_height, image_target_width, targets_indices, n_artifacts) -> Tuple[tf.Tensor, tf.Tensor]:
     """Open pickle files and load data.
 
     Args:
@@ -29,7 +45,6 @@ def create_multiartifact_sample(artifacts: List[str], max_value, image_target_he
         targets of shape (1, )
     """
     targets_list = []
-    n_artifacts = len(artifacts)
     depthmaps = np.zeros((image_target_height, image_target_width, n_artifacts))
 
     for i, artifact_path in enumerate(artifacts):
@@ -40,7 +55,8 @@ def create_multiartifact_sample(artifacts: List[str], max_value, image_target_he
     targets = targets_list[0]
     if not np.all(targets_list == targets):
         logging.info('Warning: Not all targets are the same!! \n target_list: %s \n artifacts: %s: ', targets_list, artifacts)
-
+    print("depthmaps.shape ", depthmaps.shape)
+    # print("targets.shape ", targets.shape)
     return depthmaps, targets
 
 
@@ -64,7 +80,7 @@ def _preprocess_depthmap(depthmap):
     return depthmap.astype("float32")
 
 
-def _preprocess_targets(targets, targets_indices):
+def _preprocess_targets(targets: np.array, targets_indices: list) -> np.array:
     if targets_indices is not None:
         targets = targets[targets_indices]
     return targets.astype("float32")

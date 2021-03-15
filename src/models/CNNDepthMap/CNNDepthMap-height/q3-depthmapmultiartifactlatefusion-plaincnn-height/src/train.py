@@ -34,7 +34,7 @@ if run.id.startswith("OfflineRun"):
         shutil.copy(p, temp_model_util_dir)
 
 from tmp_model_util.preprocessing import create_samples  # noqa: E402
-from tmp_model_util.preprocessing_multiartifact import tf_load_pickle  # noqa: E402
+from tmp_model_util.preprocessing_multiartifact import create_multiartifact_sample  # noqa: E402
 from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, create_head  # noqa: E402
 from model import get_base_model  # noqa: E402
 
@@ -85,9 +85,9 @@ assert len(qrcode_paths) != 0
 random.seed(CONFIG.SPLIT_SEED)
 random.shuffle(qrcode_paths)
 split_index = int(len(qrcode_paths) * 0.8)
-qrcode_paths_training = qrcode_paths[:split_index]
+qrcode_paths_training = qrcode_paths[:split_index][:10]
 
-qrcode_paths_validate = qrcode_paths[split_index:]
+qrcode_paths_validate = qrcode_paths[split_index:][:10]
 
 del qrcode_paths
 
@@ -106,18 +106,33 @@ logging.info('Using %d files for training.', len(paths_training))
 paths_validate = create_samples(qrcode_paths_validate, CONFIG)
 logging.info('Using %d files for validation.', len(paths_validate))
 
+@tf.function(input_signature=[tf.TensorSpec(None, tf.string)])
+def tf_load_pickle(paths):  # refactor: should be path
+    """Load and process depthmaps"""
+
+    depthmap, targets = tf.py_function(create_multiartifact_sample, [paths,
+                                                                     CONFIG.NORMALIZATION_VALUE,
+                                                                     CONFIG.IMAGE_TARGET_HEIGHT,
+                                                                     CONFIG.IMAGE_TARGET_WIDTH,
+                                                                     CONFIG.TARGET_INDEXES,
+                                                                     CONFIG.N_ARTIFACTS], [tf.float32, tf.float32])
+    # depthmap.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, CONFIG.N_ARTIFACTS))
+    # targets.set_shape( (1,)  )  #(len(CONFIG.TARGET_INDEXES)))
+    return depthmap, targets  # (240,180,5), (1,)
+
+
 # Create dataset for training.
 paths = paths_training  # list
 dataset = tf.data.Dataset.from_tensor_slices(paths)  # TensorSliceDataset  # List[ndarray[str]]
 dataset = dataset.cache()
 dataset = dataset.repeat(CONFIG.N_REPEAT_DATASET)
+
+ds = dataset.take(1)
+aaa = list(ds.as_numpy_iterator())[0]
+tf_load_pickle(aaa)
+
 dataset = dataset.map(
-    lambda path: tf_load_pickle(path,
-                                CONFIG.NORMALIZATION_VALUE,
-                                CONFIG.IMAGE_TARGET_HEIGHT,
-                                CONFIG.IMAGE_TARGET_WIDTH,
-                                CONFIG.TARGET_INDEXES,
-                                CONFIG.N_ARTIFACTS),
+    lambda path: tf_load_pickle(paths=path),
     tf.data.experimental.AUTOTUNE
 )  # (240,180,5), (1,)
 
@@ -131,12 +146,9 @@ dataset_training = dataset
 # Note: No shuffle necessary.
 paths = paths_validate
 dataset = tf.data.Dataset.from_tensor_slices(paths)
-dataset_norm = dataset.map(lambda path: tf_load_pickle(path,
-                                        CONFIG.NORMALIZATION_VALUE,
-                                        CONFIG.IMAGE_TARGET_HEIGHT,
-                                        CONFIG.IMAGE_TARGET_WIDTH,
-                                        CONFIG.TARGET_INDEXES,
-                                        CONFIG.N_ARTIFACTS), tf.data.experimental.AUTOTUNE)
+dataset_norm = dataset.map(lambda path: tf_load_pickle(paths=path),
+    tf.data.experimental.AUTOTUNE
+)
 dataset_norm = dataset_norm.cache()
 dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
 dataset_validation = dataset_norm
