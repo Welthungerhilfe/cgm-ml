@@ -90,6 +90,7 @@ def filter_blacklisted_qrcodes(qrcode_paths):
         qrcode_paths_filtered.append(qrcode_path)
     return qrcode_paths_filtered
 
+
 qrcode_paths = filter_blacklisted_qrcodes(qrcode_paths)
 
 # Shuffle and split into train and validate.
