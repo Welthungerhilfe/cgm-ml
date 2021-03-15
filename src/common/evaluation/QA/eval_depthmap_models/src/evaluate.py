@@ -139,16 +139,15 @@ def get_prediction_uncertainty(model_path: str, dataset_evaluation: tf.data.Data
 
 
 def get_prediction_multiartifact(model_path: str, samples_paths: List[List[str]]) -> List[List[str]]:
-    """
+    """Make prediction on each multiartifact sample.
 
     Args:
-        model_path: [description]
-        samples_paths: [description]
+        model_path: File path to the model
+        samples_paths: A list of samples where each sample contains N_ARTIFACTS.
 
     Returns:
         List with tuples: ('artifacts', 'predicted', 'GT')
     """
-
     logging.info("loading model from %s", model_path)
     model = load_model(model_path, compile=False)
 
@@ -212,8 +211,8 @@ if __name__ == "__main__":
         for p in utils_paths:
             shutil.copy(p, temp_model_utils_dir)
 
-    from tmp_model_utils.preprocessing import preprocess_depthmap, preprocess_targets, create_samples  # noqa: E402, F401
-    from preprocessing_multiartifact import create_multiartifact_sample  # noqa: E402, F401
+    from tmp_model_utils.preprocessing import create_samples  # noqa: E402, F401
+    from tmp_model_utils.preprocessing_multiartifact import create_multiartifact_sample  # noqa: E402, F401
 
     OUTPUT_CSV_PATH = str(REPO_DIR / 'data'
                           / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH

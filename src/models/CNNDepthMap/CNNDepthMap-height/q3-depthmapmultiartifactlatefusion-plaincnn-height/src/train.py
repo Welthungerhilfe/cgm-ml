@@ -15,6 +15,7 @@ from tensorflow.keras import callbacks, layers, models
 from config import CONFIG
 from constants import MODEL_CKPT_FILENAME, REPO_DIR
 from augmentation import tf_augment_sample
+from model import get_base_model
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
@@ -37,7 +38,6 @@ if run.id.startswith("OfflineRun"):
 from tmp_model_util.preprocessing import create_samples  # noqa: E402
 from tmp_model_util.preprocessing_multiartifact import create_multiartifact_sample  # noqa: E402
 from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, create_head  # noqa: E402
-from model import get_base_model  # noqa: E402
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
