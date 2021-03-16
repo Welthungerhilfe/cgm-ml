@@ -614,7 +614,7 @@ class DataGenerator(object):
         logging.info("Getting the PCDs with the lowest voxel densities...")
         argsort = np.argsort(numbers_of_voxels)
         for index in argsort[0:20]:
-            logging.info("%d : %d", numbers_of_voxels[index], self.pcd_paths[index])
+            logging.info("%.2f : %.2f", numbers_of_voxels[index], self.pcd_paths[index])
 
         logging.info("Rendering histograms...")
         plt.hist(voxelgrid_sizes)

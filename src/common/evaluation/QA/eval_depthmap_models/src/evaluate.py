@@ -129,7 +129,7 @@ def get_prediction_uncertainty(model_path: str, dataset_evaluation: tf.data.Data
     start = time.time()
     std_list = [predict_uncertainty(X, model) for X, y in dataset.as_numpy_iterator()]
     end = time.time()
-    logging.info("Total time for uncertainty prediction experiment: %d sec", end - start)
+    logging.info("Total time for uncertainty prediction experiment: %.2f sec", end - start)
 
     return np.array(std_list)
 
@@ -152,7 +152,7 @@ def get_prediction(model_path: str, dataset_evaluation: tf.data.Dataset) -> np.a
     start = time.time()
     predictions = model.predict(dataset, batch_size=DATA_CONFIG.BATCH_SIZE)
     end = time.time()
-    logging.info("Total time for uncertainty prediction experiment: %d sec", end - start)
+    logging.info("Total time for uncertainty prediction experiment: %.2f sec", end - start)
 
     prediction_list = np.squeeze(predictions)
     return prediction_list
@@ -287,7 +287,7 @@ if __name__ == "__main__":
         df[COLUMN_NAME_GOODBAD] = [el[idx] for el in target_list]
 
     df_grouped = df.groupby(['qrcode', 'scantype']).mean()
-    logging.info("Mean Avg Error: %d", df_grouped)
+    logging.info("Mean Avg Error: %.2f", df_grouped)
 
     df_grouped['error'] = df_grouped.apply(utils.avgerror, axis=1)
 
@@ -314,7 +314,7 @@ if __name__ == "__main__":
         start = time.time()
         draw_stunting_diagnosis(df, png_file)
         end = time.time()
-        logging.info("Total time for Calculate zscores and save confusion matrix: %d", end - start)
+        logging.info("Total time for Calculate zscores and save confusion matrix: %.2f", end - start)
 
     if WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES:
         png_file = f"{OUTPUT_CSV_PATH}/wasting_diagnosis_{RUN_ID}.png"
@@ -322,7 +322,7 @@ if __name__ == "__main__":
         start = time.time()
         draw_wasting_diagnosis(df, png_file)
         end = time.time()
-        logging.info("Total time for Calculate zscores and save wasting confusion matrix: %d", end - start)
+        logging.info("Total time for Calculate zscores and save wasting confusion matrix: %.2f", end - start)
 
     if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_file = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"
@@ -364,7 +364,7 @@ if __name__ == "__main__":
         df_sample['error'] = df_sample.apply(utils.avgerror, axis=1).abs()
         df_sample_better_threshold = df_sample[df_sample['uncertainties'] < RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM]
         csv_file = f"{OUTPUT_CSV_PATH}/uncertainty_smaller_than_{RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM}cm_{RUN_ID}.csv"
-        logging.info("Uncertainty: For more certain than %d cm, calculate and save the results to %s", RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM, csv_file)
+        logging.info("Uncertainty: For more certain than %.2f cm, calculate and save the results to %s", RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM, csv_file)
         utils.calculate_and_save_results(df_sample_better_threshold, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 
