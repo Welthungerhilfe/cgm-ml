@@ -37,9 +37,9 @@ def matrix_calculate(position: list, rotation: list) -> list:
     output[6] = 2.0 * (tmp1 + tmp2) * invs
     output[9] = 2.0 * (tmp1 - tmp2) * invs
 
-    output[12] = position[0];
-    output[13] = position[1];
-    output[14] = position[2];
+    output[12] = position[0]
+    output[13] = position[1]
+    output[14] = position[2]
     return output
 
 def matrix_transform_point(point: list, matrix: list) -> list:
