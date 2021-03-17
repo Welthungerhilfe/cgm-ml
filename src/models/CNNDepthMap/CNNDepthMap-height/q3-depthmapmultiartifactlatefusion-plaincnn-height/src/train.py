@@ -108,9 +108,9 @@ logging.info('Using %d files for validation.', len(paths_validate))
 
 
 @tf.function(input_signature=[tf.TensorSpec(None, tf.string)])
-def tf_load_pickle(paths):  # refactor: should be path
+def tf_load_pickle(path):
     """Load and process depthmaps"""
-    params = [paths,
+    params = [path,
               CONFIG.NORMALIZATION_VALUE,
               CONFIG.IMAGE_TARGET_HEIGHT,
               CONFIG.IMAGE_TARGET_WIDTH,
@@ -129,7 +129,7 @@ dataset = dataset.cache()
 dataset = dataset.repeat(CONFIG.N_REPEAT_DATASET)
 
 dataset = dataset.map(
-    lambda path: tf_load_pickle(paths=path),
+    lambda path: tf_load_pickle(path),
     tf.data.experimental.AUTOTUNE
 )  # (240,180,5), (1,)
 
