@@ -64,7 +64,7 @@ logging.info('epochs: %d', epochs)
 
 # Get normalization value.
 normalization_value = float(args.normalization_value[0])
-logging.info('normalization_value: %d', normalization_value)
+logging.info('normalization_value: %.2f', normalization_value)
 
 # Get res_blocks.
 res_blocks = [int(x) for x in args.res_blocks[0].split(",")]

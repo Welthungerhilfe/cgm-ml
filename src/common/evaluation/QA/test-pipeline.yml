@@ -47,15 +47,25 @@ jobs:
       ls -l
     displayName: 'Depthmap Model Evaluations'
 
+#   - bash: |
+#       set -euox pipefail
+#       cd src/common/evaluation/QA/eval_depthmap_models
+#       source /usr/share/miniconda/etc/profile.d/conda.sh
+#       conda activate CGM_QA_Pipeline
+#       python combine_results.py --model_measurement height
+#       ls -l outputs/
+#       ls -l
+#     displayName: 'Combine results'
+
   - bash: |
       set -euox pipefail
       cd src/common/evaluation/QA/eval_depthmap_models
       source /usr/share/miniconda/etc/profile.d/conda.sh
       conda activate CGM_QA_Pipeline
-      python combine_results.py --model_measurement height
+      python inaccurate_scans.py
       ls -l outputs/
       ls -l
-    displayName: 'Combine results'
+    displayName: 'Find inaccurate results for different models'
 
   # - bash: |
   #     set -euox pipefail

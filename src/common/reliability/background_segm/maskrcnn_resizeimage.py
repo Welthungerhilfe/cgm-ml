@@ -51,6 +51,6 @@ def get_mask_information(segmented_image):
     # Get mask stats like percentage of body coverage of total area & mask area
     perc_body_covered = (mask_area * 100) / (width * height)
     perc_body_covered = round(perc_body_covered, 2)
-    logging.info("Mask Area: %d px", mask_area)
-    logging.info("Percentage of body pixels to total img pixels: %d %", perc_body_covered)
+    logging.info("Mask Area: %.2f px", mask_area)
+    logging.info("Percentage of body pixels to total img pixels: %.2f %", perc_body_covered)
     return mask_area, perc_body_covered

@@ -245,4 +245,4 @@ if __name__ == "__main__":
     end = datetime.datetime.now()
     diff = end - start
     logging.info("***Done***")
-    logging.info("total time took is %d", diff)
+    logging.info("total time took is %.2f", diff)
