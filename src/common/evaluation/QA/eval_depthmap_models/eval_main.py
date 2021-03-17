@@ -59,7 +59,7 @@ if __name__ == "__main__":
     for p in utils_paths:
         shutil.copy(p, temp_model_utils_dir)
 
-    ws = Workspace.from_config()
+    workspace = Workspace.from_config()
 
     run = Run.get_context()
 
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     os.makedirs(MODEL_BASE_DIR, exist_ok=True)
 
     # Copy model to temp folder
-    download_model(ws=ws,
+    download_model(workspace,
                    experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
                    run_id=MODEL_CONFIG.RUN_ID,
                    input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
@@ -79,25 +79,25 @@ if __name__ == "__main__":
 
     # Copy filter to temp folder
     if FILTER_CONFIG is not None and FILTER_CONFIG.IS_ENABLED:
-        download_model(ws=ws, experiment_name=FILTER_CONFIG.EXPERIMENT_NAME, run_id=FILTER_CONFIG.RUN_ID, input_location=os.path.join(
+        download_model(workspace, experiment_name=FILTER_CONFIG.EXPERIMENT_NAME, run_id=FILTER_CONFIG.RUN_ID, input_location=os.path.join(
             FILTER_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME), output_location=str(temp_path / FILTER_CONFIG.NAME))
         azureml._restclient.snapshots_client.SNAPSHOT_MAX_SIZE_BYTES = 500000000
 
-    experiment = Experiment(workspace=ws, name=EVAL_CONFIG.EXPERIMENT_NAME)
+    experiment = Experiment(workspace=workspace, name=EVAL_CONFIG.EXPERIMENT_NAME)
 
     # Find/create a compute target.
     try:
         # Compute cluster exists. Just connect to it.
-        compute_target = ComputeTarget(workspace=ws, name=EVAL_CONFIG.CLUSTER_NAME)
+        compute_target = ComputeTarget(workspace=workspace, name=EVAL_CONFIG.CLUSTER_NAME)
         logging.info("Found existing compute target.")
     except ComputeTargetException:
         logging.info("Creating a new compute target...")
         compute_config = AmlCompute.provisioning_configuration(vm_size='Standard_NC6', max_nodes=4)
-        compute_target = ComputeTarget.create(ws, EVAL_CONFIG.CLUSTER_NAME, compute_config)
+        compute_target = ComputeTarget.create(workspace, EVAL_CONFIG.CLUSTER_NAME, compute_config)
         compute_target.wait_for_completion(show_output=True, min_node_count=None, timeout_in_minutes=20)
     logging.info("Compute target: %s", compute_target)
 
-    dataset = ws.datasets[DATA_CONFIG.NAME]
+    dataset = workspace.datasets[DATA_CONFIG.NAME]
     logging.info("dataset: %s", dataset)
     logging.info("TF supported versions: %s", TensorFlow.get_supported_versions())
 

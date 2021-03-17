@@ -27,7 +27,7 @@ def get_base_model(workspace: Workspace, data_dir: Path) -> models.Sequential:
     return base_model
 
 
-def download_model(ws, experiment_name, run_id, input_location, output_location):
+def download_model(workspace, experiment_name, run_id, input_location, output_location):
     """Download the pretrained model
 
     Args:
@@ -37,7 +37,7 @@ def download_model(ws, experiment_name, run_id, input_location, output_location)
          input_location: Input location in a RUN Id
          output_location: Location for saving the model
     """
-    experiment = Experiment(workspace=ws, name=experiment_name)
+    experiment = Experiment(workspace=workspace, name=experiment_name)
     # Download the model on which evaluation need to be done
     run = Run(experiment, run_id=run_id)
     if input_location.endswith(".h5"):
@@ -52,7 +52,7 @@ def download_model(ws, experiment_name, run_id, input_location, output_location)
 def download_pretrained_model(workspace: Workspace, output_model_fpath: str):
     logging.info('Downloading pretrained model from: %s', CONFIG.PRETRAINED_RUN)
 
-    download_model(ws=workspace,
+    download_model(workspace,
                    experiment_name=CONFIG.PRETRAINED_EXPERIMENT,
                    run_id=CONFIG.PRETRAINED_RUN,
                    input_location=f"outputs/{MODEL_CKPT_FILENAME}",
