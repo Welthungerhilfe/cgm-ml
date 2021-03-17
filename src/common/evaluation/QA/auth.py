@@ -27,9 +27,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     workspace = Workspace(subscription_id=args.subscription_id,
-                   resource_group=args.resource_group,
-                   workspace_name=args.workspace_name,
-                   auth=get_auth())
+                          resource_group=args.resource_group,
+                          workspace_name=args.workspace_name,
+                          auth=get_auth())
 
     logging.info("Workspace Details")
     logging.info(workspace.get_details())
