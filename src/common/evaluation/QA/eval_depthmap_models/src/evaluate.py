@@ -1,5 +1,4 @@
 import argparse
-import copy
 import os
 import logging
 import logging.config
@@ -17,8 +16,7 @@ import pandas as pd
 import tensorflow as tf
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
-from tensorflow.keras.models import Sequential, load_model
-from tensorflow.python import keras
+from tensorflow.keras.models import load_model
 
 from constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR
 
@@ -43,18 +41,19 @@ if run.id.startswith("OfflineRun"):
 
 from tmp_common.model_utils.preprocessing import create_samples  # noqa: E402, F401
 from tmp_common.model_utils.preprocessing_multiartifact import create_multiartifact_sample  # noqa: E402, F401
-from tmp_common.evaluation.uncertainty_utils import get_prediction_uncertainty
-from tmp_common.evaluation.eval_utilities import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, HEIGHT_IDX, WEIGHT_IDX,
-                   COLUMN_NAME_SEX, GOODBAD_IDX, GOODBAD_DICT, SEX_IDX, avgerror,
-                   calculate_performance, calculate_performance_age,
-                   calculate_performance_goodbad, calculate_performance_sex,
-                   download_dataset, draw_age_scatterplot, draw_stunting_diagnosis,
-                   draw_uncertainty_goodbad_plot, extract_scantype, extract_qrcode,
-                   get_dataset_path, draw_wasting_diagnosis,
-                   get_model_path, draw_uncertainty_scatterplot,
-                   get_depthmap_files, filter_dataset, get_column_list,
-                   avgerror, calculate_and_save_results,
-                   preprocess_depthmap, preprocess_targets)
+from tmp_common.evaluation.uncertainty_utils import get_prediction_uncertainty  # noqa: E402, F401
+from tmp_common.evaluation.eval_utilities import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, HEIGHT_IDX,  # noqa: E402, F401
+                                                  WEIGHT_IDX,
+                                                  COLUMN_NAME_SEX, GOODBAD_IDX, GOODBAD_DICT, SEX_IDX, avgerror,
+                                                  calculate_performance, calculate_performance_age,
+                                                  calculate_performance_goodbad, calculate_performance_sex,
+                                                  download_dataset, draw_age_scatterplot, draw_stunting_diagnosis,
+                                                  draw_uncertainty_goodbad_plot, extract_scantype, extract_qrcode,
+                                                  get_dataset_path, draw_wasting_diagnosis,
+                                                  get_model_path, draw_uncertainty_scatterplot,
+                                                  get_depthmap_files, filter_dataset, get_column_list,
+                                                  calculate_and_save_results,
+                                                  preprocess_depthmap, preprocess_targets)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
@@ -108,8 +107,6 @@ def prepare_sample_dataset(df_sample, dataset_path):
     dataset_sample = dataset_sample.cache()
     dataset_sample = dataset_sample.prefetch(tf.data.experimental.AUTOTUNE)
     return dataset_sample
-
-
 
 
 def get_prediction_multiartifact(model_path: str, samples_paths: List[List[str]]) -> List[List[str]]:
@@ -308,7 +305,7 @@ if __name__ == "__main__":
     csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
     logging.info("Calculate and save the results to %s", csv_file)
     calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
-                                     DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
+                               DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 
     sample_csv_file = f"{OUTPUT_CSV_PATH}/inaccurate_scans_{RUN_ID}.csv"
     df_grouped.to_csv(sample_csv_file, index=True)
@@ -317,7 +314,7 @@ if __name__ == "__main__":
         csv_file = f"{OUTPUT_CSV_PATH}/age_evaluation_{RUN_ID}.csv"
         logging.info("Calculate and save age results to %s", csv_file)
         calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
-                                         DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
+                                   DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
         png_file = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{RUN_ID}.png"
         logging.info("Calculate and save scatterplot results to %s", png_file)
         draw_age_scatterplot(df, png_file)
@@ -342,12 +339,12 @@ if __name__ == "__main__":
         csv_file = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"
         logging.info("Calculate and save sex results to %s", csv_file)
         calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
-                                         DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_sex)
+                                   DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_sex)
     if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_file = f"{OUTPUT_CSV_PATH}/goodbad_evaluation_{RUN_ID}.csv"
         logging.info("Calculate performance on bad/good scans and save results to %s", csv_file)
         calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
-                                         DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_goodbad)
+                                   DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_goodbad)
 
     if RESULT_CONFIG.USE_UNCERTAINTY:
         assert GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES
@@ -380,7 +377,7 @@ if __name__ == "__main__":
         csv_file = f"{OUTPUT_CSV_PATH}/uncertainty_smaller_than_{RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM}cm_{RUN_ID}.csv"
         logging.info("Uncertainty: For more certain than %.2f cm, calculate and save the results to %s", RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM, csv_file)
         calculate_and_save_results(df_sample_better_threshold, EVAL_CONFIG.NAME, csv_file,
-                                         DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
+                                   DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 
     # Done.
     run.complete()

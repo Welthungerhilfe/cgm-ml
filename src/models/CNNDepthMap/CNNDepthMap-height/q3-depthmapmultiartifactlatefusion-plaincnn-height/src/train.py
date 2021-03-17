@@ -6,7 +6,6 @@ import logging
 import logging.config
 
 import glob2 as glob
-import numpy as np
 import tensorflow as tf
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
