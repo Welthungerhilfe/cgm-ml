@@ -128,10 +128,7 @@ dataset = tf.data.Dataset.from_tensor_slices(paths)  # TensorSliceDataset  # Lis
 dataset = dataset.cache()
 dataset = dataset.repeat(CONFIG.N_REPEAT_DATASET)
 
-dataset = dataset.map(
-    lambda path: tf_load_pickle(path),
-    tf.data.experimental.AUTOTUNE
-)  # (240,180,5), (1,)
+dataset = dataset.map(tf_load_pickle, tf.data.experimental.AUTOTUNE)  # (240,180,5), (1,)
 
 dataset = dataset.map(tf_augment_sample, tf.data.experimental.AUTOTUNE)
 
