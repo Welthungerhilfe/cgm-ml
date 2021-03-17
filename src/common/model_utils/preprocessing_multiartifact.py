@@ -60,7 +60,6 @@ def _py_load_pickle(path: Union[tf.Tensor, str],
 
 
 def _preprocess_depthmap(depthmap: Union[tf.Tensor, np.array]) -> Union[tf.Tensor, np.array]:
-    # TODO here be more code.
     return depthmap.astype("float32")
 
 
