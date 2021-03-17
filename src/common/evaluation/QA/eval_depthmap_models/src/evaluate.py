@@ -20,7 +20,6 @@ from azureml.core.run import Run
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.python import keras
 
-import utils
 from constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR
 from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, HEIGHT_IDX, WEIGHT_IDX,
                    COLUMN_NAME_SEX, GOODBAD_IDX, GOODBAD_DICT, SEX_IDX, avgerror,
@@ -29,7 +28,10 @@ from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, HEIGHT_IDX, WE
                    download_dataset, draw_age_scatterplot, draw_stunting_diagnosis,
                    draw_uncertainty_goodbad_plot, extract_scantype, extract_qrcode,
                    get_dataset_path, draw_wasting_diagnosis,
-                   get_model_path, draw_uncertainty_scatterplot)
+                   get_model_path, draw_uncertainty_scatterplot,
+                   get_depthmap_files, filter_dataset, get_column_list,
+                   avgerror, calculate_and_save_results,
+                   preprocess_depthmap, preprocess_targets)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
@@ -61,10 +63,10 @@ def tf_load_pickle(path, max_value):
             depthmap, targets, image = pickle.load(open(path.numpy(), "rb"))  # for filter (Contains RGBs)
         else:
             depthmap, targets = pickle.load(open(path.numpy(), "rb"))
-        depthmap = utils.preprocess_depthmap(depthmap)
+        depthmap = preprocess_depthmap(depthmap)
         depthmap = depthmap / max_value
         depthmap = tf.image.resize(depthmap, (DATA_CONFIG.IMAGE_TARGET_HEIGHT, DATA_CONFIG.IMAGE_TARGET_WIDTH))
-        targets = utils.preprocess_targets(targets, DATA_CONFIG.TARGET_INDEXES)
+        targets = preprocess_targets(targets, DATA_CONFIG.TARGET_INDEXES)
         return depthmap, targets
 
     depthmap, targets = tf.py_function(py_load_pickle, [path, max_value], [tf.float32, tf.float32])
@@ -279,7 +281,7 @@ if __name__ == "__main__":
 
         # Get the pointclouds.
         logging.info("Getting Depthmap paths...")
-        paths_evaluation = utils.get_depthmap_files(qrcode_paths)
+        paths_evaluation = get_depthmap_files(qrcode_paths)
         del qrcode_paths
 
         logging.info("Using %d artifact files for evaluation.", len(paths_evaluation))
@@ -288,7 +290,7 @@ if __name__ == "__main__":
 
         if FILTER_CONFIG is not None and FILTER_CONFIG.IS_ENABLED:
             standing = load_model(FILTER_CONFIG.NAME)
-            new_paths_evaluation = utils.filter_dataset(paths_evaluation, standing)
+            new_paths_evaluation = filter_dataset(paths_evaluation, standing)
 
         logging.info("Creating dataset for training.")
         paths = new_paths_evaluation
@@ -319,7 +321,7 @@ if __name__ == "__main__":
         logging.info("Prediction made by model on the depthmaps...")
         logging.info(prediction_list_one)
 
-        qrcode_list, scantype_list, artifact_list, prediction_list, target_list = utils.get_column_list(
+        qrcode_list, scantype_list, artifact_list, prediction_list, target_list = get_column_list(
             new_paths_evaluation, prediction_list_one, DATA_CONFIG, FILTER_CONFIG)
 
         df = pd.DataFrame({
@@ -347,11 +349,11 @@ if __name__ == "__main__":
     df_grouped = df.groupby(['qrcode', 'scantype']).mean()
     logging.info("Mean Avg Error: %s", df_grouped)
 
-    df_grouped['error'] = df_grouped.apply(utils.avgerror, axis=1)
+    df_grouped['error'] = df_grouped.apply(avgerror, axis=1)
 
     csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
     logging.info("Calculate and save the results to %s", csv_file)
-    utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
+    calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                      DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 
     sample_csv_file = f"{OUTPUT_CSV_PATH}/inaccurate_scans_{RUN_ID}.csv"
@@ -360,7 +362,7 @@ if __name__ == "__main__":
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
         csv_file = f"{OUTPUT_CSV_PATH}/age_evaluation_{RUN_ID}.csv"
         logging.info("Calculate and save age results to %s", csv_file)
-        utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
+        calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
         png_file = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{RUN_ID}.png"
         logging.info("Calculate and save scatterplot results to %s", png_file)
@@ -385,12 +387,12 @@ if __name__ == "__main__":
     if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_file = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"
         logging.info("Calculate and save sex results to %s", csv_file)
-        utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
+        calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_sex)
     if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_file = f"{OUTPUT_CSV_PATH}/goodbad_evaluation_{RUN_ID}.csv"
         logging.info("Calculate performance on bad/good scans and save results to %s", csv_file)
-        utils.calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
+        calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_goodbad)
 
     if RESULT_CONFIG.USE_UNCERTAINTY:
@@ -419,11 +421,11 @@ if __name__ == "__main__":
         draw_uncertainty_scatterplot(df_sample, png_file)
 
         # Filter for scans with high certainty and calculate their accuracy/results
-        df_sample['error'] = df_sample.apply(utils.avgerror, axis=1).abs()
+        df_sample['error'] = df_sample.apply(avgerror, axis=1).abs()
         df_sample_better_threshold = df_sample[df_sample['uncertainties'] < RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM]
         csv_file = f"{OUTPUT_CSV_PATH}/uncertainty_smaller_than_{RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM}cm_{RUN_ID}.csv"
         logging.info("Uncertainty: For more certain than %.2f cm, calculate and save the results to %s", RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM, csv_file)
-        utils.calculate_and_save_results(df_sample_better_threshold, EVAL_CONFIG.NAME, csv_file,
+        calculate_and_save_results(df_sample_better_threshold, EVAL_CONFIG.NAME, csv_file,
                                          DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 
     # Done.
