@@ -18,6 +18,7 @@ src/common/depthmap_toolkit/export/
 tmp_model_util/
 tmp_model_utils/
 tmp_eval/
+tmp_common/
 best_model.ckpt/
 best_model.h5
 

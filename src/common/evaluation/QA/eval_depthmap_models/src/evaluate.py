@@ -21,7 +21,30 @@ from tensorflow.keras.models import Sequential, load_model
 from tensorflow.python import keras
 
 from constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR
-from utils import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, HEIGHT_IDX, WEIGHT_IDX,
+
+# Get the current run.
+run = Run.get_context()
+
+if run.id.startswith("OfflineRun"):
+    common_dir_path = REPO_DIR / "src/common"
+    utils_paths = list(map(Path, glob.glob(os.path.join(common_dir_path, "*/*.py"))))
+    temp_common_dir = Path(__file__).parent / "tmp_common"
+    # Remove old temp_path
+    if os.path.exists(temp_common_dir):
+        shutil.rmtree(temp_common_dir)
+    # Copy
+    os.mkdir(temp_common_dir)
+    os.system(f'touch {temp_common_dir}/__init__.py')
+    for p in utils_paths:
+        print(p)
+        destpath = temp_common_dir / p.relative_to(common_dir_path)
+        destpath.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(p, destpath)
+
+from tmp_common.model_utils.preprocessing import create_samples  # noqa: E402, F401
+from tmp_common.model_utils.preprocessing_multiartifact import create_multiartifact_sample  # noqa: E402, F401
+from tmp_common.evaluation.uncertainty_utils import get_prediction_uncertainty
+from tmp_common.evaluation.eval_utilities import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, HEIGHT_IDX, WEIGHT_IDX,
                    COLUMN_NAME_SEX, GOODBAD_IDX, GOODBAD_DICT, SEX_IDX, avgerror,
                    calculate_performance, calculate_performance_age,
                    calculate_performance_goodbad, calculate_performance_sex,
@@ -87,19 +110,6 @@ def prepare_sample_dataset(df_sample, dataset_path):
     return dataset_sample
 
 
-def predict_uncertainty(X: np.array, model: tf.keras.Model) -> float:
-    """Predict standard deviation of multiple predictions with different dropouts
-    Args:
-        X: Sample image with shape (1, h, w, 1)
-        model: keras model
-
-    Returns:
-        The standard deviation of multiple predictions
-    """
-    one_batch = np.repeat(X, RESULT_CONFIG.NUM_DROPOUT_PREDICTIONS, axis=0)
-    predictions = model(one_batch, training=True)
-    std = tf.math.reduce_std(predictions)
-    return std
 
 
 def get_prediction_multiartifact(model_path: str, samples_paths: List[List[str]]) -> List[List[str]]:
@@ -158,25 +168,6 @@ if __name__ == "__main__":
     # Make experiment reproducible
     tf.random.set_seed(EVAL_CONFIG.SPLIT_SEED)
     random.seed(EVAL_CONFIG.SPLIT_SEED)
-
-    # Get the current run.
-    run = Run.get_context()
-
-    if run.id.startswith("OfflineRun"):
-        utils_dir_path = REPO_DIR / "src/common/model_utils"
-        utils_paths = glob.glob(os.path.join(utils_dir_path, "*.py"))
-        temp_model_utils_dir = Path(__file__).parent / "tmp_model_utils"
-        # Remove old temp_path
-        if os.path.exists(temp_model_utils_dir):
-            shutil.rmtree(temp_model_utils_dir)
-        # Copy
-        os.mkdir(temp_model_utils_dir)
-        os.system(f'touch {temp_model_utils_dir}/__init__.py')
-        for p in utils_paths:
-            shutil.copy(p, temp_model_utils_dir)
-
-    from tmp_model_utils.preprocessing import create_samples  # noqa: E402, F401
-    from tmp_model_utils.preprocessing_multiartifact import create_multiartifact_sample  # noqa: E402, F401
 
     OUTPUT_CSV_PATH = str(REPO_DIR / 'data'
                           / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
@@ -369,7 +360,7 @@ if __name__ == "__main__":
         dataset_sample = prepare_sample_dataset(df_sample, dataset_path)
 
         # Predict uncertainty
-        uncertainties = get_prediction_uncertainty(model_path, dataset_sample)
+        uncertainties = get_prediction_uncertainty(model_path, dataset_sample, RESULT_CONFIG.DROPOUT_STRENGTH, RESULT_CONFIG.NUM_DROPOUT_PREDICTIONS)
         assert len(df_sample) == len(uncertainties)
         df_sample['uncertainties'] = uncertainties
 
