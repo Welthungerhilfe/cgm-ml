@@ -86,9 +86,8 @@ assert len(qrcode_paths) != 0
 random.seed(CONFIG.SPLIT_SEED)
 random.shuffle(qrcode_paths)
 split_index = int(len(qrcode_paths) * 0.8)
-qrcode_paths_training = qrcode_paths[:split_index][:10]
-
-qrcode_paths_validate = qrcode_paths[split_index:][:10]
+qrcode_paths_training = qrcode_paths[:split_index]
+qrcode_paths_validate = qrcode_paths[split_index:]
 
 del qrcode_paths
 
@@ -129,10 +128,6 @@ dataset = tf.data.Dataset.from_tensor_slices(paths)  # TensorSliceDataset  # Lis
 dataset = dataset.cache()
 dataset = dataset.repeat(CONFIG.N_REPEAT_DATASET)
 
-ds = dataset.take(1)
-aaa = list(ds.as_numpy_iterator())[0]
-tf_load_pickle(aaa)
-
 dataset = dataset.map(
     lambda path: tf_load_pickle(paths=path),
     tf.data.experimental.AUTOTUNE
@@ -148,7 +143,7 @@ dataset_training = dataset
 # Note: No shuffle necessary.
 paths = paths_validate
 dataset = tf.data.Dataset.from_tensor_slices(paths)
-dataset_norm = dataset.map(lambda path: tf_load_pickle(paths=path), tf.data.experimental.AUTOTUNE)
+dataset_norm = dataset.map(lambda path: tf_load_pickle(path), tf.data.experimental.AUTOTUNE)
 dataset_norm = dataset_norm.cache()
 dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
 dataset_validation = dataset_norm
