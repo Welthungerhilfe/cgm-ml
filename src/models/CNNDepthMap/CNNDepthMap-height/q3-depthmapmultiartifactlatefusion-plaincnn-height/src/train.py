@@ -114,7 +114,7 @@ def tf_load_pickle(path):
               CONFIG.NORMALIZATION_VALUE,
               CONFIG.IMAGE_TARGET_HEIGHT,
               CONFIG.IMAGE_TARGET_WIDTH,
-              np.array(CONFIG.TARGET_INDEXES),
+              tf.constant(CONFIG.TARGET_INDEXES),
               CONFIG.N_ARTIFACTS]
     depthmap, targets = tf.py_function(create_multiartifact_sample, params, [tf.float32, tf.float32])
     depthmap.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, CONFIG.N_ARTIFACTS))

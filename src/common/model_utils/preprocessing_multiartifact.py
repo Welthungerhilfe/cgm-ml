@@ -13,7 +13,7 @@ def create_multiartifact_sample(artifacts: List[str],
                                 normalization_value: float,
                                 image_target_height: int,
                                 image_target_width: int,
-                                targets_indices: Union[tf.Tensor, list],
+                                targets_indices: tf.Tensor,
                                 n_artifacts: int,
                                 ) -> Tuple[tf.Tensor, tf.Tensor]:
     """Open pickle files and load data.
@@ -43,7 +43,7 @@ def _py_load_pickle(path: Union[tf.Tensor, str],
                     normalization_value: float,
                     image_target_height: int,
                     image_target_width: int,
-                    targets_indices: Union[tf.Tensor, list],
+                    targets_indices: tf.Tensor,
                     ) -> Tuple[Union[tf.Tensor, np.array], Union[tf.Tensor, np.array]]:
     path_ = path if isinstance(path, str) else path.numpy()
     try:
@@ -64,9 +64,9 @@ def _preprocess_depthmap(depthmap: Union[tf.Tensor, np.array]) -> Union[tf.Tenso
 
 
 def _preprocess_targets(targets: Union[tf.Tensor, np.array],
-                        targets_indices_: Union[tf.Tensor, list],
+                        targets_indices_: tf.Tensor,
                         ) -> Union[tf.Tensor, np.array]:
-    targets_indices = targets_indices_ if isinstance(targets_indices_, list) else targets_indices_.numpy().tolist()
+    targets_indices = targets_indices_.numpy().tolist()
     if targets_indices is not None:
         targets = targets[targets_indices]
     return targets.astype("float32")

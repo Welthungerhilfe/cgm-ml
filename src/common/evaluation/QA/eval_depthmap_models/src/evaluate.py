@@ -156,7 +156,7 @@ def get_prediction_multiartifact(model_path: str, samples_paths: List[List[str]]
                                                         DATA_CONFIG.NORMALIZATION_VALUE,
                                                         DATA_CONFIG.IMAGE_TARGET_HEIGHT,
                                                         DATA_CONFIG.IMAGE_TARGET_WIDTH,
-                                                        DATA_CONFIG.TARGET_INDEXES,
+                                                        tf.constant(DATA_CONFIG.TARGET_INDEXES),
                                                         DATA_CONFIG.N_ARTIFACTS)
         depthmaps = tf.stack([depthmap])
         pred = model.predict(depthmaps)
