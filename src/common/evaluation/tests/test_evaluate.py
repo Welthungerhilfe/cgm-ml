@@ -1,12 +1,9 @@
-# import numpy as np
 from pathlib import Path
 import sys
-# import tensorflow as tf
 
-sys.path.append(str(Path(__file__).parents[1]))
-sys.path.append(str(Path(__file__).parents[5]))  # common
+sys.path.append(str(Path(__file__).parents[2]))  # common
 
-from evaluate import change_dropout_strength  # noqa: E402
+from evaluation.uncertainty_utils import change_dropout_strength  # noqa: E402
 from model_utils.utils import create_base_cnn  # noqa: E402
 
 
