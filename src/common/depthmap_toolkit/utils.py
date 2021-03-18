@@ -43,6 +43,7 @@ def matrix_calculate(position: list, rotation: list) -> list:
     output[14] = position[2]
     return output
 
+
 def matrix_transform_point(point: list, matrix: list) -> list:
     """Transformation of point by matrix"""
     output = [ 0, 0, 0, 1 ]
