@@ -8,10 +8,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 def matrix_calculate(position: list, rotation: list) -> list:
     """Calculate a matrix image->world from device position and rotation"""
 
-    output = [ 1, 0, 0, 0,
-               0, 1, 0, 0,
-               0, 0, 1, 0,
-               0, 0, 0, 1]
+    output = [1, 0, 0, 0,
+              0, 1, 0, 0,
+              0, 0, 1, 0,
+              0, 0, 0, 1]
 
     sqw = rotation[3] * rotation[3]
     sqx = rotation[0] * rotation[0]
