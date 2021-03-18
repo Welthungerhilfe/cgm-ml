@@ -15,7 +15,6 @@ from azureml.core.compute_target import ComputeTargetException
 from azureml.core.run import Run
 from azureml.train.dnn import TensorFlow
 
-from src.utils import download_model
 from src.constants import REPO_DIR, DEFAULT_CONFIG
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
@@ -49,15 +48,22 @@ if __name__ == "__main__":
         shutil.copy(p, temp_path)
     logging.info("Done.")
 
-    utils_dir_path = REPO_DIR / "src/common/model_utils"
-    utils_paths = glob.glob(os.path.join(utils_dir_path, "*.py"))
-    temp_model_utils_dir = Path(temp_path) / "tmp_model_utils"
-    if os.path.exists(temp_model_utils_dir):
-        shutil.rmtree(temp_model_utils_dir)
-    os.mkdir(temp_model_utils_dir)
-    os.system(f'touch {temp_model_utils_dir}/__init__.py')
+    common_dir_path = REPO_DIR / "src/common"
+    utils_paths = list(map(Path, glob.glob(os.path.join(common_dir_path, "*/*.py"))))
+    temp_common_dir = Path(__file__).parent / "tmp_common"
+    # Remove old temp_path
+    if os.path.exists(temp_common_dir):
+        shutil.rmtree(temp_common_dir)
+    # Copy
+    os.mkdir(temp_common_dir)
+    os.system(f'touch {temp_common_dir}/__init__.py')
     for p in utils_paths:
-        shutil.copy(p, temp_model_utils_dir)
+        print(p)
+        destpath = temp_common_dir / p.relative_to(common_dir_path)
+        destpath.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(p, destpath)
+
+    from tmp_common.evaluation.eval_utilities import download_model  # noqa: E402, F401
 
     ws = Workspace.from_config()
 

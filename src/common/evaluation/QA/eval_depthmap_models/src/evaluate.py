@@ -34,7 +34,6 @@ if run.id.startswith("OfflineRun"):
     os.mkdir(temp_common_dir)
     os.system(f'touch {temp_common_dir}/__init__.py')
     for p in utils_paths:
-        print(p)
         destpath = temp_common_dir / p.relative_to(common_dir_path)
         destpath.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(p, destpath)
