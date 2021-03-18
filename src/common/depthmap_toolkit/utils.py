@@ -4,6 +4,7 @@ import numpy as np
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
+
 def matrix_calculate(position: list, rotation: list) -> list:
     """Calculate a matrix image->world from device position and rotation"""
 
