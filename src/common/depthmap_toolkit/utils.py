@@ -78,7 +78,7 @@ def convert_2d_to_3d_oriented(intrisics: list, x: float, y: float, z: float) -> 
             res = [-res[0], -res[1], res[2]]
             res = matrix_transform_point(res, matrix)
         except NameError:
-            i = 0
+            pass
     return res
 
 
