@@ -58,6 +58,7 @@ def matrix_transform_point(point: list, matrix: list) -> list:
     output[3] = 1
     return output
 
+
 def convert2Dto3D(intrisics: list, x: float, y: float, z: float) -> list:
     """Convert point in pixels into point in meters"""
     fx = intrisics[0] * float(width)
