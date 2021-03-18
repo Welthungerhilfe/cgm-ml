@@ -38,9 +38,9 @@ def matrix_calculate(position: list, rotation: list) -> list:
     output[6] = 2.0 * (tmp1 + tmp2) * invs
     output[9] = 2.0 * (tmp1 - tmp2) * invs
 
-    output[12] = position[0]
-    output[13] = position[1]
-    output[14] = position[2]
+    output[12] = -position[0]
+    output[13] = -position[1]
+    output[14] = -position[2]
     return output
 
 
@@ -75,8 +75,9 @@ def convert_2d_to_3d_oriented(intrisics: list, x: float, y: float, z: float) -> 
     res = convert2Dto3D(calibration[1], x, y, z)
     if res:
         try:
-            res = [-res[0], -res[1], res[2]]
+            res = [-res[0], res[1], res[2]]
             res = matrix_transform_point(res, matrix)
+            res = [res[0], -res[1], res[2]]
         except NameError:
             pass
     return res
