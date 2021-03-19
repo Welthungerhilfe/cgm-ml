@@ -48,9 +48,10 @@ if __name__ == "__main__":
         shutil.copy(p, temp_path)
     logging.info("Done.")
 
+    # Copy common into the temp folder
     common_dir_path = REPO_DIR / "src/common"
     utils_paths = list(map(Path, glob.glob(os.path.join(common_dir_path, "*/*.py"))))
-    temp_common_dir = temp_path / "src/tmp_common"
+    temp_common_dir = temp_path / "tmp_common"
     # Remove old temp_path
     if os.path.exists(temp_common_dir):
         shutil.rmtree(temp_common_dir)
@@ -64,7 +65,7 @@ if __name__ == "__main__":
         destpath.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(p, destpath)
 
-    from src.tmp_common.evaluation.eval_utilities import download_model  # noqa: E402, F401
+    from tmp_eval.tmp_common.evaluation.eval_utilities import download_model  # noqa: E402, F401
 
     ws = Workspace.from_config()
 
