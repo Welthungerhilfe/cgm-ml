@@ -52,15 +52,15 @@ if __name__ == "__main__":
     FILTER_CONFIG = qa_config.FILTER_CONFIG if getattr(qa_config, 'FILTER_CONFIG', False) else None
 
     # Copy src/ dir
-    temp_path = CWD / "tmp_eval"
+    temp_path = CWD / "temp_eval"
     copy_dir(src=CWD / "src", tgt=temp_path, glob_pattern='*.py')
 
     # Copy common into the temp folder
     common_dir_path = REPO_DIR / "src/common"
-    temp_common_dir = temp_path / "tmp_common"
+    temp_common_dir = temp_path / "temp_common"
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
-    from tmp_eval.tmp_common.evaluation.eval_utilities import download_model  # noqa: E402, F401
+    from temp_eval.temp_common.evaluation.eval_utilities import download_model  # noqa: E402, F401
 
     workspace = Workspace.from_config()
 

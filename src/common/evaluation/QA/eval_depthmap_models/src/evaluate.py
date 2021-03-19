@@ -44,28 +44,28 @@ if run.id.startswith("OfflineRun"):
 
     # Copy common into the temp folder
     common_dir_path = REPO_DIR / "src/common"
-    temp_common_dir = Path(__file__).parent / "tmp_common"
+    temp_common_dir = Path(__file__).parent / "temp_common"
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
-from tmp_common.evaluation.constants_eval import (  # noqa: E402, F401
+from temp_common.evaluation.constants_eval import (  # noqa: E402, F401
     AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, COLUMN_NAME_SEX,
     GOODBAD_DICT, GOODBAD_IDX, HEIGHT_IDX, SEX_IDX, WEIGHT_IDX)
-from tmp_common.evaluation.eval_utils import (  # noqa: E402, F401
+from temp_common.evaluation.eval_utils import (  # noqa: E402, F401
     avgerror, extract_qrcode,
     extract_scantype, preprocess_depthmap, preprocess_targets
 )
-from tmp_common.evaluation.eval_utilities import (  # noqa: E402, F401
+from temp_common.evaluation.eval_utilities import (  # noqa: E402, F401
     calculate_and_save_results, calculate_performance2,
     calculate_performance_age, calculate_performance_goodbad,
     calculate_performance_sex, download_dataset, draw_age_scatterplot,
     draw_stunting_diagnosis, draw_uncertainty_goodbad_plot,
     draw_uncertainty_scatterplot, draw_wasting_diagnosis, filter_dataset_according_to_standing_lying, get_column_list, get_dataset_path,
     get_depthmap_files, get_model_path)
-from tmp_common.evaluation.uncertainty_utils import \
+from temp_common.evaluation.uncertainty_utils import \
     get_prediction_uncertainty  # noqa: E402, F401
-from tmp_common.model_utils.preprocessing import \
+from temp_common.model_utils.preprocessing import \
     create_multiartifact_samples  # noqa: E402, F401
-from tmp_common.model_utils.preprocessing_multiartifact import \
+from temp_common.model_utils.preprocessing_multiartifact import \
     create_multiartifact_sample  # noqa: E402, F401
 
 
@@ -270,17 +270,17 @@ if __name__ == "__main__":
 
         dataset_norm = dataset_norm.cache()
         dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
-        tmp_dataset_evaluation = dataset_norm
+        temp_dataset_evaluation = dataset_norm
         del dataset_norm
         logging.info("Created dataset for training.")
 
         # Update new_paths_evaluation after filtering
-        dataset_paths = tmp_dataset_evaluation.map(lambda path, _depthmap, _targets: path)
+        dataset_paths = temp_dataset_evaluation.map(lambda path, _depthmap, _targets: path)
         list_paths = list(dataset_paths.as_numpy_iterator())
         new_paths_evaluation = [x.decode() for x in list_paths]
 
-        dataset_evaluation = tmp_dataset_evaluation.map(lambda _path, depthmap, targets: (depthmap, targets))
-        del tmp_dataset_evaluation
+        dataset_evaluation = temp_dataset_evaluation.map(lambda _path, depthmap, targets: (depthmap, targets))
+        del temp_dataset_evaluation
 
         prediction_list_one = get_prediction(model_path, dataset_evaluation)
         logging.info("Prediction made by model on the depthmaps...")

@@ -17,8 +17,8 @@ def test_draw_uncertainty_goodbad_plot():
     goodbad = [1.0, 0.0, 1.0, 0.0, 0.0]
 
     df = pd.DataFrame(list(zip(uncertainties, goodbad)), columns=['uncertainties', COLUMN_NAME_GOODBAD])
-    with tempfile.NamedTemporaryFile() as tmp:
-        draw_uncertainty_goodbad_plot(df, tmp.name)
+    with tempfile.NamedTemporaryFile() as temp:
+        draw_uncertainty_goodbad_plot(df, temp.name)
 
 
 def test_calculate_percentage_confusion_matrix():
