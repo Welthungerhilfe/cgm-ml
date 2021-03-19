@@ -411,7 +411,7 @@ def download_model(ws, experiment_name, run_id, input_location, output_location)
     logging.info("Successfully downloaded model")
 
 
-def filter_dataset(paths_evaluation, standing):
+def filter_dataset_according_to_standing_lying(paths_evaluation, standing):
     new_paths_evaluation = []
     exc = []
     for p in paths_evaluation:

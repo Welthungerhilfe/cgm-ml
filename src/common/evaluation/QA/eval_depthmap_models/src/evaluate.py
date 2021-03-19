@@ -55,7 +55,7 @@ from tmp_common.evaluation.eval_utilities import (  # noqa: E402, F401
     calculate_performance_sex, download_dataset, draw_age_scatterplot,
     draw_stunting_diagnosis, draw_uncertainty_goodbad_plot,
     draw_uncertainty_scatterplot, draw_wasting_diagnosis, extract_qrcode,
-    extract_scantype, filter_dataset, get_column_list, get_dataset_path,
+    extract_scantype, filter_dataset_according_to_standing_lying, get_column_list, get_dataset_path,
     get_depthmap_files, get_model_path, preprocess_depthmap,
     preprocess_targets)
 from tmp_common.evaluation.uncertainty_utils import \
@@ -252,7 +252,7 @@ if __name__ == "__main__":
 
         if FILTER_CONFIG is not None and FILTER_CONFIG.IS_ENABLED:
             standing = load_model(FILTER_CONFIG.NAME)
-            new_paths_evaluation = filter_dataset(paths_evaluation, standing)
+            new_paths_evaluation = filter_dataset_according_to_standing_lying(paths_evaluation, standing)
 
         logging.info("Creating dataset for training.")
         paths = new_paths_evaluation
