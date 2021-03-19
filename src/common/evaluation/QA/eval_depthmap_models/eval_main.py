@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     common_dir_path = REPO_DIR / "src/common"
     utils_paths = list(map(Path, glob.glob(os.path.join(common_dir_path, "*/*.py"))))
-    temp_common_dir = Path(__file__).parent / "tmp_common"
+    temp_common_dir = Path(__file__).parent / "src/tmp_common"
     # Remove old temp_path
     if os.path.exists(temp_common_dir):
         shutil.rmtree(temp_common_dir)
