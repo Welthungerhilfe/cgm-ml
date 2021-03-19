@@ -61,6 +61,10 @@ This Exploratory Data Analysis (EDA) notebook provide the data analysis of the [
 
 This Exploratory Data Analysis (EDA) notebook provide the data analysis of the [anon-realtime-evaluation](https://ml.azure.com/dataset/anon-realtime-evaluation/latest/details?wsid=/subscriptions/9b82ecea-6780-4b85-8acf-d27d79028f07/resourceGroups/cgm-ml-prod/providers/Microsoft.MachineLearningServices/workspaces/cgm-azureml-prod&tid=006dabd7-456d-465b-a87f-f7d557e319c8). The dataset contains 3000 scans of children in depthmap, Pointclouds and RGB format.
 
+### anon-rgbd-5k
+
+This Exploratory Data Analysis (EDA) notebook provide the data analysis of the [anon-rgbd-5k](https://ml.azure.com/dataset/anon-rgbd-5k/latest/details?wsid=/subscriptions/9b5bbfae-d5d1-4aae-a2ca-75159c0c887d/resourceGroups/cgm-ml-prod-we-rg/providers/Microsoft.MachineLearningServices/workspaces/cgm-ml-prod-we-azml&tid=3a27c573-ec1a-4734-9cd3-3208af51794b). The dataset contains 5534 scans of children in RGBD format.
+
 
 ## Getting started
 

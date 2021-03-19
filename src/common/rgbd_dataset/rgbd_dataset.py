@@ -1,11 +1,15 @@
 import zipfile
 import pickle
+import os
+import multiprocessing
+import json
+
 import numpy as np
 import cv2 as cv
 from glob2 import glob
 from pathlib import Path
-import os
-import multiprocessing
+import pandas as pd 
+from glob import glob1
 
 TARGET_HEIGHT = 180
 TARGET_WIDTH = 240
@@ -67,27 +71,39 @@ def image_resize(image_path):
     image_rotated = cv.resize(image_rotated,(TARGET_HEIGHT,TARGET_WIDTH))
     return image_rotated
 
+def read_json(filepath):
+    with open(filepath) as json_data:
+        label_data = json.load(json_data)
+    return label_data
+
 source_file =f'{SOURCE_PATH}/qrcode/**/depth/'
-print("Globbing data")
-depth_files = glob(source_file)
-for depthmaps in depth_files:
-    print("depthmap :",depthmaps)
+source_file =f'{SOURCE_PATH}'
+dataset_list = []
+proc = multiprocessing.Pool()
+for elem in Path(source_file).rglob('*/depth'):
+    proc.apply_async(dataset_list.append(elem))
+proc.close()
+proc.join() # Wait for all child processes to close
+
+def process_depthmap(depthmaps):
     split_path  = depthmaps.split('/depth')[0]
-    print("split_path :",split_path)
     json_path = f'{split_path}/targets.json'
-    with open(json_path) as f:
-        data = json.load(f)
-    labels = np.array([data['height'],data['weight'],data['muac'],data['age'],data['sex']])
-    qrcode = depthmaps.split('/')[2]
+    label_data = read_json(json_path)
+    print('target:',label_data)
+    labels = np.array([label_data['height'],label_data['weight'],label_data['muac'],label_data['age'],label_data['sex']])
+    qrcode = depthmaps.split('/')[5]
     base_path = f'{split_path}/'
-    qrcode_path = f'{TARGET}/{qrcode}'
+    qrcode_path = f'{TARGET_PATH}/{qrcode}'
     Path(qrcode_path).mkdir(parents=True, exist_ok=True)
     rgb_path = f'{split_path}/rgb'
     rgb_list = glob1(rgb_path,'*.jpg')
     abs_depth_path = f'{depthmaps}/*.depth'
     depthmap_files = glob(abs_depth_path)
     for unique_depthmaps in depthmap_files:
-        depthmap_image_path, image_path = check_corrspondence(unique_depthmaps,rgb_list)
+        try:
+            depthmap_image_path, image_path = check_corrspondence(unique_depthmaps,rgb_list)
+        except:
+            continue
         scan_type = image_path.split('_')[3]
         artifact_name = image_path.split('rgb_')[1]
         scan_type_path = f'{qrcode_path}/{scan_type}'
@@ -101,13 +117,13 @@ for depthmaps in depth_files:
         pickled_data = (resized_image,depthmap_huawei[0],labels)
         pickle.dump(pickled_data, open(full_path, "wb"))
 
-
 proc = multiprocessing.Pool()
-for files in datas:
+for depthimages in dataset_list:
+    # process_depthmap(depthimages)
     # launch a process for each file (ish).
     # The result will be approximately one process per CPU core available.
-    proc.apply_async(process_file, [files]) 
+    proc.apply_async(process_depthmap, [depthimages]) 
 
-p.close()
-p.join() # Wait for all child processes to close
+proc.close()
+proc.join() # Wait for all child processes to close
 
