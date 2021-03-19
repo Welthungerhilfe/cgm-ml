@@ -7,9 +7,9 @@ from azureml.core import Dataset, Workspace
 
 
 def getMountContext(path):
-    ws = Workspace.from_config()
-    ws
-    dataset = Dataset.get_by_name(ws, name=path)
+    workspace = Workspace.from_config()
+    workspace
+    dataset = Dataset.get_by_name(workspace, name=path)
     type(dataset)
 
     mount_context = dataset.mount()

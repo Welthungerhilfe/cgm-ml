@@ -28,15 +28,15 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    ws = Workspace(subscription_id=args.subscription_id,
-                   resource_group=args.resource_group,
-                   workspace_name=args.workspace_name,
-                   auth=get_auth())
+    workspace = Workspace(subscription_id=args.subscription_id,
+                          resource_group=args.resource_group,
+                          workspace_name=args.workspace_name,
+                          auth=get_auth())
 
     logging.info("Workspace Details")
-    logging.info(ws.get_details())
+    logging.info(workspace.get_details())
 
     logging.info("Success of Authentication and Workspace Setup")
 
-    ws.write_config()
+    workspace.write_config()
     logging.info("Saved config file")

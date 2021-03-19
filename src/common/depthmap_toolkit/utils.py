@@ -5,19 +5,58 @@ import numpy as np
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
-def quaternion_mult(q: list, r: list) -> list:
-    """Multiplication of 2 quaternions"""
-    return [r[0] * q[0] - r[1] * q[1] - r[2] * q[2] - r[3] * q[3],
-            r[0] * q[1] + r[1] * q[0] - r[2] * q[3] + r[3] * q[2],
-            r[0] * q[2] + r[1] * q[3] + r[2] * q[0] - r[3] * q[1],
-            r[0] * q[3] - r[1] * q[2] + r[2] * q[1] + r[3] * q[0]]
+def matrix_calculate(position: list, rotation: list) -> list:
+    """Calculate a matrix image->world from device position and rotation"""
+
+    output = [1, 0, 0, 0,
+              0, 1, 0, 0,
+              0, 0, 1, 0,
+              0, 0, 0, 1]
+
+    sqw = rotation[3] * rotation[3]
+    sqx = rotation[0] * rotation[0]
+    sqy = rotation[1] * rotation[1]
+    sqz = rotation[2] * rotation[2]
+
+    invs = 1 / (sqx + sqy + sqz + sqw)
+    output[0] = (sqx - sqy - sqz + sqw) * invs
+    output[5] = (-sqx + sqy - sqz + sqw) * invs
+    output[10] = (-sqx - sqy + sqz + sqw) * invs
+
+    tmp1 = rotation[0] * rotation[1]
+    tmp2 = rotation[2] * rotation[3]
+    output[1] = 2.0 * (tmp1 + tmp2) * invs
+    output[4] = 2.0 * (tmp1 - tmp2) * invs
+
+    tmp1 = rotation[0] * rotation[2]
+    tmp2 = rotation[1] * rotation[3]
+    output[2] = 2.0 * (tmp1 - tmp2) * invs
+    output[8] = 2.0 * (tmp1 + tmp2) * invs
+
+    tmp1 = rotation[1] * rotation[2]
+    tmp2 = rotation[0] * rotation[3]
+    output[6] = 2.0 * (tmp1 + tmp2) * invs
+    output[9] = 2.0 * (tmp1 - tmp2) * invs
+
+    output[12] = -position[0]
+    output[13] = -position[1]
+    output[14] = -position[2]
+    return output
 
 
-def point_rotation_by_quaternion(point: list, q: list) -> list:
-    """Apply rotation to point in 3D space"""
-    r = [0] + point
-    q_conj = [q[0], -q[1], -q[2], -q[3]]
-    return quaternion_mult(quaternion_mult(q, r), q_conj)[1:]
+def matrix_transform_point(point: list, matrix: list) -> list:
+    """Transformation of point by matrix"""
+    output = [0, 0, 0, 1]
+    output[0] = point[0] * matrix[0] + point[1] * matrix[4] + point[2] * matrix[8] + matrix[12]
+    output[1] = point[0] * matrix[1] + point[1] * matrix[5] + point[2] * matrix[9] + matrix[13]
+    output[2] = point[0] * matrix[2] + point[1] * matrix[6] + point[2] * matrix[10] + matrix[14]
+    output[3] = point[0] * matrix[3] + point[1] * matrix[7] + point[2] * matrix[11] + matrix[15]
+
+    output[0] /= abs(output[3])
+    output[1] /= abs(output[3])
+    output[2] /= abs(output[3])
+    output[3] = 1
+    return output
 
 
 def convert2Dto3D(intrisics: list, x: float, y: float, z: float) -> list:
@@ -36,11 +75,11 @@ def convert_2d_to_3d_oriented(intrisics: list, x: float, y: float, z: float) -> 
     res = convert2Dto3D(calibration[1], x, y, z)
     if res:
         try:
-            res = point_rotation_by_quaternion(res, rotation)
-            for i in range(0, 2):
-                res[i] = res[i] + position[i]
+            res = [-res[0], res[1], res[2]]
+            res = matrix_transform_point(res, matrix)
+            res = [res[0], -res[1], res[2]]
         except NameError:
-            i = 0
+            pass
     return res
 
 
@@ -95,7 +134,7 @@ def export_obj(filename, triangulate):
                         #check if the triangle size is valid (to prevent generating triangle connecting child and background)
                         if abs(d11 - d10) + abs(d11 - d01) + abs(d10 - d01) < maxDiff:
                             file.write('f ' + str(int(indices[x + 1][y + 1])) + ' ' + str(int(indices[x + 1][y])) + ' ' + str(int(indices[x][y + 1])) + '\n')
-        logging.info('Pointcloud exported into %s', filename)
+        logging.info('Mesh exported into %s', filename)
 
 
 def export_pcd(filename):
@@ -161,7 +200,7 @@ def parse_confidence(tx, ty):
 
 def parse_data(filename):
     """Parse depth data"""
-    global width, height, depthScale, maxConfidence, data, position, rotation
+    global width, height, depthScale, maxConfidence, data, matrix
     with open('data', 'rb') as file:
         line = file.readline().decode().strip()
         header = line.split('_')
@@ -172,7 +211,8 @@ def parse_data(filename):
         maxConfidence = float(header[2])
         if len(header) >= 10:
             position = (float(header[7]), float(header[8]), float(header[9]))
-            rotation = (float(header[4]), float(header[5]), float(header[6]), float(header[3]))
+            rotation = (float(header[3]), float(header[4]), float(header[5]), float(header[6]))
+            matrix = matrix_calculate(position, rotation)
         data = file.read()
         file.close()
 
