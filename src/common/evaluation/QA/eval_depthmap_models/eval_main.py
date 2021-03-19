@@ -1,7 +1,7 @@
 import argparse
-import os
 import logging
 import logging.config
+import os
 import shutil
 import time
 from importlib import import_module

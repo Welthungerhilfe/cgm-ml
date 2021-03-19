@@ -1,14 +1,14 @@
 import argparse
-import os
 import logging
 import logging.config
+import os
 import pickle
 import random
+import shutil
 import time
 from importlib import import_module
 from pathlib import Path
 from typing import List
-import shutil
 
 import glob2 as glob
 import numpy as np
@@ -47,21 +47,24 @@ if run.id.startswith("OfflineRun"):
     temp_common_dir = Path(__file__).parent / "tmp_common"
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
-from tmp_common.model_utils.preprocessing import create_samples  # noqa: E402, F401
-from tmp_common.model_utils.preprocessing_multiartifact import create_multiartifact_sample  # noqa: E402, F401
-from tmp_common.evaluation.uncertainty_utils import get_prediction_uncertainty  # noqa: E402, F401
-from tmp_common.evaluation.eval_utilities import (AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, HEIGHT_IDX,  # noqa: E402, F401
-                                                  WEIGHT_IDX,
-                                                  COLUMN_NAME_SEX, GOODBAD_IDX, GOODBAD_DICT, SEX_IDX, avgerror,
-                                                  calculate_performance, calculate_performance_age,
-                                                  calculate_performance_goodbad, calculate_performance_sex,
-                                                  download_dataset, draw_age_scatterplot, draw_stunting_diagnosis,
-                                                  draw_uncertainty_goodbad_plot, extract_scantype, extract_qrcode,
-                                                  get_dataset_path, draw_wasting_diagnosis,
-                                                  get_model_path, draw_uncertainty_scatterplot,
-                                                  get_depthmap_files, filter_dataset, get_column_list,
-                                                  calculate_and_save_results,
-                                                  preprocess_depthmap, preprocess_targets)
+from tmp_common.evaluation.eval_utilities import (  # noqa: E402, F401
+    AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, COLUMN_NAME_SEX,
+    GOODBAD_DICT, GOODBAD_IDX, HEIGHT_IDX, SEX_IDX, WEIGHT_IDX, avgerror,
+    calculate_and_save_results, calculate_performance,
+    calculate_performance_age, calculate_performance_goodbad,
+    calculate_performance_sex, download_dataset, draw_age_scatterplot,
+    draw_stunting_diagnosis, draw_uncertainty_goodbad_plot,
+    draw_uncertainty_scatterplot, draw_wasting_diagnosis, extract_qrcode,
+    extract_scantype, filter_dataset, get_column_list, get_dataset_path,
+    get_depthmap_files, get_model_path, preprocess_depthmap,
+    preprocess_targets)
+from tmp_common.evaluation.uncertainty_utils import \
+    get_prediction_uncertainty  # noqa: E402, F401
+from tmp_common.model_utils.preprocessing import \
+    create_samples  # noqa: E402, F401
+from tmp_common.model_utils.preprocessing_multiartifact import \
+    create_multiartifact_sample  # noqa: E402, F401
+
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
