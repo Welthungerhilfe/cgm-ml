@@ -135,5 +135,4 @@ def preprocess_targets(targets, targets_indices):
 
 
 def preprocess_depthmap(depthmap):
-    # TODO here be more code.
     return depthmap.astype("float32")

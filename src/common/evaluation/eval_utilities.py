@@ -21,30 +21,6 @@ from cgmzscore import Calculator  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
-DAYS_IN_YEAR = 365
-
-HEIGHT_IDX = 0
-WEIGHT_IDX = 1
-MUAC_IDX = 2
-AGE_IDX = 3
-SEX_IDX = 4
-GOODBAD_IDX = 5
-
-SEX_DICT = {'female': 0., 'male': 1.}
-GOODBAD_DICT = {'bad': 0., 'good': 1., 'delete': 2.}
-
-COLUMN_NAME_AGE = 'GT_age'
-COLUMN_NAME_SEX = 'GT_sex'
-COLUMN_NAME_GOODBAD = 'GT_goodbad'
-CODE_TO_SCANTYPE = {
-    '100': '_standingfront',
-    '101': '_standing360',
-    '102': '_standingback',
-    '200': '_lyingfront',
-    '201': '_lyingrot',
-    '202': '_lyingback',
-}
-
 MIN_HEIGHT = 45
 MAX_HEIGHT = 120
 MAX_AGE = 1856.0
@@ -74,26 +50,6 @@ def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str)
 
 def get_dataset_path(data_dir: Path, dataset_name: str):
     return str(data_dir / dataset_name)
-
-
-def preprocess_depthmap(depthmap):
-    # TODO here be more code.
-    return depthmap.astype("float32")
-
-
-def preprocess_targets(targets, targets_indices):
-    if SEX_IDX in targets_indices:
-        targets[SEX_IDX] = SEX_DICT[targets[SEX_IDX]]
-    if GOODBAD_IDX in targets_indices:
-        try:
-            targets[GOODBAD_IDX] = GOODBAD_DICT[targets[GOODBAD_IDX]]
-        except KeyError:
-            logging.info("Key %s not found in GOODBAD_DICT", targets[GOODBAD_IDX])
-            targets[GOODBAD_IDX] = GOODBAD_DICT['delete']  # unknown target values will be categorized as 'delete'
-
-    if targets_indices is not None:
-        targets = targets[targets_indices]
-    return targets.astype("float32")
 
 
 def get_depthmap_files(paths: List[str]) -> List[str]:
@@ -126,23 +82,7 @@ def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CO
     return qrcode_list, scan_type_list, artifact_list, prediction_list, target_list
 
 
-def extract_qrcode(row):
-    qrc = row['artifacts'].split('/')[-3]
-    return qrc
-
-
-def extract_scantype(row):
-    """https://dev.azure.com/cgmorg/ChildGrowthMonitor/_wiki/wikis/ChildGrowthMonitor.wiki/15/Codes-for-Pose-and-Scan-step"""
-    scans = row['artifacts'].split('/')[-2]
-    return scans
-
-
-def avgerror(row):
-    difference = row['GT'] - row['predicted']
-    return difference
-
-
-def calculate_performance(code, df_mae, result_config):
+def calculate_performance2(code, df_mae, result_config):
     """For a specific scantype, calculate the performance of the model on each error margin
     Args:
         code: e.g. '100'
@@ -360,9 +300,9 @@ def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
 
 
 def calculate_zscore_lhfa(df):
-    '''
+    """
     lhfa : length/height for age
-    '''
+    """
     cal = Calculator()
 
     def utils(age_in_days, height, sex):
@@ -394,9 +334,7 @@ def draw_wasting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
 
 
 def calculate_zscore_wfa(df):
-    '''
-    wfa: Weight for age
-    '''
+    """Weight for age"""
     cal = Calculator()
 
     def utils(age_in_days, weight, sex):

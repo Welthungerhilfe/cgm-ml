@@ -50,7 +50,7 @@ if run.id.startswith("OfflineRun"):
 from tmp_common.evaluation.eval_utilities import (  # noqa: E402, F401
     AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, COLUMN_NAME_SEX,
     GOODBAD_DICT, GOODBAD_IDX, HEIGHT_IDX, SEX_IDX, WEIGHT_IDX, avgerror,
-    calculate_and_save_results, calculate_performance,
+    calculate_and_save_results, calculate_performance2,
     calculate_performance_age, calculate_performance_goodbad,
     calculate_performance_sex, download_dataset, draw_age_scatterplot,
     draw_stunting_diagnosis, draw_uncertainty_goodbad_plot,
@@ -316,7 +316,7 @@ if __name__ == "__main__":
     csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
     logging.info("Calculate and save the results to %s", csv_file)
     calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
-                               DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
+                               DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance2)
 
     sample_csv_file = f"{OUTPUT_CSV_PATH}/inaccurate_scans_{RUN_ID}.csv"
     df_grouped.to_csv(sample_csv_file, index=True)
@@ -388,7 +388,7 @@ if __name__ == "__main__":
         csv_file = f"{OUTPUT_CSV_PATH}/uncertainty_smaller_than_{RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM}cm_{RUN_ID}.csv"
         logging.info("Uncertainty: For more certain than %.2f cm, calculate and save the results to %s", RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM, csv_file)
         calculate_and_save_results(df_sample_better_threshold, EVAL_CONFIG.NAME, csv_file,
-                                   DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
+                                   DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance2)
 
     # Done.
     run.complete()
