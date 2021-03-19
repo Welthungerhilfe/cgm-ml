@@ -47,17 +47,20 @@ if run.id.startswith("OfflineRun"):
     temp_common_dir = Path(__file__).parent / "tmp_common"
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
-from tmp_common.evaluation.eval_utilities import (  # noqa: E402, F401
+from tmp_common.evaluation.constants_eval import (  # noqa: E402, F401
     AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, COLUMN_NAME_SEX,
-    GOODBAD_DICT, GOODBAD_IDX, HEIGHT_IDX, SEX_IDX, WEIGHT_IDX, avgerror,
+    GOODBAD_DICT, GOODBAD_IDX, HEIGHT_IDX, SEX_IDX, WEIGHT_IDX)
+from tmp_common.evaluation.eval_utils import (  # noqa: E402, F401
+    avgerror, extract_qrcode,
+    extract_scantype, preprocess_depthmap, preprocess_targets
+)
+from tmp_common.evaluation.eval_utilities import (  # noqa: E402, F401
     calculate_and_save_results, calculate_performance2,
     calculate_performance_age, calculate_performance_goodbad,
     calculate_performance_sex, download_dataset, draw_age_scatterplot,
     draw_stunting_diagnosis, draw_uncertainty_goodbad_plot,
-    draw_uncertainty_scatterplot, draw_wasting_diagnosis, extract_qrcode,
-    extract_scantype, filter_dataset_according_to_standing_lying, get_column_list, get_dataset_path,
-    get_depthmap_files, get_model_path, preprocess_depthmap,
-    preprocess_targets)
+    draw_uncertainty_scatterplot, draw_wasting_diagnosis, filter_dataset_according_to_standing_lying, get_column_list, get_dataset_path,
+    get_depthmap_files, get_model_path)
 from tmp_common.evaluation.uncertainty_utils import \
     get_prediction_uncertainty  # noqa: E402, F401
 from tmp_common.model_utils.preprocessing import \
@@ -93,7 +96,7 @@ def tf_load_pickle(path, max_value):
     """Utility to load the depthmap pickle file"""
     def py_load_pickle(path, max_value):
         if FILTER_CONFIG is not None:
-            depthmap, targets, image = pickle.load(open(path.numpy(), "rb"))  # for filter (Contains RGBs)
+            depthmap, targets, _image = pickle.load(open(path.numpy(), "rb"))  # for filter (Contains RGBs)
         else:
             depthmap, targets = pickle.load(open(path.numpy(), "rb"))
         depthmap = preprocess_depthmap(depthmap)
