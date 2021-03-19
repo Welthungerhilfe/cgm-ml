@@ -477,7 +477,7 @@ def filter_dataset(paths_evaluation, standing):
     new_paths_evaluation = []
     exc = []
     for p in paths_evaluation:
-        depthmap, targets, image = pickle.load(open(p, "rb"))
+        _depthmap, _targets, image = pickle.load(open(p, "rb"))
         try:
             image = process_image(image)
             if standing.predict(image) > .9:
