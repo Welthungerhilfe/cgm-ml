@@ -50,15 +50,16 @@ if __name__ == "__main__":
 
     common_dir_path = REPO_DIR / "src/common"
     utils_paths = list(map(Path, glob.glob(os.path.join(common_dir_path, "*/*.py"))))
-    temp_common_dir = Path(__file__).parent / "src/tmp_common"
+    temp_common_dir = temp_path / "src/tmp_common"
     # Remove old temp_path
     if os.path.exists(temp_common_dir):
         shutil.rmtree(temp_common_dir)
     # Copy
-    os.mkdir(temp_common_dir)
+    temp_common_dir.mkdir(parents=True, exist_ok=True)
     os.system(f'touch {temp_common_dir}/__init__.py')
+    logging.info(f"Copying to {str(temp_common_dir)} the following files: {str(utils_paths)}")
     for p in utils_paths:
-        print(p)
+        logging.info(p)
         destpath = temp_common_dir / p.relative_to(common_dir_path)
         destpath.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(p, destpath)
