@@ -63,7 +63,7 @@ if __name__ == "__main__":
         destpath.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(p, destpath)
 
-    from tmp_common.evaluation.eval_utilities import download_model  # noqa: E402, F401
+    from src.tmp_common.evaluation.eval_utilities import download_model  # noqa: E402, F401
 
     ws = Workspace.from_config()
 
