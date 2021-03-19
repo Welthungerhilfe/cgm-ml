@@ -33,7 +33,7 @@ if run.id.startswith("OfflineRun"):
     for p in utils_paths:
         shutil.copy(p, temp_model_util_dir)
 
-from tmp_model_util.preprocessing import create_multiartifact_samples  # noqa: E402
+from tmp_model_util.preprocessing_multiartifact2 import create_multiartifact_samples  # noqa: E402
 from tmp_model_util.preprocessing_multiartifact import create_multiartifact_sample  # noqa: E402
 from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, create_head  # noqa: E402
 from model import get_base_model  # noqa: E402  # model.py relies on tmp_model_util
