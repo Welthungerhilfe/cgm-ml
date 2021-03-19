@@ -5,7 +5,6 @@ from pathlib import Path
 import pickle
 import tensorflow as tf
 
-from bunch import Bunch
 import pandas as pd
 
 from .constants_eval import (  # noqa: E402, F401

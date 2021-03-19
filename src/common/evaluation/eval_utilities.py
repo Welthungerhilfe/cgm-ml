@@ -19,10 +19,10 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt  # noqa: E402
 from cgmzscore import Calculator  # noqa: E402
 
-from .constants_eval import (  # noqa: E402, F401
-    AGE_IDX, CODE_TO_SCANTYPE, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, COLUMN_NAME_SEX, CONFIG, DAYS_IN_YEAR, EVALUATION_ACCURACIES,
-    GOODBAD_DICT, GOODBAD_IDX, HEIGHT_IDX, SEX_DICT, SEX_IDX, WEIGHT_IDX)
-from .eval_utils import avgerror, preprocess_targets
+from .constants_eval import (  # noqa: E402
+    CODE_TO_SCANTYPE, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, COLUMN_NAME_SEX, DAYS_IN_YEAR,
+    GOODBAD_DICT, SEX_DICT)
+from .eval_utils import avgerror, preprocess_targets  # noqa: E402
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
