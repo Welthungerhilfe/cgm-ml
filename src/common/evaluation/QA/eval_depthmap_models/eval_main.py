@@ -37,28 +37,28 @@ if __name__ == "__main__":
 
     # Create a temp folder
     code_dir = CWD / "src"
-    paths = glob.glob(os.path.join(code_dir, "*.py"))
+    paths = list(code_dir.glob('*.py'))
     logging.info("paths: %s", paths)
     logging.info("Creating temp folder...")
     temp_path = CWD / "tmp_eval"
-    if os.path.exists(temp_path):
+    if temp_path.exists():
         shutil.rmtree(temp_path)
-    os.mkdir(temp_path)
+    temp_path.mkdir(parents=True, exist_ok=True)
     for p in paths:
         shutil.copy(p, temp_path)
     logging.info("Done.")
 
     # Copy common into the temp folder
     common_dir_path = REPO_DIR / "src/common"
-    utils_paths = list(map(Path, glob.glob(os.path.join(common_dir_path, "*/*.py"))))
+    utils_paths = list(common_dir_path.glob('*/*.py'))
     temp_common_dir = temp_path / "tmp_common"
     # Remove old temp_path
-    if os.path.exists(temp_common_dir):
+    if temp_common_dir.exists():
         shutil.rmtree(temp_common_dir)
     # Copy
     temp_common_dir.mkdir(parents=True, exist_ok=True)
-    os.system(f'touch {temp_common_dir}/__init__.py')
-    logging.info(f"Copying to {str(temp_common_dir)} the following files: {str(utils_paths)}")
+    (temp_common_dir / '__init__.py').touch(exist_ok=False)
+    logging.info(f"Copying to {temp_common_dir} the following files: {str(utils_paths)}")
     for p in utils_paths:
         logging.info(p)
         destpath = temp_common_dir / p.relative_to(common_dir_path)
@@ -76,7 +76,7 @@ if __name__ == "__main__":
 
     MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if USE_LOCAL else temp_path
     logging.info('MODEL_BASE_DIR: %s', MODEL_BASE_DIR)
-    os.makedirs(MODEL_BASE_DIR, exist_ok=True)
+    MODEL_BASE_DIR.mkdir(parents=True, exist_ok=True)
 
     # Copy model to temp folder
     download_model(ws=ws,
