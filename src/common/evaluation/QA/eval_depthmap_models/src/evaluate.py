@@ -20,23 +20,32 @@ from tensorflow.keras.models import load_model
 
 from constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR
 
+
+def copy_dir(src: Path, tgt: Path, glob_pattern: str, should_touch_init: bool = False):
+    logging.info("Creating temp folder")
+    if tgt.exists():
+        shutil.rmtree(tgt)
+    tgt.mkdir(parents=True, exist_ok=True)
+    if should_touch_init:
+        (tgt / '__init__.py').touch(exist_ok=False)
+
+    paths_to_copy = list(src.glob(glob_pattern))
+    logging.info(f"Copying to {tgt} the following files: {str(paths_to_copy)}")
+    for p in paths_to_copy:
+        destpath = tgt / p.relative_to(src)
+        destpath.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(p, destpath)
+
+
 # Get the current run.
 run = Run.get_context()
 
 if run.id.startswith("OfflineRun"):
+
+    # Copy common into the temp folder
     common_dir_path = REPO_DIR / "src/common"
-    utils_paths = list(map(Path, glob.glob(os.path.join(common_dir_path, "*/*.py"))))
     temp_common_dir = Path(__file__).parent / "tmp_common"
-    # Remove old temp_path
-    if os.path.exists(temp_common_dir):
-        shutil.rmtree(temp_common_dir)
-    # Copy
-    os.mkdir(temp_common_dir)
-    os.system(f'touch {temp_common_dir}/__init__.py')
-    for p in utils_paths:
-        destpath = temp_common_dir / p.relative_to(common_dir_path)
-        destpath.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(p, destpath)
+    copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
 from tmp_common.model_utils.preprocessing import create_samples  # noqa: E402, F401
 from tmp_common.model_utils.preprocessing_multiartifact import create_multiartifact_sample  # noqa: E402, F401
