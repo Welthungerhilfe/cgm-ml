@@ -1,5 +1,4 @@
 import argparse
-import glob
 import os
 import logging
 import logging.config
@@ -24,7 +23,7 @@ CWD = Path(__file__).parent
 TAGS = {}
 
 
-def copy_dir(src: Path, tgt: Path, glob_pattern: str, should_touch_init: bool=False):
+def copy_dir(src: Path, tgt: Path, glob_pattern: str, should_touch_init: bool = False):
     logging.info("Creating temp folder")
     if tgt.exists():
         shutil.rmtree(tgt)
