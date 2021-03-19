@@ -23,6 +23,23 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 CWD = Path(__file__).parent
 TAGS = {}
 
+
+def copy_dir(src: Path, tgt: Path, glob_pattern: str, should_touch_init: bool=False):
+    logging.info("Creating temp folder")
+    if tgt.exists():
+        shutil.rmtree(tgt)
+    tgt.mkdir(parents=True, exist_ok=True)
+    if should_touch_init:
+        (tgt / '__init__.py').touch(exist_ok=False)
+
+    paths_to_copy = list(src.glob(glob_pattern))
+    logging.info(f"Copying to {tgt} the following files: {str(paths_to_copy)}")
+    for p in paths_to_copy:
+        destpath = tgt / p.relative_to(src)
+        destpath.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(p, destpath)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--qa_config_module", default=DEFAULT_CONFIG, help="Configuration file")
@@ -35,35 +52,14 @@ if __name__ == "__main__":
     RESULT_CONFIG = qa_config.RESULT_CONFIG
     FILTER_CONFIG = qa_config.FILTER_CONFIG if getattr(qa_config, 'FILTER_CONFIG', False) else None
 
-    # Create a temp folder
-    code_dir = CWD / "src"
-    paths = list(code_dir.glob('*.py'))
-    logging.info("paths: %s", paths)
-    logging.info("Creating temp folder...")
+    # Copy src/ dir
     temp_path = CWD / "tmp_eval"
-    if temp_path.exists():
-        shutil.rmtree(temp_path)
-    temp_path.mkdir(parents=True, exist_ok=True)
-    for p in paths:
-        shutil.copy(p, temp_path)
-    logging.info("Done.")
+    copy_dir(src=CWD / "src", tgt=temp_path, glob_pattern='*.py')
 
     # Copy common into the temp folder
     common_dir_path = REPO_DIR / "src/common"
-    utils_paths = list(common_dir_path.glob('*/*.py'))
     temp_common_dir = temp_path / "tmp_common"
-    # Remove old temp_path
-    if temp_common_dir.exists():
-        shutil.rmtree(temp_common_dir)
-    # Copy
-    temp_common_dir.mkdir(parents=True, exist_ok=True)
-    (temp_common_dir / '__init__.py').touch(exist_ok=False)
-    logging.info(f"Copying to {temp_common_dir} the following files: {str(utils_paths)}")
-    for p in utils_paths:
-        logging.info(p)
-        destpath = temp_common_dir / p.relative_to(common_dir_path)
-        destpath.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(p, destpath)
+    copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
     from tmp_eval.tmp_common.evaluation.eval_utilities import download_model  # noqa: E402, F401
 
