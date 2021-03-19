@@ -103,7 +103,7 @@ def calculate_performance2(code, df_mae, result_config):
     accuracy_list = []
     for acc in result_config.ACCURACIES:
         good_predictions = df_mae_filtered[(df_mae_filtered['error'] <= acc) & (df_mae_filtered['error'] >= -acc)]
-        if len(df_mae_filtered):
+        if len(df_mae_filtered) > 0:
             accuracy = len(good_predictions) / len(df_mae_filtered) * 100
         else:
             accuracy = 0.
@@ -150,7 +150,7 @@ def calculate_performance_sex(code: str, df_mae: pd.DataFrame, result_config: Bu
 
         selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
         good_predictions = df[selection]
-        if len(df):
+        if len(df) > 0:
             accuracy = len(good_predictions) / len(df) * 100
         else:
             accuracy = 0.
@@ -171,7 +171,7 @@ def calculate_performance_goodbad(code: str, df_mae: pd.DataFrame, result_config
 
         selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
         good_predictions = df[selection]
-        if len(df):
+        if len(df) > 0:
             accuracy = len(good_predictions) / len(df) * 100
         else:
             accuracy = 0.
@@ -197,7 +197,7 @@ def calculate_performance_age(code: str, df_mae: pd.DataFrame, result_config: Bu
 
         selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
         good_predictions = df[selection]
-        if len(df):
+        if len(df) > 0:
             accuracy = len(good_predictions) / len(df) * 100
         else:
             accuracy = 0.
