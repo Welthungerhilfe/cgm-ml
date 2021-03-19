@@ -316,48 +316,48 @@ if __name__ == "__main__":
 
     df_grouped['error'] = df_grouped.apply(avgerror, axis=1)
 
-    csv_file = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
-    logging.info("Calculate and save the results to %s", csv_file)
-    calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
+    csv_fpath = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
+    logging.info("Calculate and save the results to %s", csv_fpath)
+    calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
                                DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance2)
 
-    sample_csv_file = f"{OUTPUT_CSV_PATH}/inaccurate_scans_{RUN_ID}.csv"
-    df_grouped.to_csv(sample_csv_file, index=True)
+    sample_csv_fpath = f"{OUTPUT_CSV_PATH}/inaccurate_scans_{RUN_ID}.csv"
+    df_grouped.to_csv(sample_csv_fpath, index=True)
 
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
-        csv_file = f"{OUTPUT_CSV_PATH}/age_evaluation_{RUN_ID}.csv"
-        logging.info("Calculate and save age results to %s", csv_file)
-        calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
+        csv_fpath = f"{OUTPUT_CSV_PATH}/age_evaluation_{RUN_ID}.csv"
+        logging.info("Calculate and save age results to %s", csv_fpath)
+        calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
                                    DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
-        png_file = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{RUN_ID}.png"
-        logging.info("Calculate and save scatterplot results to %s", png_file)
-        draw_age_scatterplot(df, png_file)
+        png_fpath = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{RUN_ID}.png"
+        logging.info("Calculate and save scatterplot results to %s", png_fpath)
+        draw_age_scatterplot(df, png_fpath)
 
     if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and 'AGE_BUCKETS' in RESULT_CONFIG.keys():
-        png_file = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{RUN_ID}.png"
-        logging.info("Calculate zscores and save confusion matrix results to %s", png_file)
+        png_fpath = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{RUN_ID}.png"
+        logging.info("Calculate zscores and save confusion matrix results to %s", png_fpath)
         start = time.time()
-        draw_stunting_diagnosis(df, png_file)
+        draw_stunting_diagnosis(df, png_fpath)
         end = time.time()
         logging.info("Total time for Calculate zscores and save confusion matrix: %.2f", end - start)
 
     if WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and 'AGE_BUCKETS' in RESULT_CONFIG.keys():
-        png_file = f"{OUTPUT_CSV_PATH}/wasting_diagnosis_{RUN_ID}.png"
-        logging.info("Calculate and save wasting confusion matrix results to %s", png_file)
+        png_fpath = f"{OUTPUT_CSV_PATH}/wasting_diagnosis_{RUN_ID}.png"
+        logging.info("Calculate and save wasting confusion matrix results to %s", png_fpath)
         start = time.time()
-        draw_wasting_diagnosis(df, png_file)
+        draw_wasting_diagnosis(df, png_fpath)
         end = time.time()
         logging.info("Total time for Calculate zscores and save wasting confusion matrix: %.2f", end - start)
 
     if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
-        csv_file = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"
-        logging.info("Calculate and save sex results to %s", csv_file)
-        calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
+        csv_fpath = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"
+        logging.info("Calculate and save sex results to %s", csv_fpath)
+        calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
                                    DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_sex)
     if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
-        csv_file = f"{OUTPUT_CSV_PATH}/goodbad_evaluation_{RUN_ID}.csv"
-        logging.info("Calculate performance on bad/good scans and save results to %s", csv_file)
-        calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_file,
+        csv_fpath = f"{OUTPUT_CSV_PATH}/goodbad_evaluation_{RUN_ID}.csv"
+        logging.info("Calculate performance on bad/good scans and save results to %s", csv_fpath)
+        calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
                                    DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_goodbad)
 
     if RESULT_CONFIG.USE_UNCERTAINTY:
@@ -375,22 +375,22 @@ if __name__ == "__main__":
         assert len(df_sample) == len(uncertainties)
         df_sample['uncertainties'] = uncertainties
 
-        png_file = f"{OUTPUT_CSV_PATH}/uncertainty_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
-        draw_uncertainty_goodbad_plot(df_sample, png_file)
+        png_fpath = f"{OUTPUT_CSV_PATH}/uncertainty_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
+        draw_uncertainty_goodbad_plot(df_sample, png_fpath)
 
         df_sample_100 = df_sample.iloc[df_sample.index.get_level_values('scantype') == '100']
-        png_file = f"{OUTPUT_CSV_PATH}/uncertainty_code100_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
-        draw_uncertainty_goodbad_plot(df_sample_100, png_file)
+        png_fpath = f"{OUTPUT_CSV_PATH}/uncertainty_code100_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
+        draw_uncertainty_goodbad_plot(df_sample_100, png_fpath)
 
-        png_file = f"{OUTPUT_CSV_PATH}/uncertainty_scatter_distribution_{RUN_ID}.png"
-        draw_uncertainty_scatterplot(df_sample, png_file)
+        png_fpath = f"{OUTPUT_CSV_PATH}/uncertainty_scatter_distribution_{RUN_ID}.png"
+        draw_uncertainty_scatterplot(df_sample, png_fpath)
 
         # Filter for scans with high certainty and calculate their accuracy/results
         df_sample['error'] = df_sample.apply(avgerror, axis=1).abs()
         df_sample_better_threshold = df_sample[df_sample['uncertainties'] < RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM]
-        csv_file = f"{OUTPUT_CSV_PATH}/uncertainty_smaller_than_{RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM}cm_{RUN_ID}.csv"
-        logging.info("Uncertainty: For more certain than %.2f cm, calculate and save the results to %s", RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM, csv_file)
-        calculate_and_save_results(df_sample_better_threshold, EVAL_CONFIG.NAME, csv_file,
+        csv_fpath = f"{OUTPUT_CSV_PATH}/uncertainty_smaller_than_{RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM}cm_{RUN_ID}.csv"
+        logging.info("Uncertainty: For more certain than %.2f cm, calculate and save the results to %s", RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM, csv_fpath)
+        calculate_and_save_results(df_sample_better_threshold, EVAL_CONFIG.NAME, csv_fpath,
                                    DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance2)
 
     # Done.
