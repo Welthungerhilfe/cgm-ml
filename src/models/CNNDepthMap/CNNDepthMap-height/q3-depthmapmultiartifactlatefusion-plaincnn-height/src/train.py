@@ -33,7 +33,7 @@ if run.id.startswith("OfflineRun"):
     for p in utils_paths:
         shutil.copy(p, temp_model_util_dir)
 
-from tmp_model_util.preprocessing import create_samples  # noqa: E402
+from tmp_model_util.preprocessing import create_multiartifact_samples  # noqa: E402
 from tmp_model_util.preprocessing_multiartifact import create_multiartifact_sample  # noqa: E402
 from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, create_head  # noqa: E402
 from model import get_base_model  # noqa: E402  # model.py relies on tmp_model_util
@@ -99,10 +99,10 @@ logging.info('Nbr of qrcode_paths for validation: %d', len(qrcode_paths_validate
 
 assert len(qrcode_paths_training) > 0 and len(qrcode_paths_validate) > 0
 
-paths_training = create_samples(qrcode_paths_training, CONFIG)
+paths_training = create_multiartifact_samples(qrcode_paths_training, CONFIG)
 logging.info('Using %d files for training.', len(paths_training))
 
-paths_validate = create_samples(qrcode_paths_validate, CONFIG)
+paths_validate = create_multiartifact_samples(qrcode_paths_validate, CONFIG)
 logging.info('Using %d files for validation.', len(paths_validate))
 
 

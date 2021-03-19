@@ -22,7 +22,7 @@ REGEX_PICKLE = re.compile(
 )
 
 
-def create_samples(qrcode_paths: List[str], CONFIG) -> List[List[str]]:
+def create_multiartifact_samples(qrcode_paths: List[str], CONFIG) -> List[List[str]]:
     samples = []
     for qrcode_path in sorted(qrcode_paths):
         for code in CONFIG.CODES_FOR_POSE_AND_SCANSTEP:
