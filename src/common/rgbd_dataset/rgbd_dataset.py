@@ -108,15 +108,15 @@ def process_depthmap(depthmaps):
     for unique_depthmaps in depthmap_files:
         try:
             depthmap_image_path, image_path = check_corrspondence(unique_depthmaps, rgb_list)
-        except:
-            message = f"depthmap file {depthmap_files} not found."
+        except Exception as e:
+            message = f" Error '{e.message}' occurred. depthmap file {depthmap_files} not found."
             logging.info(message)
             continue
         scan_type = image_path.split('_')[3]
         artifact_name = image_path.split('rgb_')[1]
         scan_type_path = f'{qrcode_path}/{scan_type}'
         pickle_file = artifact_name.replace('.jpg', '.p')
-        full_path = f'{scan_type_path}/{pickle_file}'  # noqa E722
+        full_path = f'{scan_type_path}/{pickle_file}'
         Path(scan_type_path).mkdir(parents=True, exist_ok=True)
         data, width, height, depthScale, max_confidence = load_depth(depthmap_image_path)
         depthmap_huawei = prepare_depthmap(data, width, height, depthScale)
