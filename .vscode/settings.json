@@ -3,6 +3,7 @@
     "python.testing.nosetestsEnabled": false,
     "python.testing.pytestEnabled": true,
     "files.exclude": {
-        "**/tmp_*": true
+        "**/tmp_*": true,
+        "**/temp_*": true
     }
 }
