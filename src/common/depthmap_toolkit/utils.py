@@ -159,7 +159,7 @@ def export_pcd(filename):
                     res = convert_2d_to_3d(CALIBRATION[1], x, y, depth)
                     if res:
                         f.write(str(-res[0]) + ' ' + str(res[1]) + ' '
-                                   + str(res[2]) + ' ' + str(parse_confidence(x, y)) + '\n')
+                                + str(res[2]) + ' ' + str(parse_confidence(x, y)) + '\n')
         logging.info('Pointcloud exported into %s', filename)
 
 
