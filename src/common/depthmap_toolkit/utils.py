@@ -77,7 +77,7 @@ def matrix_transform_point(point: list, matrix: list) -> list:
     return output
 
 
-def convert2Dto3D(intrisics: list, x: float, y: float, z: float) -> list:
+def convert_2d_to_3d(intrisics: list, x: float, y: float, z: float) -> list:
     """Convert point in pixels into point in meters"""
     fx = intrisics[0] * float(width)
     fy = intrisics[1] * float(height)
@@ -90,7 +90,7 @@ def convert2Dto3D(intrisics: list, x: float, y: float, z: float) -> list:
 
 def convert_2d_to_3d_oriented(intrisics: list, x: float, y: float, z: float) -> list:
     """Convert point in pixels into point in meters (applying rotation)"""
-    res = convert2Dto3D(calibration[1], x, y, z)
+    res = convert_2d_to_3d(CALIBRATION[1], x, y, z)
     if res:
         try:
             res = [-res[0], res[1], res[2]]
@@ -101,7 +101,7 @@ def convert_2d_to_3d_oriented(intrisics: list, x: float, y: float, z: float) -> 
     return res
 
 
-def convert_2d_to_3d(intrisics: list, x: float, y: float, z: float) -> list:
+def convert_3d_to_2d(intrisics: list, x: float, y: float, z: float) -> list:
     """Convert point in meters into point in pixels"""
     fx = intrisics[0] * float(width)
     fy = intrisics[1] * float(height)
@@ -120,19 +120,19 @@ def export_obj(filename, triangulate):
     """
     count = 0
     indices = np.zeros((width, height))
-    with open(filename, 'w') as file:
+    with open(filename, 'w') as f:
         for x in range(2, width - 2):
             for y in range(2, height - 2):
                 depth = parse_depth(x, y)
                 if depth:
-                    res = convert_2d_to_3d_oriented(calibration[1], x, y, depth)
+                    res = convert_2d_to_3d_oriented(CALIBRATION[1], x, y, depth)
                     if res:
                         count = count + 1
                         indices[x][y] = count  # add index of written vertex into array
-                        file.write('v ' + str(res[0]) + ' ' + str(res[1]) + ' ' + str(res[2]) + '\n')
+                        f.write('v ' + str(res[0]) + ' ' + str(res[1]) + ' ' + str(res[2]) + '\n')
 
         if triangulate:
-            maxDiff = 0.2
+            max_diff = 0.2
             for x in range(2, width - 2):
                 for y in range(2, height - 2):
                     #get depth of all points of 2 potential triangles
@@ -144,40 +144,40 @@ def export_obj(filename, triangulate):
                     #check if first triangle points have existing indices
                     if indices[x][y] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
                         #check if the triangle size is valid (to prevent generating triangle connecting child and background)
-                        if abs(d00 - d10) + abs(d00 - d01) + abs(d10 - d01) < maxDiff:
-                            file.write('f ' + str(int(indices[x][y])) + ' ' + str(int(indices[x + 1][y])) + ' ' + str(int(indices[x][y + 1])) + '\n')
+                        if abs(d00 - d10) + abs(d00 - d01) + abs(d10 - d01) < max_diff:
+                            f.write('f ' + str(int(indices[x][y])) + ' ' + str(int(indices[x + 1][y])) + ' ' + str(int(indices[x][y + 1])) + '\n')
 
                     #check if second triangle points have existing indices
                     if indices[x + 1][y + 1] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
                         #check if the triangle size is valid (to prevent generating triangle connecting child and background)
-                        if abs(d11 - d10) + abs(d11 - d01) + abs(d10 - d01) < maxDiff:
-                            file.write('f ' + str(int(indices[x + 1][y + 1])) + ' ' + str(int(indices[x + 1][y])) + ' ' + str(int(indices[x][y + 1])) + '\n')
+                        if abs(d11 - d10) + abs(d11 - d01) + abs(d10 - d01) < max_diff:
+                            f.write('f ' + str(int(indices[x + 1][y + 1])) + ' ' + str(int(indices[x + 1][y])) + ' ' + str(int(indices[x][y + 1])) + '\n')
         logging.info('Mesh exported into %s', filename)
 
 
 def export_pcd(filename):
-    with open(filename, 'w') as file:
+    with open(filename, 'w') as f:
         count = str(_get_count())
-        file.write('# timestamp 1 1 float 0\n')
-        file.write('# .PCD v.7 - Point Cloud Data file format\n')
-        file.write('VERSION .7\n')
-        file.write('FIELDS x y z c\n')
-        file.write('SIZE 4 4 4 4\n')
-        file.write('TYPE F F F F\n')
-        file.write('COUNT 1 1 1 1\n')
-        file.write('WIDTH ' + count + '\n')
-        file.write('HEIGHT 1\n')
-        file.write('VIEWPOINT 0 0 0 1 0 0 0\n')
-        file.write('POINTS ' + count + '\n')
-        file.write('DATA ascii\n')
+        f.write('# timestamp 1 1 float 0\n')
+        f.write('# .PCD v.7 - Point Cloud Data file format\n')
+        f.write('VERSION .7\n')
+        f.write('FIELDS x y z c\n')
+        f.write('SIZE 4 4 4 4\n')
+        f.write('TYPE F F F F\n')
+        f.write('COUNT 1 1 1 1\n')
+        f.write('WIDTH ' + count + '\n')
+        f.write('HEIGHT 1\n')
+        f.write('VIEWPOINT 0 0 0 1 0 0 0\n')
+        f.write('POINTS ' + count + '\n')
+        f.write('DATA ascii\n')
         for x in range(2, width - 2):
             for y in range(2, height - 2):
                 depth = parse_depth(x, y)
                 if depth:
-                    res = convert2Dto3D(calibration[1], x, y, depth)
+                    res = convert_2d_to_3d(CALIBRATION[1], x, y, depth)
                     if res:
-                        file.write(str(-res[0]) + ' ' + str(res[1]) + ' '
-                                   + str(res[2]) + ' ' + str(parse_confidence(x, y)) + '\n')
+                        f.write(str(-res[0]) + ' ' + str(res[1]) + ' '
+                                + str(res[2]) + ' ' + str(parse_confidence(x, y)) + '\n')
         logging.info('Pointcloud exported into %s', filename)
 
 
@@ -187,7 +187,7 @@ def _get_count():
         for y in range(2, height - 2):
             depth = parse_depth(x, y)
             if depth:
-                res = convert2Dto3D(calibration[1], x, y, depth)
+                res = convert_2d_to_3d(CALIBRATION[1], x, y, depth)
                 if res:
                     count = count + 1
     return count
@@ -195,20 +195,20 @@ def _get_count():
 
 def parse_calibration(filepath):
     """Parse calibration file"""
-    global calibration
-    with open(filepath, 'r') as file:
-        calibration = []
-        file.readline()[:-1]
-        calibration.append(parse_numbers(file.readline()))
-        #logging.info(str(calibration[0]) + '\n') #color camera intrinsics - fx, fy, cx, cy
-        file.readline()[:-1]
-        calibration.append(parse_numbers(file.readline()))
-        #logging.info(str(calibration[1]) + '\n') #depth camera intrinsics - fx, fy, cx, cy
-        file.readline()[:-1]
-        calibration.append(parse_numbers(file.readline()))
-        #logging.info(str(calibration[2]) + '\n') #depth camera position relativelly to color camera in meters
-        calibration[2][1] *= 8.0  # workaround for wrong calibration data
-    return calibration
+    global CALIBRATION
+    with open(filepath, 'r') as f:
+        CALIBRATION = []
+        f.readline()[:-1]
+        CALIBRATION.append(parse_numbers(f.readline()))
+        #logging.info(str(CALIBRATION[0]) + '\n') #color camera intrinsics - fx, fy, cx, cy
+        f.readline()[:-1]
+        CALIBRATION.append(parse_numbers(f.readline()))
+        #logging.info(str(CALIBRATION[1]) + '\n') #depth camera intrinsics - fx, fy, cx, cy
+        f.readline()[:-1]
+        CALIBRATION.append(parse_numbers(f.readline()))
+        #logging.info(str(CALIBRATION[2]) + '\n') #depth camera position relativelly to color camera in meters
+        CALIBRATION[2][1] *= 8.0  # workaround for wrong calibration data
+    return CALIBRATION
 
 
 def parse_confidence(tx, ty):
@@ -219,8 +219,8 @@ def parse_confidence(tx, ty):
 def parse_data(filename):
     """Parse depth data"""
     global width, height, depthScale, maxConfidence, data, matrix
-    with open('data', 'rb') as file:
-        line = file.readline().decode().strip()
+    with open('data', 'rb') as f:
+        line = f.readline().decode().strip()
         header = line.split('_')
         res = header[0].split('x')
         width = int(res[0])
@@ -231,8 +231,8 @@ def parse_data(filename):
             position = (float(header[7]), float(header[8]), float(header[9]))
             rotation = (float(header[3]), float(header[4]), float(header[5]), float(header[6]))
             matrix = matrix_calculate(position, rotation)
-        data = file.read()
-        file.close()
+        data = f.read()
+        f.close()
 
 
 def parse_depth(tx, ty):
@@ -263,15 +263,15 @@ def parse_numbers(line):
 
 
 def parse_pcd(filepath):
-    with open(filepath, 'r') as file:
+    with open(filepath, 'r') as f:
         data = []
         while True:
-            line = str(file.readline())
+            line = str(f.readline())
             if line.startswith('DATA'):
                 break
 
         while True:
-            line = str(file.readline())
+            line = str(f.readline())
             if not line:
                 break
             else:
