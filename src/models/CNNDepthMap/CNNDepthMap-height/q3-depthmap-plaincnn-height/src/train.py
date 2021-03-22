@@ -13,7 +13,7 @@ from azureml.core.run import Run
 import wandb
 from wandb.keras import WandbCallback
 
-from config import CONFIG
+from config_weight import CONFIG
 from constants import BLACKLIST_QRCODES, MODEL_CKPT_FILENAME, REPO_DIR
 from model import create_cnn
 
