@@ -4,6 +4,24 @@ import numpy as np
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
+def cross(a: list, b: list) -> list:
+    """Cross product of two vectors"""
+    c = [a[1] * b[2] - a[2] * b[1],
+         a[2] * b[0] - a[0] * b[2],
+         a[0] * b[1] - a[1] * b[0]]
+    return c
+
+def diff(a: list, b: list) -> list:
+    """Difference of two vectors"""
+    return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
+
+def norm(v: list):
+    """Difference of two vectors"""
+    len = abs(v[0]) + abs(v[1]) + abs(v[2])
+    if len == 0:
+        len = 1
+    return [v[0] / len, v[1] / len, v[2] / len]
+
 
 def matrix_calculate(position: list, rotation: list) -> list:
     """Calculate a matrix image->world from device position and rotation"""
@@ -223,6 +241,16 @@ def parse_depth(tx, ty):
     depth += data[(int(ty) * width + int(tx)) * 3 + 1]
     depth *= depthScale
     return depth
+
+def parse_depth_smoothed(tx, ty):
+    d = parse_depth(tx, ty)
+    if tx > 1 and tx < width - 1 and ty > 1 and ty < height - 1:
+        xm = parse_depth(tx - 1, ty)
+        xp = parse_depth(tx + 1, ty)
+        ym = parse_depth(tx, ty - 1)
+        yp = parse_depth(tx, ty + 1)
+        return (xm + xp + ym + yp + d) / 5.0
+    return d
 
 
 def parse_numbers(line):
