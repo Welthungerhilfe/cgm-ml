@@ -63,9 +63,9 @@ from temp_common.evaluation.eval_utilities import (  # noqa: E402, F401
     get_depthmap_files, get_model_path)
 from temp_common.evaluation.uncertainty_utils import \
     get_prediction_uncertainty  # noqa: E402, F401
-from temp_common.model_utils.preprocessing_multiartifact2 import \
+from temp_common.model_utils.preprocessing_multiartifact_python import \
     create_multiartifact_paths_for_qrcodes  # noqa: E402, F401
-from temp_common.model_utils.preprocessing_multiartifact import \
+from temp_common.model_utils.preprocessing_multiartifact_tensorflow import \
     create_multiartifact_sample  # noqa: E402, F401
 
 
