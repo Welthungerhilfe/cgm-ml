@@ -88,7 +88,12 @@ def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CO
     return qrcode_list, scan_type_list, artifact_list, prediction_list, target_list
 
 
-def calculate_and_save_results(df_grouped: pd.DataFrame, complete_name: str, csv_out_fpath: str, data_config: Bunch, result_config: Bunch, fct: Callable):
+def calculate_and_save_results(df_grouped: pd.DataFrame,
+                               complete_name: str,
+                               csv_out_fpath: str,
+                               data_config: Bunch,
+                               accuracy_thresholds: list,
+                               fct: Callable):
     """Calculate accuracies across the scantypes and save the final results table to the CSV file
 
     Args:
@@ -96,12 +101,12 @@ def calculate_and_save_results(df_grouped: pd.DataFrame, complete_name: str, csv
         complete_name: e.g. 'q3-depthmap-plaincnn-height-100-95k-run_17'
         csv_out_fpath: CSV output path
         data_config: bunch containing data config
-        result_config: bunch containing result config
+        accuracy_thresholds: e.g. [.2, .4, .6, 1., 1.2, 2., 2.5, 3., 4., 5., 6.]
         fct: Function to execute on inputs
     """
     dfs = []
     for code in data_config.CODES:
-        df = fct(code, df_grouped, result_config)
+        df = fct(code, df_grouped, accuracy_thresholds)
         full_model_name = complete_name + CODE_TO_SCANTYPE[code]
         df.rename(index={0: full_model_name}, inplace=True)
         dfs.append(df)

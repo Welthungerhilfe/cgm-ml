@@ -16,9 +16,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 REPO_DIR = Path(os.getcwd()).parents[2]
 
 
-def calculate_performance(code:str,
-                           df_mae: pd.DataFrame,
-                           accuracy_thresholds: list = EVALUATION_ACCURACIES) -> pd.DataFrame:
+def calculate_performance(code: str,
+                          df_mae: pd.DataFrame,
+                          accuracy_thresholds: list = EVALUATION_ACCURACIES) -> pd.DataFrame:
     """For a specific scantype, calculate the performance of the model on each error margin
     Args:
         code: e.g. '100'
@@ -42,6 +42,7 @@ def calculate_performance(code:str,
     df_out = df_out.T
     df_out.columns = accuracy_thresholds
     return df_out
+
 
 # Function for loading and processing depthmaps.
 def tf_load_pickle(path, max_value):
