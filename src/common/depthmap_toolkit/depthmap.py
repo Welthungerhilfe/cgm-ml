@@ -87,7 +87,7 @@ def show_result():
                 vec[0] += calibration[2][0]
                 vec[1] += calibration[2][1]
                 vec[2] += calibration[2][2]
-                vec = utils.convert_2d_to_3d(calibration[0], vec[0], vec[1], vec[2])
+                vec = utils.convert_3d_to_2d(calibration[0], vec[0], vec[1], vec[2])
 
                 #set output pixel
                 output[x][height - y - 1][:] = 1.0 - min(depth / 2.0, 1.0)  # depth data scaled to be visible
