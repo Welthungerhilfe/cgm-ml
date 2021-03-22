@@ -27,12 +27,12 @@ def create_multiartifact_paths_for_qrcodes(qrcode_paths: List[str], CONFIG) -> L
     for qrcode_path in sorted(qrcode_paths):
         for code in CONFIG.CODES_FOR_POSE_AND_SCANSTEP:
             p = os.path.join(qrcode_path, code)
-            new_samples = create_multiartifact_paths(p, CONFIG.N_ARTIFACTS, CONFIG)
+            new_samples = _create_multiartifact_paths(p, CONFIG.N_ARTIFACTS, CONFIG)
             samples.extend(new_samples)
     return samples
 
 
-def create_multiartifact_paths(qrcode_path: str, n_artifacts: int, CONFIG) -> List[List[str]]:
+def _create_multiartifact_paths(qrcode_path: str, n_artifacts: int, CONFIG) -> List[List[str]]:
     """Look at files for 1 qrcode and divide into samples.
 
     Args:
