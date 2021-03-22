@@ -1,10 +1,15 @@
 import zipfile
+import logging
+import logging.config
 
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
 import utils
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+
 
 #export data
 
@@ -34,13 +39,12 @@ def onclick(event):
                     diff = [last[0] - res[0], last[1] - res[1], last[2] - res[2]]
                     dst = np.sqrt(diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2])
                     res.append(dst)
-                    print('x=' + str(res[0]) + ', y=' + str(res[1])
-                          + ', depth=' + str(res[2]) + ', diff=' + str(res[3]))
+                    logging.info('x=%s, y=%s, depth=%s, diff=%s', str(res[0]), str(res[1]), str(res[2]), str(res[3]))
                     last[0] = res[0]
                     last[1] = res[1]
                     last[2] = res[2]
                     return
-            print('no valid data')
+            logging.info('no valid data')
 
 
 def process(plt, dir, depth, rgb):

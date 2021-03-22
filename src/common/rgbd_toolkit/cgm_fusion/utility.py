@@ -17,6 +17,7 @@
 #
 
 import logging
+import logging.config
 import os
 from enum import IntEnum
 
@@ -28,6 +29,8 @@ from pyntcloud.io import write_ply
 
 from cgm_fusion.calibration import (get_extrinsic_matrix_depth,
                                     get_intrinsic_matrix_depth, get_k_depth)
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 HEIGHT = 224
@@ -61,7 +64,7 @@ def fuse_point_cloud(points, rgb_vals, confidence, seg_vals):
 def write_color_ply(fname, points, color_vals, confidence, normals):
     new_pc = fuse_point_cloud(points, color_vals, confidence, normals)
     write_ply(fname, new_pc.points, as_text=True)
-    print(fname)
+    logging.info(fname)
 
 
 def apply_projection(points, calibration_file):
@@ -109,11 +112,11 @@ def get_depth_channel(ply_path, output_path_np, output_path_png, calibration_fil
         logging.error(str(e))
         logging.error(ply_path)
 
-    print(cloud.points.values[:, 3])
+    logging.info(cloud.points.values[:, 3])
     r = cloud.points.values[:, 3]
-    print(min(r))
-    print(max(r))
-    print(np.mean(r))
+    logging.info(min(r))
+    logging.info(max(r))
+    logging.info(np.mean(r))
 
     points = cloud.points.values[:, :3]  # get x y z
     z = cloud.points.values[:, 2]  # get only z coordinate
@@ -287,7 +290,7 @@ def get_viz_channel(calibration_file,
         logging.error(" Error reading point cloud ")
         logging.error(str(e))
 
-    # print (int(channel))
+    # logging.info(int(channel))
 
     points = cloud.points.values[:, :3]  # get x y z
     z = cloud.points.values[:, int(channel)]  # get only z coordinate

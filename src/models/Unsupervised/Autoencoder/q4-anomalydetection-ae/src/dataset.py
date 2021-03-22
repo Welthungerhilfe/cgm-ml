@@ -1,6 +1,8 @@
 import os
 import random
 from pathlib import Path
+import logging
+import logging.config
 
 import glob2 as glob
 import tensorflow as tf
@@ -10,11 +12,13 @@ from tmp_model_util.utils import download_dataset, get_dataset_path
 from config import DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, REPO_DIR
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+
 
 def create_datasets(workspace, experiment, run, offline_run, CONFIG):
 
     DATA_DIR = REPO_DIR / 'data' if offline_run else Path(".")
-    print(f"DATA_DIR: {DATA_DIR}")
+    logging.info('DATA_DIR: %s', DATA_DIR)
 
     # Offline run. Download the sample dataset and run locally. Still push results to Azure.
     if offline_run:
@@ -35,7 +39,7 @@ def create_datasets(workspace, experiment, run, offline_run, CONFIG):
         else:
             raise NameError(f"Unknown DATASET_MODE: {CONFIG.DATASET_MODE}")
 
-    print(f"Using dataset path {dataset_path}")
+    logging.info('Using dataset path: %s', dataset_path)
 
     # Branch into specific datasets.
     if dataset_name == "anon_rgb_training":
@@ -50,17 +54,17 @@ def __create_anon_rgb_training(dataset_path, CONFIG):
 
     # Get the QR-code paths.
     dataset_path = os.path.join(dataset_path, "scans")
-    print("Dataset path:", dataset_path)
-    #print(glob.glob(os.path.join(dataset_path, "*"))) # Debug
-    print("Getting QR-code paths...")
+    logging.info('Dataset path: %s', dataset_path)
+    #logging.info(glob.glob(os.path.join(dataset_path, "*"))) # Debug
+    logging.info('Getting QR-code paths...')
     qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
-    print("qrcode_paths: ", len(qrcode_paths))
+    logging.info('qrcode_paths: %d', len(qrcode_paths))
     assert len(qrcode_paths) != 0
 
     # Restricting to a fixed number of scans.
-    print("Slicing scans...")
+    logging.info("Slicing scans...")
     qrcode_paths = qrcode_paths[:CONFIG.DATASET_MAX_SCANS]
-    print("qrcode_paths: ", len(qrcode_paths))
+    logging.info('qrcode_paths: %d', len(qrcode_paths))
     #assert len(qrcode_paths) == CONFIG.DATASET_MAX_SCANS
 
     # Shuffle and split into train and validate.
@@ -72,12 +76,12 @@ def __create_anon_rgb_training(dataset_path, CONFIG):
     del qrcode_paths
 
     # Show split.
-    print("Paths for training:")
-    print(len(qrcode_paths_training))
-    print("\t" + "\n\t".join(qrcode_paths_training))
-    print("Paths for validation:")
-    print(len(qrcode_paths_validate))
-    print("\t" + "\n\t".join(qrcode_paths_validate))
+    logging.info('Paths for training: \n\t' + '\n\t'.join(qrcode_paths_training))
+    logging.info('Paths for validation: \n\t' + '\n\t'.join(qrcode_paths_validate))
+
+    logging.info('Nbr of qrcode_paths for training: %d', len(qrcode_paths_training))
+    logging.info('Nbr of qrcode_paths for validation: %d', len(qrcode_paths_validate))
+
     assert len(qrcode_paths_training) > 0 and len(qrcode_paths_validate) > 0
 
     # For mapping scan paths to samples.
@@ -93,11 +97,11 @@ def __create_anon_rgb_training(dataset_path, CONFIG):
         return result_paths
 
     # Get the samples.
-    print("Getting paths...")
+    logging.info('Getting paths...')
     paths_training = get_files(qrcode_paths_training)
     paths_validate = get_files(qrcode_paths_validate)
-    print("Using {} files for training.".format(len(paths_training)))
-    print("Using {} files for validation.".format(len(paths_validate)))
+    logging.info('Using %d files for training.', len(paths_training))
+    logging.info('Using %d files for validation.', len(paths_validate))
     assert paths_training != 0
     assert paths_validate != 0
 
@@ -157,7 +161,7 @@ def __create_anon_rgb_training(dataset_path, CONFIG):
 def __create_anomaly_detection_data(dataset_path, CONFIG):
 
     #dataset_path = os.path.join(dataset_path, "scans")
-    print(glob.glob(os.path.join(dataset_path, "*")))
+    logging.info(glob.glob(os.path.join(dataset_path, "*")))
 
     good_paths = glob.glob(os.path.join(dataset_path, "not_bad", "*.jpg"))
     bad_paths = glob.glob(os.path.join(dataset_path, "bad", "*.jpg"))
@@ -168,9 +172,9 @@ def __create_anomaly_detection_data(dataset_path, CONFIG):
     paths_validate = good_paths[split_index:]
     paths_anomaly = bad_paths
 
-    print(f"Training paths: {len(paths_training)}")
-    print(f"Validate paths: {len(paths_validate)}")
-    print(f"anomaly paths: {len(paths_anomaly)}")
+    logging.info('Training paths: %d', len(paths_training))
+    logging.info('Validate paths: %d', len(paths_validate))
+    logging.info('Anomaly paths: %d', len(paths_anomaly))
     assert len(paths_training) * len(paths_validate) * len(paths_anomaly) != 0
 
     # Function for loading and processing images.

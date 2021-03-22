@@ -3,6 +3,8 @@ import shutil
 import sys
 from os import walk
 from shutil import copyfile
+import logging
+import logging.config
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
@@ -10,6 +12,7 @@ from matplotlib.widgets import Button
 import depthmap
 import pcd2depth
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 DEPTHMAP_DIR = None
 
@@ -30,7 +33,7 @@ def convert_all_pcds(event):
     for i in range(len(pcd)):
         depthmap = pcd2depth.process(input_dir + '/../camera_calibration.txt', input_dir + '/' + pcd[i])
         pcd2depth.write_depthmap('output/depth/' + pcd[i] + '.depth', depthmap)
-    print('Data exported into folder output')
+    logging.info('Data exported into folder output')
 
 
 def export_obj(event):
@@ -84,8 +87,8 @@ def show(depthmap_dir):
 if __name__ == "__main__":
     # Prepare
     if len(sys.argv) != 2:
-        print('You did not enter depthmap_dir folder')
-        print('E.g.: python toolkit.py depthmap_dir')
+        logging.info('You did not enter depthmap_dir folder')
+        logging.info('E.g.: python toolkit.py depthmap_dir')
         sys.exit(1)
 
     depthmap_dir = sys.argv[1]

@@ -2,18 +2,22 @@ from pathlib import Path
 import os
 import random
 import shutil
+import logging
+import logging.config
 
 import glob2 as glob
+import numpy as np
 import tensorflow as tf
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 from tensorflow.keras import callbacks, layers, models
 
-from config import CONFIG, DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
-from constants import DATA_DIR_ONLINE_RUN, MODEL_CKPT_FILENAME, REPO_DIR
-from model import create_head, get_base_model
+from config import CONFIG
+from constants import MODEL_CKPT_FILENAME, REPO_DIR
 from augmentation import tf_augment_sample
-from preprocessing_multiartifact import tf_load_pickle
+from model import get_base_model
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 # Get the current run.
 run = Run.get_context()
@@ -32,53 +36,50 @@ if run.id.startswith("OfflineRun"):
         shutil.copy(p, temp_model_util_dir)
 
 from tmp_model_util.preprocessing import create_samples  # noqa: E402
-from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer  # noqa: E402
+from tmp_model_util.preprocessing_multiartifact import create_multiartifact_sample  # noqa: E402
+from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, create_head  # noqa: E402
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
 random.seed(CONFIG.SPLIT_SEED)
 
 DATA_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path(".")
-print(f"DATA_DIR: {DATA_DIR}")
+logging.info('DATA_DIR: %s', DATA_DIR)
+
 
 # Offline run. Download the sample dataset and run locally. Still push results to Azure.
 if run.id.startswith("OfflineRun"):
-    print("Running in offline mode...")
+    logging.info('Running in offline mode...')
 
     # Access workspace.
-    print("Accessing workspace...")
+    logging.info('Accessing workspace...')
     workspace = Workspace.from_config()
     experiment = Experiment(workspace, "training-junkyard")
     run = experiment.start_logging(outputs=None, snapshot_directory=None)
 
+    logging.info('Accessing dataset...')
     dataset_name = CONFIG.DATASET_NAME_LOCAL
     dataset_path = get_dataset_path(DATA_DIR, dataset_name)
     download_dataset(workspace, dataset_name, dataset_path)
 
 # Online run. Use dataset provided by training notebook.
 else:
-    print("Running in online mode...")
+    logging.info('Running in online mode...')
     experiment = run.experiment
     workspace = experiment.workspace
 
     dataset_name = CONFIG.DATASET_NAME
 
     # Mount or download
-    if CONFIG.DATASET_MODE == DATASET_MODE_MOUNT:
-        dataset_path = run.input_datasets["dataset"]
-    elif CONFIG.DATASET_MODE == DATASET_MODE_DOWNLOAD:
-        dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
-        download_dataset(workspace, dataset_name, dataset_path)
-    else:
-        raise NameError(f"Unknown DATASET_MODE: {CONFIG.DATASET_MODE}")
+    dataset_path = run.input_datasets['cgm_dataset']
 
 # Get the QR-code paths.
 dataset_scans_path = os.path.join(dataset_path, "scans")
-print("Dataset path:", dataset_scans_path)
-# print(glob.glob(os.path.join(dataset_scans_path, "*"))) # Debug
-print("Getting QR-code paths...")
+logging.info('Dataset path: %s', dataset_scans_path)
+#logging.info(glob.glob(os.path.join(dataset_scans_path, "*"))) # Debug
+logging.info('Getting QR-code paths...')
 qrcode_paths = glob.glob(os.path.join(dataset_scans_path, "*"))
-print("qrcode_paths: ", len(qrcode_paths))
+logging.info('qrcode_paths: %d', len(qrcode_paths))
 assert len(qrcode_paths) != 0
 
 # Shuffle and split into train and validate.
@@ -86,33 +87,47 @@ random.seed(CONFIG.SPLIT_SEED)
 random.shuffle(qrcode_paths)
 split_index = int(len(qrcode_paths) * 0.8)
 qrcode_paths_training = qrcode_paths[:split_index]
-
 qrcode_paths_validate = qrcode_paths[split_index:]
 
 del qrcode_paths
 
 # Show split.
-print("Paths for training:")
-print("\t" + "\n\t".join(qrcode_paths_training))
-print("Paths for validation:")
-print("\t" + "\n\t".join(qrcode_paths_validate))
+logging.info('Paths for training: \n\t' + '\n\t'.join(qrcode_paths_training))
+logging.info('Paths for validation: \n\t' + '\n\t'.join(qrcode_paths_validate))
 
-print(len(qrcode_paths_training))
-print(len(qrcode_paths_validate))
+logging.info('Nbr of qrcode_paths for training: %d', len(qrcode_paths_training))
+logging.info('Nbr of qrcode_paths for validation: %d', len(qrcode_paths_validate))
 
 assert len(qrcode_paths_training) > 0 and len(qrcode_paths_validate) > 0
 
 paths_training = create_samples(qrcode_paths_training, CONFIG)
-print(f"Samples for training: {len(paths_training)}")
+logging.info('Using %d files for training.', len(paths_training))
 
 paths_validate = create_samples(qrcode_paths_validate, CONFIG)
-print(f"Samples for validate: {len(paths_validate)}")
+logging.info('Using %d files for validation.', len(paths_validate))
+
+
+@tf.function(input_signature=[tf.TensorSpec(None, tf.string)])
+def tf_load_pickle(paths):  # refactor: should be path
+    """Load and process depthmaps"""
+    params = [paths,
+              CONFIG.NORMALIZATION_VALUE,
+              CONFIG.IMAGE_TARGET_HEIGHT,
+              CONFIG.IMAGE_TARGET_WIDTH,
+              np.array(CONFIG.TARGET_INDEXES),
+              CONFIG.N_ARTIFACTS]
+    depthmap, targets = tf.py_function(create_multiartifact_sample, params, [tf.float32, tf.float32])
+    depthmap.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, CONFIG.N_ARTIFACTS))
+    targets.set_shape((len(CONFIG.TARGET_INDEXES,)))
+    return depthmap, targets  # (240,180,5), (1,)
+
 
 # Create dataset for training.
 paths = paths_training  # list
 dataset = tf.data.Dataset.from_tensor_slices(paths)  # TensorSliceDataset  # List[ndarray[str]]
 dataset = dataset.cache()
 dataset = dataset.repeat(CONFIG.N_REPEAT_DATASET)
+
 dataset = dataset.map(
     lambda path: tf_load_pickle(paths=path),
     tf.data.experimental.AUTOTUNE
@@ -144,7 +159,7 @@ assert base_model.output_shape == (None, 128)
 
 # Create the head
 head_input_shape = (128 * CONFIG.N_ARTIFACTS,)
-head_model = create_head(head_input_shape, dropout=CONFIG.USE_CROPOUT)
+head_model = create_head(head_input_shape, dropout=CONFIG.USE_DROPOUT)
 
 # Implement artifact flow through the same model
 model_input = layers.Input(
@@ -202,7 +217,7 @@ if CONFIG.EPOCHS_TUNE:
     optimizer = tf.keras.optimizers.Nadam(learning_rate=CONFIG.LEARNING_RATE_TUNE)
     model.compile(optimizer=optimizer, loss="mse", metrics=["mae"])
 
-    print("Start fine-tuning")
+    logging.info('Start fine-tuning')
     model.fit(
         dataset_training.batch(CONFIG.BATCH_SIZE),
         validation_data=dataset_validation.batch(CONFIG.BATCH_SIZE),

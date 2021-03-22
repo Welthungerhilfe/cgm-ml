@@ -1,10 +1,14 @@
 import re
 from pathlib import Path
+import logging
+import logging.config
 
 import numpy as np
 import tensorflow as tf
 from azureml.core import Experiment, Run
 from tqdm import tqdm
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 REPO_DIR = Path(__file__).parents[4].absolute()
 
@@ -24,8 +28,8 @@ def get_timestamp_from_pcd(pcd_path):
     try:
         firstLine = infile.readline()
     except Exception as error:
-        print(error)
-        print(pcd_path)
+        logging.info(error)
+        logging.info(pcd_path)
         return -1
     # get the time from the header of the pcd file
     timestamp = re.findall(r'\d+\.\d+', firstLine)
@@ -74,19 +78,19 @@ def standing_laying_predict(qrcode_pcd_rgb, model):
     return qr_codes_predicts
 
 
-def download_model(ws, experiment_name, run_id, input_location, output_location):
+def download_model(workspace, experiment_name, run_id, input_location, output_location):
     '''
     Download the pretrained model
     Input:
-         ws: workspace to access the experiment
+         workspace: workspace to access the experiment
          experiment_name: Name of the experiment in which model is saved
          run_id: Run Id of the experiment in which model is pre-trained
          input_location: Input location in a RUN Id
          output_location: Location for saving the model
     '''
-    experiment = Experiment(workspace=ws, name=experiment_name)
+    experiment = Experiment(workspace=workspace, name=experiment_name)
     #Download the model on which evaluation need to be done
     run = Run(experiment, run_id=run_id)
     #run.get_details()
     run.download_file(input_location, output_location)
-    print("Successfully downloaded model")
+    logging.info("Successfully downloaded model")

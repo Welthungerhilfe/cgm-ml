@@ -1,12 +1,15 @@
-from pathlib import Path
 import sys
 import tempfile
+from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 sys.path.append(str(Path(__file__).parents[1]))
 
-from utils import draw_uncertainty_goodbad_plot, COLUMN_NAME_GOODBAD  # noqa: E402
+from utils import (COLUMN_NAME_GOODBAD,  # noqa :E402;
+                   calculate_percentage_confusion_matrix,
+                   draw_uncertainty_goodbad_plot, get_dataset_path)
 
 
 def test_draw_uncertainty_goodbad_plot():
@@ -16,3 +19,18 @@ def test_draw_uncertainty_goodbad_plot():
     df = pd.DataFrame(list(zip(uncertainties, goodbad)), columns=['uncertainties', COLUMN_NAME_GOODBAD])
     with tempfile.NamedTemporaryFile() as tmp:
         draw_uncertainty_goodbad_plot(df, tmp.name)
+
+
+def test_calculate_percentage_confusion_matrix():
+    data = np.array([[2, 4, 0],
+                     [2, 2, 1],
+                     [1, 1, 2]])
+    T, FP, FN = calculate_percentage_confusion_matrix(data)
+    assert T == 40
+    assert FP == 33.33
+    assert FN == 26.67
+
+
+def test_get_dataset_path():
+    result = get_dataset_path(Path("/tmp/data/"), "test")
+    assert result == '/tmp/data/test'

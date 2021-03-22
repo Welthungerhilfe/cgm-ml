@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='cgmzscore',
-    version='2.0.3',
+    version='2.0.4',
 
     license='GPL',
 

@@ -20,6 +20,10 @@ import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 import json
 import os
+import logging
+import logging.config
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 def connect_to_default_database():
@@ -50,8 +54,8 @@ def connect_to_main_database(connection_file=None):
     port = json_data["port"]
     sslmode = json_data["sslmode"]
 
-    print("Host:    {}".format(host))
-    print("DB-name: {}".format(dbname))
+    logging.info("Host: %s", host)
+    logging.info("DB-name: %s", dbname)
     return DatabaseInterface(dbname=dbname, user=user, host=host, password=password, port=port, sslmode=sslmode)
 
 
@@ -63,7 +67,7 @@ def load_dbconnection_file(connection_file=None):
     if connection_file is None:
         connection_file = "dbconnection.json"
 
-    print("Loading {}...".format(os.path.abspath(connection_file)))
+    logging.info("Loading %s ...", os.path.abspath(connection_file))
     with open(connection_file) as json_file:
         json_data = json.load(json_file)
         return json_data

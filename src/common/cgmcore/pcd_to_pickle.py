@@ -4,6 +4,10 @@ import numpy as np
 from pyntcloud import PyntCloud
 import pathlib
 import os
+import logging
+import logging.config
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 source_path = '/mnt/depthmap/pcd_50k/'
@@ -43,9 +47,9 @@ def pcd_to_pickle(dataset):
 
 
 def main():
-    print("Starting the data preparation.")
+    logging.info("Starting the data preparation.")
     pcd_to_pickle(dataset)
-    print("dataset preparation finished.Check the {} path for outputs".format(target_path))
+    logging.info("dataset preparation finished.Check the %s path for outputs", target_path)
 
 
 if __name__ == "__main__":

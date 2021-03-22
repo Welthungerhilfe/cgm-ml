@@ -24,11 +24,15 @@ import datetime
 from mpl_toolkits.mplot3d import Axes3D
 import glob
 import os
+import logging
+import logging.config
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 try:
     import vtk
 except Exception as e:
     pass
-    #print("WARNING! VTK not available. This might limit the functionality.")
+    #logging.info("WARNING! VTK not available. This might limit the functionality.")
 from pyntcloud import PyntCloud
 import pickle
 import random
@@ -445,19 +449,9 @@ def get_mean_error(date_times, all_history_paths, start_index, end_index=100090,
                 if key_suffix is not None and key_suffix in key:
                     lst = history[key][start_index:end_index]
                     avg_error = sum(lst) / len(lst)
-                    print(
-                        "Avg " +
-                        key +
-                        " " +
-                        split[2] +
-                        " " +
-                        date_time +
-                        " between epoch " +
-                        str(start_index) +
-                        " and " +
-                        str(end_index) +
-                        " = " +
-                        str(avg_error))
+                    logging.info('avg %d %d %d between epoch %s and %s = %s',key,split[2],date_time,
+                                str(start_index),str(end_index),str(avg_error))
+
 
 
 def find_all_history_paths(root_path):
@@ -500,9 +494,9 @@ def multiprocess(
     # Get number of workers.
     if number_of_workers is None:
         number_of_workers = multiprocessing.cpu_count()
-    print("Using {} workers.".format(number_of_workers))
+    logging.info('Using %d workers.', number_of_workers)
     if disable_gpu:
-        print("GPU is disabled.")
+        logging.info("GPU is disabled.")
 
     # Split into list.
     entry_sublists = np.array_split(entries, number_of_workers)
@@ -572,7 +566,7 @@ def multiprocess(
         for process in processes:
             process.join()
     except KeyboardInterrupt:
-        print("Keyboard interrupt. Gracefully terminating multi-processing...")
+        logging.info('Keyboard interrupt. Gracefully terminating multi-processing...')
         for process in processes:
             process.terminate()
             process.join()

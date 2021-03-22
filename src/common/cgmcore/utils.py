@@ -22,6 +22,8 @@ import itertools
 import datetime
 import glob
 import os
+import logging
+import logging.config
 try:
     import vtk
 except Exception:
@@ -37,6 +39,8 @@ from tqdm import tqdm
 import traceback
 from PIL import Image
 import cv2
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 def load_pcd_as_ndarray(pcd_path):
@@ -446,8 +450,8 @@ def get_mean_error(date_times, all_history_paths, start_index, end_index=100090,
                 if key_suffix is not None and key_suffix in key:
                     lst = history[key][start_index:end_index]
                     avg_error = sum(lst) / len(lst)
-                    print("Avg " + key + " " + split[2] + " " + date_time + " between epoch " + str(
-                        start_index) + " and " + str(end_index) + " = " + str(avg_error))
+                    logging.info('avg %d %d %d between epoch %s and %s = %s', key, split[2], date_time,
+                                 str(start_index), str(end_index), str(avg_error))
 
 
 def find_all_history_paths(root_path):
@@ -490,9 +494,9 @@ def multiprocess(
     # Get number of workers.
     if number_of_workers is None:
         number_of_workers = multiprocessing.cpu_count()
-    print("Using {} workers.".format(number_of_workers))
+    logging.info("Using %d workers.", number_of_workers)
     if disable_gpu is True:
-        print("GPU is disabled.")
+        logging.info("GPU is disabled.")
 
     # Split into list.
     entry_sublists = np.array_split(entries, number_of_workers)

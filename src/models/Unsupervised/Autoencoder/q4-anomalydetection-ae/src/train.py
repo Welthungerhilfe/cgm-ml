@@ -2,6 +2,8 @@ from pathlib import Path
 import os
 import random
 import shutil
+import logging
+import logging.config
 
 import glob2 as glob
 import tensorflow as tf
@@ -11,6 +13,8 @@ from azureml.core.run import Run
 from config import CONFIG
 #from config import CONFIG_DEV as CONFIG #  Only for development.
 from constants import REPO_DIR
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 # Get the current run.
 run = Run.get_context()
@@ -31,7 +35,8 @@ if offline_run:
     for p in utils_paths:
         shutil.copy(p, temp_model_util_dir)
 
-print(f"Config: {CONFIG.NAME}")
+logging.info('Config: %s', CONFIG.NAME)
+
 
 from model import Autoencoder   # noqa: E402
 from dataset import create_datasets   # noqa: E402
@@ -42,17 +47,17 @@ tf.random.set_seed(CONFIG.SPLIT_SEED)
 random.seed(CONFIG.SPLIT_SEED)
 
 if offline_run:
-    print("Running in offline mode...")
+    logging.info('Running in offline mode...')
 
     # Access workspace.
-    print("Accessing workspace...")
+    logging.info('Accessing workspace...')
     workspace = Workspace.from_config()
     experiment = Experiment(workspace, "training-junkyard")
     run = experiment.start_logging(outputs=None, snapshot_directory=None)
 
 # Online run. Use dataset provided by training notebook.
 else:
-    print("Running in online mode...")
+    logging.info('Running in online mode...')
     experiment = run.experiment
     workspace = experiment.workspace
 

@@ -1,4 +1,8 @@
 import pandas as pd
+import logging
+import logging.config
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 def convert_age_from_days_to_years(age_in_days: pd.Series) -> int:
@@ -17,7 +21,7 @@ def draw_age_distribution(scans: pd.DataFrame):
     age_ax = value_counts.plot(kind='bar')
     age_ax.set_xlabel('age')
     age_ax.set_ylabel('no. of scans')
-    print(value_counts)
+    logging.info(value_counts)
 
 
 def draw_sex_distribution(scans: pd.DataFrame):
@@ -25,7 +29,7 @@ def draw_sex_distribution(scans: pd.DataFrame):
     ax = value_counts.plot(kind='bar')
     ax.set_xlabel('gender')
     ax.set_ylabel('no. of scans')
-    print(value_counts)
+    logging.info(value_counts)
 
 
 def _count_rows_per_age_bucket(artifacts):

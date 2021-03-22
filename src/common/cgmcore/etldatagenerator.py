@@ -4,6 +4,8 @@ This file contains a data-generator that works on the data as it is provided by 
 
 from __future__ import absolute_import
 import os
+import logging
+import logging.config
 import numpy as np
 import glob2 as glob
 import random
@@ -13,6 +15,8 @@ import multiprocessing as mp
 from pyntcloud import PyntCloud
 import pickle
 from . import utils
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 class ETLDataGenerator(object):
@@ -112,7 +116,7 @@ class ETLDataGenerator(object):
         self.qrcodes_dictionary = {}
         for qrcode in self.qrcodes:
             self.qrcodes_dictionary[qrcode] = []
-            #print("QR-code:", qrcode)
+            #logging.info("QR-code:", qrcode)
             measurement_paths = glob.glob(os.path.join(self.dataset_path, qrcode, "*"))
             for measurement_path in measurement_paths:
                 # Getting PCDs.
@@ -135,23 +139,23 @@ class ETLDataGenerator(object):
     def analyze_files(self):
 
         for qrcode in self.qrcodes:
-            print("QR-code:", qrcode)
+            logging.info("QR-code: %s", qrcode)
             for pcd_paths, jpg_paths, targets in self.qrcodes_dictionary[qrcode]:
-                print("  {} PCD-files for targets {}".format(len(pcd_paths), targets))
-                print("  {} JPG-files for targets {}".format(len(jpg_paths), targets))
+                logging.info(" %d PCD-files for targets %s", len(pcd_paths), targets)
+                logging.info(" %d JPG-files for targets %s", len(jpg_paths), targets)
 
-        print("Total PCD-files: {}".format(len(self.all_pcd_paths)))
-        print("Total JPG-files: {}".format(len(self.all_jpg_paths)))
+        logging.info("Total PCD-files: %d", len(self.all_pcd_paths))
+        logging.info("Total JPG-files: %d", len(self.all_jpg_paths))
 
         #measurement_paths = glob.glob(os.path.join(self.dataset_path, qrcode, "*"))
         #for measurement_path in measurement_paths:
-        #    print("  ", measurement_path.split("/")[-1])
+        #    logging.info("  %s", measurement_path.split("/")[-1])
         #    pcd_paths = glob.glob(os.path.join(measurement_path, "*.pcd"))
-        #    print("    ", "{} PCDs".format(len(pcd_paths)))
-        #print("Number of JPGs:", len(self.jpg_paths))
-        #print("Number of PCDs:", len(self.pcd_paths))
-        #print("Number of JSONs (personal):", len(self.json_paths_personal))
-        #print("Number of JSONs (measures):", len(self.json_paths_measures))
+        #    logging.info("    %d PCDs", len(pcd_paths))
+        #logging.info("Number of JPGs: %d", len(self.jpg_paths))
+        #logging.info("Number of PCDs: %d", len(self.pcd_paths))
+        #logging.info("Number of JSONs (personal): %d", len(self.json_paths_personal))
+        #logging.info("Number of JSONs (measures): %d", len(self.json_paths_measures))
 
     def generate(self, size, qrcodes_to_use=None, verbose=False, yield_file_paths=False, multiprocessing_jobs=1):
 
@@ -308,7 +312,7 @@ class ETLDataGenerator(object):
 
 
 def create_datagenerator_from_parameters(dataset_path, dataset_parameters):
-    print("Creating data-generator...")
+    logging.info("Creating data-generator...")
     datagenerator = ETLDataGenerator(
         dataset_path=dataset_path,
         input_type=dataset_parameters["input_type"],
@@ -340,7 +344,7 @@ def get_dataset_path(root_path="../data/etl"):
 
 def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, output_queue):
     if verbose is True:
-        print("Generating using QR-codes:", qrcodes_to_use)
+        logging.info("Generating QR-codes to be used: %s", qrcodes_to_use)
 
     assert size != 0
 
@@ -432,7 +436,7 @@ def get_input(class_self, jpg_paths, pcd_paths):
     # Get a random image.
     if class_self.input_type == "image":
         if len(jpg_paths) == 0:
-            print("777")
+            logging.info("777")
             return None, None
         jpg_path = random.choice(jpg_paths)
         image = class_self._load_image(jpg_path)

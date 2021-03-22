@@ -1,9 +1,10 @@
-import datetime
-import json
+from multiprocessing import Pool
 import os
 import pickle
 from pathlib import Path
 from typing import Callable, List
+import logging
+import logging.config
 
 import glob2 as glob
 import numpy as np
@@ -17,6 +18,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt  # noqa: E402
 from cgmzscore import Calculator  # noqa: E402
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 DAYS_IN_YEAR = 365
 
@@ -46,7 +49,8 @@ MIN_HEIGHT = 45
 MAX_HEIGHT = 120
 MAX_AGE = 1856.0
 
-STUNTING_DIAGNOSIS = ["Healthy", "Moderately Stunted", "Severly Stunted"]
+STUNTING_DIAGNOSIS = ["Not Stunted", "Moderately Stunted", "Severly Stunted"]
+WASTING_DIAGNOSIS = ["Not Under-weight", "Moderately Under-weight", "Severly Under-weight"]
 
 
 def process_image(data):
@@ -59,15 +63,13 @@ def process_image(data):
 
 
 def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
-    print("Accessing dataset...")
+    logging.info("Accessing dataset...")
     if os.path.exists(dataset_path):
         return
     dataset = workspace.datasets[dataset_name]
-    print(f"Downloading dataset {dataset_name}.. Current date and time: ",
-          datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    logging.info("Downloading dataset %s", dataset_name)
     dataset.download(target_path=dataset_path, overwrite=False)
-    print(f"Finished downloading {dataset_name}, Current date and time: ",
-          datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    logging.info("Finished downloading %s", dataset_name)
 
 
 def get_dataset_path(data_dir: Path, dataset_name: str):
@@ -86,7 +88,7 @@ def preprocess_targets(targets, targets_indices):
         try:
             targets[GOODBAD_IDX] = GOODBAD_DICT[targets[GOODBAD_IDX]]
         except KeyError:
-            print(f"Key '{targets[GOODBAD_IDX]}' not found in GOODBAD_DICT")
+            logging.info("Key %s not found in GOODBAD_DICT", targets[GOODBAD_IDX])
             targets[GOODBAD_IDX] = GOODBAD_DICT['delete']  # unknown target values will be categorized as 'delete'
 
     if targets_indices is not None:
@@ -122,6 +124,17 @@ def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CO
         target_list.append(target)
 
     return qrcode_list, scan_type_list, artifact_list, prediction_list, target_list
+
+
+def extract_qrcode(row):
+    qrc = row['artifacts'].split('/')[-3]
+    return qrc
+
+
+def extract_scantype(row):
+    """https://dev.azure.com/cgmorg/ChildGrowthMonitor/_wiki/wikis/ChildGrowthMonitor.wiki/15/Codes-for-Pose-and-Scan-step"""
+    scans = row['artifacts'].split('/')[-2]
+    return scans
 
 
 def avgerror(row):
@@ -317,7 +330,7 @@ def draw_uncertainty_scatterplot(df: pd.DataFrame, png_out_fpath: str):
     plt.grid()
 
     correlation, _ = pearsonr(df['error'], df['uncertainties'])
-    print("correlation:", correlation)
+    logging.info("correlation: %d", correlation)
 
     plt.title(f"Per-scan sample artifact: Error over uncertainty (correlation={correlation:.3})")
     plt.xlabel("error")
@@ -337,39 +350,97 @@ def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
         df: Dataframe with columns: qrcode, scantype, COLUMN_NAME_AGE, GT, predicted
         png_out_fpath: File path where plot image will be saved
     """
-    predicted_stunting = []
-    actual_stunting = []
-    not_processed_data = []
-    for index, row in df.iterrows():
-        sex = 'M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F'
-        age_days = int(row[COLUMN_NAME_AGE])
-        if MIN_HEIGHT < row['GT'] <= MAX_HEIGHT and MIN_HEIGHT < row['predicted'] <= MAX_HEIGHT and row[COLUMN_NAME_AGE] <= MAX_AGE:
-            actual_calcuated = Calculator().zScore_withclass(
-                weight="0", muac="0", age_in_days=age_days, sex=sex, height=row['GT'])
-            actual_json = json.loads(actual_calcuated)
-            actual_stunting.append(actual_json['Class_HFA'])
-            predicted_calculated = Calculator().zScore_withclass(
-                weight="0", muac="0", age_in_days=age_days, sex=sex, height=row['predicted'])
-            predicted_json = json.loads(predicted_calculated)
-            predicted_stunting.append(predicted_json['Class_HFA'])
-        else:
-            not_processed_data.append(row['qrcode'])
-    data = confusion_matrix(actual_stunting, predicted_stunting)
-    T1, FP1, FP2, FN1, T2, FP3, FN2, FN3, T3 = data.ravel()
-    Total = sum(data.ravel())
-    T = ((T1 + T2 + T3) / Total) * 100
-    FP = ((FP1 + FP2 + FP3) / Total) * 100
-    FN = ((FN1 + FN2 + FN3) / Total) * 100
+    df = parallelize_dataframe(df, calculate_zscore_lhfa)
+    actual = np.where(df['Z_actual'].values < -3, 'Severly Stunted',
+                      np.where(df['Z_actual'].values > -2, 'Not Stunted', 'Moderately Stunted'))
+    predicted = np.where(df['Z_predicted'].values < -3, 'Severly Stunted',
+                         np.where(df['Z_predicted'].values > -2, 'Not Stunted', 'Moderately Stunted'))
+    data = confusion_matrix(actual, predicted)
+    draw_confusion_matrix(data, png_out_fpath, STUNTING_DIAGNOSIS, 'Stunting Diagnosis')
+
+
+def calculate_zscore_lhfa(df):
+    '''
+    lhfa : length/height for age
+    '''
+    cal = Calculator()
+
+    def utils(age_in_days, height, sex):
+        if MIN_HEIGHT < height <= MAX_HEIGHT and age_in_days <= MAX_AGE:
+            return cal.zScore_lhfa(age_in_days=age_in_days, sex=sex, height=height)
+
+    df['Z_actual'] = df.apply(lambda row: utils(age_in_days=int(row[COLUMN_NAME_AGE]),
+                                                sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['GT']), axis=1)
+    df['Z_predicted'] = df.apply(lambda row: utils(age_in_days=int(
+        row[COLUMN_NAME_AGE]), sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['predicted']), axis=1)
+
+    return df
+
+
+def draw_wasting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
+    """Draw wasting Confusion Matrix
+
+    Args:
+        df_: Dataframe with columns: qrcode, scantype, COLUMN_NAME_AGE, GT, predicted
+        png_out_fpath: File path where plot image will be saved
+    """
+    df = parallelize_dataframe(df, calculate_zscore_wfa)
+    actual = np.where(df['Z_actual'].values < -3, 'Severly Under-weight',
+                      np.where(df['Z_actual'].values > -2, 'Not Under-weight', 'Moderately Under-weight'))
+    predicted = np.where(df['Z_predicted'].values < -3, 'Severly Under-weight',
+                         np.where(df['Z_predicted'].values > -2, 'Not Under-weight', 'Moderately Under-weight'))
+    data = confusion_matrix(actual, predicted)
+    draw_confusion_matrix(data, png_out_fpath, WASTING_DIAGNOSIS, 'Wasting Diagnosis')
+
+
+def calculate_zscore_wfa(df):
+    '''
+    wfa: Weight for age
+    '''
+    cal = Calculator()
+
+    def utils(age_in_days, weight, sex):
+        if age_in_days <= MAX_AGE:
+            return cal.zScore_wfa(age_in_days=age_in_days, sex=sex, weight=weight)
+
+    df['Z_actual'] = df.apply(lambda row: utils(age_in_days=int(row[COLUMN_NAME_AGE]),
+                                                sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', weight=row['GT']), axis=1)
+    df['Z_predicted'] = df.apply(lambda row: utils(age_in_days=int(
+        row[COLUMN_NAME_AGE]), sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', weight=row['predicted']), axis=1)
+
+    return df
+
+
+def draw_confusion_matrix(data, png_out_fpath, display_labels, title):
+    T, FP, FN = calculate_percentage_confusion_matrix(data)
     fig = plt.figure(figsize=(15, 15))
     ax = fig.add_subplot(111)
-    disp = ConfusionMatrixDisplay(confusion_matrix=data, display_labels=STUNTING_DIAGNOSIS)
+    disp = ConfusionMatrixDisplay(confusion_matrix=data, display_labels=display_labels)
     disp.plot(cmap='Blues', values_format='d', ax=ax)
     s = f"True: {round(T, 2)} False Positive: {round(FP, 2)} False Negative: {round(FN, 2)}"
     plt.text(0.5, 0.5, s, size=10, bbox=dict(boxstyle="square", facecolor='white'))
-    ax.set_title("Stunting Diagnosis")
+    ax.set_title(title)
     Path(png_out_fpath).parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(png_out_fpath)
     plt.close()
+
+
+def parallelize_dataframe(df, calculate_confusion_matrix, n_cores=8):
+    df_split = np.array_split(df, n_cores)
+    pool = Pool(n_cores)
+    df = pd.concat(pool.map(calculate_confusion_matrix, df_split))
+    pool.close()
+    pool.join()
+    return df
+
+
+def calculate_percentage_confusion_matrix(data):
+    T1, FP1, FP2, FN1, T2, FP3, FN2, FN3, T3 = data.ravel()
+    Total = sum(data.ravel())
+    T = round(((T1 + T2 + T3) / Total) * 100, 2)
+    FP = round(((FP1 + FP2 + FP3) / Total) * 100, 2)
+    FN = round(((FN1 + FN2 + FN3) / Total) * 100, 2)
+    return T, FP, FN
 
 
 def get_model_path(MODEL_CONFIG: Bunch) -> str:
@@ -380,17 +451,17 @@ def get_model_path(MODEL_CONFIG: Bunch) -> str:
     raise NameError(f"{MODEL_CONFIG.NAME}'s path extension not supported")
 
 
-def download_model(ws, experiment_name, run_id, input_location, output_location):
+def download_model(workspace, experiment_name, run_id, input_location, output_location):
     """Download the pretrained model
 
     Args:
-         ws: workspace to access the experiment
+         workspace: workspace to access the experiment
          experiment_name: Name of the experiment in which model is saved
          run_id: Run Id of the experiment in which model is pre-trained
          input_location: Input location in a RUN Id
          output_location: Location for saving the model
     """
-    experiment = Experiment(workspace=ws, name=experiment_name)
+    experiment = Experiment(workspace=workspace, name=experiment_name)
     # Download the model on which evaluation need to be done
     run = Run(experiment, run_id=run_id)
     if input_location.endswith(".h5"):
@@ -399,7 +470,7 @@ def download_model(ws, experiment_name, run_id, input_location, output_location)
         run.download_files(prefix=input_location, output_directory=output_location)
     else:
         raise NameError(f"{input_location}'s path extension not supported")
-    print("Successfully downloaded model")
+    logging.info("Successfully downloaded model")
 
 
 def filter_dataset(paths_evaluation, standing):
