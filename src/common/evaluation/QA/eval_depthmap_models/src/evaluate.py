@@ -6,6 +6,7 @@ import pickle
 import random
 import shutil
 import time
+from functools import partial
 from importlib import import_module
 from pathlib import Path
 from typing import List
@@ -51,11 +52,11 @@ from temp_common.evaluation.constants_eval import (  # noqa: E402, F401
     AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, COLUMN_NAME_SEX,
     GOODBAD_DICT, GOODBAD_IDX, HEIGHT_IDX, SEX_IDX, WEIGHT_IDX)
 from temp_common.evaluation.eval_utils import (  # noqa: E402, F401
-    avgerror, extract_qrcode,
+    avgerror, calculate_performance, extract_qrcode,
     extract_scantype, preprocess_depthmap, preprocess_targets
 )
 from temp_common.evaluation.eval_utilities import (  # noqa: E402, F401
-    calculate_and_save_results, calculate_performance2,
+    calculate_and_save_results,
     calculate_performance_age, calculate_performance_goodbad,
     calculate_performance_sex, download_dataset, draw_age_scatterplot,
     draw_stunting_diagnosis, draw_uncertainty_goodbad_plot,
@@ -318,8 +319,10 @@ if __name__ == "__main__":
 
     csv_fpath = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
     logging.info("Calculate and save the results to %s", csv_fpath)
+    calculate_performance_with_accuracies = partial(calculate_performance,
+                                                    accuracy_thresholds=RESULT_CONFIG.ACCURACIES)
     calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
-                               DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance2)
+                               DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_with_accuracies)
 
     sample_csv_fpath = f"{OUTPUT_CSV_PATH}/inaccurate_scans_{RUN_ID}.csv"
     df_grouped.to_csv(sample_csv_fpath, index=True)
@@ -391,7 +394,7 @@ if __name__ == "__main__":
         csv_fpath = f"{OUTPUT_CSV_PATH}/uncertainty_smaller_than_{RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM}cm_{RUN_ID}.csv"
         logging.info("Uncertainty: For more certain than %.2f cm, calculate and save the results to %s", RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM, csv_fpath)
         calculate_and_save_results(df_sample_better_threshold, EVAL_CONFIG.NAME, csv_fpath,
-                                   DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance2)
+                                   DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_with_accuracies)
 
     # Done.
     run.complete()

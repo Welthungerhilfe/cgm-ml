@@ -88,32 +88,6 @@ def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CO
     return qrcode_list, scan_type_list, artifact_list, prediction_list, target_list
 
 
-def calculate_performance2(code, df_mae, result_config):
-    """For a specific scantype, calculate the performance of the model on each error margin
-    Args:
-        code: e.g. '100'
-        df_mae: dataframe
-        result_config: bunch containing result config
-    Returns:
-        dataframe, where each column describes a differnt accuracy, e.g.
-                            0.2   0.4   0.6   1.0   1.2    2.0    2.5    3.0    4.0    5.0    6.0
-                           20.0  20.0  40.0  80.0  80.0  100.0  100.0  100.0  100.0  100.0  100.0
-    """
-    df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
-    accuracy_list = []
-    for acc in result_config.ACCURACIES:
-        good_predictions = df_mae_filtered[(df_mae_filtered['error'] <= acc) & (df_mae_filtered['error'] >= -acc)]
-        if len(df_mae_filtered) > 0:
-            accuracy = len(good_predictions) / len(df_mae_filtered) * 100
-        else:
-            accuracy = 0.
-        accuracy_list.append(accuracy)
-    df_out = pd.DataFrame(accuracy_list)
-    df_out = df_out.T
-    df_out.columns = result_config.ACCURACIES
-    return df_out
-
-
 def calculate_and_save_results(df_grouped: pd.DataFrame, complete_name: str, csv_out_fpath: str, data_config: Bunch, result_config: Bunch, fct: Callable):
     """Calculate accuracies across the scantypes and save the final results table to the CSV file
 

@@ -16,22 +16,32 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 REPO_DIR = Path(os.getcwd()).parents[2]
 
 
-def calculate_performance(code, df_mae):
+def calculate_performance(code:str,
+                           df_mae: pd.DataFrame,
+                           accuracy_thresholds: list = EVALUATION_ACCURACIES) -> pd.DataFrame:
+    """For a specific scantype, calculate the performance of the model on each error margin
+    Args:
+        code: e.g. '100'
+        df_mae: dataframe
+        accuracy_thresholds: e.g. [.2, .4, .6, 1., 1.2, 2., 2.5, 3., 4., 5., 6.]
+    Returns:
+        dataframe, where each column describes a differnt accuracy, e.g.
+                            0.2   0.4   0.6   1.0   1.2    2.0    2.5    3.0    4.0    5.0    6.0
+                           20.0  20.0  40.0  80.0  80.0  100.0  100.0  100.0  100.0  100.0  100.0
+    """
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
     accuracy_list = []
-    for acc in EVALUATION_ACCURACIES:
+    for acc in accuracy_thresholds:
         good_predictions = df_mae_filtered[(df_mae_filtered['error'] <= acc) & (df_mae_filtered['error'] >= -acc)]
-        if len(df_mae_filtered):
+        if len(df_mae_filtered) > 0:
             accuracy = len(good_predictions) / len(df_mae_filtered) * 100
         else:
             accuracy = 0.
-        # logging.info("Accuracy %d for code %s: %d", acc, code, accuracy)
         accuracy_list.append(accuracy)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
-    df_out.columns = EVALUATION_ACCURACIES
+    df_out.columns = accuracy_thresholds
     return df_out
-
 
 # Function for loading and processing depthmaps.
 def tf_load_pickle(path, max_value):
