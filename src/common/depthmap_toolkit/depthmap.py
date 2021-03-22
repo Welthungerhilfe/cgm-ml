@@ -47,10 +47,10 @@ def onclick(event):
             logging.info('no valid data')
 
 
-def process(plt, dir, depth, rgb):
+def process(plt, dir_path, depth, rgb):
 
     #extract depthmap
-    with zipfile.ZipFile(dir + '/depth/' + depth, 'r') as zip_ref:
+    with zipfile.ZipFile(dir_path + '/depth/' + depth, 'r') as zip_ref:
         zip_ref.extractall('.')
     utils.parse_data('data')
 
@@ -61,7 +61,7 @@ def process(plt, dir, depth, rgb):
         has_rgb = 1
         width = utils.getWidth()
         height = utils.getHeight()
-        pil_im = Image.open(dir + '/rgb/' + rgb)
+        pil_im = Image.open(dir_path + '/rgb/' + rgb)
         pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
         im_array = np.asarray(pil_im)
     else:
@@ -69,7 +69,7 @@ def process(plt, dir, depth, rgb):
 
     #parse calibration
     global calibration
-    calibration = utils.parse_calibration(dir + '/camera_calibration.txt')
+    calibration = utils.parse_calibration(dir_path + '/camera_calibration.txt')
 
 
 def show_result():
