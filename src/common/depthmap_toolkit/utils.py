@@ -59,7 +59,7 @@ def matrix_transform_point(point: list, matrix: list) -> list:
     return output
 
 
-def convert2Dto3D(intrisics: list, x: float, y: float, z: float) -> list:
+def convert_2d_to_3d(intrisics: list, x: float, y: float, z: float) -> list:
     """Convert point in pixels into point in meters"""
     fx = intrisics[0] * float(width)
     fy = intrisics[1] * float(height)
@@ -72,7 +72,7 @@ def convert2Dto3D(intrisics: list, x: float, y: float, z: float) -> list:
 
 def convert_3d_to_2d_oriented(intrisics: list, x: float, y: float, z: float) -> list:
     """Convert point in pixels into point in meters (applying rotation)"""
-    res = convert2Dto3D(calibration[1], x, y, z)
+    res = convert_2d_to_3d(calibration[1], x, y, z)
     if res:
         try:
             res = [-res[0], res[1], res[2]]
@@ -156,7 +156,7 @@ def export_pcd(filename):
             for y in range(2, height - 2):
                 depth = parse_depth(x, y)
                 if depth:
-                    res = convert2Dto3D(calibration[1], x, y, depth)
+                    res = convert_2d_to_3d(calibration[1], x, y, depth)
                     if res:
                         file.write(str(-res[0]) + ' ' + str(res[1]) + ' '
                                    + str(res[2]) + ' ' + str(parse_confidence(x, y)) + '\n')
@@ -169,7 +169,7 @@ def _get_count():
         for y in range(2, height - 2):
             depth = parse_depth(x, y)
             if depth:
-                res = convert2Dto3D(calibration[1], x, y, depth)
+                res = convert_2d_to_3d(calibration[1], x, y, depth)
                 if res:
                     count = count + 1
     return count

@@ -34,7 +34,7 @@ def onclick(event):
         if x > 1 and y > 1 and x < width - 2 and y < height - 2:
             depth = utils.parse_depth(x, y)
             if depth:
-                res = utils.convert2Dto3D(calibration[1], x, y, depth)
+                res = utils.convert_2d_to_3d(calibration[1], x, y, depth)
                 if res:
                     diff = [last[0] - res[0], last[1] - res[1], last[2] - res[2]]
                     dst = np.sqrt(diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2])
@@ -83,7 +83,7 @@ def show_result():
             depth = utils.parse_depth(x, y)
             if (depth):
                 #convert ToF coordinates into RGB coordinates
-                vec = utils.convert2Dto3D(calibration[1], x, y, depth)
+                vec = utils.convert_2d_to_3d(calibration[1], x, y, depth)
                 vec[0] += calibration[2][0]
                 vec[1] += calibration[2][1]
                 vec[2] += calibration[2][2]
