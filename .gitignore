@@ -11,6 +11,7 @@ vandelay-py.js
 logs/
 logs_*/
 tmp_train/
+temp*/
 src/common/depthmap_toolkit/data
 src/common/depthmap_toolkit/honor/
 src/common/depthmap_toolkit/output/
