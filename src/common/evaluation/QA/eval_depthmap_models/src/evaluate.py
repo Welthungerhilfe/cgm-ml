@@ -64,7 +64,7 @@ from temp_common.evaluation.eval_utilities import (  # noqa: E402, F401
 from temp_common.evaluation.uncertainty_utils import \
     get_prediction_uncertainty  # noqa: E402, F401
 from temp_common.model_utils.preprocessing_multiartifact2 import \
-    create_multiartifact_samples  # noqa: E402, F401
+    create_multiartifact_paths_for_qrcodes  # noqa: E402, F401
 from temp_common.model_utils.preprocessing_multiartifact import \
     create_multiartifact_sample  # noqa: E402, F401
 
@@ -233,7 +233,7 @@ if __name__ == "__main__":
 
     # Is this a multiartifact model?
     if getattr(DATA_CONFIG, "N_ARTIFACTS", 1) > 1:
-        samples_paths = create_multiartifact_samples(qrcode_paths, DATA_CONFIG)
+        samples_paths = create_multiartifact_paths_for_qrcodes(qrcode_paths, DATA_CONFIG)
         predictions = get_prediction_multiartifact(model_path, samples_paths)
 
         df = pd.DataFrame(predictions, columns=['artifacts', 'predicted', 'GT'])
