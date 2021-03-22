@@ -319,7 +319,7 @@ if __name__ == "__main__":
     csv_fpath = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
     logging.info("Calculate and save the results to %s", csv_fpath)
     calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
-                               DATA_CONFIG, RESULT_CONFIG.ACCURACIES, fct=calculate_performance)
+                               DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 
     sample_csv_fpath = f"{OUTPUT_CSV_PATH}/inaccurate_scans_{RUN_ID}.csv"
     df_grouped.to_csv(sample_csv_fpath, index=True)
@@ -328,7 +328,7 @@ if __name__ == "__main__":
         csv_fpath = f"{OUTPUT_CSV_PATH}/age_evaluation_{RUN_ID}.csv"
         logging.info("Calculate and save age results to %s", csv_fpath)
         calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
-                                   DATA_CONFIG, RESULT_CONFIG.ACCURACIES, fct=calculate_performance_age)
+                                   DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
         png_fpath = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{RUN_ID}.png"
         logging.info("Calculate and save scatterplot results to %s", png_fpath)
         draw_age_scatterplot(df, png_fpath)
@@ -353,12 +353,12 @@ if __name__ == "__main__":
         csv_fpath = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"
         logging.info("Calculate and save sex results to %s", csv_fpath)
         calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
-                                   DATA_CONFIG, RESULT_CONFIG.ACCURACIES, fct=calculate_performance_sex)
+                                   DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_sex)
     if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
         csv_fpath = f"{OUTPUT_CSV_PATH}/goodbad_evaluation_{RUN_ID}.csv"
         logging.info("Calculate performance on bad/good scans and save results to %s", csv_fpath)
         calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
-                                   DATA_CONFIG, RESULT_CONFIG.ACCURACIES, fct=calculate_performance_goodbad)
+                                   DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_goodbad)
 
     if RESULT_CONFIG.USE_UNCERTAINTY:
         assert GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES
@@ -391,7 +391,7 @@ if __name__ == "__main__":
         csv_fpath = f"{OUTPUT_CSV_PATH}/uncertainty_smaller_than_{RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM}cm_{RUN_ID}.csv"
         logging.info("Uncertainty: For more certain than %.2f cm, calculate and save the results to %s", RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM, csv_fpath)
         calculate_and_save_results(df_sample_better_threshold, EVAL_CONFIG.NAME, csv_fpath,
-                                   DATA_CONFIG, RESULT_CONFIG.ACCURACIES, fct=calculate_performance)
+                                   DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 
     # Done.
     run.complete()

@@ -9,7 +9,6 @@ from itertools import groupby, islice
 from typing import Iterator, List
 
 import glob2 as glob
-import numpy as np
 
 sys.path.append(str(Path(__file__).parent))
 

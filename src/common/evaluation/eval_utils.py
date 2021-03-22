@@ -5,6 +5,7 @@ from pathlib import Path
 import pickle
 import tensorflow as tf
 
+from bunch import Bunch
 import pandas as pd
 
 from .constants_eval import (  # noqa: E402, F401
@@ -18,12 +19,12 @@ REPO_DIR = Path(os.getcwd()).parents[2]
 
 def calculate_performance(code: str,
                           df_mae: pd.DataFrame,
-                          accuracy_thresholds: list = EVALUATION_ACCURACIES) -> pd.DataFrame:
+                          result_config: Bunch) -> pd.DataFrame:
     """For a specific scantype, calculate the performance of the model on each error margin
     Args:
         code: e.g. '100'
         df_mae: dataframe
-        accuracy_thresholds: e.g. [.2, .4, .6, 1., 1.2, 2., 2.5, 3., 4., 5., 6.]
+        result_config: bunch containing result config
     Returns:
         dataframe, where each column describes a differnt accuracy, e.g.
                             0.2   0.4   0.6   1.0   1.2    2.0    2.5    3.0    4.0    5.0    6.0
@@ -31,7 +32,7 @@ def calculate_performance(code: str,
     """
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
     accuracy_list = []
-    for acc in accuracy_thresholds:
+    for acc in result_config.ACCURACIES:
         good_predictions = df_mae_filtered[(df_mae_filtered['error'] <= acc) & (df_mae_filtered['error'] >= -acc)]
         if len(df_mae_filtered) > 0:
             accuracy = len(good_predictions) / len(df_mae_filtered) * 100
@@ -40,7 +41,7 @@ def calculate_performance(code: str,
         accuracy_list.append(accuracy)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
-    df_out.columns = accuracy_thresholds
+    df_out.columns = result_config.ACCURACIES
     return df_out
 
 
