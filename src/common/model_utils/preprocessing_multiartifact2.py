@@ -102,14 +102,3 @@ def _get_epoch(fname: str) -> str:
         return match_result.group("unixepoch")
     else:
         logging.info("%s doesn't match REGEX_PICKLE", fname)
-
-
-def preprocess_depthmap(depthmap: np.array) -> np.array:
-    # TODO here be more code.
-    return depthmap.astype("float32")
-
-
-def preprocess_targets(targets: np.array, targets_indices: list) -> np.array:
-    if targets_indices is not None:
-        targets = targets[targets_indices]
-    return targets.astype("float32")
