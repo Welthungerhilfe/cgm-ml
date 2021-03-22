@@ -114,7 +114,7 @@ def export_obj(filename, triangulate):
                         f.write('v ' + str(res[0]) + ' ' + str(res[1]) + ' ' + str(res[2]) + '\n')
 
         if triangulate:
-            maxDiff = 0.2
+            max_diff = 0.2
             for x in range(2, width - 2):
                 for y in range(2, height - 2):
                     #get depth of all points of 2 potential triangles
@@ -126,13 +126,13 @@ def export_obj(filename, triangulate):
                     #check if first triangle points have existing indices
                     if indices[x][y] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
                         #check if the triangle size is valid (to prevent generating triangle connecting child and background)
-                        if abs(d00 - d10) + abs(d00 - d01) + abs(d10 - d01) < maxDiff:
+                        if abs(d00 - d10) + abs(d00 - d01) + abs(d10 - d01) < max_diff:
                             f.write('f ' + str(int(indices[x][y])) + ' ' + str(int(indices[x + 1][y])) + ' ' + str(int(indices[x][y + 1])) + '\n')
 
                     #check if second triangle points have existing indices
                     if indices[x + 1][y + 1] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
                         #check if the triangle size is valid (to prevent generating triangle connecting child and background)
-                        if abs(d11 - d10) + abs(d11 - d01) + abs(d10 - d01) < maxDiff:
+                        if abs(d11 - d10) + abs(d11 - d01) + abs(d10 - d01) < max_diff:
                             f.write('f ' + str(int(indices[x + 1][y + 1])) + ' ' + str(int(indices[x + 1][y])) + ' ' + str(int(indices[x][y + 1])) + '\n')
         logging.info('Mesh exported into %s', filename)
 
