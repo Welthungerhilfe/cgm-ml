@@ -93,10 +93,10 @@ def show_result():
                 output[x][height - y - 1][:] = 1.0 - min(depth / 2.0, 1.0)
 
                 # depth data normal
-                v = utils.convert_2d_to_3d_oriented(calibration[1], x, y, depth)
-                xm = utils.convert_2d_to_3d_oriented(calibration[1], x - 1, y, utils.parse_depth_smoothed(x - 1, y))
-                xp = utils.convert_2d_to_3d_oriented(calibration[1], x + 1, y, utils.parse_depth_smoothed(x + 1, y))
-                yp = utils.convert_2d_to_3d_oriented(calibration[1], x, y + 1, utils.parse_depth_smoothed(x, y + 1))
+                v = utils.convert_2d_to_3d_oriented(CALIBRATION[1], x, y, depth)
+                xm = utils.convert_2d_to_3d_oriented(CALIBRATION[1], x - 1, y, utils.parse_depth_smoothed(x - 1, y))
+                xp = utils.convert_2d_to_3d_oriented(CALIBRATION[1], x + 1, y, utils.parse_depth_smoothed(x + 1, y))
+                yp = utils.convert_2d_to_3d_oriented(CALIBRATION[1], x, y + 1, utils.parse_depth_smoothed(x, y + 1))
                 n = utils.norm(utils.cross(utils.diff(yp, xm), utils.diff(yp, xp)))
                 output[x][height + height - y - 1][0] = abs(n[0])
                 output[x][height + height - y - 1][1] = abs(n[1])
