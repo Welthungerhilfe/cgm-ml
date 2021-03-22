@@ -34,7 +34,7 @@ def onclick(event):
         if x > 1 and y > 1 and x < width - 2 and y < height - 2:
             depth = utils.parse_depth(x, y)
             if depth:
-                res = utils.convert_2d_to_3d(calibration[1], x, y, depth)
+                res = utils.convert_2d_to_3d(CALIBRATION[1], x, y, depth)
                 if res:
                     diff = [last[0] - res[0], last[1] - res[1], last[2] - res[2]]
                     dst = np.sqrt(diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2])
@@ -68,8 +68,8 @@ def process(plt, dir_path, depth, rgb):
         has_rgb = 0
 
     #parse calibration
-    global calibration
-    calibration = utils.parse_calibration(dir_path + '/camera_calibration.txt')
+    global CALIBRATION
+    CALIBRATION = utils.parse_calibration(dir_path + '/camera_calibration.txt')
 
 
 def show_result():
@@ -83,11 +83,11 @@ def show_result():
             depth = utils.parse_depth(x, y)
             if (depth):
                 #convert ToF coordinates into RGB coordinates
-                vec = utils.convert_2d_to_3d(calibration[1], x, y, depth)
-                vec[0] += calibration[2][0]
-                vec[1] += calibration[2][1]
-                vec[2] += calibration[2][2]
-                vec = utils.convert_3d_to_2d(calibration[0], vec[0], vec[1], vec[2])
+                vec = utils.convert_2d_to_3d(CALIBRATION[1], x, y, depth)
+                vec[0] += CALIBRATION[2][0]
+                vec[1] += CALIBRATION[2][1]
+                vec[2] += CALIBRATION[2][2]
+                vec = utils.convert_3d_to_2d(CALIBRATION[0], vec[0], vec[1], vec[2])
 
                 #set output pixel
                 output[x][height - y - 1][:] = 1.0 - min(depth / 2.0, 1.0)  # depth data scaled to be visible

@@ -72,7 +72,7 @@ def convert_2d_to_3d(intrisics: list, x: float, y: float, z: float) -> list:
 
 def convert_3d_to_2d_oriented(intrisics: list, x: float, y: float, z: float) -> list:
     """Convert point in pixels into point in meters (applying rotation)"""
-    res = convert_2d_to_3d(calibration[1], x, y, z)
+    res = convert_2d_to_3d(CALIBRATION[1], x, y, z)
     if res:
         try:
             res = [-res[0], res[1], res[2]]
@@ -107,7 +107,7 @@ def export_obj(filename, triangulate):
             for y in range(2, height - 2):
                 depth = parse_depth(x, y)
                 if depth:
-                    res = convert_3d_to_2d_oriented(calibration[1], x, y, depth)
+                    res = convert_3d_to_2d_oriented(CALIBRATION[1], x, y, depth)
                     if res:
                         count = count + 1
                         indices[x][y] = count  # add index of written vertex into array
@@ -156,7 +156,7 @@ def export_pcd(filename):
             for y in range(2, height - 2):
                 depth = parse_depth(x, y)
                 if depth:
-                    res = convert_2d_to_3d(calibration[1], x, y, depth)
+                    res = convert_2d_to_3d(CALIBRATION[1], x, y, depth)
                     if res:
                         file.write(str(-res[0]) + ' ' + str(res[1]) + ' '
                                    + str(res[2]) + ' ' + str(parse_confidence(x, y)) + '\n')
@@ -169,7 +169,7 @@ def _get_count():
         for y in range(2, height - 2):
             depth = parse_depth(x, y)
             if depth:
-                res = convert_2d_to_3d(calibration[1], x, y, depth)
+                res = convert_2d_to_3d(CALIBRATION[1], x, y, depth)
                 if res:
                     count = count + 1
     return count
@@ -177,20 +177,20 @@ def _get_count():
 
 def parse_calibration(filepath):
     """Parse calibration file"""
-    global calibration
+    global CALIBRATION
     with open(filepath, 'r') as file:
-        calibration = []
+        CALIBRATION = []
         file.readline()[:-1]
-        calibration.append(parse_numbers(file.readline()))
-        #logging.info(str(calibration[0]) + '\n') #color camera intrinsics - fx, fy, cx, cy
+        CALIBRATION.append(parse_numbers(file.readline()))
+        #logging.info(str(CALIBRATION[0]) + '\n') #color camera intrinsics - fx, fy, cx, cy
         file.readline()[:-1]
-        calibration.append(parse_numbers(file.readline()))
-        #logging.info(str(calibration[1]) + '\n') #depth camera intrinsics - fx, fy, cx, cy
+        CALIBRATION.append(parse_numbers(file.readline()))
+        #logging.info(str(CALIBRATION[1]) + '\n') #depth camera intrinsics - fx, fy, cx, cy
         file.readline()[:-1]
-        calibration.append(parse_numbers(file.readline()))
-        #logging.info(str(calibration[2]) + '\n') #depth camera position relativelly to color camera in meters
-        calibration[2][1] *= 8.0  # workaround for wrong calibration data
-    return calibration
+        CALIBRATION.append(parse_numbers(file.readline()))
+        #logging.info(str(CALIBRATION[2]) + '\n') #depth camera position relativelly to color camera in meters
+        CALIBRATION[2][1] *= 8.0  # workaround for wrong calibration data
+    return CALIBRATION
 
 
 def parse_confidence(tx, ty):
