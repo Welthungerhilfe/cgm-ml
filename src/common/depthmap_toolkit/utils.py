@@ -237,6 +237,8 @@ def parse_data(filename):
 
 def parse_depth(tx, ty):
     """Get depth of the point in meters"""
+    if tx < 1 or ty < 1 or tx >= width or ty >= height:
+        return 0
     depth = data[(int(ty) * width + int(tx)) * 3 + 0] << 8
     depth += data[(int(ty) * width + int(tx)) * 3 + 1]
     depth *= depthScale
@@ -244,14 +246,11 @@ def parse_depth(tx, ty):
 
 def parse_depth_smoothed(tx, ty):
     d = parse_depth(tx, ty)
-    if tx > 1 and tx < width - 1 and ty > 1 and ty < height - 1:
-        xm = parse_depth(tx - 1, ty)
-        xp = parse_depth(tx + 1, ty)
-        ym = parse_depth(tx, ty - 1)
-        yp = parse_depth(tx, ty + 1)
-        return (xm + xp + ym + yp + d) / 5.0
-    return d
-
+    xm = parse_depth(tx - 1, ty)
+    xp = parse_depth(tx + 1, ty)
+    ym = parse_depth(tx, ty - 1)
+    yp = parse_depth(tx, ty + 1)
+    return (xm + xp + ym + yp + d) / 5.0
 
 def parse_numbers(line):
     """Parse line of numbers"""
