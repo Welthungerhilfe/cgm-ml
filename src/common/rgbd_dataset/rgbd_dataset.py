@@ -80,6 +80,7 @@ def read_json(filepath):
         label_data = json.load(json_data)
     return label_data
 
+
 def process_depthmap(depthmaps):
     split_dirpath = depthmaps.split('/depth')[0]
     json_fpath = f'{split_dirpath}/targets.json'
@@ -108,12 +109,12 @@ def process_depthmap(depthmaps):
         Path(scan_type_dirpath).mkdir(parents=True, exist_ok=True)
         data, width, height, depthScale, max_confidence = load_depth(depthmap_image_path)
         depthmap_huawei = prepare_depthmap(data, width, height, depthScale)
-        image_full_fpath = f'{rgb_path}/{image_path}'
+        image_full_fpath = f'{rgb_dirpath}/{image_path}'
         resized_image = image_resize(image_full_fpath)
         pickled_data = (resized_image, depthmap_huawei[0], labels)
         pickle.dump(pickled_data, open(full_fpath, "wb"))
 
-        
+
 if __name__ == "__main__":
     source_pattern = f'{SOURCE_PATH}'
     dataset_list = []
