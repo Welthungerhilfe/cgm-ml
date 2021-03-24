@@ -136,7 +136,7 @@ def tf_load_pickle(path, max_value):
         depthmap, targets = pickle.load(open(path.numpy(), "rb"))
         depthmap = preprocess_depthmap(depthmap)
         depthmap = depthmap / max_value
-        depthmap = tf.image.resize(depthmap, (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH))
+        depthmap = tf.image.resize(depthmap, (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 4))
         targets = preprocess_targets(targets, CONFIG.TARGET_INDEXES)
         return depthmap, targets
 
@@ -174,7 +174,7 @@ del dataset_norm
 # Note: Now the datasets are prepared.
 
 # Create the model.
-input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1)
+input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 4)
 model = create_cnn(input_shape, dropout=CONFIG.USE_DROPOUT)
 model.summary()
 
