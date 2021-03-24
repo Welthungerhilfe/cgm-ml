@@ -19,24 +19,36 @@ from model import create_cnn
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
+
+def copy_dir(src: Path, tgt: Path, glob_pattern: str, should_touch_init: bool = False):
+    logging.info("Creating temp folder")
+    if tgt.exists():
+        shutil.rmtree(tgt)
+    tgt.mkdir(parents=True, exist_ok=True)
+    if should_touch_init:
+        (tgt / '__init__.py').touch(exist_ok=False)
+
+    paths_to_copy = list(src.glob(glob_pattern))
+    logging.info(f"Copying to {tgt} the following files: {str(paths_to_copy)}")
+    for p in paths_to_copy:
+        destpath = tgt / p.relative_to(src)
+        destpath.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(p, destpath)
+
+
 # Get the current run.
 run = Run.get_context()
 
 if run.id.startswith("OfflineRun"):
-    utils_dir_path = REPO_DIR / "src/common/model_utils"
-    utils_paths = glob.glob(os.path.join(utils_dir_path, "*.py"))
-    temp_model_utils_dir = Path(__file__).parent / "tmp_model_utils"
-    # Remove old temp_path
-    if os.path.exists(temp_model_utils_dir):
-        shutil.rmtree(temp_model_utils_dir)
-    # Copy
-    os.mkdir(temp_model_utils_dir)
-    os.system(f'touch {temp_model_utils_dir}/__init__.py')
-    for p in utils_paths:
-        shutil.copy(p, temp_model_utils_dir)
 
-from tmp_model_utils.preprocessing import preprocess_depthmap, preprocess_targets  # noqa: E402
-from tmp_model_utils.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, setup_wandb  # noqa: E402
+    # Copy common into the temp folder
+    common_dir_path = REPO_DIR / "src/common"
+    temp_common_dir = Path(__file__).parent / "temp_common"
+    copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
+
+from temp_common.model_utils.preprocessing import preprocess_depthmap, preprocess_targets  # noqa: E402
+from temp_common.model_utils.utils import (  # noqa: E402
+    download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, setup_wandb)
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
