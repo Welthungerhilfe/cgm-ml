@@ -67,7 +67,7 @@ else:
     dataset_path = run.input_datasets['cgm_dataset']
 
 # Get the QR-code paths.
-dataset_path = os.path.join(dataset_path, "qrcode")
+dataset_path = os.path.join(dataset_path, "scans")
 logging.info('Dataset path: %s', dataset_path)
 #logging.info(glob.glob(os.path.join(dataset_path, "*"))) # Debug
 logging.info('Getting QR-code paths...')
@@ -129,26 +129,17 @@ logging.info('Using %d files for validation.', len(paths_validate))
 # Function for loading and processing depthmaps.
 def tf_load_pickle(path, max_value):
     def py_load_pickle(path, max_value):
-        rgbd, targets = pickle.load(open(path.numpy(), "rb"))
-        rgb = rgbd[0]  # shape: (240, 180, 3)
-        depthmap = rgbd[1]  # shape: (240, 180)
-
-        rgb = preprocess_depthmap(rgb)
-        rgb = rgb / 255.
-
+        depthmap, targets = pickle.load(open(path.numpy(), "rb"))
         depthmap = preprocess_depthmap(depthmap)
         depthmap = depthmap / max_value
-        depthmap = tf.expand_dims(depthmap, -1)    # shape: (240, 180, 1)
-
-        rgbd = tf.concat([rgb, depthmap], axis=2)
-        rgbd = tf.image.resize(rgbd, (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH))
+        depthmap = tf.image.resize(depthmap, (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH))
         targets = preprocess_targets(targets, CONFIG.TARGET_INDEXES)
-        return rgbd, targets
+        return depthmap, targets
 
-    rgbd, targets = tf.py_function(py_load_pickle, [path, max_value], [tf.float32, tf.float32])
-    rgbd.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 4))
+    depthmap, targets = tf.py_function(py_load_pickle, [path, max_value], [tf.float32, tf.float32])
+    depthmap.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1))
     targets.set_shape((len(CONFIG.TARGET_INDEXES,)))
-    return rgbd, targets
+    return depthmap, targets
 
 
 def tf_flip(image):
@@ -179,7 +170,7 @@ del dataset_norm
 # Note: Now the datasets are prepared.
 
 # Create the model.
-input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 4)
+input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1)
 model = create_cnn(input_shape, dropout=CONFIG.USE_DROPOUT)
 model.summary()
 
