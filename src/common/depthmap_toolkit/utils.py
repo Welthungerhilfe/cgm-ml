@@ -93,7 +93,10 @@ def convert_2d_to_3d_oriented(intrisics: list, x: float, y: float, z: float) -> 
     res = convert_2d_to_3d(CALIBRATION[1], x, y, z)
     if res:
         try:
-            res = [-res[0], res[1], res[2]]
+            if width == 180 and height == 135:
+                res = [res[0], -res[1], res[2]]
+            else:
+                res = [-res[0], res[1], res[2]]
             res = matrix_transform_point(res, matrix)
             res = [res[0], -res[1], res[2]]
         except NameError:
