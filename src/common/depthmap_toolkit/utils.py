@@ -265,7 +265,7 @@ def parse_depth_smoothed(tx, ty):
     depthXPlus = parse_depth(tx + 1, ty)
     depthYMinus = parse_depth(tx, ty - 1)
     depthYPlus = parse_depth(tx, ty + 1)
-    return (depthXMinus  + depthXPlus + depthYMinus + depthYPlus + depthCenter) / 5.0
+    return (depthXMinus + depthXPlus + depthYMinus + depthYPlus + depthCenter) / 5.0
 
 
 def parse_numbers(line):

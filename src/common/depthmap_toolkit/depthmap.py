@@ -8,7 +8,9 @@ from PIL import Image
 
 import utils
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 SUBPLOT_DEPTH = 0
 SUBPLOT_NORMAL = 1
@@ -17,6 +19,7 @@ SUBPLOT_CONFIDENCE = 3
 SUBPLOT_RGB = 4
 SUBPLOT_COUNT = 5
 
+
 def export(type, filename):
     if type == 'obj':
         utils.export_obj('export/' + filename, triangulate=True)
@@ -24,7 +27,7 @@ def export(type, filename):
         utils.export_pcd('export/' + filename)
 
 
-#click on data
+# click on data
 last = [0, 0, 0]
 
 
@@ -52,12 +55,12 @@ def onclick(event):
 
 def process(plt, dir_path, depth, rgb):
 
-    #extract depthmap
+    # extract depthmap
     with zipfile.ZipFile(dir_path + '/depth/' + depth, 'r') as zip_ref:
         zip_ref.extractall('.')
     utils.parse_data('data')
 
-    #read rgb data
+    # read rgb data
     global has_rgb
     global im_array
     if rgb:
@@ -70,7 +73,7 @@ def process(plt, dir_path, depth, rgb):
     else:
         has_rgb = 0
 
-    #parse calibration
+    # parse calibration
     global CALIBRATION
     CALIBRATION = utils.parse_calibration(dir_path + '/camera_calibration.txt')
 
@@ -85,7 +88,7 @@ def show_result():
         for y in range(height):
             depth = utils.parse_depth(x, y)
             if (depth):
-                #convert ToF coordinates into RGB coordinates
+                # convert ToF coordinates into RGB coordinates
                 vec = utils.convert_2d_to_3d(CALIBRATION[1], x, y, depth)
                 vec[0] += CALIBRATION[2][0]
                 vec[1] += CALIBRATION[2][1]
