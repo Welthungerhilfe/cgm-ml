@@ -29,7 +29,7 @@ if run.id.startswith("OfflineRun"):
 
 from temp_common.model_utils.preprocessing import preprocess_depthmap, preprocess_targets  # noqa: E402
 from temp_common.model_utils.utils import (  # noqa: E402
-    download_dataset, get_dataset_path, AzureLogCallback, create_base_cnn, create_head, create_tensorboard_callback, get_optimizer, setup_wandb)
+    download_dataset, get_dataset_path, AzureLogCallback, create_base_cnn, create_head, create_tensorboard_callback, get_optimizer)
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
