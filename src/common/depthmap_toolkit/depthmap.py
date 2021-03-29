@@ -77,7 +77,7 @@ def show_result():
     fig.canvas.mpl_connect('button_press_event', onclick)
     width = utils.getWidth()
     height = utils.getHeight()
-    output = np.zeros((width, height * 5, 3))
+    output = np.zeros((width, height * NUM_SUBPLOTS, 3))
     for x in range(width):
         for y in range(height):
             depth = utils.parse_depth(x, y)
