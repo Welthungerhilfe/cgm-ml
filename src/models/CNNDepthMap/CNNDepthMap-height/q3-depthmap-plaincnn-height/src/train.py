@@ -90,9 +90,9 @@ def filter_blacklisted_qrcodes(qrcode_paths):
 qrcode_paths = filter_blacklisted_qrcodes(qrcode_paths)
 
 # Shuffle and split into train and validate.
-random.shuffle(qrcode_paths)
+# random.shuffle(qrcode_paths)
 split_index = int(len(qrcode_paths) * 0.8)
-qrcode_paths_training = qrcode_paths[:split_index]
+qrcode_paths_training = qrcode_paths[:split_index][-2000:]
 qrcode_paths_validate = qrcode_paths[split_index:]
 
 del qrcode_paths
