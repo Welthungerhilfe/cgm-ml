@@ -27,7 +27,7 @@ if run.id.startswith("OfflineRun"):
     temp_common_dir = Path(__file__).parent / "temp_common"
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
-from temp_common.model_utils.preprocessing import preprocess_depthmap, preprocess_targets  # noqa: E402
+from temp_common.model_utils.preprocessing import filter_blacklisted_qrcodes, preprocess_depthmap, preprocess_targets  # noqa: E402
 from temp_common.model_utils.utils import (  # noqa: E402
     download_dataset, get_dataset_path, AzureLogCallback, create_base_cnn, create_head, create_tensorboard_callback, get_optimizer)
 
@@ -71,6 +71,8 @@ logging.info('Getting QR-code paths...')
 qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
 logging.info('qrcode_paths: %d', len(qrcode_paths))
 assert len(qrcode_paths) != 0
+
+qrcode_paths = filter_blacklisted_qrcodes(qrcode_paths)
 
 # Shuffle and split into train and validate.
 random.shuffle(qrcode_paths)
