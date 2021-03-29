@@ -20,12 +20,12 @@ def diff(a: list, b: list) -> list:
     return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
 
 
-def norm(v: list):
-    """Difference of two vectors"""
+def norm(v: list) -> list:
+    """Vector normalize"""
     length = abs(v[0]) + abs(v[1]) + abs(v[2])
-    if len == 0:
-        len = 1
-    return [v[0] / len, v[1] / len, v[2] / len]
+    if length == 0:
+        length = 1
+    return [v[0] / length, v[1] / length, v[2] / length]
 
 
 def matrix_calculate(position: list, rotation: list) -> list:
@@ -258,12 +258,13 @@ def parse_depth(tx, ty):
 
 
 def parse_depth_smoothed(tx, ty):
-    d = parse_depth(tx, ty)
-    xm = parse_depth(tx - 1, ty)
-    xp = parse_depth(tx + 1, ty)
-    ym = parse_depth(tx, ty - 1)
-    yp = parse_depth(tx, ty + 1)
-    return (xm + xp + ym + yp + d) / 5.0
+    """Get average depth value from neightbour pixels"""
+    depthCenter = parse_depth(tx, ty)
+    depthXMinus = parse_depth(tx - 1, ty)
+    depthXPlus = parse_depth(tx + 1, ty)
+    depthYMinus = parse_depth(tx, ty - 1)
+    depthYPlus = parse_depth(tx, ty + 1)
+    return (depthXMinus  + depthXPlus + depthYMinus + depthYPlus + depthCenter) / 5.0
 
 
 def parse_numbers(line):
