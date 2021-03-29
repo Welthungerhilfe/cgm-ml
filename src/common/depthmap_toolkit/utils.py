@@ -22,7 +22,7 @@ def diff(a: list, b: list) -> list:
 
 def norm(v: list):
     """Difference of two vectors"""
-    len = abs(v[0]) + abs(v[1]) + abs(v[2])
+    length = abs(v[0]) + abs(v[1]) + abs(v[2])
     if len == 0:
         len = 1
     return [v[0] / len, v[1] / len, v[2] / len]
