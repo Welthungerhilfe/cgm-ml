@@ -8,72 +8,40 @@ import tensorflow as tf
 from bunch import Bunch
 import pandas as pd
 
+from .constants_eval import (  # noqa: E402, F401
+    AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, COLUMN_NAME_SEX, CONFIG, EVALUATION_ACCURACIES,
+    GOODBAD_DICT, GOODBAD_IDX, HEIGHT_IDX, SEX_DICT, SEX_IDX, WEIGHT_IDX)
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 REPO_DIR = Path(os.getcwd()).parents[2]
 
-# Error margin on various ranges
-EVALUATION_ACCURACIES = [.2, .4, .6, 1., 1.2, 2., 2.5, 3., 4., 5., 6.]
-MODEL_CKPT_FILENAME = "best_model.ckpt"
 
-DAYS_IN_YEAR = 365
-
-HEIGHT_IDX = 0
-WEIGHT_IDX = 1
-MUAC_IDX = 2
-AGE_IDX = 3
-SEX_IDX = 4
-GOODBAD_IDX = 5
-
-SEX_DICT = {'female': 0., 'male': 1.}
-GOODBAD_DICT = {'bad': 0., 'good': 1., 'delete': 2.}
-
-COLUMN_NAME_AGE = 'GT_age'
-COLUMN_NAME_SEX = 'GT_sex'
-COLUMN_NAME_GOODBAD = 'GT_goodbad'
-CODE_TO_SCANTYPE = {
-    '100': '_standingfront',
-    '101': '_standing360',
-    '102': '_standingback',
-    '200': '_lyingfront',
-    '201': '_lyingrot',
-    '202': '_lyingback',
-}
-
-DATA_AUGMENTATION_SAME_PER_CHANNEL = "same_per_channel"
-DATA_AUGMENTATION_DIFFERENT_EACH_CHANNEL = "different_each_channel"
-DATA_AUGMENTATION_NO = "no"
-
-SAMPLING_STRATEGY_SYSTEMATIC = "systematic"
-SAMPLING_STRATEGY_WINDOW = "window"
-
-CONFIG = Bunch(dict(
-    IMAGE_TARGET_HEIGHT=240,
-    IMAGE_TARGET_WIDTH=180,
-    NORMALIZATION_VALUE=7.5,
-    TARGET_INDEXES=[0],  # 0 is height, 1 is weight.
-    DATA_AUGMENTATION_MODE=DATA_AUGMENTATION_NO,
-    SAMPLING_STRATEGY=SAMPLING_STRATEGY_SYSTEMATIC,
-    N_ARTIFACTS=5,
-    N_REPEAT_DATASET=1,
-    CODES_FOR_POSE_AND_SCANSTEP=('100', '101', '102', '200', '201', '202'),
-))
-
-
-def calculate_performance(code, df_mae):
+def calculate_performance(code: str,
+                          df_mae: pd.DataFrame,
+                          result_config: Bunch) -> pd.DataFrame:
+    """For a specific scantype, calculate the performance of the model on each error margin
+    Args:
+        code: e.g. '100'
+        df_mae: dataframe
+        result_config: bunch containing result config
+    Returns:
+        dataframe, where each column describes a differnt accuracy, e.g.
+                            0.2   0.4   0.6   1.0   1.2    2.0    2.5    3.0    4.0    5.0    6.0
+                           20.0  20.0  40.0  80.0  80.0  100.0  100.0  100.0  100.0  100.0  100.0
+    """
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
     accuracy_list = []
-    for acc in EVALUATION_ACCURACIES:
+    for acc in result_config.ACCURACIES:
         good_predictions = df_mae_filtered[(df_mae_filtered['error'] <= acc) & (df_mae_filtered['error'] >= -acc)]
-        if len(df_mae_filtered):
+        if len(df_mae_filtered) > 0:
             accuracy = len(good_predictions) / len(df_mae_filtered) * 100
         else:
             accuracy = 0.
-        # logging.info("Accuracy %d for code %s: %d", acc, code, accuracy)
         accuracy_list.append(accuracy)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
-    df_out.columns = EVALUATION_ACCURACIES
+    df_out.columns = result_config.ACCURACIES
     return df_out
 
 
@@ -135,5 +103,4 @@ def preprocess_targets(targets, targets_indices):
 
 
 def preprocess_depthmap(depthmap):
-    # TODO here be more code.
     return depthmap.astype("float32")

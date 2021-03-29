@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 
+from bunch import Bunch
 import pandas as pd
 
 sys.path.append(str(Path(__file__).parents[2]))  # common/ dir
@@ -10,6 +11,8 @@ from evaluation.eval_utils import avgerror, calculate_performance, extract_scant
 
 QR_CODE_1 = "1585013006-yqwb95138e"
 QR_CODE_2 = "1555555555-yqqqqqqqqq"
+
+RESULT_CONFIG = Bunch(dict(ACCURACIES=[.2, .4, .6, 1., 1.2, 2., 2.5, 3., 4., 5., 6.]))
 
 
 def prepare_df(df):
@@ -30,7 +33,7 @@ def test_calculate_performance_100percent():
     }
     df = pd.DataFrame.from_dict(data)
     df = prepare_df(df)
-    df_out = calculate_performance(code='100', df_mae=df)
+    df_out = calculate_performance(code='100', df_mae=df, result_config=RESULT_CONFIG)
     assert (df_out[1.2] == 100.0).all()
 
 
@@ -44,5 +47,5 @@ def test_calculate_performance_50percent():
     }
     df = pd.DataFrame.from_dict(data)
     df = prepare_df(df)
-    df_out = calculate_performance(code='100', df_mae=df)
+    df_out = calculate_performance(code='100', df_mae=df, result_config=RESULT_CONFIG)
     assert (df_out[1.2] == 50.0).all()

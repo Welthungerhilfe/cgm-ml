@@ -9,7 +9,7 @@ from tensorflow.keras import models
 
 from config import CONFIG
 from constants import MODEL_CKPT_FILENAME
-from tmp_model_util.utils import create_base_cnn
+from temp_common.model_utils.utils import create_base_cnn
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 

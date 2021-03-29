@@ -2,7 +2,6 @@ from pathlib import Path
 import os
 import pickle
 import random
-import shutil
 
 import logging
 import logging.config
@@ -15,6 +14,7 @@ from azureml.core.run import Run
 
 from config import CONFIG
 from constants import MODEL_CKPT_FILENAME, REPO_DIR
+from train_util import copy_dir
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
@@ -22,20 +22,14 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 run = Run.get_context()
 
 if run.id.startswith("OfflineRun"):
-    utils_dir_path = REPO_DIR / "src/common/model_utils"
-    utils_paths = glob.glob(os.path.join(utils_dir_path, "*.py"))
-    temp_model_util_dir = Path(__file__).parent / "tmp_model_util"
-    # Remove old temp_path
-    if os.path.exists(temp_model_util_dir):
-        shutil.rmtree(temp_model_util_dir)
-    # Copy
-    os.mkdir(temp_model_util_dir)
-    os.system(f'touch {temp_model_util_dir}/__init__.py')
-    for p in utils_paths:
-        shutil.copy(p, temp_model_util_dir)
+    # Copy common into the temp folder
+    common_dir_path = REPO_DIR / "src/common"
+    temp_common_dir = Path(__file__).parent / "temp_common"
+    copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
-from tmp_model_util.preprocessing import preprocess_depthmap, preprocess_targets  # noqa: E402
-from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, create_base_cnn, create_head  # noqa: E402
+from temp_common.model_utils.preprocessing import preprocess_depthmap, preprocess_targets  # noqa: E402
+from temp_common.model_utils.utils import (  # noqa: E402
+    download_dataset, get_dataset_path, AzureLogCallback, create_base_cnn, create_head, create_tensorboard_callback, get_optimizer)
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
