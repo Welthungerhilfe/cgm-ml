@@ -132,7 +132,7 @@ dataset_training = dataset
 # Note: No shuffle necessary.
 paths = paths_validate
 dataset = tf.data.Dataset.from_tensor_slices(paths)
-dataset_norm = dataset.map(lambda path: tf_load_pickle(path), tf.data.experimental.AUTOTUNE)
+dataset_norm = dataset.map(tf_load_pickle, tf.data.experimental.AUTOTUNE)
 dataset_norm = dataset_norm.cache()
 dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
 dataset_validation = dataset_norm
