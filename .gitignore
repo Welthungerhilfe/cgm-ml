@@ -10,8 +10,6 @@ data/
 vandelay-py.js
 logs/
 logs_*/
-tmp_*/
-temp*/
 src/common/depthmap_toolkit/data
 src/common/depthmap_toolkit/honor/
 src/common/depthmap_toolkit/output/
