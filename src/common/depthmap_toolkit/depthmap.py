@@ -90,7 +90,7 @@ def show_result():
                 vec = utils.convert_3d_to_2d(CALIBRATION[0], vec[0], vec[1], vec[2])
 
                 # depth data scaled to be visible
-                output[x][height - y - 1][:] = 1.0 - min(depth / 2.0, 1.0)
+                output[x][height - y - 1] = 1.0 - min(depth / 2.0, 1.0)
 
                 # depth data normal
                 v = utils.convert_2d_to_3d_oriented(CALIBRATION[1], x, y, depth)
