@@ -23,7 +23,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 run = Run.get_context()
 
 if run.id.startswith("OfflineRun"):
-
     # Copy common into the temp folder
     common_dir_path = REPO_DIR / "src/common"
     temp_common_dir = Path(__file__).parent / "temp_common"
