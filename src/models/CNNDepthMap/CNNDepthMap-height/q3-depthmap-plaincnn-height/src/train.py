@@ -29,7 +29,7 @@ if run.id.startswith("OfflineRun"):
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
 from temp_common.model_utils.model_utils_constants import BLACKLIST_QRCODES
-from temp_common.model_utils.preprocessing import preprocess_depthmap, preprocess_targets  # noqa: E402
+from temp_common.model_utils.preprocessing import filter_blacklisted_qrcodes, preprocess_depthmap, preprocess_targets  # noqa: E402
 from temp_common.model_utils.utils import (  # noqa: E402
     download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, setup_wandb)
 
@@ -73,18 +73,6 @@ logging.info('Getting QR-code paths...')
 qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
 logging.info('qrcode_paths: %d', len(qrcode_paths))
 assert len(qrcode_paths) != 0
-
-
-def filter_blacklisted_qrcodes(qrcode_paths):
-    qrcode_paths_filtered = []
-    for qrcode_path in qrcode_paths:
-        qrcode_str = qrcode_path.split('/')[-1]
-        assert '-' in qrcode_str and len(qrcode_str) == 21, qrcode_str
-        if qrcode_str in BLACKLIST_QRCODES:
-            continue
-        qrcode_paths_filtered.append(qrcode_path)
-    return qrcode_paths_filtered
-
 
 qrcode_paths = filter_blacklisted_qrcodes(qrcode_paths)
 
