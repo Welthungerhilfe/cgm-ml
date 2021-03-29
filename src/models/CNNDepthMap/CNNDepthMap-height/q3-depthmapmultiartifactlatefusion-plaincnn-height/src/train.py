@@ -26,7 +26,7 @@ if run.id.startswith("OfflineRun"):
     temp_common_dir = Path(__file__).parent / "temp_common"
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
-from temp_common.model_utils.preprocessing import filter_blacklisted_qrcodes
+from temp_common.model_utils.preprocessing import filter_blacklisted_qrcodes  # noqa: E402
 from temp_common.model_utils.preprocessing_multiartifact_python import create_multiartifact_paths_for_qrcodes  # noqa: E402
 from temp_common.model_utils.preprocessing_multiartifact_tensorflow import create_multiartifact_sample  # noqa: E402
 from temp_common.model_utils.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, create_head  # noqa: E402
