@@ -10,9 +10,12 @@ import utils
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
-
-#export data
-
+SUBPLOT_DEPTH = 0
+SUBPLOT_NORMAL = 1
+SUBPLOT_PATTERN = 2
+SUBPLOT_CONFIDENCE = 3
+SUBPLOT_RGB = 4
+SUBPLOT_COUNT = 5
 
 def export(type, filename):
     if type == 'obj':
@@ -77,7 +80,7 @@ def show_result():
     fig.canvas.mpl_connect('button_press_event', onclick)
     width = utils.getWidth()
     height = utils.getHeight()
-    output = np.zeros((width, height * NUM_SUBPLOTS, 3))
+    output = np.zeros((width, height * SUBPLOT_COUNT, 3))
     for x in range(width):
         for y in range(height):
             depth = utils.parse_depth(x, y)
@@ -90,7 +93,7 @@ def show_result():
                 vec = utils.convert_3d_to_2d(CALIBRATION[0], vec[0], vec[1], vec[2])
 
                 # depth data scaled to be visible
-                output[x][height - y - 1] = 1.0 - min(depth / 2.0, 1.0)
+                output[SUBPLOT_DEPTH * height + x][height - y - 1] = 1.0 - min(depth / 2.0, 1.0)
 
                 # depth data normal
                 v = utils.convert_2d_to_3d_oriented(CALIBRATION[1], x, y, depth)
@@ -98,26 +101,26 @@ def show_result():
                 xp = utils.convert_2d_to_3d_oriented(CALIBRATION[1], x + 1, y, utils.parse_depth_smoothed(x + 1, y))
                 yp = utils.convert_2d_to_3d_oriented(CALIBRATION[1], x, y + 1, utils.parse_depth_smoothed(x, y + 1))
                 n = utils.norm(utils.cross(utils.diff(yp, xm), utils.diff(yp, xp)))
-                output[x][height + height - y - 1][0] = abs(n[0])
-                output[x][height + height - y - 1][1] = abs(n[1])
-                output[x][height + height - y - 1][2] = abs(n[2])
+                output[x][SUBPLOT_NORMAL * height + height - y - 1][0] = abs(n[0])
+                output[x][SUBPLOT_NORMAL * height + height - y - 1][1] = abs(n[1])
+                output[x][SUBPLOT_NORMAL * height + height - y - 1][2] = abs(n[2])
 
                 # world coordinates visualisation
                 horizontal = (v[1] % 0.1) * 10
                 vertical = (v[0] % 0.1) * 5 + (v[2] % 0.1) * 5
                 if abs(n[1]) < 0.5:
-                    output[x][2 * height + height - y - 1][0] = horizontal / (depth * depth)
+                    output[x][SUBPLOT_PATTERN * height + height - y - 1][0] = horizontal / (depth * depth)
                 if abs(n[1]) > 0.5:
-                    output[x][2 * height + height - y - 1][1] = vertical / (depth * depth)
+                    output[x][SUBPLOT_PATTERN * height + height - y - 1][1] = vertical / (depth * depth)
 
                 # confidence value
-                output[x][3 * height + height - y - 1][:] = utils.parse_confidence(x, y)
-                if output[x][3 * height + height - y - 1][0] == 0:
-                    output[x][3 * height + height - y - 1][:] = 1
+                output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = utils.parse_confidence(x, y)
+                if output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][0] == 0:
+                    output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = 1
 
                 # RGB data
                 if vec[0] > 0 and vec[1] > 1 and vec[0] < width and vec[1] < height and has_rgb:
-                    output[x][4 * height + height - y - 1][0] = im_array[int(vec[1])][int(vec[0])][0] / 255.0
-                    output[x][4 * height + height - y - 1][1] = im_array[int(vec[1])][int(vec[0])][1] / 255.0
-                    output[x][4 * height + height - y - 1][2] = im_array[int(vec[1])][int(vec[0])][2] / 255.0
+                    output[x][SUBPLOT_RGB * height + height - y - 1][0] = im_array[int(vec[1])][int(vec[0])][0] / 255.0
+                    output[x][SUBPLOT_RGB * height + height - y - 1][1] = im_array[int(vec[1])][int(vec[0])][1] / 255.0
+                    output[x][SUBPLOT_RGB * height + height - y - 1][2] = im_array[int(vec[1])][int(vec[0])][2] / 255.0
     plt.imshow(output)
