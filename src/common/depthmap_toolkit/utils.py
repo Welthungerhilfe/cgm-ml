@@ -259,7 +259,7 @@ def parse_depth(tx, ty):
 
 
 def parse_depth_smoothed(tx, ty):
-    """Get average depth value from neightbour pixels"""
+    """Get average depth value from neighboring pixels"""
     depth_center = parse_depth(tx, ty)
     depth_x_minus = parse_depth(tx - 1, ty)
     depthXPlus = parse_depth(tx + 1, ty)
