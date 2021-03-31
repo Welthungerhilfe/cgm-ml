@@ -1,8 +1,7 @@
 import argparse
-import glob
-import os
 import logging
 import logging.config
+import os
 import shutil
 import time
 from importlib import import_module
@@ -15,7 +14,6 @@ from azureml.core.compute_target import ComputeTargetException
 from azureml.core.run import Run
 from azureml.train.dnn import TensorFlow
 
-from src.utils import download_model
 from src.constants import REPO_DIR, DEFAULT_CONFIG
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
@@ -23,6 +21,23 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 CWD = Path(__file__).parent
 TAGS = {}
+
+
+def copy_dir(src: Path, tgt: Path, glob_pattern: str, should_touch_init: bool = False):
+    logging.info("Creating temp folder")
+    if tgt.exists():
+        shutil.rmtree(tgt)
+    tgt.mkdir(parents=True, exist_ok=True)
+    if should_touch_init:
+        (tgt / '__init__.py').touch(exist_ok=False)
+
+    paths_to_copy = list(src.glob(glob_pattern))
+    logging.info(f"Copying to {tgt} the following files: {str(paths_to_copy)}")
+    for p in paths_to_copy:
+        destpath = tgt / p.relative_to(src)
+        destpath.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(p, destpath)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -36,20 +51,18 @@ if __name__ == "__main__":
     RESULT_CONFIG = qa_config.RESULT_CONFIG
     FILTER_CONFIG = qa_config.FILTER_CONFIG if getattr(qa_config, 'FILTER_CONFIG', False) else None
 
-    # Create a temp folder
-    code_dir = CWD / "src"
-    paths = glob.glob(os.path.join(code_dir, "*.py"))
-    logging.info("paths: %s", paths)
-    logging.info("Creating temp folder...")
-    temp_path = CWD / "tmp_eval"
-    if os.path.exists(temp_path):
-        shutil.rmtree(temp_path)
-    os.mkdir(temp_path)
-    for p in paths:
-        shutil.copy(p, temp_path)
-    logging.info("Done.")
+    # Copy src/ dir
+    temp_path = CWD / "temp_eval"
+    copy_dir(src=CWD / "src", tgt=temp_path, glob_pattern='*.py')
 
-    ws = Workspace.from_config()
+    # Copy common into the temp folder
+    common_dir_path = REPO_DIR / "src/common"
+    temp_common_dir = temp_path / "temp_common"
+    copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
+
+    from temp_eval.temp_common.evaluation.eval_utilities import download_model  # noqa: E402, F401
+
+    workspace = Workspace.from_config()
 
     run = Run.get_context()
 
@@ -58,10 +71,10 @@ if __name__ == "__main__":
 
     MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if USE_LOCAL else temp_path
     logging.info('MODEL_BASE_DIR: %s', MODEL_BASE_DIR)
-    os.makedirs(MODEL_BASE_DIR, exist_ok=True)
+    MODEL_BASE_DIR.mkdir(parents=True, exist_ok=True)
 
     # Copy model to temp folder
-    download_model(ws=ws,
+    download_model(workspace,
                    experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
                    run_id=MODEL_CONFIG.RUN_ID,
                    input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
@@ -69,25 +82,28 @@ if __name__ == "__main__":
 
     # Copy filter to temp folder
     if FILTER_CONFIG is not None and FILTER_CONFIG.IS_ENABLED:
-        download_model(ws=ws, experiment_name=FILTER_CONFIG.EXPERIMENT_NAME, run_id=FILTER_CONFIG.RUN_ID, input_location=os.path.join(
-            FILTER_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME), output_location=str(temp_path / FILTER_CONFIG.NAME))
+        download_model(workspace,
+                       experiment_name=FILTER_CONFIG.EXPERIMENT_NAME,
+                       run_id=FILTER_CONFIG.RUN_ID,
+                       input_location=os.path.join(FILTER_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
+                       output_location=str(temp_path / FILTER_CONFIG.NAME))
         azureml._restclient.snapshots_client.SNAPSHOT_MAX_SIZE_BYTES = 500000000
 
-    experiment = Experiment(workspace=ws, name=EVAL_CONFIG.EXPERIMENT_NAME)
+    experiment = Experiment(workspace=workspace, name=EVAL_CONFIG.EXPERIMENT_NAME)
 
     # Find/create a compute target.
     try:
         # Compute cluster exists. Just connect to it.
-        compute_target = ComputeTarget(workspace=ws, name=EVAL_CONFIG.CLUSTER_NAME)
+        compute_target = ComputeTarget(workspace=workspace, name=EVAL_CONFIG.CLUSTER_NAME)
         logging.info("Found existing compute target.")
     except ComputeTargetException:
         logging.info("Creating a new compute target...")
         compute_config = AmlCompute.provisioning_configuration(vm_size='Standard_NC6', max_nodes=4)
-        compute_target = ComputeTarget.create(ws, EVAL_CONFIG.CLUSTER_NAME, compute_config)
+        compute_target = ComputeTarget.create(workspace, EVAL_CONFIG.CLUSTER_NAME, compute_config)
         compute_target.wait_for_completion(show_output=True, min_node_count=None, timeout_in_minutes=20)
     logging.info("Compute target: %s", compute_target)
 
-    dataset = ws.datasets[DATA_CONFIG.NAME]
+    dataset = workspace.datasets[DATA_CONFIG.NAME]
     logging.info("dataset: %s", dataset)
     logging.info("TF supported versions: %s", TensorFlow.get_supported_versions())
 

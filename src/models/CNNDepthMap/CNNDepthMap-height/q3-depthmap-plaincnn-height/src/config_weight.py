@@ -16,7 +16,8 @@ CONFIG = Bunch(dict(
     NORMALIZATION_VALUE=7.5,
     LEARNING_RATE=0.0003,
     USE_ONE_CYCLE=True,
-    USE_DROPOUT=True,
+    USE_DROPOUT=False,
+    USE_WANDB=False,
 
     # Parameters for dataset generation.
     TARGET_INDEXES=[1],  # 0 is height, 1 is weight.

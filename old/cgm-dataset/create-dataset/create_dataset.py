@@ -40,7 +40,7 @@ target_folder = cfg['paths']['target_path']
 ml_connector = dbutils.connect_to_main_database(db_file)
 columns = ml_connector.get_columns('artifacts_with_target')
 
-#query to select the data from the database. NOTE: storing all the data in dataframe and then filtering is much faster 
+#query to select the data from the database. NOTE: storing all the data in dataframe and then filtering is much faster
 select_artifacts_with_target = "select * from artifacts_with_target;"
 database = ml_connector.execute(select_artifacts_with_target, fetch_all=True)
 complete_data = database[database['tag'] =='good']
@@ -55,7 +55,7 @@ testing_qrcodes = pd.read_csv(training_file)
 testing_qrcodes = testing_qrcodes['qrcode'].tolist()
 used_qrcodes = training_qrcodes+testing_qrcodes
 
-## filter the qrcodes and sleect the potential qrcodes that can be used for creating new dataset 
+## filter the qrcodes and sleect the potential qrcodes that can be used for creating new dataset
 potential_qrcodes = list(set(usable_qrcodes['qrcode'].tolist()) - set(used_qrcodes))
 if len(potential_qrcodes) >= int(number_of_scans):
     selected_qrcodes = random.sample(potential_qrcodes,int(number_of_scans))
@@ -78,8 +78,8 @@ def lenovo_pcd2depth(pcd,calibration):
         y = round(v[1])
         y = round(height - v[1] - 1)
         if x >= 0 and y >= 0 and x < width and y < height:
-            output[x][y] = p[2]        
-    return output 
+            output[x][y] = p[2]
+    return output
 
 #Read the Calibration file and set the required shape fro height and width
 calibration = utils.parseCalibration(calibration_file)
@@ -89,9 +89,9 @@ Height = utils.setHeight(int(180 * 0.75))
 # data = pd.read_csv('new_data.csv')
 data = new_data[['qrcode','storage_path','height','weight','key']].values.tolist()
 
-#Mount all the dataset 
-ws = Workspace.from_config()
-dataset = Dataset.get_by_name(ws, name= dataset_name)
+#Mount all the dataset
+workspace = Workspace.from_config()
+dataset = Dataset.get_by_name(workspace, name= dataset_name)
 mount_context = dataset.mount()
 mount_context.start()  # this will mount the file streams
 print("mounting_point: ", mount_context.mount_point)
@@ -102,7 +102,7 @@ unprocess =[]
 if not os.path.exists(target):
         os.mkdir(target)
 
-## fucntion to process all the pcd files to depthmaps 
+## fucntion to process all the pcd files to depthmaps
 def process_file(pointcloud):
     """
     Process the pointcloud files
@@ -120,7 +120,7 @@ def process_file(pointcloud):
     targetpath =target+scantype+'/'+qrcodefile
     if not os.path.exists(targetpath):
         os.mkdir(targetpath)
-    pickle_file = targetpath+'/'+ point_file 
+    pickle_file = targetpath+'/'+ point_file
     try:
         sample_depthmap = lenovo_pcd2depth(sourcefile,calibration)
     except:
@@ -131,14 +131,14 @@ def process_file(pointcloud):
     data = (sample_depthmap,labels)
     pickle.dump(data, open(pickle_file, "wb"))
     return
-    
+
 proc = multiprocessing.Pool()
 for files in datas:
     # launch a process for each file (ish).
     # The result will be approximately one process per CPU core available.
-    proc.apply_async(process_file, [files]) 
+    proc.apply_async(process_file, [files])
 
 p.close()
 p.join() # Wait for all child processes to close.
-    
+
 mount_context.stop() ## stop the mounting stream
