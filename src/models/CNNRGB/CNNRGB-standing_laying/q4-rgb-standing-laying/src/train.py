@@ -68,7 +68,6 @@ else:
     workspace = experiment.workspace
 
     dataset_name = CONFIG.DATASET_NAME
-
     dataset_path = run.input_datasets['cgm_dataset']
 
 
