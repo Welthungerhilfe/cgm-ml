@@ -1,6 +1,5 @@
 from pathlib import Path
 import os
-import pickle
 import random
 import logging
 import logging.config
@@ -31,7 +30,7 @@ if run.id.startswith("OfflineRun"):
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
 from temp_common.model_utils.utils import (  # noqa: E402
-    download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, setup_wandb)
+    download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, setup_wandb)
 
 # Make experiment reproducable
 tf.random.set_seed(CONFIG.SPLIT_SEED)
