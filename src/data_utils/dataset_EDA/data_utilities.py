@@ -2,7 +2,8 @@ import pandas as pd
 import logging
 import logging.config
 
-logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+#logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 def convert_age_from_days_to_years(age_in_days: pd.Series) -> int:
@@ -51,3 +52,17 @@ def calculate_code_age_distribution(artifacts: pd.DataFrame):
     result = pd.concat(dfs)
     result.index.name = 'codes'
     return result
+
+
+def find_outlier_qrcodes(df: pd.DataFrame, column: str, condition: str) -> list:
+    combined_condition = '@df.'+column+condition
+    logging.info('Running the following query: %s', combined_condition)
+    outlier_artifacts = df.query(combined_condition)
+    logging.info('No. of unusual artifacts: %d', len(outlier_artifacts))
+    unique_outliers = outlier_artifacts.drop_duplicates(subset='qrcode', keep='first')
+    logging.info('No. of unique outlier qr_codes: %d', len(unique_outliers))
+    logging.info('Extracting qr_codes...')
+    qrs = [artifact.split('/')[1] for artifact in unique_outliers.storage_path]
+    logging.info('No. of qrcodes: %d', len(qrs))
+    print('No. of qrcodes: %d', len(qrs))
+    return qrs
