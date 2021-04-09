@@ -135,6 +135,7 @@ def tf_load_pickle(path, max_value):
 
     return depthmap, targets
 
+
 # Create dataset for training.
 paths = paths_training
 dataset = tf.data.Dataset.from_tensor_slices(paths)
