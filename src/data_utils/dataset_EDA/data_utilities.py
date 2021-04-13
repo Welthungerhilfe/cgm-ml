@@ -55,7 +55,7 @@ def calculate_code_age_distribution(artifacts: pd.DataFrame):
 
 
 def find_outlier_qrcodes(df: pd.DataFrame, column: str, condition: str) -> list:
-    combined_condition = '@df.'+column+condition
+    combined_condition = '@df.' + column + condition
     logging.info('Running the following query: %s', combined_condition)
     outlier_artifacts = df.query(combined_condition)
     logging.info('No. of unusual artifacts: %d', len(outlier_artifacts))
