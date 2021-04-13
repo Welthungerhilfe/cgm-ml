@@ -62,7 +62,7 @@ def find_outlier_qrcodes(df: pd.DataFrame, column: str, condition: str) -> list:
     unique_outliers = outlier_artifacts.drop_duplicates(subset='qrcode', keep='first')
     logging.info('No. of unique outlier qr_codes: %d', len(unique_outliers))
     logging.info('Extracting qr_codes...')
-    qrs = [artifact.split('/')[1] for artifact in unique_outliers.storage_path]
+    qrs = unique_outliers.qrcode.tolist()
     logging.info('No. of qrcodes: %d', len(qrs))
     print('No. of qrcodes: %d', len(qrs))
     return qrs
