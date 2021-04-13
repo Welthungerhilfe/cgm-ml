@@ -28,31 +28,31 @@ def prepare_test_df():
 
 # test my find_outlier for agemin, agemax, weightmin, weightmax, heightmin, heightmax
 
-def test_find_outlier_qrcodes_age_min(df):
+def test_find_outlier_qrcodes_age_min(df: pd.DataFrame):
     qrs = find_outlier_qrcodes(df, 'age', '<365/2')
     return qrs
 
 
-def test_find_outlier_qrcodes_age_max(df):
+def test_find_outlier_qrcodes_age_max(df: pd.DataFrame):
     qrs = find_outlier_qrcodes(df, 'age', '>365*6')
     return qrs
 
 
-def test_find_outlier_qrcodes_weight_min(df):
+def test_find_outlier_qrcodes_weight_min(df: pd.DataFrame):
     qrs = find_outlier_qrcodes(df, 'weight', '<5.0')
     return qrs
 
 
-def test_find_outlier_qrcodes_weight_max(df):
+def test_find_outlier_qrcodes_weight_max(df: pd.DataFrame):
     qrs = find_outlier_qrcodes(df, 'weight', '>30.0')
     return qrs
 
 
-def test_find_outlier_qrcodes_height_min(df):
+def test_find_outlier_qrcodes_height_min(df: pd.DataFrame):
     qrs = find_outlier_qrcodes(df, 'height', '<40.0')
     return qrs
 
 
-def test_find_outlier_qrcodes_height_max(df):
+def test_find_outlier_qrcodes_height_max(df: pd.DataFrame):
     qrs = find_outlier_qrcodes(df, 'height', '>150.0')
     return qrs
