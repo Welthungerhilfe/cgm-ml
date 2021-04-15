@@ -66,7 +66,7 @@ def find_outlier_qrcodes(df: pd.DataFrame, column: str, condition: str) -> list:
     logging.info('No. of qrcodes: %d', len(qrs))
     return qrs
 
- 
+
 def display_images(images: list, grid_size: int, axes):
     current_file_number = 0
     for image_filename in images:
