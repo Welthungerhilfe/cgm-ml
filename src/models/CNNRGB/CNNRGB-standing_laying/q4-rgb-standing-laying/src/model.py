@@ -1,7 +1,7 @@
 from tensorflow import keras
 from tensorflow.keras import layers, models
 
-from config import CONFIG
+from sl_config import CONFIG
 
 
 def create_cnn(input_shape, dropout):

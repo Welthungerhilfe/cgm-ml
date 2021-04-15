@@ -1,6 +1,9 @@
 import pandas as pd
 import logging
 import logging.config
+import pickle
+import matplotlib.pyplot as plt
+import numpy as np
 
 logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
@@ -62,3 +65,27 @@ def find_outlier_qrcodes(df: pd.DataFrame, column: str, condition: str) -> list:
     qrs = unique_outliers.qrcode.tolist()
     logging.info('No. of qrcodes: %d', len(qrs))
     return qrs
+
+ 
+def display_images(images: list, grid_size: int, axes):
+    current_file_number = 0
+    for image_filename in images:
+        x_position = current_file_number % grid_size
+        y_position = current_file_number // grid_size
+        plt_image = plt.imread(image_filename)
+        rot_image = np.rot90(plt_image, 3)
+        axes[x_position, y_position].imshow(rot_image)
+        current_file_number += 1
+    plt.subplots_adjust(left=0.0, right=1.0, bottom=0.0, top=1.0)
+
+
+def display_depthmaps(depth: list, grid_size: int, axes):
+    current_file_number = 0
+    for depth_filename in depth:
+        x_position = current_file_number % grid_size
+        y_position = current_file_number // grid_size
+        infile = open(depth_filename, 'rb')
+        depthmap = pickle.load(infile)
+        axes[x_position, y_position].imshow(np.squeeze(depthmap[0]))
+        current_file_number += 1
+    plt.subplots_adjust(left=0.0, right=1.0, bottom=0.0, top=1.0)

@@ -163,11 +163,6 @@ def tf_load_pickle(path, max_value):
     return depthmap, targets
 
 
-def tf_flip(image):
-    image = tf.image.random_flip_left_right(image)
-    return image
-
-
 # Parameters for dataset generation.
 shuffle_buffer_size = 64
 subsample_size = 1024

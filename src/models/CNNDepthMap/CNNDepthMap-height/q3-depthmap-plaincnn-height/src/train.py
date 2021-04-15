@@ -12,7 +12,7 @@ from azureml.core.run import Run
 import wandb
 from wandb.keras import WandbCallback
 
-from config_weight import CONFIG
+from config import CONFIG
 from constants import MODEL_CKPT_FILENAME, REPO_DIR
 from model import create_cnn
 from train_util import copy_dir
@@ -126,11 +126,6 @@ def tf_load_pickle(path, max_value):
     depthmap.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1))
     targets.set_shape((len(CONFIG.TARGET_INDEXES,)))
     return depthmap, targets
-
-
-def tf_flip(image):
-    image = tf.image.random_flip_left_right(image)
-    return image
 
 
 # Create dataset for training.
