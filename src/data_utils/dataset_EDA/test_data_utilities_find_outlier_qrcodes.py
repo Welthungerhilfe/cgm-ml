@@ -29,6 +29,7 @@ def prepare_test_df():
 # test my find_outlier for agemin, agemax, weightmin, weightmax, heightmin, heightmax
 
 def test_find_outlier_qrcodes_age_min(df: pd.DataFrame):
+    df = prepare_test_df()
     qrs = find_outlier_qrcodes(df, 'age', '<365/2')
     return qrs
 
