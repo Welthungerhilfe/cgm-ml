@@ -59,11 +59,3 @@ def test_find_outlier_qrcodes_height_min():
 def test_find_outlier_qrcodes_height_max():
     qrs = find_outlier_qrcodes(df, 'height', '>150.0')
     assert (len(qrs) == 1)
-
-
-test_find_outlier_qrcodes_age_min()
-test_find_outlier_qrcodes_age_max()
-test_find_outlier_qrcodes_weight_min()
-test_find_outlier_qrcodes_weight_max()
-test_find_outlier_qrcodes_height_min()
-test_find_outlier_qrcodes_height_max()
