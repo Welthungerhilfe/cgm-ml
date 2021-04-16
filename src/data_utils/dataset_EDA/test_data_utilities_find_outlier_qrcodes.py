@@ -25,13 +25,6 @@ def prepare_test_df():
     return df
 
 
-<<<<<<< HEAD
-=======
-df = prepare_test_df()
-
-
-
->>>>>>> bd98bf58f4dc8cec4592ad527beda311639ca32f
 def test_find_outlier_qrcodes_age_min():
     df = prepare_test_df()
     qrs = find_outlier_qrcodes(df, 'age', '<365/2')
