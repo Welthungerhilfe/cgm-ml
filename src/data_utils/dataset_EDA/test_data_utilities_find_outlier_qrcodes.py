@@ -28,7 +28,6 @@ def prepare_test_df():
 
 df = prepare_test_df()
 
-# test my find_outlier for agemin, agemax, weightmin, weightmax, heightmin, heightmax
 
 
 def test_find_outlier_qrcodes_age_min():
