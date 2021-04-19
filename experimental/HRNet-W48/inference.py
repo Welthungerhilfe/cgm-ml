@@ -89,6 +89,14 @@ def parse_args():
     return args
 
 
+def prepare_output_dirs(prefix='/output/'):
+    pose_dir = os.path.join(prefix, "pose")
+    if os.path.exists(pose_dir) and os.path.isdir(pose_dir):
+        shutil.rmtree(pose_dir)
+    os.makedirs(pose_dir, exist_ok=True)
+    return pose_dir
+
+
 def main():
     # transformation
     pose_transform = transforms.Compose([
@@ -104,6 +112,8 @@ def main():
     cudnn.benchmark = cfg.CUDNN.BENCHMARK
     torch.backends.cudnn.deterministic = cfg.CUDNN.DETERMINISTIC
     torch.backends.cudnn.enabled = cfg.CUDNN.ENABLED
+
+    pose_dir = prepare_output_dirs(args.outputDir)
 
 
 if __name__ == '__main__':
