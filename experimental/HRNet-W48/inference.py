@@ -19,6 +19,15 @@ import torchvision
 import cv2
 import numpy as np
 
+import sys
+sys.path.append("experimental/HRNet-W48/lib")  # noqa:403
+
+#import models
+from config import cfg
+from config import update_config
+#from core.inference import get_final_preds
+#from utils.transforms import get_affine_transform
+
 COCO_KEYPOINT_INDEXES = {
     0: 'nose',
     1: 'left_eye',
@@ -55,6 +64,31 @@ COCO_INSTANCE_CATEGORY_NAMES = [
 ]
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description='Train keypoints network')
+    # general
+    parser.add_argument('--cfg', type=str,
+                        default='/Users/prajwalsingh/cgm-ml/experimental/HRNet-W48/inference-config.yaml')
+    parser.add_argument('--videoFile', type=str, default='/Users/prajwalsingh/cgm-ml/data/anon-rgb-classification/test/scan/qrcode/1585352016-s51bhrzmtt/measure/1592712865086/rgb/rgb_1585352016-s51bhrzmtt_1592712865086_100_520010.538748759.jpg')
+    parser.add_argument('--outputDir', type=str, default='/output/')
+    parser.add_argument('--inferenceFps', type=int, default=10)
+    parser.add_argument('--writeBoxFrames', action='store_true')
+
+    parser.add_argument('opts',
+                        help='Modify config options using the command-line',
+                        default=None,
+                        nargs=argparse.REMAINDER)
+
+    args = parser.parse_args()
+
+    # args expected by supporting codebase
+    args.modelDir = ''
+    args.logDir = ''
+    args.dataDir = ''
+    args.prevModelDir = ''
+    return args
+
+
 def main():
     # transformation
     pose_transform = transforms.Compose([
@@ -62,6 +96,14 @@ def main():
         transforms.Normalize(mean=[0.485, 0.456, 0.406],
                              std=[0.229, 0.224, 0.225]),
     ])
+    # cudnn related setting
+
+    args = parse_args()
+    update_config(cfg, args)
+
+    cudnn.benchmark = cfg.CUDNN.BENCHMARK
+    torch.backends.cudnn.deterministic = cfg.CUDNN.DETERMINISTIC
+    torch.backends.cudnn.enabled = cfg.CUDNN.ENABLED
 
 
 if __name__ == '__main__':
