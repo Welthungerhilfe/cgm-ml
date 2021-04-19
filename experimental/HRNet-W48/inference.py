@@ -28,6 +28,8 @@ from config import update_config
 #from core.inference import get_final_preds
 #from utils.transforms import get_affine_transform
 
+CTX = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
 COCO_KEYPOINT_INDEXES = {
     0: 'nose',
     1: 'left_eye',
