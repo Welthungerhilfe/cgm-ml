@@ -122,6 +122,10 @@ def main():
     box_model.to(CTX)
     box_model.eval()
 
+    image_bgr = cv2.imread(
+        args.videoFile, cv2.IMREAD_COLOR | cv2.IMREAD_IGNORE_ORIENTATION
+    )
+
 
 if __name__ == '__main__':
     main()
