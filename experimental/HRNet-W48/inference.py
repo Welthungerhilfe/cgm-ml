@@ -91,7 +91,7 @@ def parse_args():
     return args
 
 
-def prepare_output_dirs(prefix='/output/'):
+def prepare_output_dirs(prefix='/Users/prajwalsingh/cgm-ml/experimental/HRNet-W48/output/'):
     pose_dir = os.path.join(prefix, "pose")
     if os.path.exists(pose_dir) and os.path.isdir(pose_dir):
         shutil.rmtree(pose_dir)
@@ -115,7 +115,12 @@ def main():
     torch.backends.cudnn.deterministic = cfg.CUDNN.DETERMINISTIC
     torch.backends.cudnn.enabled = cfg.CUDNN.ENABLED
 
-    pose_dir = prepare_output_dirs(args.outputDir)
+    pose_dir = prepare_output_dirs()
+    csv_output_rows = []
+
+    box_model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+    box_model.to(CTX)
+    box_model.eval()
 
 
 if __name__ == '__main__':
