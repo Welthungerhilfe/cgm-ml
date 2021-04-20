@@ -132,7 +132,7 @@ def export_obj(filename, rgb, triangulate):
     indices = np.zeros((width, height))
     material = filename[:len(filename) - 4] + '.mtl'
     if rgb:
-       with open(material, 'w') as f:
+        with open(material, 'w') as f:
             f.write('newmtl default\n')
             f.write('map_Kd ../' + rgb + '\n')
 
