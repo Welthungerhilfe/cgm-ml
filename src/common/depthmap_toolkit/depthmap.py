@@ -21,7 +21,7 @@ SUBPLOT_COUNT = 5
 
 
 def export(type, filename):
-    rgb = current_rgb
+    rgb = CURRENT_RGB
     if type == 'obj':
         utils.export_obj('export/' + filename, rgb, triangulate=True)
     if type == 'pcd':
@@ -63,19 +63,19 @@ def process(plt, dir_path, depth, rgb):
 
     # read rgb data
     global CURRENT_RGB
-    global has_rgb
-    global im_array
+    global HAS_RGB
+    global IM_ARRAY
     if rgb:
-        current_rgb = dir_path + '/rgb/' + rgb
-        has_rgb = 1
+        CURRENT_RGB = dir_path + '/rgb/' + rgb
+        HAS_RGB = 1
         width = utils.getWidth()
         height = utils.getHeight()
-        pil_im = Image.open(current_rgb)
+        pil_im = Image.open(CURRENT_RGB)
         pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
-        im_array = np.asarray(pil_im)
+        IM_ARRAY = np.asarray(pil_im)
     else:
-        current_rgb = rgb
-        has_rgb = 0
+        CURRENT_RGB = rgb
+        HAS_RGB = 0
 
     # parse calibration
     global CALIBRATION
@@ -126,8 +126,8 @@ def show_result():
                     output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = 1
 
                 # RGB data
-                if vec[0] > 0 and vec[1] > 1 and vec[0] < width and vec[1] < height and has_rgb:
-                    output[x][SUBPLOT_RGB * height + height - y - 1][0] = im_array[int(vec[1])][int(vec[0])][0] / 255.0
-                    output[x][SUBPLOT_RGB * height + height - y - 1][1] = im_array[int(vec[1])][int(vec[0])][1] / 255.0
-                    output[x][SUBPLOT_RGB * height + height - y - 1][2] = im_array[int(vec[1])][int(vec[0])][2] / 255.0
+                if vec[0] > 0 and vec[1] > 1 and vec[0] < width and vec[1] < height and HAS_RGB:
+                    output[x][SUBPLOT_RGB * height + height - y - 1][0] = IM_ARRAY[int(vec[1])][int(vec[0])][0] / 255.0
+                    output[x][SUBPLOT_RGB * height + height - y - 1][1] = IM_ARRAY[int(vec[1])][int(vec[0])][1] / 255.0
+                    output[x][SUBPLOT_RGB * height + height - y - 1][2] = IM_ARRAY[int(vec[1])][int(vec[0])][2] / 255.0
     plt.imshow(output)
