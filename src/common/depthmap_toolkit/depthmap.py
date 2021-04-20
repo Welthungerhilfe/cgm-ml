@@ -21,8 +21,9 @@ SUBPLOT_COUNT = 5
 
 
 def export(type, filename):
+    rgb = current_rgb
     if type == 'obj':
-        utils.export_obj('export/' + filename, triangulate=True)
+        utils.export_obj('export/' + filename, rgb, triangulate=True)
     if type == 'pcd':
         utils.export_pcd('export/' + filename)
 
@@ -61,16 +62,19 @@ def process(plt, dir_path, depth, rgb):
     utils.parse_data('data')
 
     # read rgb data
+    global current_rgb
     global has_rgb
     global im_array
     if rgb:
+        current_rgb = dir_path + '/rgb/' + rgb
         has_rgb = 1
         width = utils.getWidth()
         height = utils.getHeight()
-        pil_im = Image.open(dir_path + '/rgb/' + rgb)
+        pil_im = Image.open(current_rgb)
         pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
         im_array = np.asarray(pil_im)
     else:
+        current_rgb = rgb
         has_rgb = 0
 
     # parse calibration
