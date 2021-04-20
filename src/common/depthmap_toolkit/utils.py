@@ -130,6 +130,8 @@ def export_obj(filename, rgb, triangulate):
     """
     count = 0
     indices = np.zeros((width, height))
+
+    # create MTL file (a standart extension of OBJ files to define geometry materials and textures)
     material = filename[:len(filename) - 4] + '.mtl'
     if rgb:
         with open(material, 'w') as f:
@@ -169,6 +171,7 @@ def export_obj(filename, rgb, triangulate):
                             a = str(int(indices[x][y]))
                             b = str(int(indices[x + 1][y]))
                             c = str(int(indices[x][y + 1]))
+                            # define triangle indices in (world coordinates / texture coordinates)
                             f.write('f ' + a + '/' + a + ' ' + b + '/' + b + ' ' + c + '/' + c + '\n')
 
                     # check if second triangle points have existing indices
@@ -179,6 +182,7 @@ def export_obj(filename, rgb, triangulate):
                             a = str(int(indices[x + 1][y + 1]))
                             b = str(int(indices[x + 1][y]))
                             c = str(int(indices[x][y + 1]))
+                            # define triangle indices in (world coordinates / texture coordinates)
                             f.write('f ' + a + '/' + a + ' ' + b + '/' + b + ' ' + c + '/' + c + '\n')
         logging.info('Mesh exported into %s', filename)
 
