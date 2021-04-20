@@ -62,7 +62,7 @@ def process(plt, dir_path, depth, rgb):
     utils.parse_data('data')
 
     # read rgb data
-    global current_rgb
+    global CURRENT_RGB
     global has_rgb
     global im_array
     if rgb:
