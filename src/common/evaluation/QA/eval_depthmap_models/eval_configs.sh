@@ -2,8 +2,12 @@
 
 set -euox pipefail
 
-python eval_main.py --qa_config_module  qa_config_height_Run10
-python eval_main.py --qa_config_module  qa_config_height_Run9
+python eval_main.py --qa_config_module qa_config_mcnn_Run8
+python eval_main.py --qa_config_module qa_config_mcnn_Run9
+
+python eval_main.py --qa_config_module qa_config_height_Run9
+python eval_main.py --qa_config_module qa_config_height_Run10
+
 #python eval_main.py --qa_config_module qa_config_mcnn
 #python eval_main.py --qa_config_module qa_config_height_no_dropout
 
