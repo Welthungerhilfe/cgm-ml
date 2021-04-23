@@ -32,7 +32,7 @@ EVAL_CONFIG = Bunch(dict(
 
 # Details of Evaluation Dataset
 DATA_CONFIG = Bunch(dict(
-    NAME='anon-realtime-testdata',  # Name of evaluation dataset
+    NAME='anon-depthmap-testset',  # Name of evaluation dataset
 
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
@@ -40,7 +40,7 @@ DATA_CONFIG = Bunch(dict(
     BATCH_SIZE=512,  # Batch size for evaluation
     NORMALIZATION_VALUE=7.5,
 
-    TARGET_INDEXES=[0, 3, 4, 5],  # 0 is height, 1 is weight, 2 is muac, 3 is age, 4 is sex('male' or 'female'), 5 is quality ('good' or 'bad'), 6 is test
+    TARGET_INDEXES=[0, ],  # 0 is height, 1 is weight, 2 is muac, 3 is age, 4 is sex('male' or 'female'), 5 is quality ('good' or 'bad'), 6 is test
     CODES=['100', '101', '102', '200', '201', '202']
 ))
 
