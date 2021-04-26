@@ -293,7 +293,7 @@ if __name__ == "__main__":
             'qrcode': qrcode_list,
             'artifact': artifact_list,
             'scantype': scantype_list,
-            'GT': [el[0] for el in target_list],
+            'GT': target_list if target_list[0].shape == tuple() else [el[0] for el in target_list],
             'predicted': prediction_list
         }, columns=RESULT_CONFIG.COLUMNS)
         logging.info("df.shape: %s", df.shape)
