@@ -75,8 +75,8 @@ if __name__ == "__main__":
     MODEL_BASE_DIR.mkdir(parents=True, exist_ok=True)
 
     # Copy model to temp folder
-    if MODEL_CONFIG.RUN_ID is not 'all':
-        download_model(ws=ws,
+    if MODEL_CONFIG.RUN_ID != 'all':
+        download_model(workspace=workspace,
                        experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
                        run_id=MODEL_CONFIG.RUN_ID,
                        input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
