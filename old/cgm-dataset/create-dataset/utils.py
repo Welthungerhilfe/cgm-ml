@@ -24,7 +24,7 @@ def parseCalibration(filepath):
     return calibration
 
 #convert point into 3D
-def convert2Dto3D(intrisics, x, y, z):
+def convert_2d_to_3d(intrisics, x, y, z):
   fx = intrisics[0] * float(width)
   fy = intrisics[1] * float(height)
   cx = intrisics[2] * float(width)

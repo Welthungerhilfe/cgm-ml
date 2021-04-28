@@ -28,14 +28,14 @@ CONFIG = Bunch(dict(
     # Parameters for dataset generation.
     TARGET_INDEXES=[0],  # 0 is height, 1 is weight.
     N_ARTIFACTS=5,  # number of artifact in one sample of multiartifact approach
-    CODES_FOR_POSE_AND_SCANSTEP=("100", ),
+    CODES_FOR_POSE_AND_SCANSTEP=('100', '101', '102', '200', '201', '202'),
     N_REPEAT_DATASET=1,
     DATA_AUGMENTATION_MODE=DATA_AUGMENTATION_NO,
     SAMPLING_STRATEGY=SAMPLING_STRATEGY_SYSTEMATIC,
     USE_DROPOUT=False,
+    USE_ONE_CYCLE=False,
 
-    # PRETRAINED_RUN="q3-depthmap-plaincnn-height-95k_1600451633_cb44f6db",  # Run17 (baseline: min(val_mae)=2.21cm)
-    PRETRAINED_RUN="q3-depthmap-plaincnn-height-95k_1597988908_42c4ef33",  # Run3 (baseline: min(val_mae)=1.96cm)
+    PRETRAINED_RUN="q3-depthmap-plaincnn-height-95k_1610709869_2e00a6ef",  # Run4 (baseline: min(val_mae)=1.78cm)
 
     SHOULD_FREEZE_BASE=True,
 ))

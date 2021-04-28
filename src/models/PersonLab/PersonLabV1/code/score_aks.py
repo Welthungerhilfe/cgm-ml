@@ -2,6 +2,8 @@ import utils
 import json
 import numpy as np
 import os
+import logging
+import logging.config
 import sys
 import time
 from scipy.ndimage.filters import gaussian_filter
@@ -10,6 +12,8 @@ import tensorflow as tf
 import time
 
 sys.path.append('/var/azureml-app/azureml-models/personlabV1/2/personlab')
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 #tf.compat.v1.disable_eager_execution()
 
@@ -34,13 +38,13 @@ def init():
     saver = tf.train.Saver(var_list=global_vars)
     checkpoint_path = MODEL_DIR + 'model.ckpt'
     saver.restore(sess, checkpoint_path)
-    print(time.time())
+    logging.info(time.time())
 
 
 def run(data):
 
     try:
-        print(time.time())
+        logging.info(time.time())
        #TODO find logger in
         multiscale = [1.0, 1.5, 2.0]
         batch_size, height, width = 1, 401, 401
@@ -97,7 +101,7 @@ def run(data):
             pred_kp = utils.get_keypoints(H)
             pred_skels = utils.group_skeletons(keypoints=pred_kp, mid_offsets=sample_output[2])
             pred_skels = [skel for skel in pred_skels if (skel[:, 2] > 0).sum() > 6]
-            #print ('Number of detected skeletons: {}'.format(len(pred_skels)))
+            #logging.info('Number of detected skeletons: %d', len(pred_skels)
 
             pose_scores = np.zeros(len(pred_skels))
             pose_keypoint_scores = np.zeros((len(pred_skels), 17))

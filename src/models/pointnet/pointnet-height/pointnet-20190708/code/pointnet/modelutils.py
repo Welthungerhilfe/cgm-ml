@@ -28,6 +28,10 @@ import numpy as np
 import tensorflow as tf
 import os
 import pickle
+import logging
+import logging.config
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 def create_multiview_model(base_model, multiviews_num, input_shape, output_size, use_lstm):
@@ -193,7 +197,7 @@ def create_point_net(input_shape, output_size, hidden_sizes=[512, 256], use_lamb
         Model: A model.
     """
 
-    print('Input Shape: ' + str(input_shape))
+    logging.info('Input Shape: %s', str(input_shape))
 
     num_points = input_shape[0]
 
@@ -351,34 +355,37 @@ def create_vgg(input_shape, output_size):
 # Method for saving model and history.
 def save_model_and_history(output_path, datetime_string, model, history, training_details, name):
 
-    print("Saving model and history...")
+    logging.info('Saving model and history...')
 
     # Try to save model. Could fail.
     try:
         model_name = datetime_string + "-" + name + "-model.h5"
         model_path = os.path.join(output_path, model_name)
         model.save(model_path)
-        print("Saved model to" + model_path)
+        logging.info('Saved model to %s', model_path)
     except Exception as e:
-        print("WARNING! Failed to save model. Use model-weights instead.")
+        logging.info('WARNING! Failed to save model. Use model-weights instead.')
+
 
     # Save the model weights.
     model_weights_name = datetime_string + "-" + name + "-model-weights.h5"
     model_weights_path = os.path.join(output_path, model_weights_name)
     model.save_weights(model_weights_path)
-    print("Saved model weights to" + model_weights_path)
+    logging.info('Saved model weights to %s', model_weights_path)
 
     # Save the training details.
     training_details_name = datetime_string + "-" + name + "-details.p"
     training_details_path = os.path.join(output_path, training_details_name)
     pickle.dump(training_details, open(training_details_path, "wb"))
-    print("Saved training details to" + training_details_path)
+    logging.info('Saved training details to %s', training_details_path)
+
 
     # Save the history.
     history_name = datetime_string + "-" + name + "-history.p"
     history_path = os.path.join(output_path, history_name)
     pickle.dump(history.history, open(history_path, "wb"))
-    print("Saved history to" + history_path)
+    logging.info('Saved history to %s', history_path)
+
 
 
 def load_pointnet(weights_path, input_shape, output_size, hidden_sizes):

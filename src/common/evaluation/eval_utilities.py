@@ -1,46 +1,31 @@
-from multiprocessing import Pool
-import datetime
+import logging
+import logging.config
 import os
 import pickle
+from multiprocessing import Pool
 from pathlib import Path
 from typing import Callable, List
 
 import glob2 as glob
 import numpy as np
-from scipy.stats.stats import pearsonr
 import pandas as pd
 import tensorflow as tf
 from azureml.core import Experiment, Run, Workspace
 from bunch import Bunch
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from scipy.stats.stats import pearsonr
+from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt  # noqa: E402
 from cgmzscore import Calculator  # noqa: E402
 
-DAYS_IN_YEAR = 365
+from .constants_eval import (  # noqa: E402
+    CODE_TO_SCANTYPE, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, COLUMN_NAME_SEX, DAYS_IN_YEAR,
+    GOODBAD_DICT, SEX_DICT)
+from .eval_utils import avgerror, preprocess_targets  # noqa: E402
 
-HEIGHT_IDX = 0
-WEIGHT_IDX = 1
-MUAC_IDX = 2
-AGE_IDX = 3
-SEX_IDX = 4
-GOODBAD_IDX = 5
 
-SEX_DICT = {'female': 0., 'male': 1.}
-GOODBAD_DICT = {'bad': 0., 'good': 1., 'delete': 2.}
-
-COLUMN_NAME_AGE = 'GT_age'
-COLUMN_NAME_SEX = 'GT_sex'
-COLUMN_NAME_GOODBAD = 'GT_goodbad'
-CODE_TO_SCANTYPE = {
-    '100': '_standingfront',
-    '101': '_standing360',
-    '102': '_standingback',
-    '200': '_lyingfront',
-    '201': '_lyingrot',
-    '202': '_lyingback',
-}
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 MIN_HEIGHT = 45
 MAX_HEIGHT = 120
@@ -60,39 +45,17 @@ def process_image(data):
 
 
 def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
-    print("Accessing dataset...")
+    logging.info("Accessing dataset...")
     if os.path.exists(dataset_path):
         return
     dataset = workspace.datasets[dataset_name]
-    print(f"Downloading dataset {dataset_name}.. Current date and time: ",
-          datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    logging.info("Downloading dataset %s", dataset_name)
     dataset.download(target_path=dataset_path, overwrite=False)
-    print(f"Finished downloading {dataset_name}, Current date and time: ",
-          datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    logging.info("Finished downloading %s", dataset_name)
 
 
 def get_dataset_path(data_dir: Path, dataset_name: str):
     return str(data_dir / dataset_name)
-
-
-def preprocess_depthmap(depthmap):
-    # TODO here be more code.
-    return depthmap.astype("float32")
-
-
-def preprocess_targets(targets, targets_indices):
-    if SEX_IDX in targets_indices:
-        targets[SEX_IDX] = SEX_DICT[targets[SEX_IDX]]
-    if GOODBAD_IDX in targets_indices:
-        try:
-            targets[GOODBAD_IDX] = GOODBAD_DICT[targets[GOODBAD_IDX]]
-        except KeyError:
-            print(f"Key '{targets[GOODBAD_IDX]}' not found in GOODBAD_DICT")
-            targets[GOODBAD_IDX] = GOODBAD_DICT['delete']  # unknown target values will be categorized as 'delete'
-
-    if targets_indices is not None:
-        targets = targets[targets_indices]
-    return targets.astype("float32")
 
 
 def get_depthmap_files(paths: List[str]) -> List[str]:
@@ -125,38 +88,12 @@ def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CO
     return qrcode_list, scan_type_list, artifact_list, prediction_list, target_list
 
 
-def avgerror(row):
-    difference = row['GT'] - row['predicted']
-    return difference
-
-
-def calculate_performance(code, df_mae, result_config):
-    """For a specific scantype, calculate the performance of the model on each error margin
-    Args:
-        code: e.g. '100'
-        df_mae: dataframe
-        result_config: bunch containing result config
-    Returns:
-        dataframe, where each column describes a differnt accuracy, e.g.
-                            0.2   0.4   0.6   1.0   1.2    2.0    2.5    3.0    4.0    5.0    6.0
-                           20.0  20.0  40.0  80.0  80.0  100.0  100.0  100.0  100.0  100.0  100.0
-    """
-    df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
-    accuracy_list = []
-    for acc in result_config.ACCURACIES:
-        good_predictions = df_mae_filtered[(df_mae_filtered['error'] <= acc) & (df_mae_filtered['error'] >= -acc)]
-        if len(df_mae_filtered):
-            accuracy = len(good_predictions) / len(df_mae_filtered) * 100
-        else:
-            accuracy = 0.
-        accuracy_list.append(accuracy)
-    df_out = pd.DataFrame(accuracy_list)
-    df_out = df_out.T
-    df_out.columns = result_config.ACCURACIES
-    return df_out
-
-
-def calculate_and_save_results(df_grouped: pd.DataFrame, complete_name: str, csv_out_fpath: str, data_config: Bunch, result_config: Bunch, fct: Callable):
+def calculate_and_save_results(df_grouped: pd.DataFrame,
+                               complete_name: str,
+                               csv_out_fpath: str,
+                               data_config: Bunch,
+                               result_config: Bunch,
+                               fct: Callable):
     """Calculate accuracies across the scantypes and save the final results table to the CSV file
 
     Args:
@@ -192,7 +129,7 @@ def calculate_performance_sex(code: str, df_mae: pd.DataFrame, result_config: Bu
 
         selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
         good_predictions = df[selection]
-        if len(df):
+        if len(df) > 0:
             accuracy = len(good_predictions) / len(df) * 100
         else:
             accuracy = 0.
@@ -213,7 +150,7 @@ def calculate_performance_goodbad(code: str, df_mae: pd.DataFrame, result_config
 
         selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
         good_predictions = df[selection]
-        if len(df):
+        if len(df) > 0:
             accuracy = len(good_predictions) / len(df) * 100
         else:
             accuracy = 0.
@@ -239,7 +176,7 @@ def calculate_performance_age(code: str, df_mae: pd.DataFrame, result_config: Bu
 
         selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
         good_predictions = df[selection]
-        if len(df):
+        if len(df) > 0:
             accuracy = len(good_predictions) / len(df) * 100
         else:
             accuracy = 0.
@@ -318,7 +255,7 @@ def draw_uncertainty_scatterplot(df: pd.DataFrame, png_out_fpath: str):
     plt.grid()
 
     correlation, _ = pearsonr(df['error'], df['uncertainties'])
-    print("correlation:", correlation)
+    logging.info("correlation: %d", correlation)
 
     plt.title(f"Per-scan sample artifact: Error over uncertainty (correlation={correlation:.3})")
     plt.xlabel("error")
@@ -348,9 +285,9 @@ def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
 
 
 def calculate_zscore_lhfa(df):
-    '''
+    """
     lhfa : length/height for age
-    '''
+    """
     cal = Calculator()
 
     def utils(age_in_days, height, sex):
@@ -382,9 +319,7 @@ def draw_wasting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
 
 
 def calculate_zscore_wfa(df):
-    '''
-    wfa: Weight for age
-    '''
+    """Weight for age"""
     cal = Calculator()
 
     def utils(age_in_days, weight, sex):
@@ -403,7 +338,7 @@ def draw_confusion_matrix(data, png_out_fpath, display_labels, title):
     T, FP, FN = calculate_percentage_confusion_matrix(data)
     fig = plt.figure(figsize=(15, 15))
     ax = fig.add_subplot(111)
-    disp = ConfusionMatrixDisplay(confusion_matrix=data, display_labels=WASTING_DIAGNOSIS)
+    disp = ConfusionMatrixDisplay(confusion_matrix=data, display_labels=display_labels)
     disp.plot(cmap='Blues', values_format='d', ax=ax)
     s = f"True: {round(T, 2)} False Positive: {round(FP, 2)} False Negative: {round(FN, 2)}"
     plt.text(0.5, 0.5, s, size=10, bbox=dict(boxstyle="square", facecolor='white'))
@@ -425,31 +360,31 @@ def parallelize_dataframe(df, calculate_confusion_matrix, n_cores=8):
 def calculate_percentage_confusion_matrix(data):
     T1, FP1, FP2, FN1, T2, FP3, FN2, FN3, T3 = data.ravel()
     Total = sum(data.ravel())
-    T = ((T1 + T2 + T3) / Total) * 100
-    FP = ((FP1 + FP2 + FP3) / Total) * 100
-    FN = ((FN1 + FN2 + FN3) / Total) * 100
+    T = round(((T1 + T2 + T3) / Total) * 100, 2)
+    FP = round(((FP1 + FP2 + FP3) / Total) * 100, 2)
+    FN = round(((FN1 + FN2 + FN3) / Total) * 100, 2)
     return T, FP, FN
 
 
 def get_model_path(MODEL_CONFIG: Bunch) -> str:
     if MODEL_CONFIG.NAME.endswith(".h5"):
         return MODEL_CONFIG.NAME
-    elif MODEL_CONFIG.NAME.endswith(".ckpt"):
+    if MODEL_CONFIG.NAME.endswith(".ckpt"):
         return f"{MODEL_CONFIG.INPUT_LOCATION}/{MODEL_CONFIG.NAME}"
     raise NameError(f"{MODEL_CONFIG.NAME}'s path extension not supported")
 
 
-def download_model(ws, experiment_name, run_id, input_location, output_location):
+def download_model(workspace, experiment_name, run_id, input_location, output_location):
     """Download the pretrained model
 
     Args:
-         ws: workspace to access the experiment
+         workspace: workspace to access the experiment
          experiment_name: Name of the experiment in which model is saved
          run_id: Run Id of the experiment in which model is pre-trained
          input_location: Input location in a RUN Id
          output_location: Location for saving the model
     """
-    experiment = Experiment(workspace=ws, name=experiment_name)
+    experiment = Experiment(workspace=workspace, name=experiment_name)
     # Download the model on which evaluation need to be done
     run = Run(experiment, run_id=run_id)
     if input_location.endswith(".h5"):
@@ -458,14 +393,14 @@ def download_model(ws, experiment_name, run_id, input_location, output_location)
         run.download_files(prefix=input_location, output_directory=output_location)
     else:
         raise NameError(f"{input_location}'s path extension not supported")
-    print("Successfully downloaded model")
+    logging.info("Successfully downloaded model")
 
 
-def filter_dataset(paths_evaluation, standing):
+def filter_dataset_according_to_standing_lying(paths_evaluation, standing):
     new_paths_evaluation = []
     exc = []
     for p in paths_evaluation:
-        depthmap, targets, image = pickle.load(open(p, "rb"))
+        _depthmap, _targets, image = pickle.load(open(p, "rb"))
         try:
             image = process_image(image)
             if standing.predict(image) > .9:
