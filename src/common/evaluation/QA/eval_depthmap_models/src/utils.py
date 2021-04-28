@@ -473,3 +473,15 @@ def filter_dataset(paths_evaluation, standing):
         except ValueError:
             exc.append(image)
     return new_paths_evaluation
+
+
+def get_run_ids(ws, experiment_name):
+    """Gets the runs of an experiment.
+    Args:
+         ws: workspace to access the experiment
+         experiment_name: Name of the experiment in which model is saved
+    """
+    experiment = Experiment(workspace=ws, name=experiment_name)
+    runs = list(experiment.get_runs())
+    run_ids = [run.id for run in runs]
+    return run_ids
