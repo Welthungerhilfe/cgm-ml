@@ -121,15 +121,27 @@ def convert_3d_to_2d(intrisics: list, x: float, y: float, z: float) -> list:
     return [tx, ty, z]
 
 
-def export_obj(filename, triangulate):
+def export_obj(filename, rgb, triangulate):
     """
 
     triangulate=True generates OBJ of type mesh
     triangulate=False generates OBJ of type pointcloud
+    rgb=path to color frame
     """
     count = 0
     indices = np.zeros((width, height))
+
+    # create MTL file (a standart extension of OBJ files to define geometry materials and textures)
+    material = filename[:len(filename) - 4] + '.mtl'
+    if rgb:
+        with open(material, 'w') as f:
+            f.write('newmtl default\n')
+            f.write('map_Kd ../' + rgb + '\n')
+
     with open(filename, 'w') as f:
+        if rgb:
+            f.write('mtllib ' + material[filename.index('/') + 1:] + '\n')
+            f.write('usemtl default\n')
         for x in range(2, width - 2):
             for y in range(2, height - 2):
                 depth = parse_depth(x, y)
@@ -139,6 +151,7 @@ def export_obj(filename, triangulate):
                         count = count + 1
                         indices[x][y] = count  # add index of written vertex into array
                         f.write('v ' + str(res[0]) + ' ' + str(res[1]) + ' ' + str(res[2]) + '\n')
+                        f.write('vt ' + str(x / width) + ' ' + str(1 - y / height) + '\n')
 
         if triangulate:
             max_diff = 0.2
@@ -155,16 +168,22 @@ def export_obj(filename, triangulate):
                         # check if the triangle size is valid (to prevent generating triangle
                         # connecting child and background)
                         if abs(d00 - d10) + abs(d00 - d01) + abs(d10 - d01) < max_diff:
-                            f.write('f ' + str(int(indices[x][y])) + ' '
-                                    + str(int(indices[x + 1][y])) + ' ' + str(int(indices[x][y + 1])) + '\n')
+                            a = str(int(indices[x][y]))
+                            b = str(int(indices[x + 1][y]))
+                            c = str(int(indices[x][y + 1]))
+                            # define triangle indices in (world coordinates / texture coordinates)
+                            f.write('f ' + a + '/' + a + ' ' + b + '/' + b + ' ' + c + '/' + c + '\n')
 
                     # check if second triangle points have existing indices
                     if indices[x + 1][y + 1] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
                         # check if the triangle size is valid (to prevent generating triangle
                         # connecting child and background)
                         if abs(d11 - d10) + abs(d11 - d01) + abs(d10 - d01) < max_diff:
-                            f.write('f ' + str(int(indices[x + 1][y + 1])) + ' '
-                                    + str(int(indices[x + 1][y])) + ' ' + str(int(indices[x][y + 1])) + '\n')
+                            a = str(int(indices[x + 1][y + 1]))
+                            b = str(int(indices[x + 1][y]))
+                            c = str(int(indices[x][y + 1]))
+                            # define triangle indices in (world coordinates / texture coordinates)
+                            f.write('f ' + a + '/' + a + ' ' + b + '/' + b + ' ' + c + '/' + c + '\n')
         logging.info('Mesh exported into %s', filename)
 
 
