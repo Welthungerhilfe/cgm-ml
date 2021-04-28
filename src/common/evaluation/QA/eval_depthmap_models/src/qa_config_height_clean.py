@@ -42,7 +42,6 @@ DATA_CONFIG = Bunch(dict(
 
     TARGET_INDEXES=[0],  # 0 is height, 1 is weight.
     CODES=['100', '101', '102', '200', '201', '202'],
-    CODES_FOR_POSE_AND_SCANSTEP=['100', '101', '102', '200', '201', '202'],
 ))
 
 
@@ -51,7 +50,6 @@ RESULT_CONFIG = Bunch(dict(
     # Error margin on various ranges
     ACCURACIES=[.2, .4, .6, 1., 1.2, 2., 2.5, 3., 4., 5., 6.],  # 0.2cm, 0.4cm, 0.6cm, 1cm, ...
     ACCURACY_MAIN_THRESH=1.0,  # 1cm
-    # AGE_BUCKETS=[0, 1, 2, 3, 4, 5],
 
     COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],
 
