@@ -307,7 +307,7 @@ if __name__ == "__main__":
         dataset_evaluation = temp_dataset_evaluation.map(lambda _path, depthmap, targets: (depthmap, targets))
         del temp_dataset_evaluation
 
-        if RUN_ID is 'all':
+        if RUN_ID == 'all':
             prediction_list_one = []
             for model_index, model_path in enumerate(model_paths):
                 print(f"Model {model_index + 1}/{len(model_paths)}")
@@ -367,7 +367,7 @@ if __name__ == "__main__":
         logging.info("Calculate and save scatterplot results to %s", png_fpath)
         draw_age_scatterplot(df, png_fpath)
 
-    if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and 'AGE_BUCKETS' in RESULT_CONFIG.keys():
+    if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and AGE_IDX in DATA_CONFIG.TARGET_INDEXES and RUN_ID != 'all':
         png_fpath = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{RUN_ID}.png"
         logging.info("Calculate zscores and save confusion matrix results to %s", png_fpath)
         start = time.time()
@@ -375,7 +375,7 @@ if __name__ == "__main__":
         end = time.time()
         logging.info("Total time for Calculate zscores and save confusion matrix: %.2f", end - start)
 
-    if WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and RUN_ID is not 'all' and AGE_IDX in DATA_CONFIG.TARGET_INDEXES:
+    if WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and RUN_ID != 'all' and AGE_IDX in DATA_CONFIG.TARGET_INDEXES:
         png_fpath = f"{OUTPUT_CSV_PATH}/wasting_diagnosis_{RUN_ID}.png"
         logging.info("Calculate and save wasting confusion matrix results to %s", png_fpath)
         start = time.time()
