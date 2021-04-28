@@ -31,7 +31,7 @@ EVAL_CONFIG = Bunch(dict(
     SPLIT_SEED=0,
 ))
 
-#Details of Evaluation Dataset
+# Details of Evaluation Dataset
 DATA_CONFIG = Bunch(dict(
     NAME='anon-realtime-testdata',  # Name of evaluation dataset
 
@@ -52,6 +52,9 @@ RESULT_CONFIG = Bunch(dict(
     #EVALUATION_ACCURACIES = [.2, .4, .8, 1.2, 2., 2.5, 3., 4., 5., 6.]
     ACCURACIES=[.2, .4, .6, 1, 1.2, 2., 2.5, 3., 4., 5., 6.],  # 0.2cm, 0.4cm, 0.6cm, 1cm, ...
     COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],
+
+    # uncertainty
+    USE_UNCERTAINTY=False,  # Flag to enable model uncertainty calculation
 
     # path of csv file in the experiment which final result is stored
     SAVE_PATH=f'./outputs/{CONFIG_NAME}',
