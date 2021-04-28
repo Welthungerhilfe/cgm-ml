@@ -198,6 +198,30 @@ if __name__ == "__main__":
         dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
         download_dataset(workspace, dataset_name, dataset_path)
 
+    if RUN_ID == "all":
+        RUN_ID = utils.get_run_ids(ws=workspace, experiment_name=MODEL_CONFIG.EXPERIMENT_NAME)
+
+        for id in RUN_ID:
+            print(f"Downloading run {id}")
+            utils.download_model(
+                ws=workspace,
+                experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
+                run_id=id,
+                input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
+                output_location=os.path.join(MODEL_BASE_DIR, id)
+            )
+
+        model_paths = glob.glob(os.path.join(MODEL_BASE_DIR, "*"))
+        model_paths = [path for path in model_paths if os.path.isdir(path)]
+        model_paths = [path for path in model_paths if path.split("/")[-1].startswith(MODEL_CONFIG.EXPERIMENT_NAME)]
+        model_paths = [os.path.join(path, "outputs", "best_model.ckpt") for path in model_paths]
+        print(f"Models paths ({len(model_paths)}):")
+        print("\t" + "\n\t".join(model_paths))
+        RUN_ID = MODEL_CONFIG.RUN_ID
+        del MODEL_BASE_DIR
+    else:
+        model_path = MODEL_BASE_DIR / get_model_path(MODEL_CONFIG)
+
     # Get the QR-code paths.
     dataset_path = os.path.join(dataset_path, "scans")
     print("Dataset path:", dataset_path)
@@ -246,8 +270,6 @@ if __name__ == "__main__":
     del dataset_norm
     print("Created dataset for training.")
 
-    model_path = MODEL_BASE_DIR / get_model_path(MODEL_CONFIG)
-
     # Update new_paths_evaluation after filtering
     dataset_paths = tmp_dataset_evaluation.map(lambda path, _depthmap, _targets: path)
     list_paths = list(dataset_paths.as_numpy_iterator())
@@ -256,7 +278,16 @@ if __name__ == "__main__":
     dataset_evaluation = tmp_dataset_evaluation.map(lambda _path, depthmap, targets: (depthmap, targets))
     del tmp_dataset_evaluation
 
-    prediction_list_one = get_prediction(model_path, dataset_evaluation)
+    if RUN_ID is 'all':
+        prediction_list_one = []
+        for model_index, model_path in enumerate(model_paths):
+            print(f"Model {model_index + 1}/{len(model_paths)}")
+            prediction_list_one += [get_prediction(model_path, dataset_evaluation)]
+            print("Prediction made by model on the depthmaps...")
+        prediction_list_one = np.array(prediction_list_one)
+        prediction_list_one = np.mean(prediction_list_one, axis=0)
+    else:
+        prediction_list_one = get_prediction(model_path, dataset_evaluation)
     print("Prediction made by model on the depthmaps...")
     print(prediction_list_one)
 
@@ -267,7 +298,7 @@ if __name__ == "__main__":
         'qrcode': qrcode_list,
         'artifact': artifact_list,
         'scantype': scantype_list,
-        'GT': [el[0] for el in target_list],
+        'GT': [el for el in target_list],
         'predicted': prediction_list
     }, columns=RESULT_CONFIG.COLUMNS)
     print("df.shape:", df.shape)
@@ -303,7 +334,7 @@ if __name__ == "__main__":
         print(f"Calculate and save scatterplot results to {png_file}")
         draw_age_scatterplot(df, png_file)
 
-    if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES:
+    if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and RUN_ID is not 'all' and AGE_IDX in DATA_CONFIG.TARGET_INDEXES:
         png_file = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{RUN_ID}.png"
         print(f"Calculate zscores and save confusion matrix results to {png_file}")
         start = time.time()
@@ -311,7 +342,7 @@ if __name__ == "__main__":
         end = time.time()
         print(f"Total time for Calculate zscores and save confusion matrix: {end - start:.3} sec")
 
-    if WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES:
+    if WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and RUN_ID is not 'all' and AGE_IDX in DATA_CONFIG.TARGET_INDEXES:
         png_file = f"{OUTPUT_CSV_PATH}/wasting_diagnosis_{RUN_ID}.png"
         print(f"Calculate and save wasting confusion matrix results to {png_file}")
         start = time.time()
