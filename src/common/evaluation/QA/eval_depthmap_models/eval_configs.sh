@@ -8,7 +8,9 @@ set -euox pipefail
 # python eval_main.py --qa_config_module qa_config_filter
 # python eval_main.py --qa_config_module qa_config_height
 python eval_main.py --qa_config_module qa_config_weight_no_dropout
+python eval_main.py --qa_config_module qa_config_weight_no_dropout_run5
 python eval_main.py --qa_config_module qa_config_weight_no_dropout_run6
+python eval_main.py --qa_config_module qa_config_weight_no_dropout_run8
 # python eval_main.py --qa_config_module qa_config_weight_dropout
 
 # Combine results
