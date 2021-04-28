@@ -56,6 +56,8 @@ from temp_common.evaluation.eval_utils import (  # noqa: E402, F401
 )
 from temp_common.evaluation.eval_utilities import (  # noqa: E402, F401
     calculate_and_save_results,
+    download_model,
+    get_run_ids,
     calculate_performance_age, calculate_performance_goodbad,
     calculate_performance_sex, download_dataset, draw_age_scatterplot,
     draw_stunting_diagnosis, draw_uncertainty_goodbad_plot,
@@ -215,12 +217,12 @@ if __name__ == "__main__":
         download_dataset(workspace, dataset_name, dataset_path)
 
     if RUN_ID == "all":
-        RUN_ID = utils.get_run_ids(ws=workspace, experiment_name=MODEL_CONFIG.EXPERIMENT_NAME)
+        RUN_ID = get_run_ids(ws=workspace, experiment_name=MODEL_CONFIG.EXPERIMENT_NAME)
 
         for id in RUN_ID:
             print(f"Downloading run {id}")
-            utils.download_model(
-                ws=workspace,
+            download_model(
+                workspace=workspace,
                 experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
                 run_id=id,
                 input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
@@ -325,7 +327,7 @@ if __name__ == "__main__":
             'qrcode': qrcode_list,
             'artifact': artifact_list,
             'scantype': scantype_list,
-            'GT': [el for el in target_list],
+            'GT': [el[0] for el in target_list],
             'predicted': prediction_list
         }, columns=RESULT_CONFIG.COLUMNS)
         logging.info("df.shape: %s", df.shape)
