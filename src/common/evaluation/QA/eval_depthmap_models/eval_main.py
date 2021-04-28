@@ -56,11 +56,12 @@ if __name__ == "__main__":
     os.makedirs(MODEL_BASE_DIR, exist_ok=True)
 
     # Copy model to temp folder
-    download_model(ws=ws,
-                   experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
-                   run_id=MODEL_CONFIG.RUN_ID,
-                   input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
-                   output_location=MODEL_BASE_DIR)
+    if MODEL_CONFIG.RUN_ID is not 'all':
+        download_model(ws=ws,
+                       experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
+                       run_id=MODEL_CONFIG.RUN_ID,
+                       input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
+                       output_location=MODEL_BASE_DIR)
 
     # Copy filter to temp folder
     if FILTER_CONFIG is not None and FILTER_CONFIG.IS_ENABLED:
