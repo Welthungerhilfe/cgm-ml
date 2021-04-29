@@ -40,7 +40,7 @@ DATA_CONFIG = Bunch(dict(
     BATCH_SIZE=512,  # Batch size for evaluation
     NORMALIZATION_VALUE=7.5,
 
-    TARGET_INDEXES=[0],  # 0 is height, 1 is weight.
+    TARGET_INDEXES=[0],  # 0 is height, 1 is weight
     CODES=['100', '101', '102', '200', '201', '202'],
 ))
 
