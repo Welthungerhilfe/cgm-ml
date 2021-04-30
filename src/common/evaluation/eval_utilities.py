@@ -25,7 +25,8 @@ from .constants_eval import (  # noqa: E402
 from .eval_utils import avgerror, preprocess_targets  # noqa: E402
 
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 MIN_HEIGHT = 45
 MAX_HEIGHT = 120
@@ -408,15 +409,3 @@ def filter_dataset_according_to_standing_lying(paths_evaluation, standing):
         except ValueError:
             exc.append(image)
     return new_paths_evaluation
-
-
-def get_run_ids(ws, experiment_name):
-    """Gets the runs of an experiment.
-    Args:
-         ws: workspace to access the experiment
-         experiment_name: Name of the experiment in which model is saved
-    """
-    experiment = Experiment(workspace=ws, name=experiment_name)
-    runs = list(experiment.get_runs())
-    run_ids = [run.id for run in runs]
-    return run_ids
