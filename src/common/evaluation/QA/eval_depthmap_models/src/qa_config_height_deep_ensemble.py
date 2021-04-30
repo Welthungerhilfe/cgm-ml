@@ -7,7 +7,7 @@ CONFIG_NAME = os.path.splitext(os.path.basename(__file__))[0]
 # Details of model used for evaluation
 MODEL_CONFIG = Bunch(dict(
     EXPERIMENT_NAME='q1-ensemble-warmup',
-    RUN_IDs=['q1-ensemble-warmup_1610544610_eb44bfe2', 'q1-ensemble-warmup_1610547587_7ca932c3',
+    RUN_IDS=['q1-ensemble-warmup_1610544610_eb44bfe2', 'q1-ensemble-warmup_1610547587_7ca932c3',
              'q1-ensemble-warmup_1610547669_5b789bd1', 'q1-ensemble-warmup_1610547705_f2141d0f',
              'q1-ensemble-warmup_1610547744_d2b42ce5', 'q1-ensemble-warmup_1610547780_2f000a25',
              'q1-ensemble-warmup_1610547816_c3f815df', 'q1-ensemble-warmup_1610547892_8ee6ff49',
