@@ -177,6 +177,17 @@ def get_prediction(model_path: str, dataset_evaluation: tf.data.Dataset) -> np.a
     return prediction_list
 
 
+def get_predictions(model_paths: list, dataset_evaluation: tf.data.Dataset) -> list:
+    prediction_list_one = []
+    for model_index, model_path in enumerate(model_paths):
+        print(f"Model {model_index + 1}/{len(model_paths)}")
+        prediction_list_one += [get_prediction(model_path, dataset_evaluation)]
+        print("Prediction made by model on the depthmaps...")
+    prediction_list_one = np.array(prediction_list_one)
+    prediction_list_one = np.mean(prediction_list_one, axis=0)
+    return prediction_list_one
+
+
 if __name__ == "__main__":
 
     # Make experiment reproducible
