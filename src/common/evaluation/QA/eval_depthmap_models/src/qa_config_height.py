@@ -7,8 +7,7 @@ CONFIG_NAME = os.path.splitext(os.path.basename(__file__))[0]
 # Details of model used for evaluation
 MODEL_CONFIG = Bunch(dict(
     EXPERIMENT_NAME='q3-depthmap-plaincnn-height-95k',
-    RUN_ID='q3-depthmap-plaincnn-height-95k_1610709896_ef7f755d',  # Run 5
-
+    RUN_ID='q3-depthmap-plaincnn-height-95k_1617983539_763a24b9',  # Run 9
     INPUT_LOCATION='outputs',
     NAME='best_model.ckpt',
 ))
@@ -16,7 +15,7 @@ MODEL_CONFIG = Bunch(dict(
 
 EVAL_CONFIG = Bunch(dict(
     # Name of evaluation
-    NAME='q3-depthmap-plaincnn-height-95k-run_03',
+    NAME='q3-depthmap-plaincnn-height-95k_run_09',
 
     # Experiment in Azure ML which will be used for evaluation
     EXPERIMENT_NAME="QA-pipeline",
@@ -26,7 +25,7 @@ EVAL_CONFIG = Bunch(dict(
     DEBUG_RUN=False,
 
     # Will run eval on specified # of scan instead of full dataset
-    DEBUG_NUMBER_OF_SCAN=5,
+    DEBUG_NUMBER_OF_SCAN=25,
 
     SPLIT_SEED=0,
 ))
@@ -41,16 +40,17 @@ DATA_CONFIG = Bunch(dict(
     BATCH_SIZE=512,  # Batch size for evaluation
     NORMALIZATION_VALUE=7.5,
 
-    TARGET_INDEXES=[0],  # 0 is height, 1 is weight.
+    TARGET_INDEXES=[0, 3, 4, 5],  # 0 is height, 1 is weight, 2 is muac, 3 is age, 4 is sex('male' or 'female'), 5 is quality ('good' or 'bad'), 6 is test
     CODES=['100', '101', '102', '200', '201', '202']
 ))
-
 
 # Result configuration for result generation after evaluation is done
 RESULT_CONFIG = Bunch(dict(
     # Error margin on various ranges
-    #EVALUATION_ACCURACIES = [.2, .4, .8, 1.2, 2., 2.5, 3., 4., 5., 6.]
-    ACCURACIES=[.2, .4, .6, 1, 1.2, 2., 2.5, 3., 4., 5., 6.],  # 0.2cm, 0.4cm, 0.6cm, 1cm, ...
+    ACCURACIES=[.2, .4, .6, 1., 1.2, 2., 2.5, 3., 4., 5., 6.],  # 0.2cm, 0.4cm, 0.6cm, 1cm, ...
+    ACCURACY_MAIN_THRESH=1.0,  # 1cm
+    AGE_BUCKETS=[0, 1, 2, 3, 4, 5],
+
     COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],
 
     # uncertainty

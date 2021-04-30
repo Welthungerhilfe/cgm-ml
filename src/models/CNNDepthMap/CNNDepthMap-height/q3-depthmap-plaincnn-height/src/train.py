@@ -96,7 +96,8 @@ assert len(qrcode_paths_training) > 0 and len(qrcode_paths_validate) > 0
 def get_depthmap_files(paths):
     pickle_paths = []
     for path in paths:
-        pickle_paths.extend(glob.glob(os.path.join(path, "**", "*.p")))
+        for code in CONFIG.CODES:
+            pickle_paths.extend(glob.glob(os.path.join(path, code, "*.p")))
     return pickle_paths
 
 
