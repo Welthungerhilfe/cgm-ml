@@ -90,7 +90,7 @@ FILTER_CONFIG = qa_config.FILTER_CONFIG if getattr(qa_config, 'FILTER_CONFIG', F
 
 
 RUN_ID = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else None
-RUN_IDs = MODEL_CONFIG.RUN_IDs if getattr(MODEL_CONFIG, 'RUN_IDs', False) else None
+RUN_IDS = MODEL_CONFIG.RUN_IDS if getattr(MODEL_CONFIG, 'RUN_IDS', False) else None
 
 # Function for loading and processing depthmaps.
 
@@ -177,7 +177,7 @@ def get_prediction(model_path: str, dataset_evaluation: tf.data.Dataset) -> np.a
     return prediction_list
 
 
-def get_predictions(model_paths: list, dataset_evaluation: tf.data.Dataset) -> list:
+def get_predictions_from_multiple_models(model_paths: list, dataset_evaluation: tf.data.Dataset) -> list:
     prediction_list_one = []
     for model_index, model_path in enumerate(model_paths):
         print(f"Model {model_index + 1}/{len(model_paths)}")
@@ -198,7 +198,7 @@ if __name__ == "__main__":
                           / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
     if RUN_ID is not None:
         MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if run.id.startswith("OfflineRun") else Path('.')
-    if RUN_IDs is not None:
+    if RUN_IDS is not None:
         MODEL_BASE_DIR = REPO_DIR / 'data' / \
             MODEL_CONFIG.EXPERIMENT_NAME if run.id.startswith("OfflineRun") else Path('.')
 
@@ -231,16 +231,16 @@ if __name__ == "__main__":
         dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
         download_dataset(workspace, dataset_name, dataset_path)
 
-    if RUN_IDs is not None:
-        for id in RUN_IDs:
-            '''print(f"Downloading run {id}")
+    if RUN_IDS is not None:
+        for id in RUN_IDS:
+            print(f"Downloading run {id}")
             download_model(
                 workspace=workspace,
                 experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
                 run_id=id,
                 input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
                 output_location=MODEL_BASE_DIR / id
-            )'''
+            )
 
         model_paths = glob.glob(os.path.join(MODEL_BASE_DIR, "*"))
         model_paths = [path for path in model_paths if os.path.isdir(path)]
@@ -318,8 +318,8 @@ if __name__ == "__main__":
         dataset_evaluation = temp_dataset_evaluation.map(lambda _path, depthmap, targets: (depthmap, targets))
         del temp_dataset_evaluation
 
-        if RUN_IDs is not None:
-            prediction_list_one = get_predictions(model_paths, dataset_evaluation)
+        if RUN_IDS is not None:
+            prediction_list_one = get_predictions_from_multiple_models(model_paths, dataset_evaluation)
         if RUN_ID is not None:
             prediction_list_one = get_prediction(model_path, dataset_evaluation)
         logging.info("Prediction made by model on the depthmaps...")
@@ -413,7 +413,7 @@ if __name__ == "__main__":
         dataset_sample = prepare_sample_dataset(df_sample, dataset_path)
 
         # Predict uncertainty
-        if RUN_IDs is None:
+        if RUN_IDS is None:
             uncertainties = get_prediction_uncertainty(
                 model_path, dataset_sample, RESULT_CONFIG.DROPOUT_STRENGTH, RESULT_CONFIG.NUM_DROPOUT_PREDICTIONS)
         else:
