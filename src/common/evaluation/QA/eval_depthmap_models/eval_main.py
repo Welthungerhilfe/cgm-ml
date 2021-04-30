@@ -75,7 +75,7 @@ if __name__ == "__main__":
     MODEL_BASE_DIR.mkdir(parents=True, exist_ok=True)
 
     # Copy model to temp folder
-    if MODEL_CONFIG.RUN_ID != 'all':
+    if MODEL_CONFIG.EXPERIMENT_NAME != 'q1-ensemble-warmup':
         download_model(workspace=workspace,
                        experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
                        run_id=MODEL_CONFIG.RUN_ID,
