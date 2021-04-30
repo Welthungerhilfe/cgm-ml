@@ -314,7 +314,7 @@ if __name__ == "__main__":
     df_grouped = df.groupby(['qrcode', 'scantype']).mean()
     logging.info("Mean Avg Error: %s", df_grouped)
 
-    df_grouped['error'] = df_grouped.apply(avgerror, axis=1)
+    df_grouped['error'] = df_grouped.apply(avgerror, axis=1).abs()
     df_grouped['error_percent'] = df_grouped['error'] / df_grouped['GT'] * 100.
 
     MAPE_percent = df_grouped['error_percent'].mean()
