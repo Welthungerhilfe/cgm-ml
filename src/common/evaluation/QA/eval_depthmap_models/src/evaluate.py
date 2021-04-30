@@ -62,8 +62,8 @@ from temp_common.evaluation.eval_utilities import (  # noqa: E402, F401
     draw_stunting_diagnosis, draw_uncertainty_goodbad_plot,
     draw_uncertainty_scatterplot, draw_wasting_diagnosis, filter_dataset_according_to_standing_lying, get_column_list, get_dataset_path,
     get_depthmap_files, get_model_path)
-from temp_common.evaluation.uncertainty_utils import \
-    get_prediction_uncertainty  # noqa: E402, F401
+from temp_common.evaluation.uncertainty_utils import (  # noqa: E402, F401
+    get_prediction_uncertainty, get_prediction_uncertainty_deep)
 from temp_common.model_utils.preprocessing_multiartifact_python import \
     create_multiartifact_paths_for_qrcodes  # noqa: E402, F401
 from temp_common.model_utils.preprocessing_multiartifact_tensorflow import \
@@ -417,7 +417,7 @@ if __name__ == "__main__":
             uncertainties = get_prediction_uncertainty(
                 model_path, dataset_sample, RESULT_CONFIG.DROPOUT_STRENGTH, RESULT_CONFIG.NUM_DROPOUT_PREDICTIONS)
         else:
-            uncertainties = get_prediction_uncertainty(model_paths, dataset_sample)
+            uncertainties = get_prediction_uncertainty_deep(model_paths, dataset_sample)
 
         assert len(df_sample) == len(uncertainties)
         df_sample['uncertainties'] = uncertainties

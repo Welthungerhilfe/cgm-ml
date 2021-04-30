@@ -61,7 +61,7 @@ def predict_uncertainty(X: np.array, model: tf.keras.Model, num_dropout_predicti
     return std
 
 
-def get_prediction_uncertainty(model_paths: list, dataset_evaluation: tf.data.Dataset) -> np.array:
+def get_prediction_uncertainty_deep(model_paths: list, dataset_evaluation: tf.data.Dataset) -> np.array:
     """Predict standard deviation of multiple predictions with different dropouts
     Args:
         model_path: Path of the trained model
