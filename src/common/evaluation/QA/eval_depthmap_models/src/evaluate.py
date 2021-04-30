@@ -319,10 +319,11 @@ if __name__ == "__main__":
     df_grouped['error_percent'] = df_grouped['error_ratio']*100.
     MAPE_percent = df_grouped['error_ratio'].mean()
     MAPE_count = df_grouped['error_ratio'].count()
+    MAE = df_grouped['error'].mean()
 
     fake_MAPE_percent = df_grouped['error'].mean() / df_grouped['GT'].mean() * 100.
 
-    csv_fpath = f"{OUTPUT_CSV_PATH}/{RUN_ID} MAPE_percent={MAPE_percent} n={MAPE_count} fake_MAPE_percent={fake_MAPE_percent}.csv"
+    csv_fpath = f"{OUTPUT_CSV_PATH}/{RUN_ID} MAPE_percent={MAPE_percent} n={MAPE_count} fake_MAPE_percent={fake_MAPE_percent} MAE={MAE}.csv"
     print("csv_fpath: " + csv_fpath)
     logging.info("Calculate and save the results to %s", csv_fpath)
     calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
