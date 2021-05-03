@@ -15,7 +15,6 @@ MODEL_CONFIG = Bunch(dict(
              'q1-ensemble-warmup_1610548023_99ac6060', 'q1-ensemble-warmup_1610548064_afefd4e4',
              'q1-ensemble-warmup_1610548106_69993d24', 'q1-ensemble-warmup_1610548137_a8c52d63',
              'q1-ensemble-warmup_1610548168_914ce1f6', 'q1-ensemble-warmup_1610548209_9692a253'],
-
     INPUT_LOCATION='outputs',
     NAME='best_model.ckpt',
 ))
