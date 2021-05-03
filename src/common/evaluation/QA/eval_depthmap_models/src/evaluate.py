@@ -63,7 +63,7 @@ from temp_common.evaluation.eval_utilities import (  # noqa: E402, F401
     draw_uncertainty_scatterplot, draw_wasting_diagnosis, filter_dataset_according_to_standing_lying, get_column_list, get_dataset_path,
     get_depthmap_files, get_model_path)
 from temp_common.evaluation.uncertainty_utils import (  # noqa: E402, F401
-    get_prediction_uncertainty, get_prediction_uncertainty_deep)
+    get_prediction_uncertainty, get_prediction_uncertainty_deepensemble)
 from temp_common.model_utils.preprocessing_multiartifact_python import \
     create_multiartifact_paths_for_qrcodes  # noqa: E402, F401
 from temp_common.model_utils.preprocessing_multiartifact_tensorflow import \
@@ -181,9 +181,9 @@ def get_prediction(model_path: str, dataset_evaluation: tf.data.Dataset) -> np.a
 def get_predictions_from_multiple_models(model_paths: list, dataset_evaluation: tf.data.Dataset) -> list:
     prediction_list_one = []
     for model_index, model_path in enumerate(model_paths):
-        print(f"Model {model_index + 1}/{len(model_paths)}")
+        logging.info(f"Model {model_index + 1}/{len(model_paths)}")
         prediction_list_one += [get_prediction(model_path, dataset_evaluation)]
-        print("Prediction made by model on the depthmaps...")
+        logging.info("Prediction made by model on the depthmaps...")
     prediction_list_one = np.array(prediction_list_one)
     prediction_list_one = np.mean(prediction_list_one, axis=0)
     return prediction_list_one
@@ -234,7 +234,7 @@ if __name__ == "__main__":
 
     if RUN_IDS is not None:
         for id in RUN_IDS:
-            print(f"Downloading run {id}")
+            logging.info(f"Downloading run {id}")
             download_model(
                 workspace=workspace,
                 experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
@@ -247,8 +247,8 @@ if __name__ == "__main__":
         model_paths = [path for path in model_paths if os.path.isdir(path)]
         model_paths = [path for path in model_paths if path.split("/")[-1].startswith(MODEL_CONFIG.EXPERIMENT_NAME)]
         model_paths = [os.path.join(path, "outputs", "best_model.ckpt") for path in model_paths]
-        print(f"Models paths ({len(model_paths)}):")
-        print("\t" + "\n\t".join(model_paths))
+        logging.info(f"Models paths ({len(model_paths)}):")
+        logging.info("\t" + "\n\t".join(model_paths))
     else:
         model_path = MODEL_BASE_DIR / get_model_path(MODEL_CONFIG)
 
@@ -418,7 +418,7 @@ if __name__ == "__main__":
             uncertainties = get_prediction_uncertainty(
                 model_path, dataset_sample, RESULT_CONFIG.DROPOUT_STRENGTH, RESULT_CONFIG.NUM_DROPOUT_PREDICTIONS)
         else:
-            uncertainties = get_prediction_uncertainty_deep(model_paths, dataset_sample)
+            uncertainties = get_prediction_uncertainty_deepensemble(model_paths, dataset_sample)
 
         assert len(df_sample) == len(uncertainties)
         df_sample['uncertainties'] = uncertainties
