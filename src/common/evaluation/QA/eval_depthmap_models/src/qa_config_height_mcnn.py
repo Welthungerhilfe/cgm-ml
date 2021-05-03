@@ -14,7 +14,7 @@ SAMPLING_STRATEGY_WINDOW = "window"
 # Details of model used for evaluation
 MODEL_CONFIG = Bunch(dict(
     EXPERIMENT_NAME='q3-depthmap-plaincnn-height-95k',
-    RUN_ID='q3-depthmapmultiartifactlatefusion-plaincnn-height-95k_1614177517_ecd7b6e2',  # Run 6
+    RUN_ID='q3-depthmapmultiartifactlatefusion-plaincnn-height-95k_1618818357_a5312878',  # Run 8
     INPUT_LOCATION='outputs',
     NAME='best_model.ckpt',
 ))
@@ -22,7 +22,7 @@ MODEL_CONFIG = Bunch(dict(
 
 EVAL_CONFIG = Bunch(dict(
     # Name of evaluation
-    NAME='q3-depthmapmultiartifactlatefusion-plaincnn-height-95k_run_06',
+    NAME='q3-depthmapmultiartifactlatefusion-plaincnn-height-95k_run_08',
 
     # Experiment in Azure ML which will be used for evaluation
     EXPERIMENT_NAME="QA-pipeline",
