@@ -4,7 +4,7 @@ trigger:
     - 'releases/*'
     - '*pipeline*'
 
-# pr: none
+pr: none
 
 jobs:
 - job: EvaluationJob
