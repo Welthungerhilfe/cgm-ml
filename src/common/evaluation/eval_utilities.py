@@ -25,7 +25,8 @@ from .constants_eval import (  # noqa: E402
 from .eval_utils import avgerror, preprocess_targets  # noqa: E402
 
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 MIN_HEIGHT = 45
 MAX_HEIGHT = 120

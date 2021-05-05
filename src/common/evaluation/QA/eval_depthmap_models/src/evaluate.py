@@ -56,20 +56,22 @@ from temp_common.evaluation.eval_utils import (  # noqa: E402, F401
 )
 from temp_common.evaluation.eval_utilities import (  # noqa: E402, F401
     calculate_and_save_results,
+    download_model,
     calculate_performance_age, calculate_performance_goodbad,
     calculate_performance_sex, download_dataset, draw_age_scatterplot,
     draw_stunting_diagnosis, draw_uncertainty_goodbad_plot,
     draw_uncertainty_scatterplot, draw_wasting_diagnosis, filter_dataset_according_to_standing_lying, get_column_list, get_dataset_path,
     get_depthmap_files, get_model_path)
-from temp_common.evaluation.uncertainty_utils import \
-    get_prediction_uncertainty  # noqa: E402, F401
+from temp_common.evaluation.uncertainty_utils import (  # noqa: E402, F401
+    get_prediction_uncertainty, get_prediction_uncertainty_deepensemble)
 from temp_common.model_utils.preprocessing_multiartifact_python import \
     create_multiartifact_paths_for_qrcodes  # noqa: E402, F401
 from temp_common.model_utils.preprocessing_multiartifact_tensorflow import \
     create_multiartifact_sample  # noqa: E402, F401
 
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -87,7 +89,9 @@ RESULT_CONFIG = qa_config.RESULT_CONFIG
 FILTER_CONFIG = qa_config.FILTER_CONFIG if getattr(qa_config, 'FILTER_CONFIG', False) else None
 
 
-RUN_ID = MODEL_CONFIG.RUN_ID
+RUN_ID = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else None
+RUN_IDS = MODEL_CONFIG.RUN_IDS if getattr(MODEL_CONFIG, 'RUN_IDS', False) else None
+assert bool(RUN_ID) != bool(RUN_IDS)
 
 # Function for loading and processing depthmaps.
 
@@ -174,6 +178,17 @@ def get_prediction(model_path: str, dataset_evaluation: tf.data.Dataset) -> np.a
     return prediction_list
 
 
+def get_predictions_from_multiple_models(model_paths: list, dataset_evaluation: tf.data.Dataset) -> list:
+    prediction_list_one = []
+    for model_index, model_path in enumerate(model_paths):
+        logging.info(f"Model {model_index + 1}/{len(model_paths)}")
+        prediction_list_one += [get_prediction(model_path, dataset_evaluation)]
+        logging.info("Prediction made by model on the depthmaps...")
+    prediction_list_one = np.array(prediction_list_one)
+    prediction_list_one = np.mean(prediction_list_one, axis=0)
+    return prediction_list_one
+
+
 if __name__ == "__main__":
 
     # Make experiment reproducible
@@ -182,7 +197,11 @@ if __name__ == "__main__":
 
     OUTPUT_CSV_PATH = str(REPO_DIR / 'data'
                           / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
-    MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if run.id.startswith("OfflineRun") else Path('.')
+    if RUN_ID is not None:
+        MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if run.id.startswith("OfflineRun") else Path('.')
+    if RUN_IDS is not None:
+        MODEL_BASE_DIR = REPO_DIR / 'data' / \
+            MODEL_CONFIG.EXPERIMENT_NAME if run.id.startswith("OfflineRun") else Path('.')
 
     # Offline run. Download the sample dataset and run locally. Still push results to Azure.
     if run.id.startswith("OfflineRun"):
@@ -213,10 +232,30 @@ if __name__ == "__main__":
         dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
         download_dataset(workspace, dataset_name, dataset_path)
 
+    if RUN_IDS is not None:
+        for id in RUN_IDS:
+            logging.info(f"Downloading run {id}")
+            download_model(
+                workspace=workspace,
+                experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
+                run_id=id,
+                input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
+                output_location=MODEL_BASE_DIR / id
+            )
+
+        model_paths = glob.glob(os.path.join(MODEL_BASE_DIR, "*"))
+        model_paths = [path for path in model_paths if os.path.isdir(path)]
+        model_paths = [path for path in model_paths if path.split("/")[-1].startswith(MODEL_CONFIG.EXPERIMENT_NAME)]
+        model_paths = [os.path.join(path, "outputs", "best_model.ckpt") for path in model_paths]
+        logging.info(f"Models paths ({len(model_paths)}):")
+        logging.info("\t" + "\n\t".join(model_paths))
+    else:
+        model_path = MODEL_BASE_DIR / get_model_path(MODEL_CONFIG)
+
     # Get the QR-code paths.
     dataset_path = os.path.join(dataset_path, "scans")
     logging.info('Dataset path: %s', dataset_path)
-    #logging.info(glob.glob(os.path.join(dataset_path, "*"))) # Debug
+    # logging.info(glob.glob(os.path.join(dataset_path, "*"))) # Debug
     logging.info('Getting QR-code paths...')
     qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
     logging.info('qrcode_paths: %d', len(qrcode_paths))
@@ -228,8 +267,6 @@ if __name__ == "__main__":
 
     logging.info('Paths for evaluation: \n\t' + '\n\t'.join(qrcode_paths))
     logging.info(len(qrcode_paths))
-
-    model_path = MODEL_BASE_DIR / get_model_path(MODEL_CONFIG)
 
     # Is this a multiartifact model?
     if getattr(DATA_CONFIG, "N_ARTIFACTS", 1) > 1:
@@ -282,7 +319,10 @@ if __name__ == "__main__":
         dataset_evaluation = temp_dataset_evaluation.map(lambda _path, depthmap, targets: (depthmap, targets))
         del temp_dataset_evaluation
 
-        prediction_list_one = get_prediction(model_path, dataset_evaluation)
+        if RUN_IDS is not None:
+            prediction_list_one = get_predictions_from_multiple_models(model_paths, dataset_evaluation)
+        if RUN_ID is not None:
+            prediction_list_one = get_prediction(model_path, dataset_evaluation)
         logging.info("Prediction made by model on the depthmaps...")
         logging.info(prediction_list_one)
 
@@ -316,6 +356,9 @@ if __name__ == "__main__":
 
     df_grouped['error'] = df_grouped.apply(avgerror, axis=1)
 
+    if RUN_ID is None:
+        RUN_ID = MODEL_CONFIG.EXPERIMENT_NAME
+
     csv_fpath = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
     logging.info("Calculate and save the results to %s", csv_fpath)
     calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
@@ -333,7 +376,7 @@ if __name__ == "__main__":
         logging.info("Calculate and save scatterplot results to %s", png_fpath)
         draw_age_scatterplot(df, png_fpath)
 
-    if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and 'AGE_BUCKETS' in RESULT_CONFIG.keys():
+    if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and AGE_IDX in DATA_CONFIG.TARGET_INDEXES and RUN_ID != MODEL_CONFIG.EXPERIMENT_NAME:
         png_fpath = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{RUN_ID}.png"
         logging.info("Calculate zscores and save confusion matrix results to %s", png_fpath)
         start = time.time()
@@ -341,7 +384,7 @@ if __name__ == "__main__":
         end = time.time()
         logging.info("Total time for Calculate zscores and save confusion matrix: %.2f", end - start)
 
-    if WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and 'AGE_BUCKETS' in RESULT_CONFIG.keys():
+    if WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and AGE_IDX in DATA_CONFIG.TARGET_INDEXES and RUN_ID != MODEL_CONFIG.EXPERIMENT_NAME:
         png_fpath = f"{OUTPUT_CSV_PATH}/wasting_diagnosis_{RUN_ID}.png"
         logging.info("Calculate and save wasting confusion matrix results to %s", png_fpath)
         start = time.time()
@@ -371,7 +414,12 @@ if __name__ == "__main__":
         dataset_sample = prepare_sample_dataset(df_sample, dataset_path)
 
         # Predict uncertainty
-        uncertainties = get_prediction_uncertainty(model_path, dataset_sample, RESULT_CONFIG.DROPOUT_STRENGTH, RESULT_CONFIG.NUM_DROPOUT_PREDICTIONS)
+        if RUN_IDS is None:
+            uncertainties = get_prediction_uncertainty(
+                model_path, dataset_sample, RESULT_CONFIG.DROPOUT_STRENGTH, RESULT_CONFIG.NUM_DROPOUT_PREDICTIONS)
+        else:
+            uncertainties = get_prediction_uncertainty_deepensemble(model_paths, dataset_sample)
+
         assert len(df_sample) == len(uncertainties)
         df_sample['uncertainties'] = uncertainties
 
@@ -389,7 +437,8 @@ if __name__ == "__main__":
         df_sample['error'] = df_sample.apply(avgerror, axis=1).abs()
         df_sample_better_threshold = df_sample[df_sample['uncertainties'] < RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM]
         csv_fpath = f"{OUTPUT_CSV_PATH}/uncertainty_smaller_than_{RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM}cm_{RUN_ID}.csv"
-        logging.info("Uncertainty: For more certain than %.2f cm, calculate and save the results to %s", RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM, csv_fpath)
+        logging.info("Uncertainty: For more certain than %.2f cm, calculate and save the results to %s",
+                     RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM, csv_fpath)
         calculate_and_save_results(df_sample_better_threshold, EVAL_CONFIG.NAME, csv_fpath,
                                    DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 

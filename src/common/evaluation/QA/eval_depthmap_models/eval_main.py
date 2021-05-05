@@ -16,7 +16,8 @@ from azureml.train.dnn import TensorFlow
 
 from src.constants import REPO_DIR, DEFAULT_CONFIG
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 CWD = Path(__file__).parent
@@ -74,11 +75,12 @@ if __name__ == "__main__":
     MODEL_BASE_DIR.mkdir(parents=True, exist_ok=True)
 
     # Copy model to temp folder
-    download_model(workspace,
-                   experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
-                   run_id=MODEL_CONFIG.RUN_ID,
-                   input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
-                   output_location=MODEL_BASE_DIR)
+    if getattr(MODEL_CONFIG, 'RUN_ID', False) and not getattr(MODEL_CONFIG, 'RUN_IDS', False):
+        download_model(workspace=workspace,
+                       experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
+                       run_id=MODEL_CONFIG.RUN_ID,
+                       input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
+                       output_location=MODEL_BASE_DIR)
 
     # Copy filter to temp folder
     if FILTER_CONFIG is not None and FILTER_CONFIG.IS_ENABLED:
