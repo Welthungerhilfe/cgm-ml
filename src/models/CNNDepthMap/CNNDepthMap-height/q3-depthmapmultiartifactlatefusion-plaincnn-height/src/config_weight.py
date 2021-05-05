@@ -35,8 +35,7 @@ CONFIG = Bunch(dict(
     USE_DROPOUT=False,
     USE_ONE_CYCLE=False,
 
-    # TODO
-    PRETRAINED_RUN="q3-depthmap-plaincnn-height-95k_1610709869_2e00a6ef",  # Run4 (baseline: min(val_mae)=1.78cm)
+    PRETRAINED_RUN='q4-depthmap-plaincnn-weight-95k_1616424204_63e3c1b8',  # Run 5
 
     SHOULD_FREEZE_BASE=True,
 ))
