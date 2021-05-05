@@ -12,7 +12,7 @@ from azureml.core.run import Run
 import wandb
 from wandb.keras import WandbCallback
 
-from config_weight import CONFIG
+from config import CONFIG
 from constants import MODEL_CKPT_FILENAME, REPO_DIR
 from model import create_cnn
 from train_util import copy_dir
@@ -96,7 +96,8 @@ assert len(qrcode_paths_training) > 0 and len(qrcode_paths_validate) > 0
 def get_depthmap_files(paths):
     pickle_paths = []
     for path in paths:
-        pickle_paths.extend(glob.glob(os.path.join(path, "**", "*.p")))
+        for code in CONFIG.CODES:
+            pickle_paths.extend(glob.glob(os.path.join(path, code, "*.p")))
     return pickle_paths
 
 
@@ -126,11 +127,6 @@ def tf_load_pickle(path, max_value):
     depthmap.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1))
     targets.set_shape((len(CONFIG.TARGET_INDEXES,)))
     return depthmap, targets
-
-
-def tf_flip(image):
-    image = tf.image.random_flip_left_right(image)
-    return image
 
 
 # Create dataset for training.

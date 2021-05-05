@@ -21,4 +21,5 @@ CONFIG = Bunch(dict(
 
     # Parameters for dataset generation.
     TARGET_INDEXES=[0],  # 0 is height, 1 is weight.
+    CODES=['100', '101', '102', '200', '201', '202'],
 ))
