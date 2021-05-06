@@ -168,9 +168,9 @@ def export_obj(filename, rgb, triangulate):
                         # check if the triangle size is valid (to prevent generating triangle
                         # connecting child and background)
                         if abs(d00 - d10) + abs(d00 - d01) + abs(d10 - d01) < max_diff:
-                            a = str(int(indices[x][y]))
+                            c = str(int(indices[x][y]))
                             b = str(int(indices[x + 1][y]))
-                            c = str(int(indices[x][y + 1]))
+                            a = str(int(indices[x][y + 1]))
                             # define triangle indices in (world coordinates / texture coordinates)
                             f.write('f ' + a + '/' + a + ' ' + b + '/' + b + ' ' + c + '/' + c + '\n')
 
