@@ -8,8 +8,9 @@ set -euox pipefail
 # python eval_main.py --qa_config_module qa_config_height_dropout
 # python eval_main.py --qa_config_module qa_config_height_filter
 #python eval_main.py --qa_config_module qa_config_height_clean
-python eval_main.py --qa_config_module qa_config_weight
-python eval_main.py --qa_config_module qa_config_weight_dropout
+python eval_main.py --qa_config_module qa_config_weight_mcnn
+# python eval_main.py --qa_config_module qa_config_weight
+# python eval_main.py --qa_config_module qa_config_weight_dropout
 
 # Combine results
 # python combine_results.py --model_measurement height
