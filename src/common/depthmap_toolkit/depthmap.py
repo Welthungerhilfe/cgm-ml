@@ -5,6 +5,7 @@ import logging.config
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
+import pathlib
 
 import utils
 
@@ -18,6 +19,7 @@ SUBPLOT_PATTERN = 2
 SUBPLOT_CONFIDENCE = 3
 SUBPLOT_RGB = 4
 SUBPLOT_COUNT = 5
+EXTRACTED_DEPTH_FILE_NAME = 'data'
 
 
 def export(type, filename):
@@ -54,12 +56,17 @@ def onclick(event):
             logging.info('no valid data')
 
 
-def process(plt, dir_path, depth, rgb):
-
-    # extract depthmap
+def extract_depthmap(dir_path, depth):
+    """extract depthmap from given file"""
     with zipfile.ZipFile(dir_path + '/depth/' + depth, 'r') as zip_ref:
         zip_ref.extractall('.')
-    utils.parse_data('data')
+
+
+def process(plt, dir_path, depth, rgb):
+
+    extract_depthmap(dir_path, depth)
+
+    width, height, depthScale, maxConfidence, data, matrix = utils.parse_data(EXTRACTED_DEPTH_FILE_NAME)
 
     # read rgb data
     global CURRENT_RGB
