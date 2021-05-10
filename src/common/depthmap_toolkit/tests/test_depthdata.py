@@ -12,7 +12,7 @@ HEIGHT = 180
 
 def test_extract_depthmap():
     # Setup
-    extracted_depth_file = REPO_DIR + 'static_files/data'
+    extracted_depth_file = REPO_DIR + '/static_files/data'
 
     # Exercise
     data, width, height, depth_scale, max_confidence, matrix = utils.parse_data(extracted_depth_file)
