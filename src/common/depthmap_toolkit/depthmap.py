@@ -66,7 +66,7 @@ def process(plt, dir_path, depth, rgb):
 
     extract_depthmap(dir_path, depth)
 
-    width, height, depthScale, maxConfidence, data, matrix = utils.parse_data(constants.EXTRACTED_DEPTH_FILE_NAME)
+    data, width, height, depthScale, max_confidence, matrix = utils.parse_data(constants.EXTRACTED_DEPTH_FILE_NAME)
 
     # read rgb data
     global CURRENT_RGB

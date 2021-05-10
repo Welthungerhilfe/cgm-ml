@@ -225,22 +225,21 @@ def _get_count(width, height, data, depthScale):
     return count
 
 
-def parse_calibration(filepath):
+def parse_calibration(filepath: str):
     """Parse calibration file"""
-    # global CALIBRATION
     with open(filepath, 'r') as f:
-        CALIBRATION = []
+        calibration = []
         f.readline()[:-1]
-        CALIBRATION.append(parse_numbers(f.readline()))
+        calibration.append(parse_numbers(f.readline()))
         # logging.info(str(CALIBRATION[0]) + '\n') #color camera intrinsics - fx, fy, cx, cy
         f.readline()[:-1]
-        CALIBRATION.append(parse_numbers(f.readline()))
+        calibration.append(parse_numbers(f.readline()))
         # logging.info(str(CALIBRATION[1]) + '\n') #depth camera intrinsics - fx, fy, cx, cy
         f.readline()[:-1]
-        CALIBRATION.append(parse_numbers(f.readline()))
+        calibration.append(parse_numbers(f.readline()))
         # logging.info(str(CALIBRATION[2]) + '\n') #depth camera position relativelly to color camera in meters
-        CALIBRATION[2][1] *= 8.0  # workaround for wrong calibration data
-    return CALIBRATION
+        calibration[2][1] *= 8.0  # workaround for wrong calibration data
+    return calibration
 
 
 def parse_confidence(tx, ty, data, maxConfidence):
@@ -265,7 +264,7 @@ def parse_data(filename):
         data = f.read()
         f.close()
     
-    return width, height, depthScale, maxConfidence, data, matrix
+    return data, width, height, depthScale, max_confidence, matrix
 
 
 def parse_depth(tx, ty, width, height, data, depthScale):
@@ -288,7 +287,7 @@ def parse_depth_smoothed(tx, ty, width, height, data, depthScale):
     return (depth_x_minus + depth_x_plus + depth_y_minus + depth_y_plus + depth_center) / 5.0
 
 
-def parse_numbers(line):
+def parse_numbers(line: str) -> list:
     """Parse line of numbers"""
     output = []
     values = line.split(' ')
