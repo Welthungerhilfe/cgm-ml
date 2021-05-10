@@ -8,6 +8,7 @@ from PIL import Image
 from pathlib import Path
 
 import utils
+import constants
 
 logging.basicConfig(
     level=logging.INFO,
@@ -19,7 +20,6 @@ SUBPLOT_PATTERN = 2
 SUBPLOT_CONFIDENCE = 3
 SUBPLOT_RGB = 4
 SUBPLOT_COUNT = 5
-EXTRACTED_DEPTH_FILE_NAME = 'data'
 
 
 def export(type, filename):
@@ -66,7 +66,7 @@ def process(plt, dir_path, depth, rgb):
 
     extract_depthmap(dir_path, depth)
 
-    width, height, depthScale, maxConfidence, data, matrix = utils.parse_data(EXTRACTED_DEPTH_FILE_NAME)
+    width, height, depthScale, maxConfidence, data, matrix = utils.parse_data(constants.EXTRACTED_DEPTH_FILE_NAME)
 
     # read rgb data
     global CURRENT_RGB
