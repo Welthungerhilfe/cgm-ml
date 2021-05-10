@@ -22,12 +22,12 @@ SUBPLOT_RGB = 4
 SUBPLOT_COUNT = 5
 
 
-def export(type, filename):
+def export(type, filename, height, width, data, depthScale, calibration, maxConfidence):
     rgb = CURRENT_RGB
     if type == 'obj':
-        utils.export_obj('export/' + filename, rgb, triangulate=True)
+        utils.export_obj('export/' + filename, rgb, width, height, data, depthScale, calibration, triangulate=True)
     if type == 'pcd':
-        utils.export_pcd('export/' + filename)
+        utils.export_pcd('export/' + filename, width, height, data, depthScale, calibration, maxConfidence)
 
 
 # click on data
@@ -75,8 +75,6 @@ def process(plt, dir_path, depth, rgb):
     if rgb:
         CURRENT_RGB = dir_path + '/rgb/' + rgb
         HAS_RGB = 1
-        width = utils.getWidth()
-        height = utils.getHeight()
         pil_im = Image.open(CURRENT_RGB)
         pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
         IM_ARRAY = np.asarray(pil_im)
@@ -89,7 +87,7 @@ def process(plt, dir_path, depth, rgb):
     CALIBRATION = utils.parse_calibration(dir_path + '/camera_calibration.txt')
 
 
-def show_result():
+def show_result(width, height, calibration, data, depthScale, maxConfidence):
     fig = plt.figure()
     fig.canvas.mpl_connect('button_press_event', onclick)
     width = utils.getWidth()
