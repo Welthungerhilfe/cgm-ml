@@ -95,7 +95,7 @@ def convert_2d_to_3d(intrisics: list, x: float, y: float, z: float) -> list:
 
 def convert_2d_to_3d_oriented(intrisics: list, x: float, y: float, z: float) -> list:
     """Convert point in pixels into point in meters (applying rotation)"""
-    res = convert_2d_to_3d(CALIBRATION[1], x, y, z)
+    res = convert_2d_to_3d(calibration[1], x, y, z, width, height)
     if res:
         try:
             # special case for Google Tango devices with different rotation
@@ -144,9 +144,9 @@ def export_obj(filename, rgb, triangulate):
             f.write('usemtl default\n')
         for x in range(2, width - 2):
             for y in range(2, height - 2):
-                depth = parse_depth(x, y)
+                depth = parse_depth(x, y, width, height, data, depthScale)
                 if depth:
-                    res = convert_2d_to_3d_oriented(CALIBRATION[1], x, y, depth)
+                    res = convert_2d_to_3d_oriented(CALIBRATION[1], x, y, depth, width, height, calibration)
                     if res:
                         count = count + 1
                         indices[x][y] = count  # add index of written vertex into array
@@ -158,10 +158,10 @@ def export_obj(filename, rgb, triangulate):
             for x in range(2, width - 2):
                 for y in range(2, height - 2):
                     # get depth of all points of 2 potential triangles
-                    d00 = parse_depth(x, y)
-                    d10 = parse_depth(x + 1, y)
-                    d01 = parse_depth(x, y + 1)
-                    d11 = parse_depth(x + 1, y + 1)
+                    d00 = parse_depth(x, y, width, height, data, depthScale)
+                    d10 = parse_depth(x + 1, y, width, height, data, depthScale)
+                    d01 = parse_depth(x, y + 1, width, height, data, depthScale)
+                    d11 = parse_depth(x + 1, y + 1, width, height, data, depthScale)
 
                     # check if first triangle points have existing indices
                     if indices[x][y] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
@@ -204,12 +204,12 @@ def export_pcd(filename):
         f.write('DATA ascii\n')
         for x in range(2, width - 2):
             for y in range(2, height - 2):
-                depth = parse_depth(x, y)
+                depth = parse_depth(x, y, width, height, data, depthScale)
                 if depth:
-                    res = convert_2d_to_3d(CALIBRATION[1], x, y, depth)
+                    res = convert_2d_to_3d(CALIBRATION[1], x, y, depth, width, height)
                     if res:
                         f.write(str(-res[0]) + ' ' + str(res[1]) + ' '
-                                + str(res[2]) + ' ' + str(parse_confidence(x, y)) + '\n')
+                                + str(res[2]) + ' ' + str(parse_confidence(x, y, data, maxConfidence)) + '\n')
         logging.info('Pointcloud exported into %s', filename)
 
 
@@ -217,9 +217,9 @@ def _get_count():
     count = 0
     for x in range(2, width - 2):
         for y in range(2, height - 2):
-            depth = parse_depth(x, y)
+            depth = parse_depth(x, y, width, height, data, depthScale)
             if depth:
-                res = convert_2d_to_3d(CALIBRATION[1], x, y, depth)
+                res = convert_2d_to_3d(CALIBRATION[1], x, y, depth, width, height)
                 if res:
                     count = count + 1
     return count
@@ -279,11 +279,11 @@ def parse_depth(tx, ty):
 
 def parse_depth_smoothed(tx, ty):
     """Get average depth value from neighboring pixels"""
-    depth_center = parse_depth(tx, ty)
-    depth_x_minus = parse_depth(tx - 1, ty)
-    depth_x_plus = parse_depth(tx + 1, ty)
-    depth_y_minus = parse_depth(tx, ty - 1)
-    depth_y_plus = parse_depth(tx, ty + 1)
+    depth_center = parse_depth(tx, ty, width, height, data, depthScale)
+    depth_x_minus = parse_depth(tx - 1, ty, width, height, data, depthScale)
+    depth_x_plus = parse_depth(tx + 1, ty, width, height, data, depthScale)
+    depth_y_minus = parse_depth(tx, ty - 1, width, height, data, depthScale)
+    depth_y_plus = parse_depth(tx, ty + 1, width, height, data, depthScale)
     return (depth_x_minus + depth_x_plus + depth_y_minus + depth_y_plus + depth_center) / 5.0
 
 
