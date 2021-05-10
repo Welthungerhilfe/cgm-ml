@@ -1,0 +1,1 @@
+EXTRACTED_DEPTH_FILE_NAME = 'data'
