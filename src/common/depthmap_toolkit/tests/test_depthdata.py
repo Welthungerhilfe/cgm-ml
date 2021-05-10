@@ -1,18 +1,18 @@
-import pathlib
+from pathlib import Path
 import sys
 
 sys.path.append('./src/common/depthmap_toolkit') # noqa
 import utils # noqa
 
 
-CWD = pathlib.Path.cwd()
+REPO_DIR = str(Path(__file__).parents[0].absolute())
 WIDTH = 240
 HEIGHT = 180
 
 
 def test_extract_depthmap():
     # Setup
-    extracted_depth_file = CWD.joinpath('tests', 'static_files', 'data')
+    extracted_depth_file = REPO_DIR / 'static_files' / 'data'
 
     # Exercise
     data, width, height, depth_scale, max_confidence, matrix = utils.parse_data(extracted_depth_file)
