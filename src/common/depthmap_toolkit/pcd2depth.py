@@ -11,13 +11,12 @@ width = utils.getWidth()
 height = utils.getHeight()
 
 
-def process(calibration_fname: str, pcd_fpath: str):
+def process(calibration, pcd_fpath: str, width: int, height: int):
     # Convert to depthmap
-    calibration = utils.parse_calibration(calibration_fname)
     points = utils.parse_pcd(pcd_fpath)
     output = np.zeros((width, height, 3))
     for p in points:
-        v = utils.convert_3d_to_2d(calibration[1], p[0], p[1], p[2])
+        v = utils.convert_3d_to_2d(calibration[1], p[0], p[1], p[2], width, height)
         x = int(width - v[0] - 1)
         y = int(height - v[1] - 1)
         if x >= 0 and y >= 0 and x < width and y < height:
@@ -26,7 +25,7 @@ def process(calibration_fname: str, pcd_fpath: str):
     return output
 
 
-def write_depthmap(output_depth_fpath: str, depthmap):
+def write_depthmap(output_depth_fpath: str, depthmap, width: int, height: int):
     # Write depthmap
     with open('data', 'wb') as f:
         header_str = str(width) + 'x' + str(height) + '_0.001_255\n'
