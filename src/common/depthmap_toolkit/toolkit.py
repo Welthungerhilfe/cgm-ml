@@ -35,12 +35,12 @@ def convert_all_pcds(event, width, height, calibration):
     logging.info('Data exported into folder output')
 
 
-def export_obj(event, height, width, data, depthScale, calibration, maxConfidence):
-    depthmap.export('obj', 'output' + str(index) + '.obj', height, width, data, depthScale, calibration, maxConfidence)
+def export_obj(event, height, width, data, depth_scale, calibration, max_confidence):
+    depthmap.export('obj', 'output' + str(index) + '.obj', height, width, data, depth_scale, calibration, max_confidence)
 
 
-def export_pcd(event, height, width, data, depthScale, calibration, maxConfidence):
-    depthmap.export('pcd', 'output' + str(index) + '.pcd', height, width, data, depthScale, calibration, maxConfidence)
+def export_pcd(event, height, width, data, depth_scale, calibration, max_confidence):
+    depthmap.export('pcd', 'output' + str(index) + '.pcd', height, width, data, depth_scale, calibration, max_confidence)
 
 
 def next(event, calibration, depthmap_dir):
@@ -63,11 +63,11 @@ def prev(event, calibration, depthmap_dir):
 
 def show(depthmap_dir, calibration):
     if rgb:
-        width, height, depthScale, maxConfidence, data, matrix = depthmap.process(plt, depthmap_dir, depth[index], rgb[index])
+        width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, depth[index], rgb[index])
     else:
-        width, height, depthScale, maxConfidence, data, matrix = depthmap.process(plt, depthmap_dir, depth[index], 0)
+        width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, depth[index], 0)
 
-    depthmap.show_result(width, height, calibration, data, depthScale, maxConfidence)
+    depthmap.show_result(width, height, calibration, data, depth_scale, max_confidence)
     ax = plt.gca()
     ax.text(0.5, 1.075, depth[index], horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
     bprev = Button(plt.axes([0.0, 0.0, 0.1, 0.075]), '<<', color='gray')
@@ -75,9 +75,9 @@ def show(depthmap_dir, calibration):
     bnext = Button(plt.axes([0.9, 0.0, 0.1, 0.075]), '>>', color='gray')
     bnext.on_clicked(functools.partial(next, calibration=calibration, depthmap_dir=depthmap_dir))
     bexport_obj = Button(plt.axes([0.2, 0.0, 0.2, 0.05]), 'Export OBJ', color='gray')
-    bexport_obj.on_clicked(functools.partial(export_obj, height=height, width=width, data=data, depthScale=depthScale, calibration=calibration, maxConfidence=maxConfidence))
+    bexport_obj.on_clicked(functools.partial(export_obj, height=height, width=width, data=data, depth_scale=depth_scale, calibration=calibration, max_confidence=max_confidence))
     bexport_pcd = Button(plt.axes([0.4, 0.0, 0.2, 0.05]), 'Export PCD', color='gray')
-    bexport_pcd.on_clicked(functools.partial(export_pcd, height=height, width=width, data=data, depthScale=depthScale, calibration=calibration, maxConfidence=maxConfidence))
+    bexport_pcd.on_clicked(functools.partial(export_pcd, height=height, width=width, data=data, depth_scale=depth_scale, calibration=calibration, max_confidence=max_confidence))
     bconvertPCDs = Button(plt.axes([0.6, 0.0, 0.2, 0.05]), 'Convert all PCDs', color='gray')
     bconvertPCDs.on_clicked(functools.partial(convert_all_pcds, calibration=calibration))
     plt.show()

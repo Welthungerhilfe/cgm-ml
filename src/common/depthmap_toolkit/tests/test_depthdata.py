@@ -15,7 +15,7 @@ def test_extract_depthmap():
     extracted_depth_file = CWD.joinpath('tests', 'static_files', 'data')
 
     # Exercise
-    data, width, height, depthScale, max_confidence, matrix = utils.parse_data(extracted_depth_file)
+    data, width, height, depth_scale, max_confidence, matrix = utils.parse_data(extracted_depth_file)
 
     # Verify
     assert (width, height) == (WIDTH, HEIGHT)

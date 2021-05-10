@@ -121,7 +121,7 @@ def convert_3d_to_2d(intrisics: list, x: float, y: float, z: float, width: int, 
     return [tx, ty, z]
 
 
-def export_obj(filename, rgb, width, height, data, depthScale, calibration, triangulate):
+def export_obj(filename, rgb, width, height, data, depth_scale, calibration, triangulate):
     """
 
     triangulate=True generates OBJ of type mesh
@@ -144,7 +144,7 @@ def export_obj(filename, rgb, width, height, data, depthScale, calibration, tria
             f.write('usemtl default\n')
         for x in range(2, width - 2):
             for y in range(2, height - 2):
-                depth = parse_depth(x, y, width, height, data, depthScale)
+                depth = parse_depth(x, y, width, height, data, depth_scale)
                 if depth:
                     res = convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, calibration)
                     if res:
@@ -158,10 +158,10 @@ def export_obj(filename, rgb, width, height, data, depthScale, calibration, tria
             for x in range(2, width - 2):
                 for y in range(2, height - 2):
                     # get depth of all points of 2 potential triangles
-                    d00 = parse_depth(x, y, width, height, data, depthScale)
-                    d10 = parse_depth(x + 1, y, width, height, data, depthScale)
-                    d01 = parse_depth(x, y + 1, width, height, data, depthScale)
-                    d11 = parse_depth(x + 1, y + 1, width, height, data, depthScale)
+                    d00 = parse_depth(x, y, width, height, data, depth_scale)
+                    d10 = parse_depth(x + 1, y, width, height, data, depth_scale)
+                    d01 = parse_depth(x, y + 1, width, height, data, depth_scale)
+                    d11 = parse_depth(x + 1, y + 1, width, height, data, depth_scale)
 
                     # check if first triangle points have existing indices
                     if indices[x][y] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
@@ -187,9 +187,9 @@ def export_obj(filename, rgb, width, height, data, depthScale, calibration, tria
         logging.info('Mesh exported into %s', filename)
 
 
-def export_pcd(filename, width, height, data, depthScale, calibration, maxConfidence):
+def export_pcd(filename, width, height, data, depth_scale, calibration, max_confidence):
     with open(filename, 'w') as f:
-        count = str(_get_count(width, height, data, depthScale, calibration))
+        count = str(_get_count(width, height, data, depth_scale, calibration))
         f.write('# timestamp 1 1 float 0\n')
         f.write('# .PCD v.7 - Point Cloud Data file format\n')
         f.write('VERSION .7\n')
@@ -204,20 +204,20 @@ def export_pcd(filename, width, height, data, depthScale, calibration, maxConfid
         f.write('DATA ascii\n')
         for x in range(2, width - 2):
             for y in range(2, height - 2):
-                depth = parse_depth(x, y, width, height, data, depthScale)
+                depth = parse_depth(x, y, width, height, data, depth_scale)
                 if depth:
                     res = convert_2d_to_3d(calibration[1], x, y, depth, width, height)
                     if res:
                         f.write(str(-res[0]) + ' ' + str(res[1]) + ' '
-                                + str(res[2]) + ' ' + str(parse_confidence(x, y, data, maxConfidence)) + '\n')
+                                + str(res[2]) + ' ' + str(parse_confidence(x, y, data, max_confidence)) + '\n')
         logging.info('Pointcloud exported into %s', filename)
 
 
-def _get_count(width, height, data, depthScale, calibration):
+def _get_count(width, height, data, depth_scale, calibration):
     count = 0
     for x in range(2, width - 2):
         for y in range(2, height - 2):
-            depth = parse_depth(x, y, width, height, data, depthScale)
+            depth = parse_depth(x, y, width, height, data, depth_scale)
             if depth:
                 res = convert_2d_to_3d(calibration[1], x, y, depth, width, height)
                 if res:
@@ -242,9 +242,9 @@ def parse_calibration(filepath: str):
     return calibration
 
 
-def parse_confidence(tx, ty, data, maxConfidence):
+def parse_confidence(tx, ty, data, max_confidence):
     """Get confidence of the point in scale 0-1"""
-    return data[(int(ty) * width + int(tx)) * 3 + 2] / maxConfidence
+    return data[(int(ty) * width + int(tx)) * 3 + 2] / max_confidence
 
 
 def parse_data(filename):
@@ -255,7 +255,7 @@ def parse_data(filename):
         res = header[0].split('x')
         width = int(res[0])
         height = int(res[1])
-        depthScale = float(header[1])
+        depth_scale = float(header[1])
         max_confidence = float(header[2])
         if len(header) >= 10:
             position = (float(header[7]), float(header[8]), float(header[9]))
@@ -264,26 +264,26 @@ def parse_data(filename):
         data = f.read()
         f.close()
 
-    return data, width, height, depthScale, max_confidence, matrix
+    return data, width, height, depth_scale, max_confidence, matrix
 
 
-def parse_depth(tx, ty, width, height, data, depthScale):
+def parse_depth(tx, ty, width, height, data, depth_scale):
     """Get depth of the point in meters"""
     if tx < 1 or ty < 1 or tx >= width or ty >= height:
         return 0
     depth = data[(int(ty) * width + int(tx)) * 3 + 0] << 8
     depth += data[(int(ty) * width + int(tx)) * 3 + 1]
-    depth *= depthScale
+    depth *= depth_scale
     return depth
 
 
-def parse_depth_smoothed(tx, ty, width, height, data, depthScale):
+def parse_depth_smoothed(tx, ty, width, height, data, depth_scale):
     """Get average depth value from neighboring pixels"""
-    depth_center = parse_depth(tx, ty, width, height, data, depthScale)
-    depth_x_minus = parse_depth(tx - 1, ty, width, height, data, depthScale)
-    depth_x_plus = parse_depth(tx + 1, ty, width, height, data, depthScale)
-    depth_y_minus = parse_depth(tx, ty - 1, width, height, data, depthScale)
-    depth_y_plus = parse_depth(tx, ty + 1, width, height, data, depthScale)
+    depth_center = parse_depth(tx, ty, width, height, data, depth_scale)
+    depth_x_minus = parse_depth(tx - 1, ty, width, height, data, depth_scale)
+    depth_x_plus = parse_depth(tx + 1, ty, width, height, data, depth_scale)
+    depth_y_minus = parse_depth(tx, ty - 1, width, height, data, depth_scale)
+    depth_y_plus = parse_depth(tx, ty + 1, width, height, data, depth_scale)
     return (depth_x_minus + depth_x_plus + depth_y_minus + depth_y_plus + depth_center) / 5.0
 
 

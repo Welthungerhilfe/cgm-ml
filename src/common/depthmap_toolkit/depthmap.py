@@ -21,12 +21,12 @@ SUBPLOT_RGB = 4
 SUBPLOT_COUNT = 5
 
 
-def export(type, filename, height, width, data, depthScale, calibration, maxConfidence):
+def export(type, filename, height, width, data, depth_scale, calibration, max_confidence):
     rgb = CURRENT_RGB
     if type == 'obj':
-        utils.export_obj('export/' + filename, rgb, width, height, data, depthScale, calibration, triangulate=True)
+        utils.export_obj('export/' + filename, rgb, width, height, data, depth_scale, calibration, triangulate=True)
     if type == 'pcd':
-        utils.export_pcd('export/' + filename, width, height, data, depthScale, calibration, maxConfidence)
+        utils.export_pcd('export/' + filename, width, height, data, depth_scale, calibration, max_confidence)
 
 
 # click on data
@@ -65,7 +65,7 @@ def process(plt, dir_path, depth, rgb):
 
     extract_depthmap(dir_path, depth)
 
-    data, width, height, depthScale, max_confidence, matrix = utils.parse_data(constants.EXTRACTED_DEPTH_FILE_NAME)
+    data, width, height, depth_scale, max_confidence, matrix = utils.parse_data(constants.EXTRACTED_DEPTH_FILE_NAME)
 
     # read rgb data
     global CURRENT_RGB
@@ -81,10 +81,10 @@ def process(plt, dir_path, depth, rgb):
         CURRENT_RGB = rgb
         HAS_RGB = 0
 
-    return width, height, depthScale, max_confidence, data, matrix
+    return width, height, depth_scale, max_confidence, data, matrix
 
 
-def show_result(width, height, calibration, data, depthScale, maxConfidence):
+def show_result(width, height, calibration, data, depth_scale, max_confidence):
     fig = plt.figure()
     fig.canvas.mpl_connect('button_press_event', onclick)
     width = utils.getWidth()
@@ -92,7 +92,7 @@ def show_result(width, height, calibration, data, depthScale, maxConfidence):
     output = np.zeros((width, height * SUBPLOT_COUNT, 3))
     for x in range(width):
         for y in range(height):
-            depth = utils.parse_depth(x, y, width, height, data, depthScale)
+            depth = utils.parse_depth(x, y, width, height, data, depth_scale)
             if (depth):
                 # convert ToF coordinates into RGB coordinates
                 vec = utils.convert_2d_to_3d(calibration[1], x, y, depth, width, height)
@@ -106,9 +106,9 @@ def show_result(width, height, calibration, data, depthScale, maxConfidence):
 
                 # depth data normal
                 v = utils.convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, calibration)
-                xm = utils.convert_2d_to_3d_oriented(calibration[1], x - 1, y, utils.parse_depth_smoothed(x - 1, y, width, height, data, depthScale), width, height, calibration)
-                xp = utils.convert_2d_to_3d_oriented(calibration[1], x + 1, y, utils.parse_depth_smoothed(x + 1, y, width, height, data, depthScale), width, height, calibration)
-                yp = utils.convert_2d_to_3d_oriented(calibration[1], x, y + 1, utils.parse_depth_smoothed(x, y + 1, width, height, data, depthScale), width, height, calibration)
+                xm = utils.convert_2d_to_3d_oriented(calibration[1], x - 1, y, utils.parse_depth_smoothed(x - 1, y, width, height, data, depth_scale), width, height, calibration)
+                xp = utils.convert_2d_to_3d_oriented(calibration[1], x + 1, y, utils.parse_depth_smoothed(x + 1, y, width, height, data, depth_scale), width, height, calibration)
+                yp = utils.convert_2d_to_3d_oriented(calibration[1], x, y + 1, utils.parse_depth_smoothed(x, y + 1, width, height, data, depth_scale), width, height, calibration)
                 n = utils.norm(utils.cross(utils.diff(yp, xm), utils.diff(yp, xp)))
                 output[x][SUBPLOT_NORMAL * height + height - y - 1][0] = abs(n[0])
                 output[x][SUBPLOT_NORMAL * height + height - y - 1][1] = abs(n[1])
@@ -123,7 +123,7 @@ def show_result(width, height, calibration, data, depthScale, maxConfidence):
                     output[x][SUBPLOT_PATTERN * height + height - y - 1][1] = vertical / (depth * depth)
 
                 # confidence value
-                output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = utils.parse_confidence(x, y, data, maxConfidence)
+                output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = utils.parse_confidence(x, y, data, max_confidence)
                 if output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][0] == 0:
                     output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = 1
 
