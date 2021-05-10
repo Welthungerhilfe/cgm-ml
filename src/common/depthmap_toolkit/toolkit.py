@@ -44,7 +44,7 @@ def export_pcd(event, height, width, data, depthScale, calibration, maxConfidenc
     depthmap.export('pcd', 'output' + str(index) + '.pcd', height, width, data, depthScale, calibration, maxConfidence)
 
 
-def next(event):
+def next(event, calibration, depthmap_dir):
     plt.close()
     global index
     index = index + 1
@@ -53,7 +53,7 @@ def next(event):
     show(depthmap_dir, calibration)
 
 
-def prev(event):
+def prev(event, calibration, depthmap_dir):
     plt.close()
     global index
     index = index - 1
@@ -62,25 +62,25 @@ def prev(event):
     show(depthmap_dir, calibration)
 
 
-def show(depthmap_dir):
+def show(depthmap_dir, calibration):
     if rgb:
-        depthmap.process(plt, depthmap_dir, depth[index], rgb[index])
+        width, height, depthScale, maxConfidence, data, matrix = depthmap.process(plt, depthmap_dir, depth[index], rgb[index])
     else:
-        depthmap.process(plt, depthmap_dir, depth[index], 0)
+        width, height, depthScale, maxConfidence, data, matrix = depthmap.process(plt, depthmap_dir, depth[index], 0)
 
-    depthmap.show_result()
+    depthmap.show_result(width, height, calibration, data, depthScale, maxConfidence)
     ax = plt.gca()
     ax.text(0.5, 1.075, depth[index], horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
     bprev = Button(plt.axes([0.0, 0.0, 0.1, 0.075]), '<<', color='gray')
-    bprev.on_clicked(prev)
+    bprev.on_clicked(functools.partial(prev, calibration=calibration, depthmap_dir=depthmap_dir))
     bnext = Button(plt.axes([0.9, 0.0, 0.1, 0.075]), '>>', color='gray')
-    bnext.on_clicked(next)
+    bnext.on_clicked(functools.partial(next, calibration=calibration, depthmap_dir=depthmap_dir))
     bexport_obj = Button(plt.axes([0.2, 0.0, 0.2, 0.05]), 'Export OBJ', color='gray')
-    bexport_obj.on_clicked(export_obj)
+    bexport_obj.on_clicked(functools.partial(export_obj, height=height, width=width, data=data, depthScale=depthScale, calibration=calibration, maxConfidence=maxConfidence))
     bexport_pcd = Button(plt.axes([0.4, 0.0, 0.2, 0.05]), 'Export PCD', color='gray')
-    bexport_pcd.on_clicked(export_pcd)
+    bexport_pcd.on_clicked(functools.partial(export_pcd, height=height, width=width, data=data, depthScale=depthScale, calibration=calibration, maxConfidence=maxConfidence))
     bconvertPCDs = Button(plt.axes([0.6, 0.0, 0.2, 0.05]), 'Convert all PCDs', color='gray')
-    bconvertPCDs.on_clicked(convert_all_pcds)
+    bconvertPCDs.on_clicked(functools.partial(convert_all_pcds, calibration=calibration))
     plt.show()
 
 
