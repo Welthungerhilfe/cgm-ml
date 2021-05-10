@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 from pathlib import Path
+import functools
 
 import utils
 import constants
@@ -33,16 +34,14 @@ def export(type, filename, height, width, data, depth_scale, calibration, max_co
 last = [0, 0, 0]
 
 
-def onclick(event):
-    width = utils.getWidth()
-    height = utils.getHeight()
+def onclick(event, width, height, data, depth_scale, calibration):
     if event.xdata is not None and event.ydata is not None:
         x = int(event.ydata)
         y = height - int(event.xdata) - 1
         if x > 1 and y > 1 and x < width - 2 and y < height - 2:
-            depth = utils.parse_depth(x, y)
+            depth = utils.parse_depth(x, y, width, height, data, depth_scale)
             if depth:
-                res = utils.convert_2d_to_3d(CALIBRATION[1], x, y, depth)
+                res = utils.convert_2d_to_3d(calibration[1], x, y, depth, width, height)
                 if res:
                     diff = [last[0] - res[0], last[1] - res[1], last[2] - res[2]]
                     dst = np.sqrt(diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2])
@@ -86,9 +85,7 @@ def process(plt, dir_path, depth, rgb):
 
 def show_result(width, height, calibration, data, depth_scale, max_confidence):
     fig = plt.figure()
-    fig.canvas.mpl_connect('button_press_event', onclick)
-    width = utils.getWidth()
-    height = utils.getHeight()
+    fig.canvas.mpl_connect('button_press_event', functools.partial(onclick, width=width, height=height, data=data, depth_scale=depth_scale, calibration=calibration))
     output = np.zeros((width, height * SUBPLOT_COUNT, 3))
     for x in range(width):
         for y in range(height):
