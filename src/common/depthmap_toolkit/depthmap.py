@@ -82,9 +82,7 @@ def process(plt, dir_path, depth, rgb):
         CURRENT_RGB = rgb
         HAS_RGB = 0
 
-    # parse calibration
-    global CALIBRATION
-    CALIBRATION = utils.parse_calibration(dir_path + '/camera_calibration.txt')
+    return width, height, depthScale, maxConfidence, data, matrix
 
 
 def show_result(width, height, calibration, data, depthScale, maxConfidence):
