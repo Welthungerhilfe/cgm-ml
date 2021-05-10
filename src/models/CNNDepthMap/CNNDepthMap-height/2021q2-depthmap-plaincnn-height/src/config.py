@@ -16,8 +16,8 @@ CONFIG = Bunch(dict(
     NORMALIZATION_VALUE=7.5,
     LEARNING_RATE=0.0007,
     USE_ONE_CYCLE=True,
-    RES_BLOCKS=["2,5,5,2"],
-    DROPOUTS_LIST=["0.0,0.0,0.0,0.0"],
+    RES_BLOCKS=[2, 5, 5, 2],
+    DROPOUTS_LIST=[0.0, 0.0, 0.0, 0.0],
     USE_WANDB=False,
 
     # Parameters for dataset generation.
