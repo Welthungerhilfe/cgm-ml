@@ -18,8 +18,7 @@ import utils
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
-
-def convert_all_pcds(event):
+def convert_all_pcds(event, width, height, calibration):
     input_dir = 'export'
     pcd = []
     for _, _, filenames in walk(input_dir):
@@ -32,17 +31,17 @@ def convert_all_pcds(event):
     os.mkdirs('output/depth')
     # copyfile(input_dir + '/../camera_calibration.txt', 'output/camera_calibration.txt')
     for i in range(len(pcd)):
-        depthmap = pcd2depth.process(input_dir + '/../camera_calibration.txt', input_dir + '/' + pcd[i])
+        depthmap = pcd2depth.process(calibration, input_dir + '/' + pcd[i], width, height)
         pcd2depth.write_depthmap('output/depth/' + pcd[i] + '.depth', depthmap)
     logging.info('Data exported into folder output')
 
 
-def export_obj(event):
-    depthmap.export('obj', 'output' + str(index) + '.obj')
+def export_obj(event, height, width, data, depthScale, calibration, maxConfidence):
+    depthmap.export('obj', 'output' + str(index) + '.obj', height, width, data, depthScale, calibration, maxConfidence)
 
 
-def export_pcd(event):
-    depthmap.export('pcd', 'output' + str(index) + '.pcd')
+def export_pcd(event, height, width, data, depthScale, calibration, maxConfidence):
+    depthmap.export('pcd', 'output' + str(index) + '.pcd', height, width, data, depthScale, calibration, maxConfidence)
 
 
 def next(event):
