@@ -5,7 +5,7 @@ import logging.config
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-import pathlib
+from pathlib import Path
 
 import utils
 
@@ -58,7 +58,7 @@ def onclick(event):
 
 def extract_depthmap(dir_path, depth):
     """extract depthmap from given file"""
-    with zipfile.ZipFile(dir_path + '/depth/' + depth, 'r') as zip_ref:
+    with zipfile.ZipFile(Path(dir_path) / 'depth' / depth, 'r') as zip_ref:
         zip_ref.extractall('.')
 
 
