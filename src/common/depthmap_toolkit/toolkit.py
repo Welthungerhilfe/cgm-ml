@@ -14,7 +14,6 @@ import pcd2depth
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
-DEPTHMAP_DIR = None
 
 
 def convert_all_pcds(event):
@@ -50,7 +49,7 @@ def next(event):
     index = index + 1
     if (index == size):
         index = 0
-    show(DEPTHMAP_DIR)
+    show(depthmap_dir, calibration)
 
 
 def prev(event):
@@ -59,7 +58,7 @@ def prev(event):
     index = index - 1
     if (index == -1):
         index = size - 1
-    show(DEPTHMAP_DIR)
+    show(depthmap_dir, calibration)
 
 
 def show(depthmap_dir):
@@ -96,9 +95,9 @@ if __name__ == "__main__":
 
     depth = []
     rgb = []
-    for (dirpath, dirnames, filenames) in walk(depthmap_dir + '/depth'):
+    for (dirpath, dirnames, filenames) in walk(Path(depthmap_dir) / 'depth'):
         depth = filenames
-    for (dirpath, dirnames, filenames) in walk(depthmap_dir + '/rgb'):
+    for (dirpath, dirnames, filenames) in walk(Path(depthmap_dir) / 'rgb'):
         rgb = filenames
     depth.sort()
     rgb.sort()
