@@ -250,7 +250,6 @@ def parse_confidence(tx, ty, data, maxConfidence):
 
 def parse_data(filename):
     """Parse depth data"""
-    global width, height, depthScale, maxConfidence, data, matrix
     with open('data', 'rb') as f:
         line = f.readline().decode().strip()
         header = line.split('_')
@@ -265,6 +264,8 @@ def parse_data(filename):
             matrix = matrix_calculate(position, rotation)
         data = f.read()
         f.close()
+    
+    return width, height, depthScale, maxConfidence, data, matrix
 
 
 def parse_depth(tx, ty, width, height, data, depthScale):
