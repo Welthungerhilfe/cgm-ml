@@ -5,12 +5,15 @@ from os import walk
 from shutil import copyfile
 import logging
 import logging.config
+from pathlib import Path
+import functools
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 
 import depthmap
 import pcd2depth
+import utils
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
@@ -26,9 +29,8 @@ def convert_all_pcds(event):
         shutil.rmtree('output')
     except BaseException:
         print('no previous data to delete')
-    os.mkdir('output')
-    os.mkdir('output/depth')
-    copyfile(input_dir + '/../camera_calibration.txt', 'output/camera_calibration.txt')
+    os.mkdirs('output/depth')
+    # copyfile(input_dir + '/../camera_calibration.txt', 'output/camera_calibration.txt')
     for i in range(len(pcd)):
         depthmap = pcd2depth.process(input_dir + '/../camera_calibration.txt', input_dir + '/' + pcd[i])
         pcd2depth.write_depthmap('output/depth/' + pcd[i] + '.depth', depthmap)
