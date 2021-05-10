@@ -1,8 +1,8 @@
 import pathlib
 import sys
 
-sys.path.append('./src/common/depthmap_toolkit')
-import utils
+sys.path.append('./src/common/depthmap_toolkit') # noqa
+import utils # noqa
 
 
 CWD = pathlib.Path.cwd()
