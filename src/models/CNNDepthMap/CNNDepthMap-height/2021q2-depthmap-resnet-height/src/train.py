@@ -14,7 +14,7 @@ from wandb.keras import WandbCallback
 
 from config import CONFIG
 from constants import MODEL_CKPT_FILENAME, REPO_DIR
-from model import create_cnn
+from model import create_res_net
 from train_util import copy_dir
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
