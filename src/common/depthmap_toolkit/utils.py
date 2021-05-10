@@ -146,7 +146,7 @@ def export_obj(filename, rgb, width, height, data, depthScale, calibration, tria
             for y in range(2, height - 2):
                 depth = parse_depth(x, y, width, height, data, depthScale)
                 if depth:
-                    res = convert_2d_to_3d_oriented(CALIBRATION[1], x, y, depth, width, height, calibration)
+                    res = convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, calibration)
                     if res:
                         count = count + 1
                         indices[x][y] = count  # add index of written vertex into array
@@ -189,7 +189,7 @@ def export_obj(filename, rgb, width, height, data, depthScale, calibration, tria
 
 def export_pcd(filename, width, height, data, depthScale, calibration, maxConfidence):
     with open(filename, 'w') as f:
-        count = str(_get_count())
+        count = str(_get_count(width, height, data, depthScale, calibration))
         f.write('# timestamp 1 1 float 0\n')
         f.write('# .PCD v.7 - Point Cloud Data file format\n')
         f.write('VERSION .7\n')
@@ -206,20 +206,20 @@ def export_pcd(filename, width, height, data, depthScale, calibration, maxConfid
             for y in range(2, height - 2):
                 depth = parse_depth(x, y, width, height, data, depthScale)
                 if depth:
-                    res = convert_2d_to_3d(CALIBRATION[1], x, y, depth, width, height)
+                    res = convert_2d_to_3d(calibration[1], x, y, depth, width, height)
                     if res:
                         f.write(str(-res[0]) + ' ' + str(res[1]) + ' '
                                 + str(res[2]) + ' ' + str(parse_confidence(x, y, data, maxConfidence)) + '\n')
         logging.info('Pointcloud exported into %s', filename)
 
 
-def _get_count(width, height, data, depthScale):
+def _get_count(width, height, data, depthScale, calibration):
     count = 0
     for x in range(2, width - 2):
         for y in range(2, height - 2):
             depth = parse_depth(x, y, width, height, data, depthScale)
             if depth:
-                res = convert_2d_to_3d(CALIBRATION[1], x, y, depth, width, height)
+                res = convert_2d_to_3d(calibration[1], x, y, depth, width, height)
                 if res:
                     count = count + 1
     return count
@@ -256,14 +256,14 @@ def parse_data(filename):
         width = int(res[0])
         height = int(res[1])
         depthScale = float(header[1])
-        maxConfidence = float(header[2])
+        max_confidence = float(header[2])
         if len(header) >= 10:
             position = (float(header[7]), float(header[8]), float(header[9]))
             rotation = (float(header[3]), float(header[4]), float(header[5]), float(header[6]))
             matrix = matrix_calculate(position, rotation)
         data = f.read()
         f.close()
-    
+
     return data, width, height, depthScale, max_confidence, matrix
 
 

@@ -2,7 +2,6 @@ import os
 import shutil
 import sys
 from os import walk
-from shutil import copyfile
 import logging
 import logging.config
 from pathlib import Path
@@ -112,7 +111,6 @@ if __name__ == "__main__":
     except BaseException:
         print('no previous data to delete')
     os.mkdir('export')
-
 
     # Show viewer
     index = 0

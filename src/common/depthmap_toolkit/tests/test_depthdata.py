@@ -2,12 +2,13 @@ import pathlib
 import sys
 
 sys.path.append('./src/common/depthmap_toolkit')
-import utils, depthmap
+import utils
 
 
 CWD = pathlib.Path.cwd()
 WIDTH = 240
 HEIGHT = 180
+
 
 def test_extract_depthmap():
     # Setup

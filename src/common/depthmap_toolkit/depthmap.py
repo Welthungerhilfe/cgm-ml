@@ -1,7 +1,6 @@
 import zipfile
 import logging
 import logging.config
-
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
@@ -82,7 +81,7 @@ def process(plt, dir_path, depth, rgb):
         CURRENT_RGB = rgb
         HAS_RGB = 0
 
-    return width, height, depthScale, maxConfidence, data, matrix
+    return width, height, depthScale, max_confidence, data, matrix
 
 
 def show_result(width, height, calibration, data, depthScale, maxConfidence):
