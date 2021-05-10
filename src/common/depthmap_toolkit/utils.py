@@ -250,7 +250,7 @@ def parse_confidence(tx, ty, data, maxConfidence):
 
 def parse_data(filename):
     """Parse depth data"""
-    with open('data', 'rb') as f:
+    with open(filename, 'rb') as f:
         line = f.readline().decode().strip()
         header = line.split('_')
         res = header[0].split('x')
