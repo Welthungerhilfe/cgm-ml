@@ -97,23 +97,23 @@ def show_result():
     output = np.zeros((width, height * SUBPLOT_COUNT, 3))
     for x in range(width):
         for y in range(height):
-            depth = utils.parse_depth(x, y)
+            depth = utils.parse_depth(x, y, width, height, data, depthScale)
             if (depth):
                 # convert ToF coordinates into RGB coordinates
-                vec = utils.convert_2d_to_3d(CALIBRATION[1], x, y, depth)
-                vec[0] += CALIBRATION[2][0]
-                vec[1] += CALIBRATION[2][1]
-                vec[2] += CALIBRATION[2][2]
-                vec = utils.convert_3d_to_2d(CALIBRATION[0], vec[0], vec[1], vec[2])
+                vec = utils.convert_2d_to_3d(calibration[1], x, y, depth, width, height)
+                vec[0] += calibration[2][0]
+                vec[1] += calibration[2][1]
+                vec[2] += calibration[2][2]
+                vec = utils.convert_3d_to_2d(calibration[0], vec[0], vec[1], vec[2], width, height)
 
                 # depth data scaled to be visible
                 output[SUBPLOT_DEPTH * height + x][height - y - 1] = 1.0 - min(depth / 2.0, 1.0)
 
                 # depth data normal
-                v = utils.convert_2d_to_3d_oriented(CALIBRATION[1], x, y, depth)
-                xm = utils.convert_2d_to_3d_oriented(CALIBRATION[1], x - 1, y, utils.parse_depth_smoothed(x - 1, y))
-                xp = utils.convert_2d_to_3d_oriented(CALIBRATION[1], x + 1, y, utils.parse_depth_smoothed(x + 1, y))
-                yp = utils.convert_2d_to_3d_oriented(CALIBRATION[1], x, y + 1, utils.parse_depth_smoothed(x, y + 1))
+                v = utils.convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, calibration)
+                xm = utils.convert_2d_to_3d_oriented(calibration[1], x - 1, y, utils.parse_depth_smoothed(x - 1, y, width, height, data, depthScale), width, height, calibration)
+                xp = utils.convert_2d_to_3d_oriented(calibration[1], x + 1, y, utils.parse_depth_smoothed(x + 1, y, width, height, data, depthScale), width, height, calibration)
+                yp = utils.convert_2d_to_3d_oriented(calibration[1], x, y + 1, utils.parse_depth_smoothed(x, y + 1, width, height, data, depthScale), width, height, calibration)
                 n = utils.norm(utils.cross(utils.diff(yp, xm), utils.diff(yp, xp)))
                 output[x][SUBPLOT_NORMAL * height + height - y - 1][0] = abs(n[0])
                 output[x][SUBPLOT_NORMAL * height + height - y - 1][1] = abs(n[1])
@@ -128,7 +128,7 @@ def show_result():
                     output[x][SUBPLOT_PATTERN * height + height - y - 1][1] = vertical / (depth * depth)
 
                 # confidence value
-                output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = utils.parse_confidence(x, y)
+                output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = utils.parse_confidence(x, y, data, maxConfidence)
                 if output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][0] == 0:
                     output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = 1
 
