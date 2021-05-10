@@ -86,13 +86,14 @@ def show(depthmap_dir):
 
 if __name__ == "__main__":
     # Prepare
-    if len(sys.argv) != 2:
-        logging.info('You did not enter depthmap_dir folder')
-        logging.info('E.g.: python toolkit.py depthmap_dir')
+    if len(sys.argv) != 3:
+        logging.info('You did not enter depthmap_dir folder and calibration file path')
+        logging.info('E.g.: python toolkit.py depthmap_dir calibration_file')
         sys.exit(1)
 
     depthmap_dir = sys.argv[1]
-    DEPTHMAP_DIR = depthmap_dir
+    calibration_file = sys.argv[2]
+
     depth = []
     rgb = []
     for (dirpath, dirnames, filenames) in walk(depthmap_dir + '/depth'):
@@ -102,6 +103,9 @@ if __name__ == "__main__":
     depth.sort()
     rgb.sort()
 
+    # global calibration
+    calibration = utils.parse_calibration(calibration_file)
+
     # Make sure there is a new export folder
     try:
         shutil.rmtree('export')
@@ -109,7 +113,8 @@ if __name__ == "__main__":
         print('no previous data to delete')
     os.mkdir('export')
 
+
     # Show viewer
     index = 0
     size = len(depth)
-    show(depthmap_dir)
+    show(depthmap_dir, calibration)
