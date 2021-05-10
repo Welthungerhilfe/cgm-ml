@@ -6,8 +6,8 @@ import utils # noqa
 
 
 REPO_DIR = str(Path(__file__).parents[0].absolute())
-WIDTH = 240
-HEIGHT = 180
+WIDTH = 180
+HEIGHT = 135
 
 
 def test_extract_depthmap():
