@@ -23,10 +23,10 @@ SUBPLOT_RGB = 4
 SUBPLOT_COUNT = 5
 
 
-def export(type: str, filename: str, width: int, height: int, data, depth_scale, calibration: List[List[float]], max_confidence: float):
+def export(type: str, filename: str, width: int, height: int, data, depth_scale, calibration: List[List[float]], max_confidence: float, matrix: list):
     rgb = CURRENT_RGB
     if type == 'obj':
-        utils.export_obj('export/' + filename, rgb, width, height, data, depth_scale, calibration, triangulate=True)
+        utils.export_obj('export/' + filename, rgb, width, height, data, depth_scale, calibration, matrix, triangulate=True)
     if type == 'pcd':
         utils.export_pcd('export/' + filename, width, height, data, depth_scale, calibration, max_confidence)
 
@@ -84,7 +84,7 @@ def process(plt, dir_path: str, depth: str, rgb: str):
     return width, height, depth_scale, max_confidence, data, matrix
 
 
-def show_result(width: int, height: int, calibration: List[List[float]], data: bytes, depth_scale: float, max_confidence: float):
+def show_result(width: int, height: int, calibration: List[List[float]], data: bytes, depth_scale: float, max_confidence: float, matrix: list):
     fig = plt.figure()
     fig.canvas.mpl_connect('button_press_event', functools.partial(onclick, width=width, height=height, data=data, depth_scale=depth_scale, calibration=calibration))
     output = np.zeros((width, height * SUBPLOT_COUNT, 3))
@@ -103,10 +103,10 @@ def show_result(width: int, height: int, calibration: List[List[float]], data: b
                 output[SUBPLOT_DEPTH * height + x][height - y - 1] = 1.0 - min(depth / 2.0, 1.0)
 
                 # depth data normal
-                v = utils.convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, calibration)
-                xm = utils.convert_2d_to_3d_oriented(calibration[1], x - 1, y, utils.parse_depth_smoothed(x - 1, y, width, height, data, depth_scale), width, height, calibration)
-                xp = utils.convert_2d_to_3d_oriented(calibration[1], x + 1, y, utils.parse_depth_smoothed(x + 1, y, width, height, data, depth_scale), width, height, calibration)
-                yp = utils.convert_2d_to_3d_oriented(calibration[1], x, y + 1, utils.parse_depth_smoothed(x, y + 1, width, height, data, depth_scale), width, height, calibration)
+                v = utils.convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, calibration, matrix)
+                xm = utils.convert_2d_to_3d_oriented(calibration[1], x - 1, y, utils.parse_depth_smoothed(x - 1, y, width, height, data, depth_scale), width, height, calibration, matrix)
+                xp = utils.convert_2d_to_3d_oriented(calibration[1], x + 1, y, utils.parse_depth_smoothed(x + 1, y, width, height, data, depth_scale), width, height, calibration, matrix)
+                yp = utils.convert_2d_to_3d_oriented(calibration[1], x, y + 1, utils.parse_depth_smoothed(x, y + 1, width, height, data, depth_scale), width, height, calibration, matrix)
                 n = utils.norm(utils.cross(utils.diff(yp, xm), utils.diff(yp, xp)))
                 output[x][SUBPLOT_NORMAL * height + height - y - 1][0] = abs(n[0])
                 output[x][SUBPLOT_NORMAL * height + height - y - 1][1] = abs(n[1])

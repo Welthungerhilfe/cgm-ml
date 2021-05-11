@@ -67,8 +67,7 @@ def show(depthmap_dir: str, calibration: List[List[float]]):
         width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, depth[index], rgb[index])
     else:
         width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, depth[index], 0)
-
-    depthmap.show_result(width, height, calibration, data, depth_scale, max_confidence)
+    depthmap.show_result(width, height, calibration, data, depth_scale, max_confidence, matrix)
     ax = plt.gca()
     ax.text(0.5, 1.075, depth[index], horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
     bprev = Button(plt.axes([0.0, 0.0, 0.1, 0.075]), '<<', color='gray')

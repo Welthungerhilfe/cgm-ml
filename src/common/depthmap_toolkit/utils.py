@@ -94,7 +94,7 @@ def convert_2d_to_3d(intrisics: list, x: float, y: float, z: float, width: int, 
     return [tx, ty, z]
 
 
-def convert_2d_to_3d_oriented(intrisics: list, x: float, y: float, z: float, width: int, height: int, calibration: List[List[float]]) -> list:
+def convert_2d_to_3d_oriented(intrisics: list, x: float, y: float, z: float, width: int, height: int, calibration: List[List[float]], matrix: list) -> list:
     """Convert point in pixels into point in meters (applying rotation)"""
     res = convert_2d_to_3d(calibration[1], x, y, z, width, height)
     if res:
@@ -122,7 +122,7 @@ def convert_3d_to_2d(intrisics: list, x: float, y: float, z: float, width: int, 
     return [tx, ty, z]
 
 
-def export_obj(filename: str, rgb: bool, width: int, height: int, data: bytes, depth_scale: float, calibration: List[List[float]], triangulate: bool):
+def export_obj(filename: str, rgb: bool, width: int, height: int, data: bytes, depth_scale: float, calibration: List[List[float]], matrix: list, triangulate: bool):
     """
 
     triangulate=True generates OBJ of type mesh
@@ -147,7 +147,7 @@ def export_obj(filename: str, rgb: bool, width: int, height: int, data: bytes, d
             for y in range(2, height - 2):
                 depth = parse_depth(x, y, width, height, data, depth_scale)
                 if depth:
-                    res = convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, calibration)
+                    res = convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, calibration, matrix)
                     if res:
                         count = count + 1
                         indices[x][y] = count  # add index of written vertex into array
