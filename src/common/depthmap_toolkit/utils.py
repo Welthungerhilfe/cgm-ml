@@ -210,7 +210,7 @@ def export_pcd(filename: str, width: int, height: int, data: bytes, depth_scale:
                     res = convert_2d_to_3d(calibration[1], x, y, depth, width, height)
                     if res:
                         f.write(str(-res[0]) + ' ' + str(res[1]) + ' '
-                                + str(res[2]) + ' ' + str(parse_confidence(x, y, data, max_confidence)) + '\n')
+                                + str(res[2]) + ' ' + str(parse_confidence(x, y, data, max_confidence, width)) + '\n')
         logging.info('Pointcloud exported into %s', filename)
 
 
@@ -243,7 +243,7 @@ def parse_calibration(filepath: str) -> List[List[float]]:
     return calibration
 
 
-def parse_confidence(tx, ty, data, max_confidence):
+def parse_confidence(tx: int, ty: int, data: bytes, max_confidence: float, width: int):
     """Get confidence of the point in scale 0-1"""
     return data[(int(ty) * width + int(tx)) * 3 + 2] / max_confidence
 

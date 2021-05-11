@@ -121,7 +121,7 @@ def show_result(width: int, height: int, calibration: List[List[float]], data: b
                     output[x][SUBPLOT_PATTERN * height + height - y - 1][1] = vertical / (depth * depth)
 
                 # confidence value
-                output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = utils.parse_confidence(x, y, data, max_confidence)
+                output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = utils.parse_confidence(x, y, data, max_confidence, width)
                 if output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][0] == 0:
                     output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = 1
 
