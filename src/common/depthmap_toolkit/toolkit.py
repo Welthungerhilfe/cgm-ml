@@ -12,7 +12,9 @@ from matplotlib.widgets import Button
 import depthmap
 import pcd2depth
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 DEPTHMAP_DIR = None
 
@@ -67,7 +69,7 @@ def show(depthmap_dir):
         depthmap.process(plt, depthmap_dir, depth[index], rgb[index])
     else:
         depthmap.process(plt, depthmap_dir, depth[index], 0)
-    angle = depthmap.get_angle_between_camera_and_floor();
+    angle = depthmap.get_angle_between_camera_and_floor()
     logging.info('angle between camera and floor is %f', angle)
 
     depthmap.show_result()
