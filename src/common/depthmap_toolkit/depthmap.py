@@ -89,6 +89,7 @@ def process(plt, dir_path, depth, rgb):
     angle = 90 + math.degrees(math.atan2(dir[0], dir[1]))
     logging.info('angle between camera and floor is %f', angle)
 
+
 def show_result():
     fig = plt.figure()
     fig.canvas.mpl_connect('button_press_event', onclick)
