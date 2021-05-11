@@ -82,6 +82,7 @@ def process(plt, dir_path, depth, rgb):
     global CALIBRATION
     CALIBRATION = utils.parse_calibration(dir_path + '/camera_calibration.txt')
 
+
 def get_angle_between_camera_and_floor():
     centerx = float(utils.getWidth() / 2)
     centery = float(utils.getHeight() / 2)
