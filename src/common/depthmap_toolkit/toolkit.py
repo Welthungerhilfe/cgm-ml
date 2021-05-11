@@ -102,7 +102,6 @@ if __name__ == "__main__":
     depth.sort()
     rgb.sort()
 
-    # global calibration
     calibration = utils.parse_calibration(calibration_file)
 
     # Make sure there is a new export folder
