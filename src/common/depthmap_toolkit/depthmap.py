@@ -6,6 +6,7 @@ import numpy as np
 from PIL import Image
 from pathlib import Path
 import functools
+from typing import List
 
 import utils
 import constants
@@ -22,7 +23,7 @@ SUBPLOT_RGB = 4
 SUBPLOT_COUNT = 5
 
 
-def export(type, filename, height, width, data, depth_scale, calibration, max_confidence):
+def export(type: str, filename: str, width: int, height: int, data, depth_scale, calibration: List[List[float]], max_confidence: float):
     rgb = CURRENT_RGB
     if type == 'obj':
         utils.export_obj('export/' + filename, rgb, width, height, data, depth_scale, calibration, triangulate=True)
@@ -34,7 +35,7 @@ def export(type, filename, height, width, data, depth_scale, calibration, max_co
 last = [0, 0, 0]
 
 
-def onclick(event, width, height, data, depth_scale, calibration):
+def onclick(event, width: int, height: int, data: bytes, depth_scale: float, calibration: List[List[float]]):
     if event.xdata is not None and event.ydata is not None:
         x = int(event.ydata)
         y = height - int(event.xdata) - 1
@@ -54,13 +55,13 @@ def onclick(event, width, height, data, depth_scale, calibration):
             logging.info('no valid data')
 
 
-def extract_depthmap(dir_path, depth):
+def extract_depthmap(dir_path: str, depth: str):
     """extract depthmap from given file"""
     with zipfile.ZipFile(Path(dir_path) / 'depth' / depth, 'r') as zip_ref:
         zip_ref.extractall('.')
 
 
-def process(plt, dir_path, depth, rgb):
+def process(plt, dir_path: str, depth: str, rgb: str):
 
     extract_depthmap(dir_path, depth)
 
@@ -83,7 +84,7 @@ def process(plt, dir_path, depth, rgb):
     return width, height, depth_scale, max_confidence, data, matrix
 
 
-def show_result(width, height, calibration, data, depth_scale, max_confidence):
+def show_result(width: int, height: int, calibration: List[List[float]], data: bytes, depth_scale: float, max_confidence: float):
     fig = plt.figure()
     fig.canvas.mpl_connect('button_press_event', functools.partial(onclick, width=width, height=height, data=data, depth_scale=depth_scale, calibration=calibration))
     output = np.zeros((width, height * SUBPLOT_COUNT, 3))
