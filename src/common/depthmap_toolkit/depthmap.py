@@ -82,12 +82,12 @@ def process(plt, dir_path, depth, rgb):
     global CALIBRATION
     CALIBRATION = utils.parse_calibration(dir_path + '/camera_calibration.txt')
 
-def show_angle_between_camera_and_floor():
+def get_angle_between_camera_and_floor():
     centerx = float(utils.getWidth() / 2)
     centery = float(utils.getHeight() / 2)
     vector = utils.convert_2d_to_3d_oriented(CALIBRATION[1], centerx, centery, 1.0)
     angle = 90 + math.degrees(math.atan2(vector[0], vector[1]))
-    logging.info('angle between camera and floor is %f', angle)
+    return angle
 
 
 def show_result():
