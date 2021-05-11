@@ -85,8 +85,8 @@ def process(plt, dir_path, depth, rgb):
     # show angle between camera and floor
     centerx = float(utils.getWidth() / 2)
     centery = float(utils.getHeight() / 2)
-    dir = utils.convert_2d_to_3d_oriented(CALIBRATION[1], centerx, centery, 1.0)
-    angle = 90 + math.degrees(math.atan2(dir[0], dir[1]))
+    vector = utils.convert_2d_to_3d_oriented(CALIBRATION[1], centerx, centery, 1.0)
+    angle = 90 + math.degrees(math.atan2(vector[0], vector[1]))
     logging.info('angle between camera and floor is %f', angle)
 
 
