@@ -28,7 +28,7 @@ def convert_all_pcds(event, width: int, height: int, calibration: List[List[floa
         shutil.rmtree('output')
     except BaseException:
         print('no previous data to delete')
-    os.mkdirs('output/depth')
+    os.makedirs('output/depth')
     # copyfile(input_dir + '/../camera_calibration.txt', 'output/camera_calibration.txt')
     for i in range(len(pcd)):
         depthmap = pcd2depth.process(calibration, input_dir + '/' + pcd[i], width, height)
@@ -36,12 +36,12 @@ def convert_all_pcds(event, width: int, height: int, calibration: List[List[floa
     logging.info('Data exported into folder output')
 
 
-def export_obj(event, width: int, height: int, data: bytes, depth_scale: float, calibration: List[List[float]], max_confidence: float):
-    depthmap.export('obj', 'output' + str(index) + '.obj', width, height, data, depth_scale, calibration, max_confidence)
+def export_obj(event, width: int, height: int, data: bytes, depth_scale: float, calibration: List[List[float]], max_confidence: float, matrix: list):
+    depthmap.export('obj', 'output' + str(index) + '.obj', width, height, data, depth_scale, calibration, max_confidence, matrix)
 
 
-def export_pcd(event, width: int, height: int, data: bytes, depth_scale: float, calibration: List[List[float]], max_confidence: float):
-    depthmap.export('pcd', 'output' + str(index) + '.pcd', width, height, data, depth_scale, calibration, max_confidence)
+def export_pcd(event, width: int, height: int, data: bytes, depth_scale: float, calibration: List[List[float]], max_confidence: float, matrix: list):
+    depthmap.export('pcd', 'output' + str(index) + '.pcd', width, height, data, depth_scale, calibration, max_confidence, matrix)
 
 
 def next(event, calibration: List[List[float]], depthmap_dir: str):
@@ -75,11 +75,11 @@ def show(depthmap_dir: str, calibration: List[List[float]]):
     bnext = Button(plt.axes([0.9, 0.0, 0.1, 0.075]), '>>', color='gray')
     bnext.on_clicked(functools.partial(next, calibration=calibration, depthmap_dir=depthmap_dir))
     bexport_obj = Button(plt.axes([0.2, 0.0, 0.2, 0.05]), 'Export OBJ', color='gray')
-    bexport_obj.on_clicked(functools.partial(export_obj, width=width, height=height, data=data, depth_scale=depth_scale, calibration=calibration, max_confidence=max_confidence))
+    bexport_obj.on_clicked(functools.partial(export_obj, width=width, height=height, data=data, depth_scale=depth_scale, calibration=calibration, max_confidence=max_confidence, matrix=matrix))
     bexport_pcd = Button(plt.axes([0.4, 0.0, 0.2, 0.05]), 'Export PCD', color='gray')
-    bexport_pcd.on_clicked(functools.partial(export_pcd, width=width, height=height, data=data, depth_scale=depth_scale, calibration=calibration, max_confidence=max_confidence))
+    bexport_pcd.on_clicked(functools.partial(export_pcd, width=width, height=height, data=data, depth_scale=depth_scale, calibration=calibration, max_confidence=max_confidence, matrix=matrix))
     bconvertPCDs = Button(plt.axes([0.6, 0.0, 0.2, 0.05]), 'Convert all PCDs', color='gray')
-    bconvertPCDs.on_clicked(functools.partial(convert_all_pcds, calibration=calibration))
+    bconvertPCDs.on_clicked(functools.partial(convert_all_pcds, width=width, height=height, calibration=calibration))
     plt.show()
 
 
