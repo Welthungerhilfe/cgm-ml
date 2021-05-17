@@ -1,11 +1,8 @@
 import zipfile
 import logging
 import logging.config
-<<<<<<< HEAD
-=======
 import math
 
->>>>>>> main
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image

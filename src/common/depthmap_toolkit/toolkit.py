@@ -69,7 +69,7 @@ def show(depthmap_dir: str, calibration: List[List[float]]):
         width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, depth[index], rgb[index])
     else:
         width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, depth[index], 0)
-    angle = depthmap.get_angle_between_camera_and_floor()
+    angle = depthmap.get_angle_between_camera_and_floor(width, height, calibration)
     logging.info('angle between camera and floor is %f', angle)
 
     depthmap.show_result(width, height, calibration, data, depth_scale, max_confidence, matrix)
