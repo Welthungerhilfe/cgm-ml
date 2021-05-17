@@ -9,8 +9,6 @@ import pandas as pd
 
 from mlpipeline_utils import process_artifact_tuple
 
-REPO_DIR = Path(__file__).parents[4].absolute()
-
 
 def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
     logging.info("Accessing dataset...")
@@ -40,6 +38,10 @@ if __name__ == '__main__':
 
     # Setup
     run = Run.get_context()
+
+    if run.id.startswith("OfflineRun"):
+        REPO_DIR = Path(__file__).parents[4].absolute()
+
     if run.id.startswith("OfflineRun"):
         workspace = Workspace.from_config(Path(__file__).parents[1] / 'config.py')
         experiment = Experiment(workspace, "training-junkyard")

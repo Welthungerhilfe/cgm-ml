@@ -1,19 +1,17 @@
 from datetime import datetime, timezone
-import os
 from pathlib import Path
 import pickle
-from typing import Tuple, List
+from typing import Tuple
 import zipfile
 
 import numpy as np
-import pandas as pd
-import psycopg2
 from skimage.transform import resize
-from tqdm import tqdm
-from azure.storage.blob import BlobServiceClient
 
 DEBUG = False
-REPO_DIR = Path(__file__).parents[4].absolute()
+try:
+    REPO_DIR = Path(__file__).parents[4].absolute()
+except IndexError:
+    REPO_DIR = Path('.')
 INPUT_DIR = REPO_DIR / 'data' / 'cgm-result-dataset'
 DATASET_NAME = 'dataset'
 OUTPUT_DIR = REPO_DIR / 'data' / "cgm-datasets" / datetime.now(timezone.utc).strftime(f"{DATASET_NAME}-%Y-%m-%d-%H-%M-%S")
