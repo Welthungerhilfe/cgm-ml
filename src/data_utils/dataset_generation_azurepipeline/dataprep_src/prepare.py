@@ -1,3 +1,4 @@
+import logging
 import os
 from pathlib import Path
 import sys
@@ -5,6 +6,10 @@ import sys
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 import pandas as pd
+
+
+REPO_DIR = Path(__file__).parents[4].absolute()
+print(f"REPO_DIR: {REPO_DIR}")
 
 
 def print_blob_files(path):
@@ -18,17 +23,29 @@ def print_blob_files(path):
 print("Arguments: ")
 print(sys.argv)
 
+# Setup
 run = Run.get_context()
-logging.info('Running in online mode...')
-experiment = run.experiment
-workspace = experiment.workspace
+if run.id.startswith("OfflineRun"):
+    workspace = Workspace.from_config()
+    experiment = Experiment(workspace, "training-junkyard")
+else:
+    experiment = run.experiment
+    workspace = experiment.workspace
+
 
 # SQL dataset
-tabular_dataset = run.input_datasets['input1']
-df = tabular_dataset.to_pandas_dataframe()
+if run.id.startswith("OfflineRun"):
+    df = pd.read_csv(REPO_DIR / 'data' / 'sql_query_result.csv')
+else:
+    tabular_dataset = run.input_datasets['input1']
+    df = tabular_dataset.to_pandas_dataframe()
 print("CGM Dataframe:")
 print(df.head())
 
+
 # Blob dataset
-blob_dataset_path = run.input_datasets['input2']
-print_blob_files(Path(blob_dataset_path))
+if run.id.startswith("OfflineRun"):
+    pass
+else:
+    blob_dataset_path = run.input_datasets['input2']
+    print_blob_files(Path(blob_dataset_path))
