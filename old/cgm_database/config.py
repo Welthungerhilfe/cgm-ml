@@ -1,5 +1,0 @@
-whhdata_path="/whhdata"
-artifacts_path="/localssd2/qrcode"
-preprocessed_root_path = "/localssd2/preprocessed"
-#preprocessed_root_path = "/whhdata/preprocessed"
-measure_csv_path="/whhdata/results-20190321-193320.csv"

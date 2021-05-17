@@ -6,8 +6,8 @@ CONFIG_NAME = os.path.splitext(os.path.basename(__file__))[0]
 
 # Details of model used for evaluation
 MODEL_CONFIG = Bunch(dict(
-    EXPERIMENT_NAME='q3-depthmap-plaincnn-height-95k',
-    RUN_ID='q3-depthmap-plaincnn-height-95k_1617983539_763a24b9',  # Run 9
+    EXPERIMENT_NAME='q4-depthmap-plaincnn-weight-95k',
+    RUN_ID='q4-depthmap-plaincnn-weight-95k_1616424204_63e3c1b8',  # Run 5
     INPUT_LOCATION='outputs',
     NAME='best_model.ckpt',
 ))
@@ -15,7 +15,7 @@ MODEL_CONFIG = Bunch(dict(
 
 EVAL_CONFIG = Bunch(dict(
     # Name of evaluation
-    NAME='q3-depthmap-plaincnn-height-95k_run_09',
+    NAME='q4-depthmap-plaincnn-weight-95k-run_5',
 
     # Experiment in Azure ML which will be used for evaluation
     EXPERIMENT_NAME="QA-pipeline",
@@ -25,12 +25,12 @@ EVAL_CONFIG = Bunch(dict(
     DEBUG_RUN=False,
 
     # Will run eval on specified # of scan instead of full dataset
-    DEBUG_NUMBER_OF_SCAN=25,
+    DEBUG_NUMBER_OF_SCAN=50,
 
     SPLIT_SEED=0,
 ))
 
-# Details of Evaluation Dataset
+#Details of Evaluation Dataset
 DATA_CONFIG = Bunch(dict(
     NAME='anon-realtime-testdata',  # Name of evaluation dataset
 
@@ -40,15 +40,16 @@ DATA_CONFIG = Bunch(dict(
     BATCH_SIZE=512,  # Batch size for evaluation
     NORMALIZATION_VALUE=7.5,
 
-    TARGET_INDEXES=[0, 3, 4, 5],  # 0 is height, 1 is weight, 2 is muac, 3 is age, 4 is sex('male' or 'female'), 5 is quality ('good' or 'bad'), 6 is test
+    TARGET_INDEXES=[1, 3, 4, 5],  # 0 is height, 1 is weight.
     CODES=['100', '101', '102', '200', '201', '202']
 ))
+
 
 # Result configuration for result generation after evaluation is done
 RESULT_CONFIG = Bunch(dict(
     # Error margin on various ranges
-    ACCURACIES=[.2, .4, .6, 1., 1.2, 2., 2.5, 3., 4., 5., 6.],  # 0.2cm, 0.4cm, 0.6cm, 1cm, ...
-    ACCURACY_MAIN_THRESH=1.0,  # 1cm
+    ACCURACIES=[0.04, 0.1, 0.21, 0.42],  # 40gms, 100gms, 210gms, 420gms
+    ACCURACY_MAIN_THRESH=0.21,  # 210gms
     AGE_BUCKETS=[0, 1, 2, 3, 4, 5],
 
     COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],

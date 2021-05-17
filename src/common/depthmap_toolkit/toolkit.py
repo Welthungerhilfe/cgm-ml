@@ -15,7 +15,9 @@ import depthmap
 import pcd2depth
 import utils
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 def convert_all_pcds(event, width: int, height: int, calibration: List[List[float]]):
@@ -67,6 +69,9 @@ def show(depthmap_dir: str, calibration: List[List[float]]):
         width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, depth[index], rgb[index])
     else:
         width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, depth[index], 0)
+    angle = depthmap.get_angle_between_camera_and_floor()
+    logging.info('angle between camera and floor is %f', angle)
+
     depthmap.show_result(width, height, calibration, data, depth_scale, max_confidence, matrix)
     ax = plt.gca()
     ax.text(0.5, 1.075, depth[index], horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)

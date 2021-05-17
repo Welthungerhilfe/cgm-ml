@@ -14,12 +14,10 @@ CONFIG = Bunch(dict(
     BATCH_SIZE=256,
     SHUFFLE_BUFFER_SIZE=2560,
     NORMALIZATION_VALUE=7.5,
-    LEARNING_RATE=0.0007,
+    LEARNING_RATE=0.0003,
     USE_ONE_CYCLE=True,
-    USE_DROPOUT=False,
-    USE_WANDB=False,
+    USE_DROPOUT=True,
 
     # Parameters for dataset generation.
-    TARGET_INDEXES=[0],  # 0 is height, 1 is weight.
-    CODES=['100', '101', '102', '200', '201', '202'],
+    TARGET_INDEXES=[1],  # 0 is height, 1 is weight.
 ))

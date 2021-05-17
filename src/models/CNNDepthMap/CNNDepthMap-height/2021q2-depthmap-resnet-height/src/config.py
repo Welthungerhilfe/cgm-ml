@@ -11,12 +11,13 @@ CONFIG = Bunch(dict(
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
     EPOCHS=1000,
-    BATCH_SIZE=256,
+    BATCH_SIZE=16,
     SHUFFLE_BUFFER_SIZE=2560,
     NORMALIZATION_VALUE=7.5,
     LEARNING_RATE=0.0007,
     USE_ONE_CYCLE=True,
-    USE_DROPOUT=False,
+    RES_BLOCKS=[2, 5, 5, 2],
+    DROPOUTS_LIST=[0.0, 0.0, 0.0, 0.0],
     USE_WANDB=False,
 
     # Parameters for dataset generation.

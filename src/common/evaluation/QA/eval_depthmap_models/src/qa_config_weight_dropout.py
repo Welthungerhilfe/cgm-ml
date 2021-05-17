@@ -7,7 +7,7 @@ CONFIG_NAME = os.path.splitext(os.path.basename(__file__))[0]
 # Details of model used for evaluation
 MODEL_CONFIG = Bunch(dict(
     EXPERIMENT_NAME='q4-depthmap-plaincnn-weight-95k',
-    RUN_ID='q4-depthmap-plaincnn-weight-95k_1611336518_642a9c58',
+    RUN_ID='q4-depthmap-plaincnn-weight-95k_1611336518_642a9c58',  # Run 2
     INPUT_LOCATION='outputs',
     NAME='best_model.ckpt',
 ))

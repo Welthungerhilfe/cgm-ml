@@ -15,7 +15,7 @@ MODEL_CONFIG = Bunch(dict(
 
 EVAL_CONFIG = Bunch(dict(
     # Name of evaluation
-    NAME='q3-depthmap-plaincnn-height-95k_run_09',
+    NAME='q3-depthmap-plaincnn-height-95k-run_09',
 
     # Experiment in Azure ML which will be used for evaluation
     EXPERIMENT_NAME="QA-pipeline",
@@ -25,14 +25,14 @@ EVAL_CONFIG = Bunch(dict(
     DEBUG_RUN=False,
 
     # Will run eval on specified # of scan instead of full dataset
-    DEBUG_NUMBER_OF_SCAN=25,
+    DEBUG_NUMBER_OF_SCAN=5,
 
     SPLIT_SEED=0,
 ))
 
-# Details of Evaluation Dataset
+#Details of Evaluation Dataset
 DATA_CONFIG = Bunch(dict(
-    NAME='anon-realtime-testdata',  # Name of evaluation dataset
+    NAME='anon-depthmap-testset',  # Name of evaluation dataset
 
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
@@ -40,16 +40,16 @@ DATA_CONFIG = Bunch(dict(
     BATCH_SIZE=512,  # Batch size for evaluation
     NORMALIZATION_VALUE=7.5,
 
-    TARGET_INDEXES=[0, 3, 4, 5],  # 0 is height, 1 is weight, 2 is muac, 3 is age, 4 is sex('male' or 'female'), 5 is quality ('good' or 'bad'), 6 is test
-    CODES=['100', '101', '102', '200', '201', '202']
+    TARGET_INDEXES=[0],  # 0 is height, 1 is weight
+    CODES=['100', '101', '102', '200', '201', '202'],
 ))
+
 
 # Result configuration for result generation after evaluation is done
 RESULT_CONFIG = Bunch(dict(
     # Error margin on various ranges
     ACCURACIES=[.2, .4, .6, 1., 1.2, 2., 2.5, 3., 4., 5., 6.],  # 0.2cm, 0.4cm, 0.6cm, 1cm, ...
     ACCURACY_MAIN_THRESH=1.0,  # 1cm
-    AGE_BUCKETS=[0, 1, 2, 3, 4, 5],
 
     COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],
 

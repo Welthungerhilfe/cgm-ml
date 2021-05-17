@@ -1,6 +1,11 @@
 import zipfile
 import logging
 import logging.config
+<<<<<<< HEAD
+=======
+import math
+
+>>>>>>> main
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
@@ -82,6 +87,14 @@ def process(plt, dir_path: str, depth: str, rgb: str):
         HAS_RGB = 0
 
     return width, height, depth_scale, max_confidence, data, matrix
+
+
+def get_angle_between_camera_and_floor(width: int, height: int, calibration: List[List[float]]):
+    centerx = float(utils.width / 2)
+    centery = float(utils.height / 2)
+    vector = utils.convert_2d_to_3d_oriented(calibration[1], centerx, centery, 1.0)
+    angle = 90 + math.degrees(math.atan2(vector[0], vector[1]))
+    return angle
 
 
 def show_result(width: int, height: int, calibration: List[List[float]], data: bytes, depth_scale: float, max_confidence: float, matrix: list):

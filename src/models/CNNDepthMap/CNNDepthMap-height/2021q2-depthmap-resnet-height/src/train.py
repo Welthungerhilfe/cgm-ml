@@ -14,7 +14,7 @@ from wandb.keras import WandbCallback
 
 from config import CONFIG
 from constants import MODEL_CKPT_FILENAME, REPO_DIR
-from model import create_cnn
+from model import create_res_net
 from train_util import copy_dir
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
@@ -153,7 +153,7 @@ del dataset_norm
 
 # Create the model.
 input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1)
-model = create_cnn(input_shape, dropout=CONFIG.USE_DROPOUT)
+model = create_res_net(input_shape, CONFIG.RES_BLOCKS, CONFIG.DROPOUTS_LIST)
 model.summary()
 
 best_model_path = str(DATA_DIR / f'outputs/{MODEL_CKPT_FILENAME}')
