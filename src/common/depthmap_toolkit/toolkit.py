@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 
 import depthmap
-import pcd2depth
 import utils
 
 logging.basicConfig(
