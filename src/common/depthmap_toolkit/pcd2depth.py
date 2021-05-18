@@ -5,10 +5,6 @@ import numpy as np
 import utils
 
 ENCODING = 'charmap'
-utils.setWidth(int(240 * 0.75))
-utils.setHeight(int(180 * 0.75))
-width = utils.getWidth()
-height = utils.getHeight()
 
 
 def process(calibration, pcd_fpath: str, width: int, height: int):

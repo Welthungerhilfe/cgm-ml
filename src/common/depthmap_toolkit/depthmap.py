@@ -87,8 +87,8 @@ def process(plt, dir_path: str, depth: str, rgb: str):
 
 
 def get_angle_between_camera_and_floor(width: int, height: int, calibration: List[List[float]], matrix: list):
-    centerx = float(utils.width / 2)
-    centery = float(utils.height / 2)
+    centerx = float(width / 2)
+    centery = float(height / 2)
     vector = utils.convert_2d_to_3d_oriented(calibration[1], centerx, centery, 1.0, width, height, calibration, matrix)
     angle = 90 + math.degrees(math.atan2(vector[0], vector[1]))
     return angle
