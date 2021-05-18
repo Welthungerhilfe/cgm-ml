@@ -147,7 +147,7 @@ def export_obj(filename: str, rgb: bool, width: int, height: int, data: bytes, d
             for y in range(2, height - 2):
                 depth = parse_depth(x, y, width, height, data, depth_scale)
                 if depth:
-                    res = convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, calibration, matrix)
+                    res = convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, matrix)
                     if res:
                         count = count + 1
                         indices[x][y] = count  # add index of written vertex into array
