@@ -14,10 +14,11 @@ In the future we plan to not support PCD files anymore (due to their big size).
 
 * The convertor uses `camera_calibration.txt` file which is the calibration from Lenovo Phab 2 Pro. Converting could be done by following command:
 
-`python convertpcd2depth.py pcd_dir`
+`python convertpcd2depth.py pcd_dir calibration_file`
 
 * The `pcd_dir` folder could contain more PCD files.
 * The output will be stored in folder output.
+* `calibration_file` is the txt file with calibration for the device
 
 ### Converting depthmaps into PCD data
 
