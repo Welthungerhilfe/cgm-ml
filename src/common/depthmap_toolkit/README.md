@@ -39,7 +39,6 @@ In the future we plan to not support PCD files anymore (due to their big size).
 * By arrows "<<" and ">>" you can switch to next or previous depthmap in the folder
 * Export OBJ will export the data as a pointcloud into OBJ file in export folder, this data will be reoriented using depthmap pose (if available)
 * Export PCDwill export the data as a pointcloud into PCD file in export folder
-* Convert all PCDs button has the same functionality as convertdepth2pcd
 * `calibration_file` is the txt file with calibration for the device
 
 ### Visualisation types
