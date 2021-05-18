@@ -3,7 +3,6 @@ import shutil
 import sys
 import logging
 import logging.config
-from shutil import copyfile
 
 import pcd2depth
 import utils
