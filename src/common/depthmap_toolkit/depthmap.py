@@ -89,7 +89,7 @@ def process(plt, dir_path: str, depth: str, rgb: str):
 def get_angle_between_camera_and_floor(width: int, height: int, calibration: List[List[float]], matrix: list):
     centerx = float(width / 2)
     centery = float(height / 2)
-    vector = utils.convert_2d_to_3d_oriented(calibration[1], centerx, centery, 1.0, width, height, calibration, matrix)
+    vector = utils.convert_2d_to_3d_oriented(calibration[1], centerx, centery, 1.0, width, height, matrix)
     angle = 90 + math.degrees(math.atan2(vector[0], vector[1]))
     return angle
 
@@ -113,10 +113,10 @@ def show_result(width: int, height: int, calibration: List[List[float]], data: b
                 output[SUBPLOT_DEPTH * height + x][height - y - 1] = 1.0 - min(depth / 2.0, 1.0)
 
                 # depth data normal
-                v = utils.convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, calibration, matrix)
-                xm = utils.convert_2d_to_3d_oriented(calibration[1], x - 1, y, utils.parse_depth_smoothed(x - 1, y, width, height, data, depth_scale), width, height, calibration, matrix)
-                xp = utils.convert_2d_to_3d_oriented(calibration[1], x + 1, y, utils.parse_depth_smoothed(x + 1, y, width, height, data, depth_scale), width, height, calibration, matrix)
-                yp = utils.convert_2d_to_3d_oriented(calibration[1], x, y + 1, utils.parse_depth_smoothed(x, y + 1, width, height, data, depth_scale), width, height, calibration, matrix)
+                v = utils.convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, matrix)
+                xm = utils.convert_2d_to_3d_oriented(calibration[1], x - 1, y, utils.parse_depth_smoothed(x - 1, y, width, height, data, depth_scale), width, height, matrix)
+                xp = utils.convert_2d_to_3d_oriented(calibration[1], x + 1, y, utils.parse_depth_smoothed(x + 1, y, width, height, data, depth_scale), width, height, matrix)
+                yp = utils.convert_2d_to_3d_oriented(calibration[1], x, y + 1, utils.parse_depth_smoothed(x, y + 1, width, height, data, depth_scale), width, height, matrix)
                 n = utils.norm(utils.cross(utils.diff(yp, xm), utils.diff(yp, xp)))
                 output[x][SUBPLOT_NORMAL * height + height - y - 1][0] = abs(n[0])
                 output[x][SUBPLOT_NORMAL * height + height - y - 1][1] = abs(n[1])
@@ -140,4 +140,10 @@ def show_result(width: int, height: int, calibration: List[List[float]], data: b
                     output[x][SUBPLOT_RGB * height + height - y - 1][0] = IM_ARRAY[int(vec[1])][int(vec[0])][0] / 255.0
                     output[x][SUBPLOT_RGB * height + height - y - 1][1] = IM_ARRAY[int(vec[1])][int(vec[0])][1] / 255.0
                     output[x][SUBPLOT_RGB * height + height - y - 1][2] = IM_ARRAY[int(vec[1])][int(vec[0])][2] / 255.0
+
+                # ensure pixel clipping
+                for i in range(SUBPLOT_COUNT):
+                    output[x][i * height + height - y - 1][0] = min(max(0, output[x][i * height + height - y - 1][0]), 1)
+                    output[x][i * height + height - y - 1][1] = min(max(0, output[x][i * height + height - y - 1][1]), 1)
+                    output[x][i * height + height - y - 1][2] = min(max(0, output[x][i * height + height - y - 1][2]), 1)
     plt.imshow(output)

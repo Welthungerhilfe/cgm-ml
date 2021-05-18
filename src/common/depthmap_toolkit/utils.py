@@ -94,9 +94,9 @@ def convert_2d_to_3d(intrisics: list, x: float, y: float, z: float, width: int, 
     return [tx, ty, z]
 
 
-def convert_2d_to_3d_oriented(intrisics: list, x: float, y: float, z: float, width: int, height: int, calibration: List[List[float]], matrix: list) -> list:
+def convert_2d_to_3d_oriented(intrisics: list, x: float, y: float, z: float, width: int, height: int, matrix: list) -> list:
     """Convert point in pixels into point in meters (applying rotation)"""
-    res = convert_2d_to_3d(calibration[1], x, y, z, width, height)
+    res = convert_2d_to_3d(intrisics, x, y, z, width, height)
     if res:
         try:
             # special case for Google Tango devices with different rotation
