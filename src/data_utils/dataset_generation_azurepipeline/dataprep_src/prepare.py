@@ -10,8 +10,8 @@ import pandas as pd
 
 from mlpipeline_utils import ArtifactProcessor
 
-DATASET_NAME = 'dataset'
 
+NUM_ARTIFACTS = 300
 
 def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
     logging.info("Accessing dataset...")
@@ -24,7 +24,6 @@ def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str)
 
 def get_dataset_path(data_dir: Path, dataset_name: str) -> str:
     return str(data_dir / dataset_name)
-
 
 
 def print_blob_files(path):
@@ -66,6 +65,7 @@ if __name__ == '__main__':
         tabular_dataset = run.input_datasets['input1']
         df = tabular_dataset.to_pandas_dataframe()
     print("CGM Dataframe:")
+    print(df.shape)
     print(df.head())
 
 
@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
     # Output dataset
     if run.id.startswith("OfflineRun"):
-        dataset_out_dir = datetime.now(timezone.utc).strftime(f"{DATASET_NAME}-%Y-%m-%d-%H-%M-%S")
+        dataset_out_dir = datetime.now(timezone.utc).strftime(f"dataset-%Y-%m-%d-%H-%M-%S")
         output_dir = REPO_DIR / 'data' / "cgm-datasets" / dataset_out_dir
     else:
         output_dir = parse_output_arg(sys.argv)
@@ -90,6 +90,6 @@ if __name__ == '__main__':
 
     # Transform
     artifact_processor = ArtifactProcessor(blob_dataset_path, output_dir, is_offline_run=run.id.startswith("OfflineRun"))
-    for query_result in df.itertuples(index=False):
+    for query_result in tqdm(list(df.itertuples(index=False))[:NUM_ARTIFACTS]):
         res = artifact_processor.process_artifact_tuple(query_result)
-        print(f"res{str(res)}")
+    print("Finished building the dataset")
