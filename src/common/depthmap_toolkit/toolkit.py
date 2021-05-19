@@ -45,17 +45,17 @@ def prev(event, calibration: List[List[float]], depthmap_dir: str):
     show(depthmap_dir, calibration)
 
 
-def show(depthmap_dir: str, calibration: List[List[float]]):
-    if rgb:
-        width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, depth[index], rgb[index])
+def show(depthmap_dir: str, calibration: List[List[float]], depth_filenames: List[str], rgb_filenames: List[str]):
+    if rgb_filenames:
+        width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, depth_filenames[index], rgb_filenames[index])
     else:
-        width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, depth[index], 0)
+        width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, depth_filenames[index], 0)
     angle = depthmap.get_angle_between_camera_and_floor(width, height, calibration, matrix)
     logging.info('angle between camera and floor is %f', angle)
 
     depthmap.show_result(width, height, calibration, data, depth_scale, max_confidence, matrix)
     ax = plt.gca()
-    ax.text(0.5, 1.075, depth[index], horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
+    ax.text(0.5, 1.075, depth_filenames[index], horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
     bprev = Button(plt.axes([0.0, 0.0, 0.1, 0.075]), '<<', color='gray')
     bprev.on_clicked(functools.partial(prev, calibration=calibration, depthmap_dir=depthmap_dir))
     bnext = Button(plt.axes([0.9, 0.0, 0.1, 0.075]), '>>', color='gray')
@@ -78,13 +78,14 @@ if __name__ == "__main__":
     calibration_file = sys.argv[2]
 
     depth_filenames = []
-    rgb = []
     for (dirpath, dirnames, filenames) in walk(Path(depthmap_dir) / 'depth'):
         depth_filenames = filenames
-    for (dirpath, dirnames, filenames) in walk(Path(depthmap_dir) / 'rgb'):
-        rgb = filenames
     depth_filenames.sort()
-    rgb.sort()
+
+    rgb_filenames = []
+    for (dirpath, dirnames, filenames) in walk(Path(depthmap_dir) / 'rgb'):
+        rgb_filenames = filenames
+    rgb_filenames.sort()
 
     calibration = utils.parse_calibration(calibration_file)
 
@@ -98,4 +99,4 @@ if __name__ == "__main__":
     # Show viewer
     index = 0
     size = len(depth_filenames)
-    show(depthmap_dir, calibration)
+    show(depthmap_dir, calibration, depth_filenames, rgb_filenames)
