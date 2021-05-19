@@ -45,7 +45,7 @@ def prev(event, calibration: List[List[float]], depthmap_dir: str):
     show(depthmap_dir, calibration)
 
 
-def show(depthmap_dir: str, calibration: List[List[float]], depth_filenames: List[str], rgb_filenames: List[str]):
+def show(depthmap_dir: str, calibration: List[List[float]]):
     if rgb_filenames:
         width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, depth_filenames[index], rgb_filenames[index])
     else:
@@ -99,4 +99,4 @@ if __name__ == "__main__":
     # Show viewer
     index = 0
     size = len(depth_filenames)
-    show(depthmap_dir, calibration, depth_filenames, rgb_filenames)
+    show(depthmap_dir, calibration)
