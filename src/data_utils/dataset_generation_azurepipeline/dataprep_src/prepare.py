@@ -11,6 +11,7 @@ import pandas as pd
 from mlpipeline_utils import ArtifactProcessor
 
 NUM_ARTIFACTS = 300
+DEBUG = False
 
 
 def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
@@ -47,7 +48,6 @@ if __name__ == '__main__':
 
     # Setup
     run = Run.get_context()
-
     if run.id.startswith("OfflineRun"):
         REPO_DIR = Path(__file__).parents[4].absolute()
 
@@ -64,9 +64,10 @@ if __name__ == '__main__':
     else:
         tabular_dataset = run.input_datasets['input1']
         df = tabular_dataset.to_pandas_dataframe()
-    print("CGM Dataframe:")
-    print(df.shape)
-    print(df.head())
+    if DEBUG:
+        print("CGM Dataframe:")
+        print(df.shape)
+        print(df.head())
 
     # Blob dataset
     if run.id.startswith("OfflineRun"):
@@ -75,7 +76,8 @@ if __name__ == '__main__':
         download_dataset(workspace, dataset_name, blob_dataset_path)
     else:
         blob_dataset_path = run.input_datasets['input2']
-        print_blob_files(Path(blob_dataset_path))
+        if DEBUG:
+            print_blob_files(Path(blob_dataset_path))
 
     # Output dataset
     if run.id.startswith("OfflineRun"):
@@ -83,8 +85,6 @@ if __name__ == '__main__':
         output_dir = REPO_DIR / 'data' / "cgm-datasets" / dataset_out_dir
     else:
         output_dir = parse_output_arg(sys.argv)
-        print("output_dir: ")
-        print(output_dir)
 
     # Transform
     artifact_processor = ArtifactProcessor(blob_dataset_path, output_dir, is_offline_run=run.id.startswith("OfflineRun"))
