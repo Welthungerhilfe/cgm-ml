@@ -9,8 +9,6 @@ import utils
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
-width = int(240 * 0.75)
-height = int(180 * 0.75)
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
@@ -30,6 +28,9 @@ if __name__ == "__main__":
     except BaseException:
         print('no previous data to delete')
     os.makedirs('output/depth')
+
+    width = int(240 * 0.75)
+    height = int(180 * 0.75)
 
     for i in range(len(pcd)):
         depthmap = pcd2depth.process(calibration, pcd_dir + '/' + pcd[i], width, height)
