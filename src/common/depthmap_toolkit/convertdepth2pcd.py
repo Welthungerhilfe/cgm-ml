@@ -23,18 +23,18 @@ if __name__ == "__main__":
 
     calibration = utils.parse_calibration(calibration_file)
 
-    depth = []
+    depth_filenames = []
     for (dirpath, dirnames, filenames) in os.walk(depthmap_dir + '/depth'):
-        depth = filenames
-    depth.sort()
+        depth_filenames = filenames
+    depth_filenames.sort()
     try:
         shutil.rmtree('export')
     except BaseException:
         print('no previous data to delete')
     os.mkdir('export')
-    for elem in depth:
-        width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, elem, 0)
-        filename = f'output{elem}.pcd'
-        depthmap.export('pcd', filename, width, height, data, depth_scale, calibration, max_confidence, matrix)
+    for filename in depth_filenames:
+        width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, filename, 0)
+        output_filename = f'output{filename}.pcd'
+        depthmap.export('pcd', output_filename, width, height, data, depth_scale, calibration, max_confidence, matrix)
 
     logging.info('Data exported into folder export')
