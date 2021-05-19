@@ -8,13 +8,7 @@ import numpy as np
 from skimage.transform import resize
 
 DEBUG = False
-try:
-    REPO_DIR = Path(__file__).parents[4].absolute()
-except IndexError:
-    REPO_DIR = Path('.')
-INPUT_DIR = REPO_DIR / 'data' / 'cgm-result-dataset'
 DATASET_NAME = 'dataset'
-OUTPUT_DIR = REPO_DIR / 'data' / "cgm-datasets" / datetime.now(timezone.utc).strftime(f"{DATASET_NAME}-%Y-%m-%d-%H-%M-%S")
 
 WIDTH = 240
 HEIGHT = 180
@@ -95,33 +89,40 @@ def get_depthmaps(fpaths):
     return depthmaps
 
 
-def create_and_save_pickle(zip_input_full_path, timestamp, scan_id, scan_step, target_tuple, order_number):
-    """Side effect: Saves and returns file path"""
-    depthmaps = get_depthmaps([zip_input_full_path])
-    if DEBUG:
-        print(depthmaps.shape, depthmaps[0,0,0,0])
+class ArtifactProcessor:
+    def __init__(self, input_dir, is_offline_run=False):
+        self.input_dir = input_dir
 
-    pickle_output_path = f"qrcode/{scan_id}/{scan_step}/pc_{scan_id}_{timestamp}_{scan_step}_{order_number}.p"  # '/tmp/abc.p'
-    pickle_output_full_path = f"{OUTPUT_DIR}/{pickle_output_path}"
-    Path(pickle_output_full_path).parent.mkdir(parents=True, exist_ok=True)
-    pickle.dump((depthmaps, np.array(target_tuple)), open(pickle_output_full_path, "wb"))
-    return pickle_output_full_path
+        base_dir = Path(__file__).parents[4].absolute() if is_offline_run else Path('.')
+        dataset_out_dir = datetime.now(timezone.utc).strftime(f"{DATASET_NAME}-%Y-%m-%d-%H-%M-%S")
+        self.output_dir = base_dir / 'data' / "cgm-datasets" / dataset_out_dir
 
+    def create_and_save_pickle(self, zip_input_full_path, timestamp, scan_id, scan_step, target_tuple, order_number):
+        """Side effect: Saves and returns file path"""
+        depthmaps = get_depthmaps([zip_input_full_path])
+        if DEBUG:
+            print(depthmaps.shape, depthmaps[0,0,0,0])
 
-def process_artifact_tuple(artifact_tuple):
-    """Side effect: Saves and returns file path"""
-    artifact_dict = {idx2col[i]: el for i, el in enumerate(artifact_tuple)}
-    if DEBUG:
-        print('artifact_dict', artifact_dict)
-    target_tuple = (artifact_dict['height'], artifact_dict['weight'], artifact_dict['muac'])
-    zip_input_full_path = f"{INPUT_DIR}/{artifact_dict['file_path']}"
+        pickle_output_path = f"qrcode/{scan_id}/{scan_step}/pc_{scan_id}_{timestamp}_{scan_step}_{order_number}.p"  # '/tmp/abc.p'
+        pickle_output_full_path = f"{self.output_dir}/{pickle_output_path}"
+        Path(pickle_output_full_path).parent.mkdir(parents=True, exist_ok=True)
+        pickle.dump((depthmaps, np.array(target_tuple)), open(pickle_output_full_path, "wb"))
+        return pickle_output_full_path
 
-    pickle_output_full_path = create_and_save_pickle(
-        zip_input_full_path=zip_input_full_path,
-        timestamp=artifact_dict['timestamp'],
-        scan_id=artifact_dict['scan_id'],
-        scan_step=artifact_dict['scan_step'],
-        target_tuple=target_tuple,
-        order_number=artifact_dict['order_number'],
-    )
-    return pickle_output_full_path
+    def process_artifact_tuple(self, artifact_tuple):
+        """Side effect: Saves and returns file path"""
+        artifact_dict = {idx2col[i]: el for i, el in enumerate(artifact_tuple)}
+        if DEBUG:
+            print('artifact_dict', artifact_dict)
+        target_tuple = (artifact_dict['height'], artifact_dict['weight'], artifact_dict['muac'])
+        zip_input_full_path = f"{self.input_dir}/{artifact_dict['file_path']}"
+
+        pickle_output_full_path = self.create_and_save_pickle(
+            zip_input_full_path=zip_input_full_path,
+            timestamp=artifact_dict['timestamp'],
+            scan_id=artifact_dict['scan_id'],
+            scan_step=artifact_dict['scan_step'],
+            target_tuple=target_tuple,
+            order_number=artifact_dict['order_number'],
+        )
+        return pickle_output_full_path

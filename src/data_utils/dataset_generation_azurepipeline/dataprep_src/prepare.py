@@ -7,7 +7,7 @@ from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 import pandas as pd
 
-from mlpipeline_utils import process_artifact_tuple
+from mlpipeline_utils import ArtifactProcessor
 
 
 def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
@@ -71,6 +71,7 @@ if __name__ == '__main__':
 
 
     # Transform
+    artifact_processor = ArtifactProcessor(blob_dataset_path, is_offline_run=run.id.startswith("OfflineRun"))
     for query_result in df.itertuples(index=False):
-        res = process_artifact_tuple(query_result)
+        res = artifact_processor.process_artifact_tuple(query_result)
         print(f"res{str(res)}")
