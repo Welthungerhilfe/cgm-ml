@@ -77,13 +77,13 @@ if __name__ == "__main__":
     depthmap_dir = sys.argv[1]
     calibration_file = sys.argv[2]
 
-    depth = []
+    depth_filenames = []
     rgb = []
     for (dirpath, dirnames, filenames) in walk(Path(depthmap_dir) / 'depth'):
-        depth = filenames
+        depth_filenames = filenames
     for (dirpath, dirnames, filenames) in walk(Path(depthmap_dir) / 'rgb'):
         rgb = filenames
-    depth.sort()
+    depth_filenames.sort()
     rgb.sort()
 
     calibration = utils.parse_calibration(calibration_file)
@@ -97,5 +97,5 @@ if __name__ == "__main__":
 
     # Show viewer
     index = 0
-    size = len(depth)
+    size = len(depth_filenames)
     show(depthmap_dir, calibration)
