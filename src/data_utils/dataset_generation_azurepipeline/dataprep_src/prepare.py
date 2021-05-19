@@ -10,8 +10,8 @@ import pandas as pd
 
 from mlpipeline_utils import ArtifactProcessor
 
-
 NUM_ARTIFACTS = 300
+
 
 def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
     logging.info("Accessing dataset...")
@@ -21,6 +21,7 @@ def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str)
     logging.info("Downloading dataset %s", dataset_name)
     dataset.download(target_path=dataset_path, overwrite=False)
     logging.info("Finished downloading %s", dataset_name)
+
 
 def get_dataset_path(data_dir: Path, dataset_name: str) -> str:
     return str(data_dir / dataset_name)
@@ -37,7 +38,7 @@ def print_blob_files(path):
 def parse_output_arg(argv):
     argv.index('--output')
     idx = argv.index('--output')
-    return argv[idx+1]
+    return argv[idx + 1]
 
 
 if __name__ == '__main__':
@@ -57,7 +58,6 @@ if __name__ == '__main__':
         experiment = run.experiment
         workspace = experiment.workspace
 
-
     # SQL dataset
     if run.id.startswith("OfflineRun"):
         df = pd.read_csv(REPO_DIR / 'data' / 'sql_query_result.csv')
@@ -68,7 +68,6 @@ if __name__ == '__main__':
     print(df.shape)
     print(df.head())
 
-
     # Blob dataset
     if run.id.startswith("OfflineRun"):
         dataset_name = 'cgm-result-dataset'
@@ -78,10 +77,9 @@ if __name__ == '__main__':
         blob_dataset_path = run.input_datasets['input2']
         print_blob_files(Path(blob_dataset_path))
 
-
     # Output dataset
     if run.id.startswith("OfflineRun"):
-        dataset_out_dir = datetime.now(timezone.utc).strftime(f"dataset-%Y-%m-%d-%H-%M-%S")
+        dataset_out_dir = datetime.now(timezone.utc).strftime("dataset-%Y-%m-%d-%H-%M-%S")
         output_dir = REPO_DIR / 'data' / "cgm-datasets" / dataset_out_dir
     else:
         output_dir = parse_output_arg(sys.argv)
@@ -90,6 +88,6 @@ if __name__ == '__main__':
 
     # Transform
     artifact_processor = ArtifactProcessor(blob_dataset_path, output_dir, is_offline_run=run.id.startswith("OfflineRun"))
-    for query_result in tqdm(list(df.itertuples(index=False))[:NUM_ARTIFACTS]):
+    for query_result in list(df.itertuples(index=False))[:NUM_ARTIFACTS]:
         res = artifact_processor.process_artifact_tuple(query_result)
     print("Finished building the dataset")

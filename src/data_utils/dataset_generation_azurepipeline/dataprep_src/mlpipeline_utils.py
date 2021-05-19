@@ -16,6 +16,7 @@ IMAGE_TARGET_HEIGHT, IMAGE_TARGET_WIDTH = HEIGHT, WIDTH
 col2idx = {'file_path': 0, 'timestamp': 1, 'scan_id': 2, 'scan_step': 3, 'height': 4, 'weight': 5, 'muac': 6, 'order_number': 7}
 idx2col = {0: 'file_path', 1: 'timestamp', 2: 'scan_id', 3: 'scan_step', 4: 'height', 5: 'weight', 6: 'muac', 7: 'order_number'}
 
+
 def load_depth(fpath: str) -> Tuple[bytes, int, int, float, float]:
     """Take ZIP file and extract depth and metadata
     Args:
@@ -55,8 +56,10 @@ def parse_depth(tx: int, ty: int, data: bytes, depth_scale: float, width: int) -
     depth *= depth_scale
     return depth
 
+
 def preprocess_depthmap(depthmap):
     return depthmap.astype("float32")
+
 
 def preprocess(depthmap):
     depthmap = preprocess_depthmap(depthmap)
@@ -64,6 +67,7 @@ def preprocess(depthmap):
     depthmap = resize(depthmap, (IMAGE_TARGET_HEIGHT, IMAGE_TARGET_WIDTH))
     depthmap = depthmap.reshape((depthmap.shape[0], depthmap.shape[1], 1))
     return depthmap
+
 
 def prepare_depthmap(data: bytes, width: int, height: int, depth_scale: float) -> np.array:
     """Convert bytes array into np.array"""
@@ -74,6 +78,7 @@ def prepare_depthmap(data: bytes, width: int, height: int, depth_scale: float) -
             output[cx][height - cy - 1] = parse_depth(cx, cy, data, depth_scale, width)
     arr = np.array(output, dtype='float32')
     return arr.reshape(width, height)
+
 
 def get_depthmaps(fpaths):
     depthmaps = []
@@ -96,7 +101,7 @@ class ArtifactProcessor:
         """Side effect: Saves and returns file path"""
         depthmaps = get_depthmaps([zip_input_full_path])
         if DEBUG:
-            print(depthmaps.shape, depthmaps[0,0,0,0])
+            print(depthmaps.shape, depthmaps[0, 0, 0, 0])
 
         pickle_output_path = f"qrcode/{scan_id}/{scan_step}/pc_{scan_id}_{timestamp}_{scan_step}_{order_number}.p"  # '/tmp/abc.p'
         pickle_output_full_path = f"{self.output_dir}/{pickle_output_path}"
