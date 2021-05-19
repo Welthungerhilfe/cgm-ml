@@ -58,7 +58,7 @@ def onclick(event, width: int, height: int, data: bytes, depth_scale: float, cal
 
 
 def extract_depthmap(dir_path: str, filename: str):
-    """extract depthmap from given file"""
+    """Extract depthmap from given file"""
     with zipfile.ZipFile(Path(dir_path) / 'depth' / filename, 'r') as zip_ref:
         zip_ref.extractall('.')
 
