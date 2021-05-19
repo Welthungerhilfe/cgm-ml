@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import logging
 import os
 from pathlib import Path
@@ -8,6 +9,8 @@ from azureml.core.run import Run
 import pandas as pd
 
 from mlpipeline_utils import ArtifactProcessor
+
+DATASET_NAME = 'dataset'
 
 
 def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
@@ -30,6 +33,12 @@ def print_blob_files(path):
     files = [x for x in p]
     print(f"Num files: {len(files)}")
     print(files[:3])
+
+
+def parse_output_arg(argv):
+    argv.index('--output')
+    idx = argv.index('--output')
+    return argv[idx+1]
 
 
 if __name__ == '__main__':
@@ -70,8 +79,17 @@ if __name__ == '__main__':
         print_blob_files(Path(blob_dataset_path))
 
 
+    # Output dataset
+    if run.id.startswith("OfflineRun"):
+        dataset_out_dir = datetime.now(timezone.utc).strftime(f"{DATASET_NAME}-%Y-%m-%d-%H-%M-%S")
+        output_dir = REPO_DIR / 'data' / "cgm-datasets" / dataset_out_dir
+    else:
+        output_dir = parse_output_arg(sys.argv)
+        print("output_dir: ")
+        print(output_dir)
+
     # Transform
-    artifact_processor = ArtifactProcessor(blob_dataset_path, is_offline_run=run.id.startswith("OfflineRun"))
+    artifact_processor = ArtifactProcessor(blob_dataset_path, output_dir, is_offline_run=run.id.startswith("OfflineRun"))
     for query_result in df.itertuples(index=False):
         res = artifact_processor.process_artifact_tuple(query_result)
         print(f"res{str(res)}")

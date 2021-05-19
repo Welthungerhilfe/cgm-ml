@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 from pathlib import Path
 import pickle
 from typing import Tuple
@@ -8,7 +7,6 @@ import numpy as np
 from skimage.transform import resize
 
 DEBUG = False
-DATASET_NAME = 'dataset'
 
 WIDTH = 240
 HEIGHT = 180
@@ -90,12 +88,9 @@ def get_depthmaps(fpaths):
 
 
 class ArtifactProcessor:
-    def __init__(self, input_dir, is_offline_run=False):
+    def __init__(self, input_dir, output_dir, is_offline_run=False):
         self.input_dir = input_dir
-
-        base_dir = Path(__file__).parents[4].absolute() if is_offline_run else Path('.')
-        dataset_out_dir = datetime.now(timezone.utc).strftime(f"{DATASET_NAME}-%Y-%m-%d-%H-%M-%S")
-        self.output_dir = base_dir / 'data' / "cgm-datasets" / dataset_out_dir
+        self.output_dir = output_dir
 
     def create_and_save_pickle(self, zip_input_full_path, timestamp, scan_id, scan_step, target_tuple, order_number):
         """Side effect: Saves and returns file path"""
