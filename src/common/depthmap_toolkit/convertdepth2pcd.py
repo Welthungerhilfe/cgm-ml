@@ -32,8 +32,9 @@ if __name__ == "__main__":
     except BaseException:
         print('no previous data to delete')
     os.mkdir('export')
-    for i in range(len(depth)):
-        width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, depth[i], 0)
-        depthmap.export('pcd', 'output' + depth[i] + '.pcd', width, height, data, depth_scale, calibration, max_confidence, matrix)
+    for elem in depth:
+        width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, elem, 0)
+        filename = f'output{elem}.pcd'
+        depthmap.export('pcd', filename, width, height, data, depth_scale, calibration, max_confidence, matrix)
 
     logging.info('Data exported into folder export')
