@@ -63,7 +63,7 @@ def extract_depthmap(dir_path: str, filename: str):
         zip_ref.extractall('.')
 
 
-def process(plt, dir_path: str, depth: str, rgb: str):
+def process(dir_path: str, depth: str, rgb: str):
 
     extract_depthmap(dir_path, depth)
 

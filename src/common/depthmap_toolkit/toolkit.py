@@ -47,9 +47,9 @@ def prev(event, calibration: List[List[float]], depthmap_dir: str):
 
 def show(depthmap_dir: str, calibration: List[List[float]]):
     if rgb_filenames:
-        width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, depth_filenames[index], rgb_filenames[index])
+        width, height, depth_scale, max_confidence, data, matrix = depthmap.process(depthmap_dir, depth_filenames[index], rgb_filenames[index])
     else:
-        width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, depth_filenames[index], 0)
+        width, height, depth_scale, max_confidence, data, matrix = depthmap.process(depthmap_dir, depth_filenames[index], 0)
     angle = depthmap.get_angle_between_camera_and_floor(width, height, calibration, matrix)
     logging.info('angle between camera and floor is %f', angle)
 

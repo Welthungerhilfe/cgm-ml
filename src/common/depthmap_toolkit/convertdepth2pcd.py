@@ -4,8 +4,6 @@ import sys
 import logging
 import logging.config
 
-import matplotlib.pyplot as plt
-
 import depthmap
 import utils
 
@@ -33,7 +31,7 @@ if __name__ == "__main__":
         print('no previous data to delete')
     os.mkdir('export')
     for filename in depth_filenames:
-        width, height, depth_scale, max_confidence, data, matrix = depthmap.process(plt, depthmap_dir, filename, 0)
+        width, height, depth_scale, max_confidence, data, matrix = depthmap.process(depthmap_dir, filename, 0)
         output_filename = f'output{filename}.pcd'
         depthmap.export('pcd', output_filename, width, height, data, depth_scale, calibration, max_confidence, matrix)
 
