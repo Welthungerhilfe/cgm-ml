@@ -19,12 +19,22 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
-def export_obj(event, width: int, height: int, data: bytes, depth_scale: float, calibration: List[List[float]], max_confidence: float, matrix: list):
-    depthmap.export('obj', 'output' + str(index) + '.obj', width, height, data, depth_scale, calibration, max_confidence, matrix)
+def export_obj(event,
+               width: int,
+               height: int,
+               data: bytes,
+               depth_scale: float,
+               calibration: List[List[float]],
+               max_confidence: float,
+               matrix: list
+    ):
+    fname = f'output{index}.obj'
+    depthmap.export('obj', fname, width, height, data, depth_scale, calibration, max_confidence, matrix)
 
 
 def export_pcd(event, width: int, height: int, data: bytes, depth_scale: float, calibration: List[List[float]], max_confidence: float, matrix: list):
-    depthmap.export('pcd', 'output' + str(index) + '.pcd', width, height, data, depth_scale, calibration, max_confidence, matrix)
+    fname = f'output{index}.pcd'
+    depthmap.export('pcd', fname, width, height, data, depth_scale, calibration, max_confidence, matrix)
 
 
 def next(event, calibration: List[List[float]], depthmap_dir: str):
