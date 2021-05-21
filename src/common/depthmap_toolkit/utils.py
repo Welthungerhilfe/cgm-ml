@@ -124,7 +124,16 @@ def convert_3d_to_2d(intrisics: list, x: float, y: float, z: float, width: int, 
     return [tx, ty, z]
 
 
-def export_obj(filename: str, rgb: bool, width: int, height: int, data: bytes, depth_scale: float, calibration: List[List[float]], matrix: list, triangulate: bool):
+def export_obj(filename: str,
+               rgb: bool,
+               width: int,
+               height: int,
+               data: bytes,
+               depth_scale: float,
+               calibration: List[List[float]],
+               matrix: list,
+               triangulate: bool
+    ):
     """
 
     triangulate=True generates OBJ of type mesh
