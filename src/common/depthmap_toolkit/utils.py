@@ -7,6 +7,11 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
+IDENTITY_MATRIX_4D = [1., 0., 0., 0.,
+                      0., 1., 0., 0.,
+                      0., 0., 1., 0.,
+                      0., 0., 0., 1.]
+
 
 def cross(a: list, b: list) -> list:
     """Cross product of two vectors"""
@@ -32,10 +37,7 @@ def norm(v: list) -> list:
 def matrix_calculate(position: list, rotation: list) -> list:
     """Calculate a matrix image->world from device position and rotation"""
 
-    output = [1, 0, 0, 0,
-              0, 1, 0, 0,
-              0, 0, 1, 0,
-              0, 0, 0, 1]
+    output = IDENTITY_MATRIX_4D
 
     sqw = rotation[3] * rotation[3]
     sqx = rotation[0] * rotation[0]
@@ -262,6 +264,8 @@ def parse_data(filename: str):
             position = (float(header[7]), float(header[8]), float(header[9]))
             rotation = (float(header[3]), float(header[4]), float(header[5]), float(header[6]))
             matrix = matrix_calculate(position, rotation)
+        else:
+            matrix = IDENTITY_MATRIX_4D
         data = f.read()
         f.close()
 
@@ -271,7 +275,7 @@ def parse_data(filename: str):
 def parse_depth(tx: int, ty: int, width: int, height: int, data: bytes, depth_scale: float) -> float:
     """Get depth of the point in meters"""
     if tx < 1 or ty < 1 or tx >= width or ty >= height:
-        return 0
+        return 0.
     depth = data[(int(ty) * width + int(tx)) * 3 + 0] << 8
     depth += data[(int(ty) * width + int(tx)) * 3 + 1]
     depth *= depth_scale
@@ -289,13 +293,9 @@ def parse_depth_smoothed(tx: int, ty: int, width: int, height: int, data: bytes,
     return sum(depths) / len(depths)
 
 
-def parse_numbers(line: str) -> list:
+def parse_numbers(line: str) -> List[float]:
     """Parse line of numbers"""
-    output = []
-    values = line.split(' ')
-    for value in values:
-        output.append(float(value))
-    return output
+    return [float(value) for value in line.split(' ')]
 
 
 def parse_pcd(filepath: str) -> List[List[float]]:
