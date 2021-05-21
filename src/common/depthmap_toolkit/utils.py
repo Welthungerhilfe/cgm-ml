@@ -292,13 +292,9 @@ def parse_depth_smoothed(tx: int, ty: int, width: int, height: int, data: bytes,
     return (depth_x_minus + depth_x_plus + depth_y_minus + depth_y_plus + depth_center) / 5.0
 
 
-def parse_numbers(line: str) -> list:
+def parse_numbers(line: str) -> List[float]:
     """Parse line of numbers"""
-    output = []
-    values = line.split(' ')
-    for value in values:
-        output.append(float(value))
-    return output
+    return [float(value) for value in line.split(' ')]
 
 
 def parse_pcd(filepath: str) -> List[List[float]]:
