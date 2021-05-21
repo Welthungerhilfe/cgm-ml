@@ -199,21 +199,25 @@ def export_obj(filename: str,
         logging.info('Mesh exported into %s', filename)
 
 
+def write_pcd_header(filehandle, count):
+    filehandle.write('# timestamp 1 1 float 0\n')
+    filehandle.write('# .PCD v.7 - Point Cloud Data file format\n')
+    filehandle.write('VERSION .7\n')
+    filehandle.write('FIELDS x y z c\n')
+    filehandle.write('SIZE 4 4 4 4\n')
+    filehandle.write('TYPE F F F F\n')
+    filehandle.write('COUNT 1 1 1 1\n')
+    filehandle.write('WIDTH ' + count + '\n')
+    filehandle.write('HEIGHT 1\n')
+    filehandle.write('VIEWPOINT 0 0 0 1 0 0 0\n')
+    filehandle.write('POINTS ' + count + '\n')
+    filehandle.write('DATA ascii\n')
+
+
 def export_pcd(filename: str, width: int, height: int, data: bytes, depth_scale: float, calibration: List[List[float]], max_confidence: float):
     with open(filename, 'w') as f:
         count = str(_get_count(width, height, data, depth_scale, calibration))
-        f.write('# timestamp 1 1 float 0\n')
-        f.write('# .PCD v.7 - Point Cloud Data file format\n')
-        f.write('VERSION .7\n')
-        f.write('FIELDS x y z c\n')
-        f.write('SIZE 4 4 4 4\n')
-        f.write('TYPE F F F F\n')
-        f.write('COUNT 1 1 1 1\n')
-        f.write('WIDTH ' + count + '\n')
-        f.write('HEIGHT 1\n')
-        f.write('VIEWPOINT 0 0 0 1 0 0 0\n')
-        f.write('POINTS ' + count + '\n')
-        f.write('DATA ascii\n')
+        write_pcd_header(f, count)
         for x in range(2, width - 2):
             for y in range(2, height - 2):
                 depth = parse_depth(x, y, width, height, data, depth_scale)
