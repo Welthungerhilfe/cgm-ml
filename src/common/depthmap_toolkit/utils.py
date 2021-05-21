@@ -289,7 +289,7 @@ def parse_depth_smoothed(tx: int, ty: int, width: int, height: int, data: bytes,
     depth_x_plus = parse_depth(tx + 1, ty, width, height, data, depth_scale)
     depth_y_minus = parse_depth(tx, ty - 1, width, height, data, depth_scale)
     depth_y_plus = parse_depth(tx, ty + 1, width, height, data, depth_scale)
-    depths = depth_x_minus + depth_x_plus + depth_y_minus + depth_y_plus + depth_center
+    depths = [depth_x_minus, depth_x_plus, depth_y_minus, depth_y_plus, depth_center]
     return sum(depths) / len(depths)
 
 
