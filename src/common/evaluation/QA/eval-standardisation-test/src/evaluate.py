@@ -44,7 +44,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         depthmaps = []
         for depthmap_path in depthmap_path_list:
             data, width, height, depthScale, _ = utils.load_depth(depthmap_path)
-            depthmap, height, width = utils.prepare_depthmap(data, width, height, depthScale)
+            depthmap = utils.prepare_depthmap(data, width, height, depthScale)
             depthmap = utils.preprocess(depthmap)
             depthmaps.append(depthmap)
 
