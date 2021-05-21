@@ -32,10 +32,10 @@ def norm(v: list) -> list:
 def matrix_calculate(position: list, rotation: list) -> list:
     """Calculate a matrix image->world from device position and rotation"""
 
-    output = [1, 0, 0, 0,
-              0, 1, 0, 0,
-              0, 0, 1, 0,
-              0, 0, 0, 1]
+    output = [1., 0., 0., 0.,
+              0., 1., 0., 0.,
+              0., 0., 1., 0.,
+              0., 0., 0., 1.]
 
     sqw = rotation[3] * rotation[3]
     sqx = rotation[0] * rotation[0]
@@ -262,6 +262,11 @@ def parse_data(filename: str):
             position = (float(header[7]), float(header[8]), float(header[9]))
             rotation = (float(header[3]), float(header[4]), float(header[5]), float(header[6]))
             matrix = matrix_calculate(position, rotation)
+        else:
+            matrix = [1., 0., 0., 0.,
+                      0., 1., 0., 0.,
+                      0., 0., 1., 0.,
+                      0., 0., 0., 1.]
         data = f.read()
         f.close()
 
