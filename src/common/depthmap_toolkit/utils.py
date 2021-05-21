@@ -143,7 +143,7 @@ def export_obj(filename: str,
     count = 0
     indices = np.zeros((width, height))
 
-    # create MTL file (a standart extension of OBJ files to define geometry materials and textures)
+    # Create MTL file (a standart extension of OBJ files to define geometry materials and textures)
     material = filename[:len(filename) - 4] + '.mtl'
     if rgb:
         with open(material, 'w') as f:

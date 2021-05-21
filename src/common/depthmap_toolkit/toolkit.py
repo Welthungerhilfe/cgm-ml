@@ -97,7 +97,7 @@ if __name__ == "__main__":
 
     calibration = utils.parse_calibration(calibration_file)
 
-    # Make sure there is a new export folder
+    # Clear export folder
     try:
         shutil.rmtree('export')
     except BaseException:
