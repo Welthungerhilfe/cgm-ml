@@ -258,15 +258,9 @@ def parse_calibration(filepath: str) -> List[List[float]]:
     """Parse calibration file"""
     with open(filepath, 'r') as f:
         calibration = []
-        f.readline()[:-1]
-        calibration.append(parse_numbers(f.readline()))
-        # logging.info(str(CALIBRATION[0]) + '\n') #color camera intrinsics - fx, fy, cx, cy
-        f.readline()[:-1]
-        calibration.append(parse_numbers(f.readline()))
-        # logging.info(str(CALIBRATION[1]) + '\n') #depth camera intrinsics - fx, fy, cx, cy
-        f.readline()[:-1]
-        calibration.append(parse_numbers(f.readline()))
-        # logging.info(str(CALIBRATION[2]) + '\n') #depth camera position relativelly to color camera in meters
+        for _ in range(3):
+            f.readline()[:-1]
+            calibration.append(parse_numbers(f.readline()))
         calibration[2][1] *= 8.0  # workaround for wrong calibration data
     return calibration
 
