@@ -313,21 +313,3 @@ def parse_pcd(filepath: str) -> List[List[float]]:
                 values = parse_numbers(line)
                 data.append(values)
     return data
-
-
-def getWidth() -> int:
-    return width
-
-
-def getHeight() -> int:
-    return height
-
-
-def setWidth(value):
-    global width
-    width = value
-
-
-def setHeight(value):
-    global height
-    height = value
