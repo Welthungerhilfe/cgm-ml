@@ -99,17 +99,19 @@ def convert_2d_to_3d(intrisics: list, x: float, y: float, z: float, width: int, 
 def convert_2d_to_3d_oriented(intrisics: list, x: float, y: float, z: float, width: int, height: int, matrix: list) -> list:
     """Convert point in pixels into point in meters (applying rotation)"""
     res = convert_2d_to_3d(intrisics, x, y, z, width, height)
-    if res:
-        try:
-            # special case for Google Tango devices with different rotation
-            if width == 180 and height == 135:
-                res = [res[0], -res[1], res[2]]
-            else:
-                res = [-res[0], res[1], res[2]]
-            res = matrix_transform_point(res, matrix)
-            res = [res[0], -res[1], res[2]]
-        except NameError:
-            pass
+    if not res:
+        return res
+
+    # special case for Google Tango devices with different rotation
+    if width == 180 and height == 135:
+        res = [res[0], -res[1], res[2]]
+    else:
+        res = [-res[0], res[1], res[2]]
+    try:
+        res = matrix_transform_point(res, matrix)
+        res = [res[0], -res[1], res[2]]
+    except NameError:
+        pass
     return res
 
 
@@ -157,13 +159,15 @@ def export_obj(filename: str,
         for x in range(2, width - 2):
             for y in range(2, height - 2):
                 depth = parse_depth(x, y, width, height, data, depth_scale)
-                if depth:
-                    res = convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, matrix)
-                    if res:
-                        count = count + 1
-                        indices[x][y] = count  # add index of written vertex into array
-                        f.write('v ' + str(res[0]) + ' ' + str(res[1]) + ' ' + str(res[2]) + '\n')
-                        f.write('vt ' + str(x / width) + ' ' + str(1 - y / height) + '\n')
+                if not depth:
+                    continue
+                res = convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, matrix)
+                if not res:
+                    continue
+                count = count + 1
+                indices[x][y] = count  # add index of written vertex into array
+                f.write('v ' + str(res[0]) + ' ' + str(res[1]) + ' ' + str(res[2]) + '\n')
+                f.write('vt ' + str(x / width) + ' ' + str(1 - y / height) + '\n')
 
         if triangulate:
             max_diff = 0.2
@@ -218,14 +222,17 @@ def export_pcd(filename: str, width: int, height: int, data: bytes, depth_scale:
     with open(filename, 'w') as f:
         count = str(_get_count(width, height, data, depth_scale, calibration))
         write_pcd_header(f, count)
+
         for x in range(2, width - 2):
             for y in range(2, height - 2):
                 depth = parse_depth(x, y, width, height, data, depth_scale)
-                if depth:
-                    res = convert_2d_to_3d(calibration[1], x, y, depth, width, height)
-                    if res:
-                        f.write(str(-res[0]) + ' ' + str(res[1]) + ' '
-                                + str(res[2]) + ' ' + str(parse_confidence(x, y, data, max_confidence, width)) + '\n')
+                if not depth:
+                    continue
+                res = convert_2d_to_3d(calibration[1], x, y, depth, width, height)
+                if not res:
+                    continue
+                f.write(str(-res[0]) + ' ' + str(res[1]) + ' '
+                        + str(res[2]) + ' ' + str(parse_confidence(x, y, data, max_confidence, width)) + '\n')
         logging.info('Pointcloud exported into %s', filename)
 
 
@@ -234,10 +241,12 @@ def _get_count(width: int, height: int, data: bytes, depth_scale: float, calibra
     for x in range(2, width - 2):
         for y in range(2, height - 2):
             depth = parse_depth(x, y, width, height, data, depth_scale)
-            if depth:
-                res = convert_2d_to_3d(calibration[1], x, y, depth, width, height)
-                if res:
-                    count = count + 1
+            if not depth:
+                continue
+            res = convert_2d_to_3d(calibration[1], x, y, depth, width, height)
+            if not res:
+                continue
+            count = count + 1
     return count
 
 
