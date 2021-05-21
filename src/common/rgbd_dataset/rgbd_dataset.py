@@ -33,24 +33,15 @@ def load_depth(filename):
     return data, width, height, depthScale, max_confidence
 
 
-def prepare_depthmap(data, width, height, depthScale):
-    # prepare array for output
+def prepare_depthmap(data: bytes, width: int, height: int, depth_scale: float) -> np.array:
+    """Convert bytes array into np.array"""
     output = np.zeros((width, height, 1))
     for cx in range(width):
         for cy in range(height):
-            #             output[cx][height - cy - 1][0] = parse_confidence(cx, cy)
-            #             output[cx][height - cy - 1][1] = im_array[cy][cx][1] / 255.0 #test matching on RGB data
-            #             output[cx][height - cy - 1][2] = 1.0 - min(parse_depth(cx, cy) / 2.0, 1.0) #depth data scaled to be visible
             # depth data scaled to be visible
-            output[cx][height - cy - 1] = parse_depth(cx, cy, data, depthScale)
-    return (
-        np.array(
-            output,
-            dtype='float32').reshape(
-            width,
-            height),
-        height,
-        width)
+            output[cx][height - cy - 1] = parse_depth(cx, cy, data, depth_scale, width)
+    arr = np.array(output, dtype='float32')
+    return arr.reshape(width, height)
 
 
 def parse_depth(tx, ty, data, depthScale):
@@ -111,7 +102,7 @@ def process_depthmap(depthmaps):
         depthmap_huawei = prepare_depthmap(data, width, height, depthScale)
         image_full_fpath = f'{rgb_dirpath}/{image_path}'
         resized_image = image_resize(image_full_fpath)
-        pickled_data = (resized_image, depthmap_huawei[0], labels)
+        pickled_data = (resized_image, depthmap_huawei, labels)
         pickle.dump(pickled_data, open(full_fpath, "wb"))
 
 
