@@ -79,12 +79,12 @@ if __name__ == "__main__":
 
     depth_filenames = []
     for (dirpath, dirnames, filenames) in walk(Path(depthmap_dir) / 'depth'):
-        depth_filenames = filenames
+        depth_filenames.extend(filenames)
     depth_filenames.sort()
 
     rgb_filenames = []
     for (dirpath, dirnames, filenames) in walk(Path(depthmap_dir) / 'rgb'):
-        rgb_filenames = filenames
+        rgb_filenames.extend(filenames)
     rgb_filenames.sort()
 
     calibration = utils.parse_calibration(calibration_file)

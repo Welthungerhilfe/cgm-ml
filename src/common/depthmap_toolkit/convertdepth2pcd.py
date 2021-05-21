@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
     depth_filenames = []
     for (dirpath, dirnames, filenames) in os.walk(depthmap_dir + '/depth'):
-        depth_filenames = filenames
+        depth_filenames.extend(filenames)
     depth_filenames.sort()
     try:
         shutil.rmtree('export')
