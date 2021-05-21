@@ -2,17 +2,17 @@ import zipfile
 
 import numpy as np
 
-import utils
+from utils import parse_pcd, convert_3d_to_2d
 
 ENCODING = 'charmap'
 
 
 def process(calibration, pcd_fpath: str, width: int, height: int):
     # Convert to depthmap
-    points = utils.parse_pcd(pcd_fpath)
+    points = parse_pcd(pcd_fpath)
     output = np.zeros((width, height, 3))
     for p in points:
-        v = utils.convert_3d_to_2d(calibration[1], p[0], p[1], p[2], width, height)
+        v = convert_3d_to_2d(calibration[1], p[0], p[1], p[2], width, height)
         x = int(width - v[0] - 1)
         y = int(height - v[1] - 1)
         if x >= 0 and y >= 0 and x < width and y < height:

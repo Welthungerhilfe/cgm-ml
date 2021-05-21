@@ -278,14 +278,15 @@ def parse_depth(tx: int, ty: int, width: int, height: int, data: bytes, depth_sc
     return depth
 
 
-def parse_depth_smoothed(tx: int, ty: int, width: int, height: int, data: bytes, depth_scale: float):
+def parse_depth_smoothed(tx: int, ty: int, width: int, height: int, data: bytes, depth_scale: float) -> float:
     """Get average depth value from neighboring pixels"""
     depth_center = parse_depth(tx, ty, width, height, data, depth_scale)
     depth_x_minus = parse_depth(tx - 1, ty, width, height, data, depth_scale)
     depth_x_plus = parse_depth(tx + 1, ty, width, height, data, depth_scale)
     depth_y_minus = parse_depth(tx, ty - 1, width, height, data, depth_scale)
     depth_y_plus = parse_depth(tx, ty + 1, width, height, data, depth_scale)
-    return (depth_x_minus + depth_x_plus + depth_y_minus + depth_y_plus + depth_center) / 5.0
+    depths = depth_x_minus + depth_x_plus + depth_y_minus + depth_y_plus + depth_center
+    return sum(depths) / len(depths)
 
 
 def parse_numbers(line: str) -> list:
