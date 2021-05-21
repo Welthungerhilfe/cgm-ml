@@ -170,37 +170,41 @@ def export_obj(filename: str,
                 f.write('vt ' + str(x / width) + ' ' + str(1 - y / height) + '\n')
 
         if triangulate:
-            max_diff = 0.2
-            for x in range(2, width - 2):
-                for y in range(2, height - 2):
-                    # get depth of all points of 2 potential triangles
-                    d00 = parse_depth(x, y, width, height, data, depth_scale)
-                    d10 = parse_depth(x + 1, y, width, height, data, depth_scale)
-                    d01 = parse_depth(x, y + 1, width, height, data, depth_scale)
-                    d11 = parse_depth(x + 1, y + 1, width, height, data, depth_scale)
-
-                    # check if first triangle points have existing indices
-                    if indices[x][y] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
-                        # check if the triangle size is valid (to prevent generating triangle
-                        # connecting child and background)
-                        if abs(d00 - d10) + abs(d00 - d01) + abs(d10 - d01) < max_diff:
-                            c = str(int(indices[x][y]))
-                            b = str(int(indices[x + 1][y]))
-                            a = str(int(indices[x][y + 1]))
-                            # define triangle indices in (world coordinates / texture coordinates)
-                            f.write('f ' + a + '/' + a + ' ' + b + '/' + b + ' ' + c + '/' + c + '\n')
-
-                    # check if second triangle points have existing indices
-                    if indices[x + 1][y + 1] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
-                        # check if the triangle size is valid (to prevent generating triangle
-                        # connecting child and background)
-                        if abs(d11 - d10) + abs(d11 - d01) + abs(d10 - d01) < max_diff:
-                            a = str(int(indices[x + 1][y + 1]))
-                            b = str(int(indices[x + 1][y]))
-                            c = str(int(indices[x][y + 1]))
-                            # define triangle indices in (world coordinates / texture coordinates)
-                            f.write('f ' + a + '/' + a + ' ' + b + '/' + b + ' ' + c + '/' + c + '\n')
+            do_triangulation(width, height, data, depth_scale, indices, f)
         logging.info('Mesh exported into %s', filename)
+
+
+def do_triangulation(width, height, data, depth_scale, indices, filehandle):
+    max_diff = 0.2
+    for x in range(2, width - 2):
+        for y in range(2, height - 2):
+            # get depth of all points of 2 potential triangles
+            d00 = parse_depth(x, y, width, height, data, depth_scale)
+            d10 = parse_depth(x + 1, y, width, height, data, depth_scale)
+            d01 = parse_depth(x, y + 1, width, height, data, depth_scale)
+            d11 = parse_depth(x + 1, y + 1, width, height, data, depth_scale)
+
+            # check if first triangle points have existing indices
+            if indices[x][y] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
+                # check if the triangle size is valid (to prevent generating triangle
+                # connecting child and background)
+                if abs(d00 - d10) + abs(d00 - d01) + abs(d10 - d01) < max_diff:
+                    c = str(int(indices[x][y]))
+                    b = str(int(indices[x + 1][y]))
+                    a = str(int(indices[x][y + 1]))
+                    # define triangle indices in (world coordinates / texture coordinates)
+                    filehandle.write('f ' + a + '/' + a + ' ' + b + '/' + b + ' ' + c + '/' + c + '\n')
+
+            # check if second triangle points have existing indices
+            if indices[x + 1][y + 1] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
+                # check if the triangle size is valid (to prevent generating triangle
+                # connecting child and background)
+                if abs(d11 - d10) + abs(d11 - d01) + abs(d10 - d01) < max_diff:
+                    a = str(int(indices[x + 1][y + 1]))
+                    b = str(int(indices[x + 1][y]))
+                    c = str(int(indices[x][y + 1]))
+                    # define triangle indices in (world coordinates / texture coordinates)
+                    filehandle.write('f ' + a + '/' + a + ' ' + b + '/' + b + ' ' + c + '/' + c + '\n')
 
 
 def write_pcd_header(filehandle, count):
