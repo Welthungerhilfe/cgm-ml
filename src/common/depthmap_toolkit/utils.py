@@ -136,7 +136,7 @@ def export_obj(filename: str,
                matrix: list,
                triangulate: bool
     ):
-    """
+    """Export .obj file, which can be visualized in tools like Meshlab.
 
     triangulate=True generates OBJ of type mesh
     triangulate=False generates OBJ of type pointcloud
