@@ -44,10 +44,14 @@ def prepare_depthmap(data: bytes, width: int, height: int, depth_scale: float) -
     return arr.reshape(width, height)
 
 
-def parse_depth(tx, ty, data, depthScale):
-    depth = data[(int(ty) * TARGET_WIDTH + int(tx)) * 3 + 0] << 8
-    depth += data[(int(ty) * TARGET_WIDTH + int(tx)) * 3 + 1]
-    depth *= depthScale
+def parse_depth(tx: int, ty: int, data: bytes, depth_scale: float, width: int) -> float:
+    assert isinstance(tx, int)
+    assert isinstance(ty, int)
+
+    depth = data[(ty * width + tx) * 3 + 0] << 8
+    depth += data[(ty * width + tx) * 3 + 1]
+
+    depth *= depth_scale
     return depth
 
 
