@@ -26,8 +26,8 @@ def export_obj(event,
                depth_scale: float,
                calibration: List[List[float]],
                max_confidence: float,
-               matrix: list
-    ):
+               matrix: list,
+               ):
     fname = f'output{index}.obj'
     depthmap.export('obj', fname, width, height, data, depth_scale, calibration, max_confidence, matrix)
 

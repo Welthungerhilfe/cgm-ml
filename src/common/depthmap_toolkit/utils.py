@@ -134,8 +134,8 @@ def export_obj(filename: str,
                depth_scale: float,
                calibration: List[List[float]],
                matrix: list,
-               triangulate: bool
-    ):
+               triangulate: bool,
+               ):
     """Export .obj file, which can be visualized in tools like Meshlab.
 
     triangulate=True generates OBJ of type mesh
