@@ -94,6 +94,7 @@ def get_angle_between_camera_and_floor(width: int, height: int, calibration: Lis
     angle = 90 + math.degrees(math.atan2(vector[0], vector[1]))
     return angle
 
+
 def show_result(width: int, height: int, calibration: List[List[float]], data: bytes, depth_scale: float, max_confidence: float, matrix: list):
     fig = plt.figure()
     fig.canvas.mpl_connect('button_press_event', functools.partial(onclick, width=width, height=height, data=data, depth_scale=depth_scale, calibration=calibration))
