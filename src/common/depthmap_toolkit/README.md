@@ -47,6 +47,6 @@ In the future we plan to not support PCD files anymore (due to their big size).
 The tool generates 5 different visualisations (from left-to-right order):
 * Depth image - this is a most raw visualisation of depthmap
 * World-oriented normals - green value indicates a horizontal surface, blue and red a vertical surface (supported from scan type v1.0)
-* Metrical pattern visualisation - repeating pattern mapped on surfaces based on world-oriented normals, the pattern repeats every 10 centimeters (this might help ML models to calibrate measures captured by different devices, supported from scan type v1.0)
+* Metrical segmentation visualisation - repeating pattern mapped on surfaces based on world-oriented normals, the pattern repeats every 10 centimeters (this might help ML models to calibrate measures captured by different devices, supported from scan type v1.0), blue is the detected floor, yellow is the detected child/object
 * Confidence map - amount of IR light reflected into ToF receiver, this information might vary a lot (every sensor uses a different amount of IR light) and it is not recommended to use it for ML training
 * RGB photo - captured photo (if available)

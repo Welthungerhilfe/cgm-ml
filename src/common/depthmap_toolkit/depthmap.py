@@ -20,7 +20,7 @@ logging.basicConfig(
 
 SUBPLOT_DEPTH = 0
 SUBPLOT_NORMAL = 1
-SUBPLOT_PATTERN = 2
+SUBPLOT_SEGMENTATION = 2
 SUBPLOT_CONFIDENCE = 3
 SUBPLOT_RGB = 4
 SUBPLOT_COUNT = 5
@@ -142,12 +142,12 @@ def show_result(width: int, height: int, calibration: List[List[float]], data: b
                 horizontal = (v[1] % 0.1) * 10
                 vertical = (v[0] % 0.1) * 5 + (v[2] % 0.1) * 5
                 if abs(n[1]) < 0.5:
-                    output[x][SUBPLOT_PATTERN * height + height - y - 1][0] = horizontal / (depth * depth)
+                    output[x][SUBPLOT_SEGMENTATION * height + height - y - 1][0] = horizontal / (depth * depth)
                 if abs(n[1]) > 0.5:
                     if abs(v[1] - floor) < 0.1:
-                        output[x][SUBPLOT_PATTERN * height + height - y - 1][2] = vertical / (depth * depth)
+                        output[x][SUBPLOT_SEGMENTATION * height + height - y - 1][2] = vertical / (depth * depth)
                     else:
-                        output[x][SUBPLOT_PATTERN * height + height - y - 1][1] = vertical / (depth * depth)
+                        output[x][SUBPLOT_SEGMENTATION * height + height - y - 1][1] = vertical / (depth * depth)
 
                 # confidence value
                 output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = utils.parse_confidence(x, y, data, max_confidence, width)
@@ -165,4 +165,29 @@ def show_result(width: int, height: int, calibration: List[List[float]], data: b
                     output[x][i * height + height - y - 1][0] = min(max(0, output[x][i * height + height - y - 1][0]), 1)
                     output[x][i * height + height - y - 1][1] = min(max(0, output[x][i * height + height - y - 1][1]), 1)
                     output[x][i * height + height - y - 1][2] = min(max(0, output[x][i * height + height - y - 1][2]), 1)
+
+    #highlight the focused child/object using seed algorithm
+    highest = floor
+    dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]]
+    stack = []
+    p = [int(width / 2), int(height / 2)]
+    stack.append(p)
+    while (len(stack) > 0):
+        p = stack.pop()
+        depth = utils.parse_depth(p[0], p[1], width, height, data, depth_scale)
+        if output[p[0]][SUBPLOT_SEGMENTATION * height + height - p[1] - 1][2] < 0.1:
+            for dir in dirs:
+                t = [p[0] + dir[0], p[1] + dir[1]]
+                d = utils.parse_depth(t[0], t[1], width, height, data, depth_scale)
+                if d > 0 and (d - depth) < 0.1:
+                    stack.append(t)
+        v = utils.convert_2d_to_3d_oriented(calibration[1], p[0], p[1], depth, width, height, matrix)
+        if highest < v[1]:
+           highest = v[1]
+        horizontal = ((v[1] - floor) % 0.1) * 10
+        output[p[0]][SUBPLOT_SEGMENTATION * height + height - p[1] - 1][0] = horizontal
+        output[p[0]][SUBPLOT_SEGMENTATION * height + height - p[1] - 1][1] = horizontal
+        output[p[0]][SUBPLOT_SEGMENTATION * height + height - p[1] - 1][2] = 0.1
+
+    logging.info('height=%fm', highest - floor)
     plt.imshow(output)
