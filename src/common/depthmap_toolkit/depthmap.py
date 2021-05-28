@@ -183,7 +183,7 @@ def show_result(width: int, height: int, calibration: List[List[float]], data: b
                     stack.append(t)
         v = utils.convert_2d_to_3d_oriented(calibration[1], p[0], p[1], depth, width, height, matrix)
         if highest < v[1]:
-           highest = v[1]
+            highest = v[1]
         horizontal = ((v[1] - floor) % 0.1) * 10
         output[p[0]][SUBPLOT_SEGMENTATION * height + height - p[1] - 1][0] = horizontal
         output[p[0]][SUBPLOT_SEGMENTATION * height + height - p[1] - 1][1] = horizontal
