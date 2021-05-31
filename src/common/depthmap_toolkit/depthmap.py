@@ -95,11 +95,7 @@ def get_angle_between_camera_and_floor(width: int, height: int, calibration: Lis
     return angle
 
 
-def show_result(width: int, height: int, calibration: List[List[float]], data: bytes, depth_scale: float, max_confidence: float, matrix: list):
-    fig = plt.figure()
-    fig.canvas.mpl_connect('button_press_event', functools.partial(onclick, width=width, height=height, data=data, depth_scale=depth_scale, calibration=calibration))
-
-    # detect floor
+def get_floor_level(width: int, height: int, calibration: List[List[float]], data: bytes, depth_scale: float, max_confidence: float, matrix: list):
     altitudes = []
     for x in range(width):
         for y in range(height):
@@ -111,8 +107,14 @@ def show_result(width: int, height: int, calibration: List[List[float]], data: b
             n = utils.norm(utils.cross(utils.diff(yp, xm), utils.diff(yp, xp)))
             if abs(n[1]) > 0.5:
                 altitudes.append(v[1])
-    floor = statistics.median(altitudes)
+    return statistics.median(altitudes)
 
+
+def show_result(width: int, height: int, calibration: List[List[float]], data: bytes, depth_scale: float, max_confidence: float, matrix: list):
+    fig = plt.figure()
+    fig.canvas.mpl_connect('button_press_event', functools.partial(onclick, width=width, height=height, data=data, depth_scale=depth_scale, calibration=calibration))
+
+    floor = get_floor_level(width, height, calibration, data, depth_scale, max_confidence, matrix)
     output = np.zeros((width, height * SUBPLOT_COUNT, 3))
     for x in range(width):
         for y in range(height):
