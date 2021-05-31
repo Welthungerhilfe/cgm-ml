@@ -110,6 +110,58 @@ def get_floor_level(width: int, height: int, calibration: List[List[float]], dat
     return statistics.median(altitudes)
 
 
+def render_pixel(output: object, x: int, y: int, width: int, height: int, calibration: List[List[float]], data: bytes, depth_scale: float, max_confidence: float, matrix: list, floor: float):
+    depth = utils.parse_depth(x, y, width, height, data, depth_scale)
+    if (depth):
+        # convert ToF coordinates into RGB coordinates
+        vec = utils.convert_2d_to_3d(calibration[1], x, y, depth, width, height)
+        vec[0] += calibration[2][0]
+        vec[1] += calibration[2][1]
+        vec[2] += calibration[2][2]
+        vec = utils.convert_3d_to_2d(calibration[0], vec[0], vec[1], vec[2], width, height)
+
+        # depth data scaled to be visible
+        output[SUBPLOT_DEPTH * height + x][height - y - 1] = 1.0 - min(depth / 2.0, 1.0)
+
+        # depth data normal
+        v = utils.convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, matrix)
+        xm = utils.convert_2d_to_3d_oriented(calibration[1], x - 1, y, utils.parse_depth_smoothed(x - 1, y, width, height, data, depth_scale), width, height, matrix)
+        xp = utils.convert_2d_to_3d_oriented(calibration[1], x + 1, y, utils.parse_depth_smoothed(x + 1, y, width, height, data, depth_scale), width, height, matrix)
+        yp = utils.convert_2d_to_3d_oriented(calibration[1], x, y + 1, utils.parse_depth_smoothed(x, y + 1, width, height, data, depth_scale), width, height, matrix)
+        n = utils.norm(utils.cross(utils.diff(yp, xm), utils.diff(yp, xp)))
+        output[x][SUBPLOT_NORMAL * height + height - y - 1][0] = abs(n[0])
+        output[x][SUBPLOT_NORMAL * height + height - y - 1][1] = abs(n[1])
+        output[x][SUBPLOT_NORMAL * height + height - y - 1][2] = abs(n[2])
+
+        # world coordinates visualisation
+        horizontal = (v[1] % 0.1) * 10
+        vertical = (v[0] % 0.1) * 5 + (v[2] % 0.1) * 5
+        if abs(n[1]) < 0.5:
+            output[x][SUBPLOT_SEGMENTATION * height + height - y - 1][0] = horizontal / (depth * depth)
+        if abs(n[1]) > 0.5:
+            if abs(v[1] - floor) < 0.1:
+                output[x][SUBPLOT_SEGMENTATION * height + height - y - 1][2] = vertical / (depth * depth)
+            else:
+                output[x][SUBPLOT_SEGMENTATION * height + height - y - 1][1] = vertical / (depth * depth)
+
+        # confidence value
+        output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = utils.parse_confidence(x, y, data, max_confidence, width)
+        if output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][0] == 0:
+            output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = 1
+
+        # RGB data
+        if vec[0] > 0 and vec[1] > 1 and vec[0] < width and vec[1] < height and HAS_RGB:
+            output[x][SUBPLOT_RGB * height + height - y - 1][0] = IM_ARRAY[int(vec[1])][int(vec[0])][0] / 255.0
+            output[x][SUBPLOT_RGB * height + height - y - 1][1] = IM_ARRAY[int(vec[1])][int(vec[0])][1] / 255.0
+            output[x][SUBPLOT_RGB * height + height - y - 1][2] = IM_ARRAY[int(vec[1])][int(vec[0])][2] / 255.0
+
+        # ensure pixel clipping
+        for i in range(SUBPLOT_COUNT):
+            output[x][i * height + height - y - 1][0] = min(max(0, output[x][i * height + height - y - 1][0]), 1)
+            output[x][i * height + height - y - 1][1] = min(max(0, output[x][i * height + height - y - 1][1]), 1)
+            output[x][i * height + height - y - 1][2] = min(max(0, output[x][i * height + height - y - 1][2]), 1)
+
+
 def show_result(width: int, height: int, calibration: List[List[float]], data: bytes, depth_scale: float, max_confidence: float, matrix: list):
     fig = plt.figure()
     fig.canvas.mpl_connect('button_press_event', functools.partial(onclick, width=width, height=height, data=data, depth_scale=depth_scale, calibration=calibration))
@@ -118,55 +170,7 @@ def show_result(width: int, height: int, calibration: List[List[float]], data: b
     output = np.zeros((width, height * SUBPLOT_COUNT, 3))
     for x in range(width):
         for y in range(height):
-            depth = utils.parse_depth(x, y, width, height, data, depth_scale)
-            if (depth):
-                # convert ToF coordinates into RGB coordinates
-                vec = utils.convert_2d_to_3d(calibration[1], x, y, depth, width, height)
-                vec[0] += calibration[2][0]
-                vec[1] += calibration[2][1]
-                vec[2] += calibration[2][2]
-                vec = utils.convert_3d_to_2d(calibration[0], vec[0], vec[1], vec[2], width, height)
-
-                # depth data scaled to be visible
-                output[SUBPLOT_DEPTH * height + x][height - y - 1] = 1.0 - min(depth / 2.0, 1.0)
-
-                # depth data normal
-                v = utils.convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, matrix)
-                xm = utils.convert_2d_to_3d_oriented(calibration[1], x - 1, y, utils.parse_depth_smoothed(x - 1, y, width, height, data, depth_scale), width, height, matrix)
-                xp = utils.convert_2d_to_3d_oriented(calibration[1], x + 1, y, utils.parse_depth_smoothed(x + 1, y, width, height, data, depth_scale), width, height, matrix)
-                yp = utils.convert_2d_to_3d_oriented(calibration[1], x, y + 1, utils.parse_depth_smoothed(x, y + 1, width, height, data, depth_scale), width, height, matrix)
-                n = utils.norm(utils.cross(utils.diff(yp, xm), utils.diff(yp, xp)))
-                output[x][SUBPLOT_NORMAL * height + height - y - 1][0] = abs(n[0])
-                output[x][SUBPLOT_NORMAL * height + height - y - 1][1] = abs(n[1])
-                output[x][SUBPLOT_NORMAL * height + height - y - 1][2] = abs(n[2])
-
-                # world coordinates visualisation
-                horizontal = (v[1] % 0.1) * 10
-                vertical = (v[0] % 0.1) * 5 + (v[2] % 0.1) * 5
-                if abs(n[1]) < 0.5:
-                    output[x][SUBPLOT_SEGMENTATION * height + height - y - 1][0] = horizontal / (depth * depth)
-                if abs(n[1]) > 0.5:
-                    if abs(v[1] - floor) < 0.1:
-                        output[x][SUBPLOT_SEGMENTATION * height + height - y - 1][2] = vertical / (depth * depth)
-                    else:
-                        output[x][SUBPLOT_SEGMENTATION * height + height - y - 1][1] = vertical / (depth * depth)
-
-                # confidence value
-                output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = utils.parse_confidence(x, y, data, max_confidence, width)
-                if output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][0] == 0:
-                    output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = 1
-
-                # RGB data
-                if vec[0] > 0 and vec[1] > 1 and vec[0] < width and vec[1] < height and HAS_RGB:
-                    output[x][SUBPLOT_RGB * height + height - y - 1][0] = IM_ARRAY[int(vec[1])][int(vec[0])][0] / 255.0
-                    output[x][SUBPLOT_RGB * height + height - y - 1][1] = IM_ARRAY[int(vec[1])][int(vec[0])][1] / 255.0
-                    output[x][SUBPLOT_RGB * height + height - y - 1][2] = IM_ARRAY[int(vec[1])][int(vec[0])][2] / 255.0
-
-                # ensure pixel clipping
-                for i in range(SUBPLOT_COUNT):
-                    output[x][i * height + height - y - 1][0] = min(max(0, output[x][i * height + height - y - 1][0]), 1)
-                    output[x][i * height + height - y - 1][1] = min(max(0, output[x][i * height + height - y - 1][1]), 1)
-                    output[x][i * height + height - y - 1][2] = min(max(0, output[x][i * height + height - y - 1][2]), 1)
+            render_pixel(output, x, y, width, height, calibration, data, depth_scale, max_confidence, matrix, floor)
 
     #highlight the focused child/object using seed algorithm
     highest = floor
