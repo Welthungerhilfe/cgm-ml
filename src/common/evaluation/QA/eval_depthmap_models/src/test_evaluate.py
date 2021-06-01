@@ -18,6 +18,3 @@ def test_copy_dir():
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
     if temp_common_dir.exists():
         print("copying successful, temp_common folder was created.")
-
-
-test_copy_dir()
