@@ -6,6 +6,8 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 
+BATCH_SIZE = 64
+
 
 def get_prediction_uncertainty_deepensemble(model_paths: list, dataset_evaluation: tf.data.Dataset) -> np.array:
     """Predict standard deviation of multiple predictions with different dropouts
@@ -15,7 +17,7 @@ def get_prediction_uncertainty_deepensemble(model_paths: list, dataset_evaluatio
     Returns:
         predictions, array shape (N_SAMPLES, )
     """
-    dataset = dataset_evaluation.batch(1)
+    dataset = dataset_evaluation.batch(BATCH_SIZE)
     logging.info("Start predicting uncertainty")
 
     # Go through all models and compute STD of predictions.
