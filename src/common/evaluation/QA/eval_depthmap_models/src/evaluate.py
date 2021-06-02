@@ -198,7 +198,7 @@ if __name__ == "__main__":
     OUTPUT_CSV_PATH = str(REPO_DIR / 'data'
                           / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
     if RUN_ID is not None:
-        MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if run.id.startswith("OfflineRun") else Path('.')
+        MODEL_BASE_DIR = REPO_DIR / 'data' / RUN_ID if run.id.startswith("OfflineRun") else Path('.')
     if RUN_IDS is not None:
         MODEL_BASE_DIR = REPO_DIR / 'data' / \
             MODEL_CONFIG.EXPERIMENT_NAME if run.id.startswith("OfflineRun") else Path('.')
