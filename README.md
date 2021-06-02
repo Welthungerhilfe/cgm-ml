@@ -42,9 +42,29 @@ Data access is provided on as-needed basis following signature of the Welthunger
 Maintain Data Secrecy Agreement. If you need data access (e.g. to train your machine learning models),
 please contact [Markus Matiaschek](mailto:info@childgrowthmonitor.org) for details.
 
+## Repository structure
+
+The source code is in `src/`.
+
+We make heavy use of AzureML.
+For AzureML, all code for an experiment run needs to reside in one directory.
+Example: All code for one specific training, e.g. a ResNet training, needs to be in this training directory.
+
+However, many of our trainings (and also evaluation runs) share large portions of code.
+In order to reduce code duplication, we copy shared(a.k.a. common) utility code with `copy_dir()` from `src/common/` into the training/evaluation directory.
+This way, during the experiment run, the code is in the directory and can be used during the run.
+
 ## Contributing
 
 Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+### Run linting / tests
+
+```bash
+# Make sure to be in the root dir of this repository
+flake8 src/
+pytest
+```
 
 ## Versioning
 
