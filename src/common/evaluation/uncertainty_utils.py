@@ -1,12 +1,10 @@
-import copy
 import logging
 import logging.config
 import time
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.models import Sequential, load_model
-from tensorflow.python import keras
+from tensorflow.keras.models import load_model
 
 
 def get_prediction_uncertainty_deepensemble(model_paths: list, dataset_evaluation: tf.data.Dataset) -> np.array:
