@@ -129,11 +129,7 @@ def calculate_performance_sex(code: str, df_mae: pd.DataFrame, result_config: Bu
         df = df_mae_filtered[selection]
 
         selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
-        good_predictions = df[selection]
-        if len(df) > 0:
-            accuracy = len(good_predictions) / len(df) * 100
-        else:
-            accuracy = 0.
+        accuracy = calc_accuracy(num_all=len(df), num_good=len(df[selection]))
         accuracy_list.append(accuracy)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
@@ -150,11 +146,7 @@ def calculate_performance_goodbad(code: str, df_mae: pd.DataFrame, result_config
         df = df_mae_filtered[selection]
 
         selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
-        good_predictions = df[selection]
-        if len(df) > 0:
-            accuracy = len(good_predictions) / len(df) * 100
-        else:
-            accuracy = 0.
+        accuracy = calc_accuracy(num_all=len(df), num_good=len(df[selection]))
         accuracy_list.append(accuracy)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
@@ -176,11 +168,7 @@ def calculate_performance_age(code: str, df_mae: pd.DataFrame, result_config: Bu
         df = df_mae_filtered[selection]
 
         selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
-        good_predictions = df[selection]
-        if len(df) > 0:
-            accuracy = len(good_predictions) / len(df) * 100
-        else:
-            accuracy = 0.
+        accuracy = calc_accuracy(num_all=len(df), num_good=len(df[selection]))
         accuracy_list.append(accuracy)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
@@ -188,6 +176,12 @@ def calculate_performance_age(code: str, df_mae: pd.DataFrame, result_config: Bu
     df_out.columns = [f"{age_min} to {age_max}" for age_min, age_max in age_buckets]
 
     return df_out
+
+
+def calc_accuracy(num_all, num_good):
+    if num_all > 0:
+        return num_good / num_all * 100
+    return 0.
 
 
 def draw_uncertainty_goodbad_plot(df_: pd.DataFrame, png_out_fpath: str):
