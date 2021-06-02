@@ -233,14 +233,14 @@ if __name__ == "__main__":
         download_dataset(workspace, dataset_name, dataset_path)
 
     if RUN_IDS is not None:
-        for id in RUN_IDS:
-            logging.info(f"Downloading run {id}")
+        for run_id in RUN_IDS:
+            logging.info(f"Downloading run {run_id}")
             download_model(
                 workspace=workspace,
                 experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
-                run_id=id,
+                run_id=run_id,
                 input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
-                output_location=MODEL_BASE_DIR / id
+                output_location=MODEL_BASE_DIR / run_id
             )
 
         model_paths = glob.glob(os.path.join(MODEL_BASE_DIR, "*"))
@@ -356,36 +356,35 @@ if __name__ == "__main__":
 
     df_grouped['error'] = df_grouped.apply(avgerror, axis=1)
 
-    if RUN_ID is None:
-        RUN_ID = MODEL_CONFIG.EXPERIMENT_NAME
+    descriptor = RUN_ID if RUN_ID else MODEL_CONFIG.EXPERIMENT_NAME
 
-    csv_fpath = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
+    csv_fpath = f"{OUTPUT_CSV_PATH}/{descriptor}.csv"
     logging.info("Calculate and save the results to %s", csv_fpath)
     calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
                                DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 
-    sample_csv_fpath = f"{OUTPUT_CSV_PATH}/inaccurate_scans_{RUN_ID}.csv"
+    sample_csv_fpath = f"{OUTPUT_CSV_PATH}/inaccurate_scans_{descriptor}.csv"
     df_grouped.to_csv(sample_csv_fpath, index=True)
 
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
-        csv_fpath = f"{OUTPUT_CSV_PATH}/age_evaluation_{RUN_ID}.csv"
+        csv_fpath = f"{OUTPUT_CSV_PATH}/age_evaluation_{descriptor}.csv"
         logging.info("Calculate and save age results to %s", csv_fpath)
         calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
                                    DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
-        png_fpath = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{RUN_ID}.png"
+        png_fpath = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{descriptor}.png"
         logging.info("Calculate and save scatterplot results to %s", png_fpath)
         draw_age_scatterplot(df, png_fpath)
 
-    if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and AGE_IDX in DATA_CONFIG.TARGET_INDEXES and RUN_ID != MODEL_CONFIG.EXPERIMENT_NAME:
-        png_fpath = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{RUN_ID}.png"
+    if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and AGE_IDX in DATA_CONFIG.TARGET_INDEXES and descriptor != MODEL_CONFIG.EXPERIMENT_NAME:
+        png_fpath = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{descriptor}.png"
         logging.info("Calculate zscores and save confusion matrix results to %s", png_fpath)
         start = time.time()
         draw_stunting_diagnosis(df, png_fpath)
         end = time.time()
         logging.info("Total time for Calculate zscores and save confusion matrix: %.2f", end - start)
 
-    if WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and AGE_IDX in DATA_CONFIG.TARGET_INDEXES and RUN_ID != MODEL_CONFIG.EXPERIMENT_NAME:
-        png_fpath = f"{OUTPUT_CSV_PATH}/wasting_diagnosis_{RUN_ID}.png"
+    if WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and AGE_IDX in DATA_CONFIG.TARGET_INDEXES and descriptor != MODEL_CONFIG.EXPERIMENT_NAME:
+        png_fpath = f"{OUTPUT_CSV_PATH}/wasting_diagnosis_{descriptor}.png"
         logging.info("Calculate and save wasting confusion matrix results to %s", png_fpath)
         start = time.time()
         draw_wasting_diagnosis(df, png_fpath)
@@ -393,12 +392,12 @@ if __name__ == "__main__":
         logging.info("Total time for Calculate zscores and save wasting confusion matrix: %.2f", end - start)
 
     if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
-        csv_fpath = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"
+        csv_fpath = f"{OUTPUT_CSV_PATH}/sex_evaluation_{descriptor}.csv"
         logging.info("Calculate and save sex results to %s", csv_fpath)
         calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
                                    DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_sex)
     if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
-        csv_fpath = f"{OUTPUT_CSV_PATH}/goodbad_evaluation_{RUN_ID}.csv"
+        csv_fpath = f"{OUTPUT_CSV_PATH}/goodbad_evaluation_{descriptor}.csv"
         logging.info("Calculate performance on bad/good scans and save results to %s", csv_fpath)
         calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
                                    DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_goodbad)
