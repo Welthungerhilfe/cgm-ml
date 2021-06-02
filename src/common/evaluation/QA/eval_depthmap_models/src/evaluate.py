@@ -62,8 +62,8 @@ from temp_common.evaluation.eval_utilities import (  # noqa: E402, F401
     draw_stunting_diagnosis, draw_uncertainty_goodbad_plot,
     draw_uncertainty_scatterplot, draw_wasting_diagnosis, filter_dataset_according_to_standing_lying, get_column_list, get_dataset_path,
     get_depthmap_files, get_model_path)
-from temp_common.evaluation.uncertainty_utils import (  # noqa: E402, F401
-    get_prediction_uncertainty, get_prediction_uncertainty_deepensemble)
+from temp_common.evaluation.uncertainty_utils import \
+    get_prediction_uncertainty_deepensemble  # noqa: E402, F401
 from temp_common.model_utils.preprocessing_multiartifact_python import \
     create_multiartifact_paths_for_qrcodes  # noqa: E402, F401
 from temp_common.model_utils.preprocessing_multiartifact_tensorflow import \
