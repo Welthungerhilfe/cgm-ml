@@ -15,22 +15,21 @@ def get_prediction_uncertainty_deepensemble(model_paths: list, dataset_evaluatio
     Returns:
         predictions, array shape (N_SAMPLES, )
     """
-
     dataset = dataset_evaluation.batch(1)
-
-    logging.info("starting predicting uncertainty")
+    logging.info("Start predicting uncertainty")
 
     # Go through all models and compute STD of predictions.
     start = time.time()
     std_list = []
     for model_path in model_paths:
-        logging.info(f"loading model from {model_path}")
+        logging.info("Loading model from %s", model_path)
         model = load_model(model_path, compile=False)
-        std_list += [[model.predict(X)[0] for X, y in dataset.as_numpy_iterator()]]
+        logging.info("Predicting with model %s", model_path)
+        std_list += [[model.predict(X)[0] for X, _y in dataset.as_numpy_iterator()]]
     std_list = np.array(std_list)
     std_list = np.std(std_list, axis=0)
     std_list = std_list.reshape((-1))
     end = time.time()
-    logging.info(f"Total time for uncertainty prediction experiment: {end - start:.3} sec")
+    logging.info("Total time for uncertainty prediction experiment: %f:.3 sec", end - start)
 
     return np.array(std_list)
