@@ -4,7 +4,7 @@ import os
 import pickle
 from multiprocessing import Pool
 from pathlib import Path
-from typing import Callable, List
+from typing import Callable, List, Tuple
 
 import glob2 as glob
 import numpy as np
@@ -122,16 +122,10 @@ def calculate_and_save_results(df_grouped: pd.DataFrame,
 
 def calculate_performance_sex(code: str, df_mae: pd.DataFrame, result_config: Bunch) -> pd.DataFrame:
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
-    accuracy_list = []
-    accuracy_thresh = result_config.ACCURACY_MAIN_THRESH
-    column_name = COLUMN_NAME_GOODBAD
-    for _, idx in SEX_DICT.items():
-        selection = (df_mae_filtered[column_name] == idx)
-        df = df_mae_filtered[selection]
-
-        selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
-        accuracy = calc_accuracy(num_all=len(df), num_good=len(df[selection]))
-        accuracy_list.append(accuracy)
+    accuracy_list = calculate_accuracies(SEX_DICT.values(),
+                                         df_mae_filtered,
+                                         COLUMN_NAME_SEX,
+                                         result_config.ACCURACY_MAIN_THRESH)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
     df_out.columns = SEX_DICT.keys()
@@ -140,16 +134,10 @@ def calculate_performance_sex(code: str, df_mae: pd.DataFrame, result_config: Bu
 
 def calculate_performance_goodbad(code: str, df_mae: pd.DataFrame, result_config: Bunch) -> pd.DataFrame:
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
-    accuracy_list = []
-    accuracy_thresh = result_config.ACCURACY_MAIN_THRESH
-    column_name = COLUMN_NAME_GOODBAD
-    for _, idx in GOODBAD_DICT.items():
-        selection = (df_mae_filtered[column_name] == idx)
-        df = df_mae_filtered[selection]
-
-        selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
-        accuracy = calc_accuracy(num_all=len(df), num_good=len(df[selection]))
-        accuracy_list.append(accuracy)
+    accuracy_list = calculate_accuracies(GOODBAD_DICT.values(),
+                                         df_mae_filtered,
+                                         COLUMN_NAME_GOODBAD,
+                                         result_config.ACCURACY_MAIN_THRESH)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
     df_out.columns = GOODBAD_DICT.keys()
@@ -158,20 +146,14 @@ def calculate_performance_goodbad(code: str, df_mae: pd.DataFrame, result_config
 
 def calculate_performance_age(code: str, df_mae: pd.DataFrame, result_config: Bunch) -> pd.DataFrame:
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
-    accuracy_list = []
-    accuracy_thresh = result_config.ACCURACY_MAIN_THRESH
+
     age_thresholds = result_config.AGE_BUCKETS
     age_buckets = list(zip(age_thresholds[:-1], age_thresholds[1:]))
-    for age_min_years, age_max_years in age_buckets:
-        age_min = age_min_years * DAYS_IN_YEAR
-        age_max = age_max_years * DAYS_IN_YEAR
 
-        selection = (df_mae_filtered[COLUMN_NAME_AGE] >= age_min) & (df_mae_filtered[COLUMN_NAME_AGE] <= age_max)
-        df = df_mae_filtered[selection]
-
-        selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
-        accuracy = calc_accuracy(num_all=len(df), num_good=len(df[selection]))
-        accuracy_list.append(accuracy)
+    accuracy_list = calculate_accuracies_on_age_buckets(result_config.AGE_BUCKETS,
+                                                        df_mae_filtered,
+                                                        COLUMN_NAME_AGE,
+                                                        result_config.ACCURACY_MAIN_THRESH)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
 
@@ -180,7 +162,40 @@ def calculate_performance_age(code: str, df_mae: pd.DataFrame, result_config: Bu
     return df_out
 
 
-def calc_accuracy(num_all, num_good):
+def calculate_accuracies(indexes: List[float],
+                         df_mae_filtered: pd.DataFrame,
+                         column_name: str,
+                         accuracy_thresh: float) -> List[float]:
+    accuracy_list = []
+    for idx in indexes:
+        selection = (df_mae_filtered[column_name] == idx)
+        df = df_mae_filtered[selection]
+
+        selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
+        accuracy = calc_accuracy_in_percent(num_all=len(df), num_good=len(df[selection]))
+        accuracy_list.append(accuracy)
+    return accuracy_list
+
+
+def calculate_accuracies_on_age_buckets(age_buckets: Tuple[int],
+                                        df_mae_filtered: pd.DataFrame,
+                                        column_name: str,
+                                        accuracy_thresh: float) -> List[float]:
+    accuracy_list = []
+    for age_min_years, age_max_years in age_buckets:
+        age_min = age_min_years * DAYS_IN_YEAR
+        age_max = age_max_years * DAYS_IN_YEAR
+
+        selection = (df_mae_filtered[column_name] >= age_min) & (df_mae_filtered[column_name] <= age_max)
+        df = df_mae_filtered[selection]
+
+        selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
+        accuracy = calc_accuracy_in_percent(num_all=len(df), num_good=len(df[selection]))
+        accuracy_list.append(accuracy)
+    return accuracy_list
+
+
+def calc_accuracy_in_percent(num_all, num_good):
     if num_all > 0:
         return num_good / num_all * 100
     return 0.
