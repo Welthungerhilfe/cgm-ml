@@ -124,8 +124,9 @@ def calculate_performance_sex(code: str, df_mae: pd.DataFrame, result_config: Bu
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
     accuracy_list = []
     accuracy_thresh = result_config.ACCURACY_MAIN_THRESH
-    for _, sex_id in SEX_DICT.items():
-        selection = (df_mae_filtered[COLUMN_NAME_SEX] == sex_id)
+    column_name = COLUMN_NAME_GOODBAD
+    for _, idx in SEX_DICT.items():
+        selection = (df_mae_filtered[column_name] == idx)
         df = df_mae_filtered[selection]
 
         selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
@@ -141,8 +142,9 @@ def calculate_performance_goodbad(code: str, df_mae: pd.DataFrame, result_config
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
     accuracy_list = []
     accuracy_thresh = result_config.ACCURACY_MAIN_THRESH
-    for _, goodbad_id in GOODBAD_DICT.items():
-        selection = (df_mae_filtered[COLUMN_NAME_GOODBAD] == goodbad_id)
+    column_name = COLUMN_NAME_GOODBAD
+    for _, idx in GOODBAD_DICT.items():
+        selection = (df_mae_filtered[column_name] == idx)
         df = df_mae_filtered[selection]
 
         selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
