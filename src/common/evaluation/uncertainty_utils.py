@@ -9,18 +9,6 @@ from tensorflow.keras.models import Sequential, load_model
 from tensorflow.python import keras
 
 
-def change_dropout_strength(model: tf.keras.Model, dropout_strength: float) -> tf.keras.Model:
-    """Duplicate a model while adjusting the dropout rate"""
-    new_model = Sequential(name="new_model")
-    for layer_ in model.layers:
-        layer = copy.copy(layer_)
-        if isinstance(layer, keras.layers.core.Dropout):
-            # Set the dropout rate a ratio from range [0.0, 1.0]
-            layer.rate = min(0.999, layer.rate * dropout_strength)
-        new_model.add(layer)
-    return new_model
-
-
 def get_prediction_uncertainty_deepensemble(model_paths: list, dataset_evaluation: tf.data.Dataset) -> np.array:
     """Predict standard deviation of multiple predictions with different dropouts
     Args:
