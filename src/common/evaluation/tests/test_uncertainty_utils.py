@@ -7,7 +7,7 @@ import tensorflow as tf
 sys.path.append(str(Path(__file__).parents[2]))  # common
 sys.path.append('src/models/CNNDepthMap/CNNDepthMap-height/q3-depthmap-plaincnn-height/src/')
 
-from evaluation.uncertainty_utils import _predict, _calculate_std # noqa: E402
+from evaluation.uncertainty_utils import _predict, _calculate_std  # noqa: E402
 from model import create_cnn  # noqa: E402
 
 BATCH_SIZE = 8
@@ -15,12 +15,13 @@ BATCH_SIZE = 8
 
 def test_predict_uncertainty():
     input_shape = (240, 180, 1)
+    num_batches = 2
 
     model = create_cnn(input_shape, dropout=False)
 
-    data_shape = (2*BATCH_SIZE,) + input_shape
+    data_shape = (num_batches * BATCH_SIZE,) + input_shape
     train_examples = np.zeros(data_shape)
-    train_labels = np.zeros(2*BATCH_SIZE)
+    train_labels = np.zeros(num_batches * BATCH_SIZE)
     train_dataset = tf.data.Dataset.from_tensor_slices((train_examples, train_labels))
     dataset = train_dataset.batch(BATCH_SIZE)
 
@@ -46,8 +47,3 @@ def test_calculate_std_different_prediction():
     ]
     std = _calculate_std(predictions_per_model)
     assert np.all(std == np.ones(num_samples) / 2)
-
-
-if __name__ == "__main__":
-    test_calculate_std_same_prediction()
-    test_calculate_std_different_prediction()

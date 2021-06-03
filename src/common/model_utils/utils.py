@@ -67,7 +67,7 @@ def create_base_cnn(input_shape: Tuple[int], dropout: bool) -> tf.Module:
     return model
 
 
-def create_head(input_shape: Tuple[int], dropout: bool, name: str="head") -> tf.Module:
+def create_head(input_shape: Tuple[int], dropout: bool, name: str = "head") -> tf.Module:
     model = models.Sequential(name=name)
     model.add(layers.Dense(128, activation="relu", input_shape=input_shape))
     if dropout:
