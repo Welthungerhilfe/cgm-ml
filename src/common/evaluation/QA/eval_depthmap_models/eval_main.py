@@ -88,7 +88,7 @@ if __name__ == "__main__":
                        run_id=MODEL_CONFIG.RUN_ID,
                        input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
                        output_location=MODEL_BASE_DIR)
-    elif RUN_IDS:
+    elif USE_LOCAL and RUN_IDS:
         for run_id in RUN_IDS:
             download_model(workspace=workspace,
                            experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
