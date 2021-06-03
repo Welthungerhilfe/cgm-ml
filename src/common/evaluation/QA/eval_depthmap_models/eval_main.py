@@ -68,7 +68,7 @@ if __name__ == "__main__":
     run = Run.get_context()
 
     # When we run scripts locally(e.g. for debugging), we want to use another directory
-    USE_LOCAL = True
+    USE_LOCAL = False
 
     RUN_ID = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else None
     RUN_IDS = MODEL_CONFIG.RUN_IDS if getattr(MODEL_CONFIG, 'RUN_IDS', False) else None
