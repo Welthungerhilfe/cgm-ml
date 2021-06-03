@@ -150,7 +150,7 @@ def calculate_performance_age(code: str, df_mae: pd.DataFrame, result_config: Bu
     age_thresholds = result_config.AGE_BUCKETS
     age_buckets = list(zip(age_thresholds[:-1], age_thresholds[1:]))
 
-    accuracy_list = calculate_accuracies_on_age_buckets(result_config.AGE_BUCKETS,
+    accuracy_list = calculate_accuracies_on_age_buckets(age_buckets,
                                                         df_mae_filtered,
                                                         COLUMN_NAME_AGE,
                                                         result_config.ACCURACY_MAIN_THRESH)
