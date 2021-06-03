@@ -14,7 +14,6 @@ from wandb.keras import WandbCallback
 
 from config import CONFIG
 from constants import MODEL_CKPT_FILENAME, REPO_DIR
-from model import create_cnn
 from train_util import copy_dir
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
@@ -30,7 +29,8 @@ if run.id.startswith("OfflineRun"):
 
 from temp_common.model_utils.preprocessing import filter_blacklisted_qrcodes, preprocess_depthmap, preprocess_targets  # noqa: E402
 from temp_common.model_utils.utils import (  # noqa: E402
-    download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, setup_wandb)
+    create_cnn, download_dataset, get_dataset_path, AzureLogCallback,
+    create_tensorboard_callback, get_optimizer, setup_wandb)
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
