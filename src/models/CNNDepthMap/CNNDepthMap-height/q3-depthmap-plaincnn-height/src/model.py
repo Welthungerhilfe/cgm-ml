@@ -1,7 +1,10 @@
+from typing import Tuple
+
+import tensorflow as tf
 from tensorflow.keras import models, layers
 
 
-def create_cnn(input_shape, dropout):
+def create_cnn(input_shape: Tuple[int], dropout: bool) -> tf.Module:
     model = models.Sequential()
 
     model.add(layers.Conv2D(filters=32, kernel_size=(3, 3), padding="same", activation="relu", input_shape=input_shape))

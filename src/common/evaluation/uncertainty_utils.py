@@ -1,15 +1,31 @@
 import logging
 import logging.config
 import time
+from typing import List
 
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 
-BATCH_SIZE = 256
+BATCH_SIZE = 8
 
 
-def get_prediction_uncertainty_deepensemble(model_paths: list, dataset_evaluation: tf.data.Dataset) -> np.array:
+def _predict(model: tf.Module , dataset: tf.data.Dataset) -> np.array:
+    predictions_batches = []
+    for X, _y in dataset.as_numpy_iterator():
+        prediction_batch = model.predict(X)  # shape (BATCH_SIZE, 1)
+        predictions_batches.append(prediction_batch)
+    predictions = np.concatenate(predictions_batches)
+    return predictions
+
+
+def _calculate_std(predictions_per_model: List[np.array]) -> np.array:
+    predictions_per_model_ = np.array(predictions_per_model)
+    std = np.std(predictions_per_model_, axis=0)
+    return std
+
+
+def get_prediction_uncertainty_deepensemble(model_paths: list, dataset_evaluation: tf.data.Dataset, batch_size: int=256) -> np.array:
     """Predict standard deviation of multiple predictions with different dropouts
     Args:
         model_path: Path of the trained model
@@ -17,21 +33,19 @@ def get_prediction_uncertainty_deepensemble(model_paths: list, dataset_evaluatio
     Returns:
         predictions, array shape (N_SAMPLES, )
     """
-    dataset = dataset_evaluation.batch(BATCH_SIZE)
+    dataset = dataset_evaluation.batch(batch_size)
     logging.info("Start predicting uncertainty")
 
-    # Go through all models and compute STD of predictions.
+    # Go through all models and compute standard deviation of predictions
     start = time.time()
-    std_list = []
+    predictions_list = []
     for model_path in model_paths:
         logging.info("Loading model from %s", model_path)
         model = load_model(model_path, compile=False)
         logging.info("Predicting with model %s", model_path)
-        std_list += [[model.predict(X)[0] for X, _y in dataset.as_numpy_iterator()]]
-    std_list = np.array(std_list)
-    std_list = np.std(std_list, axis=0)
-    std_list = std_list.reshape((-1))
+        predictions_list.append(_predict(model, dataset))
     end = time.time()
     logging.info("Total time for uncertainty prediction experiment: %f:.3 sec", end - start)
 
-    return np.array(std_list)
+    std = _calculate_std()
+    return std

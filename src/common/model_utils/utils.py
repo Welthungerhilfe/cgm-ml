@@ -3,6 +3,7 @@ import logging
 import logging.config
 from pathlib import Path
 import subprocess
+from typing import Tuple
 
 import tensorflow as tf
 import tensorflow_addons as tfa
@@ -14,7 +15,7 @@ from tensorflow.keras import callbacks
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
-def create_base_cnn(input_shape, dropout):
+def create_base_cnn(input_shape: Tuple[int], dropout: bool) -> tf.Module:
     model = models.Sequential()
 
     model.add(layers.Conv2D(filters=32, kernel_size=(3, 3), padding="same", activation="relu", input_shape=input_shape))
@@ -66,7 +67,7 @@ def create_base_cnn(input_shape, dropout):
     return model
 
 
-def create_head(input_shape, dropout, name="head"):
+def create_head(input_shape: Tuple[int], dropout: bool, name: str="head") -> tf.Module:
     model = models.Sequential(name=name)
     model.add(layers.Dense(128, activation="relu", input_shape=input_shape))
     if dropout:
