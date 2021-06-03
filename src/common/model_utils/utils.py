@@ -68,6 +68,7 @@ def create_cnn(input_shape: Tuple[int], dropout: bool) -> tf.Module:
 
     return model
 
+
 def create_base_cnn(input_shape: Tuple[int], dropout: bool) -> tf.Module:
     model = models.Sequential()
 
