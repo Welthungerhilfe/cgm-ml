@@ -77,9 +77,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--qa_config_module", default=DEFAULT_CONFIG, help="Configuration file")
     args = parser.parse_args()
-    qa_config = import_module(args.qa_config_module)
+    qa_config_module = args.qa_config_module
+    qa_config = import_module(qa_config_module)
 else:
-    qa_config = import_module(DEFAULT_CONFIG)
+    qa_config_module = DEFAULT_CONFIG
+    qa_config = import_module(qa_config_module)
+logging.info('Using the following config: %s', qa_config_module)
 
 
 MODEL_CONFIG = qa_config.MODEL_CONFIG

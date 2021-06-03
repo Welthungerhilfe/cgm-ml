@@ -45,6 +45,7 @@ if __name__ == "__main__":
     parser.add_argument("--qa_config_module", default=DEFAULT_CONFIG, help="Configuration file")
     args = parser.parse_args()
 
+    logging.info('Using the following config: %s', args.qa_config_module)
     qa_config = import_module(f'src.{args.qa_config_module}')
     MODEL_CONFIG = qa_config.MODEL_CONFIG
     EVAL_CONFIG = qa_config.EVAL_CONFIG
