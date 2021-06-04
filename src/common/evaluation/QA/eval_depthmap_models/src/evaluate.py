@@ -60,7 +60,8 @@ from temp_common.evaluation.eval_utilities import (  # noqa: E402, F401
     calculate_performance_age, calculate_performance_goodbad,
     calculate_performance_sex, download_dataset, draw_age_scatterplot,
     draw_stunting_diagnosis, draw_uncertainty_goodbad_plot,
-    draw_uncertainty_scatterplot, draw_wasting_diagnosis, filter_dataset_according_to_standing_lying, get_column_list, get_dataset_path,
+    draw_uncertainty_scatterplot, draw_wasting_diagnosis, filter_dataset_according_to_standing_lying,
+    get_column_list, get_dataset_path,
     get_depthmap_files, get_model_path)
 from temp_common.evaluation.uncertainty_utils import \
     get_prediction_uncertainty_deepensemble  # noqa: E402, F401
@@ -379,8 +380,8 @@ if __name__ == "__main__":
         draw_age_scatterplot(df, png_fpath)
 
     if (HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES
-        and AGE_IDX in DATA_CONFIG.TARGET_INDEXES
-        and descriptor != MODEL_CONFIG.EXPERIMENT_NAME):
+            and AGE_IDX in DATA_CONFIG.TARGET_INDEXES
+            and descriptor != MODEL_CONFIG.EXPERIMENT_NAME):
         png_fpath = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{descriptor}.png"
         logging.info("Calculate zscores and save confusion matrix results to %s", png_fpath)
         start = time.time()
@@ -388,7 +389,9 @@ if __name__ == "__main__":
         end = time.time()
         logging.info("Total time for Calculate zscores and save confusion matrix: %.2f", end - start)
 
-    if WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and AGE_IDX in DATA_CONFIG.TARGET_INDEXES and descriptor != MODEL_CONFIG.EXPERIMENT_NAME:
+    if (WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES
+            and AGE_IDX in DATA_CONFIG.TARGET_INDEXES
+            and descriptor != MODEL_CONFIG.EXPERIMENT_NAME):
         png_fpath = f"{OUTPUT_CSV_PATH}/wasting_diagnosis_{descriptor}.png"
         logging.info("Calculate and save wasting confusion matrix results to %s", png_fpath)
         start = time.time()

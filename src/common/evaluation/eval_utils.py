@@ -68,7 +68,7 @@ def extract_qrcode(row):
 
 
 def extract_scantype(row):
-    """https://dev.azure.com/cgmorg/ChildGrowthMonitor/_wiki/wikis/ChildGrowthMonitor.wiki/15/Codes-for-Pose-and-Scan-step"""
+    """https://dev.azure.com/cgmorg/ChildGrowthMonitor/_wiki/wikis/ChildGrowthMonitor.wiki/15/Codes-for-Pose-and-Scan-step"""  # noqa: E501
     scans = row['artifacts'].split('/')[-2]
     return scans
 

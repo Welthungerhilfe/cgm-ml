@@ -329,11 +329,11 @@ def calculate_zscore_lhfa(df):
 
     def _fct(row):
         return _calc_score(age_in_days=int(row[COLUMN_NAME_AGE]),
-                        sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['GT'])
+                           sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['GT'])
 
     def _fct2(row):
         return _calc_score(age_in_days=int(row[COLUMN_NAME_AGE]),
-                        sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['predicted'])
+                           sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['predicted'])
 
     df['Z_actual'] = df.apply(_fct, axis=1)
     df['Z_predicted'] = df.apply(_fct2, axis=1)
@@ -367,11 +367,11 @@ def calculate_zscore_wfa(df):
     df['Z_actual'] = df.apply(
         lambda row: utils(age_in_days=int(row[COLUMN_NAME_AGE]),
                           sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', weight=row['GT']),
-                          axis=1)
+        axis=1)
     df['Z_predicted'] = df.apply(
         lambda row: utils(age_in_days=int(row[COLUMN_NAME_AGE]),
                           sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', weight=row['predicted']),
-                          axis=1)
+        axis=1)
 
     return df
 
