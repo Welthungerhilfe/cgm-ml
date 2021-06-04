@@ -109,7 +109,9 @@ class QRCodeCollector:
         Fetch the posenet data for RGB and collect their ids.
 
         """
-        artifact_result = "SELECT * FROM artifact_result WHERE artifact_id like '%_version_5.0%' AND model_id ='posenet_1.0';"
+        artifact_result = ("SELECT * "
+                           "FROM artifact_result "
+                           "WHERE artifact_id like '%_version_5.0%' AND model_id ='posenet_1.0';")
         artifacts_columns = self.ml_connector.get_columns('artifact_result')
         artifacts_table = self.ml_connector.execute(artifact_result, fetch_all=True)
         artifacts_frame = pd.DataFrame(artifacts_table, columns=artifacts_columns)
@@ -166,8 +168,8 @@ class QRCodeCollector:
         ignored_training_qrcodes = []
         scan_group_qrcode = data['qrcode'].values.tolist()
         for qrcode in scan_group_qrcode:
-            select_statement = "SELECT id FROM measure WHERE type like 'v%' AND id like '%version_5.0%' AND qr_code = '{}';".format(
-                qrcode)
+            select_statement = (f"SELECT id FROM measure"
+                                f"WHERE type like 'v%' AND id like '%version_5.0%' AND qr_code = '{qrcode}';")
             artifact_id = self.ml_connector.execute(select_statement, fetch_all=True)
             if len(artifact_id) == 1:
                 final_training_qrcodes.append(qrcode)

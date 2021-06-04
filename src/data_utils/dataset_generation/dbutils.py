@@ -29,7 +29,9 @@ logging.basicConfig(level=logging.INFO,
 
 def connect_to_default_database():
     """
-    Connects to the database. Should only be used when you want to create a new database. Do not do anything else there. Uses credentials from the JSON file.
+    Connects to the database. Should only be used when you want to create a new database.
+
+    Do not do anything else there. Uses credentials from the JSON file.
     """
 
     json_data = load_dbconnection_file()
