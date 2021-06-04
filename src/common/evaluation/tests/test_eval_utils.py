@@ -7,9 +7,10 @@ import pandas as pd
 
 sys.path.append(str(Path(__file__).parents[2]))  # common/ dir
 
-from evaluation.constants_eval import COLUMN_NAME_AGE, COLUMN_NAME_SEX
+from evaluation.constants_eval import COLUMN_NAME_AGE, COLUMN_NAME_SEX  # noqa: E402
 from evaluation.eval_utils import avgerror, calculate_performance, extract_scantype, extract_qrcode  # noqa: E402
-from evaluation.eval_utilities import calculate_accuracies, calculate_accuracies_on_age_buckets, calculate_performance_age
+from evaluation.eval_utilities import (  # noqa: E402
+    calculate_accuracies, calculate_accuracies_on_age_buckets, calculate_performance_age)
 
 QR_CODE_1 = "1585013006-yqwb95138e"
 QR_CODE_2 = "1555555555-yqqqqqqqqq"
@@ -48,7 +49,7 @@ def test_calculate_accuracies():
 def test_calculate_accuracies_on_age_buckets():
     data = {
         # one less than 1 year, two 2-year-old, one 3-year-old
-        COLUMN_NAME_AGE: [int(365*0.5), int(365*2.5), int(365*2.6), int(365*3)],
+        COLUMN_NAME_AGE: [int(365 * 0.5), int(365 * 2.5), int(365 * 2.6), int(365 * 3)],
         'error': [1.2, 1.1, 0.4, 0.1],
     }
     df = pd.DataFrame.from_dict(data)
@@ -64,7 +65,7 @@ def test_calculate_performance_age():
         'artifacts': [
             f'scans/{QR_CODE_1}/100/pc_{QR_CODE_1}_1591849321035_100_000.p',
             f'scans/{QR_CODE_2}/100/pc_{QR_CODE_2}_1591849321035_100_000.p'],
-        COLUMN_NAME_AGE: [int(365*0.5), int(365*3)],
+        COLUMN_NAME_AGE: [int(365 * 0.5), int(365 * 3)],
         'GT': [98.1, 98.9],
         'predicted': [98.1, 98.9],
     }
@@ -102,6 +103,3 @@ def test_calculate_performance_50percent():
     df = prepare_df(df)
     df_out = calculate_performance(code='100', df_mae=df, result_config=RESULT_CONFIG)
     assert (df_out[1.2] == 50.0).all()
-
-if __name__ == '__main__':
-    test_calculate_performance_age()
