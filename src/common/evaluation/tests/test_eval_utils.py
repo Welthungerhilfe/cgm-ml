@@ -2,18 +2,23 @@ import sys
 from pathlib import Path
 
 from bunch import Bunch
+import numpy as np
 import pandas as pd
 
 sys.path.append(str(Path(__file__).parents[2]))  # common/ dir
 
 from evaluation.constants_eval import COLUMN_NAME_AGE, COLUMN_NAME_SEX
 from evaluation.eval_utils import avgerror, calculate_performance, extract_scantype, extract_qrcode  # noqa: E402
-from evaluation.eval_utilities import calculate_accuracies, calculate_accuracies_on_age_buckets
+from evaluation.eval_utilities import calculate_accuracies, calculate_accuracies_on_age_buckets, calculate_performance_age
 
 QR_CODE_1 = "1585013006-yqwb95138e"
 QR_CODE_2 = "1555555555-yqqqqqqqqq"
 
-RESULT_CONFIG = Bunch(dict(ACCURACIES=[.2, .4, .6, 1., 1.2, 2., 2.5, 3., 4., 5., 6.]))
+RESULT_CONFIG = Bunch(dict(
+    ACCURACIES=[.2, .4, .6, 1., 1.2, 2., 2.5, 3., 4., 5., 6.],
+    AGE_BUCKETS=[0, 1, 2, 3, 4, 5],
+    ACCURACY_MAIN_THRESH=0.5,
+))
 
 
 def prepare_df(df):
@@ -42,7 +47,8 @@ def test_calculate_accuracies():
 
 def test_calculate_accuracies_on_age_buckets():
     data = {
-        COLUMN_NAME_AGE: [int(365*0.5), int(365*2.5), int(365*2.6), int(365*3)],  # one less than 1 year, two 2-year-old, one 3-year-old
+        # one less than 1 year, two 2-year-old, one 3-year-old
+        COLUMN_NAME_AGE: [int(365*0.5), int(365*2.5), int(365*2.6), int(365*3)],
         'error': [1.2, 1.1, 0.4, 0.1],
     }
     df = pd.DataFrame.from_dict(data)
@@ -51,6 +57,23 @@ def test_calculate_accuracies_on_age_buckets():
 
     accuracy_list = calculate_accuracies_on_age_buckets(age_buckets, df, COLUMN_NAME_AGE, accuracy_thresh=0.5)
     assert accuracy_list == [0., 0., 50., 100., 0.]
+
+
+def test_calculate_performance_age():
+    data = {
+        'artifacts': [
+            f'scans/{QR_CODE_1}/100/pc_{QR_CODE_1}_1591849321035_100_000.p',
+            f'scans/{QR_CODE_2}/100/pc_{QR_CODE_2}_1591849321035_100_000.p'],
+        COLUMN_NAME_AGE: [int(365*0.5), int(365*3)],
+        'GT': [98.1, 98.9],
+        'predicted': [98.1, 98.9],
+    }
+    df = pd.DataFrame.from_dict(data)
+    df = prepare_df(df)
+    df_out = calculate_performance_age(code='100', df_mae=df, result_config=RESULT_CONFIG)
+    assert len(df_out == 1)
+    assert np.all(df_out['0 to 1'] == 100)
+    list(df_out.loc[0]) == [100., 0., 0., 100., 0.]
 
 
 def test_calculate_performance_100percent():
@@ -79,3 +102,6 @@ def test_calculate_performance_50percent():
     df = prepare_df(df)
     df_out = calculate_performance(code='100', df_mae=df, result_config=RESULT_CONFIG)
     assert (df_out[1.2] == 50.0).all()
+
+if __name__ == '__main__':
+    test_calculate_performance_age()
