@@ -5,7 +5,8 @@ from typing import Tuple
 import tensorflow as tf
 from tensorflow.keras import models, layers
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 def create_cnn(input_shape: Tuple[int], dropout: bool) -> tf.Module:

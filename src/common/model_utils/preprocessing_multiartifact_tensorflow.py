@@ -6,7 +6,8 @@ import logging.config
 import numpy as np
 import tensorflow as tf
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 def create_multiartifact_sample(artifacts: List[str],

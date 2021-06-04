@@ -8,7 +8,8 @@ import tensorflow as tf
 from azureml.core import Experiment, Run
 from tqdm import tqdm
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 REPO_DIR = Path(__file__).parents[4].absolute()
 

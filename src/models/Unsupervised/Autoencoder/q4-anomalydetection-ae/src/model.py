@@ -15,7 +15,8 @@ from matplotlib.pyplot import cm
 from PIL import Image
 from sklearn.manifold import TSNE
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 class Autoencoder(tf.keras.Model):

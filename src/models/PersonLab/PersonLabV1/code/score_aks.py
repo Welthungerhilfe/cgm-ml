@@ -13,7 +13,8 @@ import time
 
 sys.path.append('/var/azureml-app/azureml-models/personlabV1/2/personlab')
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 #tf.compat.v1.disable_eager_execution()
 

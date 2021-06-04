@@ -18,7 +18,8 @@ from tqdm import tqdm
 from cgm_fusion.fusion import fuse_rgbd
 from get_timestamps import get_timestamps_from_pcd, get_timestamps_from_rgb
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 sys.path.append('../cgm-ml')

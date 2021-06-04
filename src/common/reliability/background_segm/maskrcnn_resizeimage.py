@@ -15,7 +15,8 @@ from torchvision.models.detection import maskrcnn_resnet50_fpn
 
 from imgseg.predict import predict
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 model = maskrcnn_resnet50_fpn(pretrained=True)
 

@@ -9,7 +9,8 @@ import pandas as pd
 
 from cgmzscore import Calculator
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 module_dir = str(os.path.split(os.path.abspath(__file__))[0])
 

@@ -17,7 +17,8 @@ from constants import MODEL_CKPT_FILENAME, REPO_DIR
 from model import create_res_net
 from train_util import copy_dir
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 # Get the current run.
 run = Run.get_context()
