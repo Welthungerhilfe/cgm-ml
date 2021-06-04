@@ -162,23 +162,34 @@ def calculate_performance_age(code: str, df_mae: pd.DataFrame, result_config: Bu
     return df_out
 
 
-def calculate_accuracies(indexes: List[float],
-                         df_mae_filtered: pd.DataFrame,
+def calculate_accuracies(values_to_select: List[float],
+                         df: pd.DataFrame,
                          column_name: str,
                          accuracy_thresh: float) -> List[float]:
-    accuracy_list = []
-    for idx in indexes:
-        selection = (df_mae_filtered[column_name] == idx)
-        df = df_mae_filtered[selection]
+    """Take a dataframe with evaluation results and calculate cases above a threshold
 
-        selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
-        accuracy = calc_accuracy_in_percent(num_all=len(df), num_good=len(df[selection]))
+    Args:
+        indexes: Values that a certain column can have
+        df: Needs to at least have to columns: 'error' and column_name
+        column_name: Name of the column to select on
+        accuracy_thresh: Error threshold
+
+    Returns:
+        A list of accuracies which has as many items as values_to_select
+    """
+    accuracy_list = []
+    for idx in values_to_select:
+        selection = (df[column_name] == idx)
+        df_selected = df[selection]
+
+        selection = (df_selected['error'] <= accuracy_thresh) & (df_selected['error'] >= -accuracy_thresh)
+        accuracy = calc_accuracy_in_percent(num_all=len(df_selected), num_good=len(df_selected[selection]))
         accuracy_list.append(accuracy)
     return accuracy_list
 
 
 def calculate_accuracies_on_age_buckets(age_buckets: Tuple[int],
-                                        df_mae_filtered: pd.DataFrame,
+                                        df: pd.DataFrame,
                                         column_name: str,
                                         accuracy_thresh: float) -> List[float]:
     accuracy_list = []
@@ -186,11 +197,11 @@ def calculate_accuracies_on_age_buckets(age_buckets: Tuple[int],
         age_min = age_min_years * DAYS_IN_YEAR
         age_max = age_max_years * DAYS_IN_YEAR
 
-        selection = (df_mae_filtered[column_name] >= age_min) & (df_mae_filtered[column_name] <= age_max)
-        df = df_mae_filtered[selection]
+        selection = (df[column_name] >= age_min) & (df[column_name] <= age_max)
+        df_selected = df[selection]
 
-        selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
-        accuracy = calc_accuracy_in_percent(num_all=len(df), num_good=len(df[selection]))
+        selection = (df_selected['error'] <= accuracy_thresh) & (df_selected['error'] >= -accuracy_thresh)
+        accuracy = calc_accuracy_in_percent(num_all=len(df_selected), num_good=len(df_selected[selection]))
         accuracy_list.append(accuracy)
     return accuracy_list
 

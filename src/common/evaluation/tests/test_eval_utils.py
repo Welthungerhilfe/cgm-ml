@@ -6,8 +6,9 @@ import pandas as pd
 
 sys.path.append(str(Path(__file__).parents[2]))  # common/ dir
 
+from evaluation.constants_eval import COLUMN_NAME_SEX
 from evaluation.eval_utils import avgerror, calculate_performance, extract_scantype, extract_qrcode  # noqa: E402
-
+from evaluation.eval_utilities import calculate_accuracies
 
 QR_CODE_1 = "1585013006-yqwb95138e"
 QR_CODE_2 = "1555555555-yqqqqqqqqq"
@@ -21,6 +22,22 @@ def prepare_df(df):
     df = df.groupby(['qrcode', 'scantype']).mean()
     df['error'] = df.apply(avgerror, axis=1)
     return df
+
+
+def test_calculate_accuracies():
+    data = {
+        COLUMN_NAME_SEX: [0., 1., 1.],  # one female and two males
+        'error': [0.1, 1.0, 0.0],
+    }
+    df = pd.DataFrame.from_dict(data)
+    accuracy_list = calculate_accuracies([0., 1.], df, COLUMN_NAME_SEX, accuracy_thresh=0.5)
+    assert accuracy_list == [100., 50.]
+
+    accuracy_list = calculate_accuracies([0., 1.], df, COLUMN_NAME_SEX, accuracy_thresh=1.1)
+    assert accuracy_list == [100., 100.]
+
+    accuracy_list = calculate_accuracies([0., 1.], df, COLUMN_NAME_SEX, accuracy_thresh=0.05)
+    assert accuracy_list == [0., 50.]
 
 
 def test_calculate_performance_100percent():
