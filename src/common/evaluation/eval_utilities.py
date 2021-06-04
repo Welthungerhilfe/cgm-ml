@@ -169,7 +169,7 @@ def calculate_accuracies(values_to_select: List[float],
     """Take a dataframe with evaluation results and calculate cases above a threshold
 
     Args:
-        indexes: Values that a certain column can have
+        values_to_select: Values that a certain column can have
         df: Needs to at least have to columns: 'error' and column_name
         column_name: Name of the column to select on
         accuracy_thresh: Error threshold
@@ -188,16 +188,27 @@ def calculate_accuracies(values_to_select: List[float],
     return accuracy_list
 
 
-def calculate_accuracies_on_age_buckets(age_buckets: Tuple[int],
+def calculate_accuracies_on_age_buckets(age_buckets: List[Tuple[int]],
                                         df: pd.DataFrame,
                                         column_name: str,
                                         accuracy_thresh: float) -> List[float]:
+    """Take a dataframe with evaluation results and calculate cases above a threshold
+
+    Args:
+        age_buckets: List of tuples where each tuple specifies a range: [age_min, age_max)
+        df: Needs to at least have to columns: 'error' and column_name
+        column_name: Name of the column to select on
+        accuracy_thresh: Error threshold
+
+    Returns:
+        A list of accuracies which has as many items as values_to_select
+    """
     accuracy_list = []
     for age_min_years, age_max_years in age_buckets:
         age_min = age_min_years * DAYS_IN_YEAR
         age_max = age_max_years * DAYS_IN_YEAR
 
-        selection = (df[column_name] >= age_min) & (df[column_name] <= age_max)
+        selection = (df[column_name] >= age_min) & (df[column_name] < age_max)
         df_selected = df[selection]
 
         selection = (df_selected['error'] <= accuracy_thresh) & (df_selected['error'] >= -accuracy_thresh)

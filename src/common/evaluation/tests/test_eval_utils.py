@@ -6,9 +6,9 @@ import pandas as pd
 
 sys.path.append(str(Path(__file__).parents[2]))  # common/ dir
 
-from evaluation.constants_eval import COLUMN_NAME_SEX
+from evaluation.constants_eval import COLUMN_NAME_AGE, COLUMN_NAME_SEX
 from evaluation.eval_utils import avgerror, calculate_performance, extract_scantype, extract_qrcode  # noqa: E402
-from evaluation.eval_utilities import calculate_accuracies
+from evaluation.eval_utilities import calculate_accuracies, calculate_accuracies_on_age_buckets
 
 QR_CODE_1 = "1585013006-yqwb95138e"
 QR_CODE_2 = "1555555555-yqqqqqqqqq"
@@ -38,6 +38,19 @@ def test_calculate_accuracies():
 
     accuracy_list = calculate_accuracies([0., 1.], df, COLUMN_NAME_SEX, accuracy_thresh=0.05)
     assert accuracy_list == [0., 50.]
+
+
+def test_calculate_accuracies_on_age_buckets():
+    data = {
+        COLUMN_NAME_AGE: [int(365*0.5), int(365*2.5), int(365*2.6), int(365*3)],  # one less than 1 year, two 2-year-old, one 3-year-old
+        'error': [1.2, 1.1, 0.4, 0.1],
+    }
+    df = pd.DataFrame.from_dict(data)
+    age_thresholds_in_years = [0, 1, 2, 3, 4, 5]
+    age_buckets = list(zip(age_thresholds_in_years[:-1], age_thresholds_in_years[1:]))
+
+    accuracy_list = calculate_accuracies_on_age_buckets(age_buckets, df, COLUMN_NAME_AGE, accuracy_thresh=0.5)
+    assert accuracy_list == [0., 0., 50., 100., 0.]
 
 
 def test_calculate_performance_100percent():
