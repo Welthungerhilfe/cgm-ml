@@ -29,7 +29,8 @@ if run.id.startswith("OfflineRun"):
 from temp_common.model_utils.preprocessing import filter_blacklisted_qrcodes  # noqa: E402
 from temp_common.model_utils.preprocessing_multiartifact_python import create_multiartifact_paths_for_qrcodes  # noqa: E402
 from temp_common.model_utils.preprocessing_multiartifact_tensorflow import create_multiartifact_sample  # noqa: E402
-from temp_common.model_utils.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, create_head  # noqa: E402
+from temp_common.model_utils.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer  # noqa: E402
+from temp_common.model_utils.model_plaincnn import create_head  # noqa: E402
 from model import get_base_model  # noqa: E402  # model.py relies on temp_common.model_utils
 
 # Make experiment reproducible

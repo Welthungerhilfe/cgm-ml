@@ -27,9 +27,10 @@ if run.id.startswith("OfflineRun"):
     temp_common_dir = Path(__file__).parent / "temp_common"
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
+from temp_common.model_utils.model_plaincnn import create_base_cnn, create_head  # noqa: E402
 from temp_common.model_utils.preprocessing import filter_blacklisted_qrcodes, preprocess_depthmap, preprocess_targets  # noqa: E402
 from temp_common.model_utils.utils import (  # noqa: E402
-    download_dataset, get_dataset_path, AzureLogCallback, create_base_cnn, create_head, create_tensorboard_callback, get_optimizer)
+    download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer)
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)

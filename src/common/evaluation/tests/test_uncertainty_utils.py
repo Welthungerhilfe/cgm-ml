@@ -7,7 +7,7 @@ import tensorflow as tf
 sys.path.append(str(Path(__file__).parents[2]))  # common
 
 from evaluation.uncertainty_utils import _predict, _calculate_std  # noqa: E402
-from model_utils.utils import create_cnn  # noqa: E402
+from model_utils.model_plaincnn import create_cnn  # noqa: E402
 
 BATCH_SIZE = 8
 
