@@ -12,6 +12,7 @@ from sl_preprocessing import process_path  # noqa: E402
 
 DIR = '/src/models/CNNRGB/CNNRGB-standing_laying/q4-rgb-standing-laying/src/test/anon-rgb-classification/test'
 
+
 def test_get_label_0():
     paths = [str(REPO_DIR) + f'{DIR}/laying/rgb_1597886481-znzw5yzhjh_1597886481929_200_13520.886623759001.jpg']
     dataset = tf.data.Dataset.from_tensor_slices(paths)

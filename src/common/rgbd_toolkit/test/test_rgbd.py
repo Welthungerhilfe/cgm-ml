@@ -58,7 +58,8 @@ def test_get_files():
         REPO_DIR + '/qr_code/qr_code_test/pc/pc_1584994919-58mqazoorz_1591550095148_100_000.pcd',
         REPO_DIR + '/qr_code/qr_code_test/rgb/rgb_1584994919-58mqazoorz_1591550095148_100_668549.981146759.jpg'
     ]
-    expected_list3 = [REPO_DIR + '/qr_code/qr_code_test/pc/pc_1584994919-58mqazoorz_1591550095148_101_000.pcd',
+    expected_list3 = [
+        REPO_DIR + '/qr_code/qr_code_test/pc/pc_1584994919-58mqazoorz_1591550095148_101_000.pcd',
         REPO_DIR + '/qr_code/qr_code_test/rgb/rgb_1584994919-58mqazoorz_1591550095148_101_668601.946538759.jpg'
     ]
     assert files == [expected_list1, expected_list2, expected_list3]

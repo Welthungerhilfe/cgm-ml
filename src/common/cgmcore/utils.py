@@ -60,7 +60,8 @@ def subsample_pointcloud(pointcloud, target_size, subsampling_method="random", d
     These subsamplinge modes are available:
     - "random": Yields a random subset. Multiple occurrences of a single point are possible.
     - "first": Yields the first n points
-    - "sequential_skip": Attempts to keep the order of the points intact, might skip some elements if the pointcloud is too big. E.g. every second point is skipped.
+    - "sequential_skip": Attempts to keep the order of the points intact,
+                         might skip some elements if the pointcloud is too big. E.g. every second point is skipped.
 
     Note: All methods ensure that the target_size is met. If necessary zeroes are appended.
     """
@@ -210,10 +211,10 @@ def render_voxelgrid(voxelgrid, title=None):
     transformed_voxelgrid = np.flip(np.flip(voxelgrid, axis=2), axis=0)
 
     facecolors = np.zeros(transformed_voxelgrid.shape + (3,))
-    for x, y, z in itertools.product(
-        range(transformed_voxelgrid.shape[0]),
-        range(transformed_voxelgrid.shape[1]),
-        range(transformed_voxelgrid.shape[2])):
+    prod = itertools.product(range(transformed_voxelgrid.shape[0]),
+                             range(transformed_voxelgrid.shape[1]),
+                             range(transformed_voxelgrid.shape[2]))
+    for x, y, z in prod:
         color = (1.0 - y / 32)
         facecolors[x, y, z, 0] = color
         facecolors[x, y, z, 1] = color

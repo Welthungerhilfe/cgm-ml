@@ -378,7 +378,9 @@ if __name__ == "__main__":
         logging.info("Calculate and save scatterplot results to %s", png_fpath)
         draw_age_scatterplot(df, png_fpath)
 
-    if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and AGE_IDX in DATA_CONFIG.TARGET_INDEXES and descriptor != MODEL_CONFIG.EXPERIMENT_NAME:
+    if (HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES
+        and AGE_IDX in DATA_CONFIG.TARGET_INDEXES
+        and descriptor != MODEL_CONFIG.EXPERIMENT_NAME):
         png_fpath = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{descriptor}.png"
         logging.info("Calculate zscores and save confusion matrix results to %s", png_fpath)
         start = time.time()
