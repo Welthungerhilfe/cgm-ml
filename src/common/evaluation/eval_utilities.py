@@ -206,7 +206,8 @@ def calculate_accuracies_on_age_buckets(age_buckets: Tuple[int],
     return accuracy_list
 
 
-def calc_accuracy_in_percent(num_all, num_good):
+def calc_accuracy_in_percent(num_all: int, num_good: int) -> float:
+    assert num_all >= num_good, f"num_all smaller than num_good: {num_good} < {num_all}"
     if num_all > 0:
         return num_good / num_all * 100
     return 0.
