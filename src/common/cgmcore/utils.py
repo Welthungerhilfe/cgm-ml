@@ -210,7 +210,10 @@ def render_voxelgrid(voxelgrid, title=None):
     transformed_voxelgrid = np.flip(np.flip(voxelgrid, axis=2), axis=0)
 
     facecolors = np.zeros(transformed_voxelgrid.shape + (3,))
-    for x, y, z in itertools.product(range(transformed_voxelgrid.shape[0]), range(transformed_voxelgrid.shape[1]), range(transformed_voxelgrid.shape[2])):
+    for x, y, z in itertools.product(
+        range(transformed_voxelgrid.shape[0]),
+        range(transformed_voxelgrid.shape[1]),
+        range(transformed_voxelgrid.shape[2])):
         color = (1.0 - y / 32)
         facecolors[x, y, z, 0] = color
         facecolors[x, y, z, 1] = color
@@ -585,7 +588,8 @@ def multiprocess(
 
 
 # Render a subsample of the artifacts.
-def render_artifacts_as_gallery(artifacts, targets=None, qr_code=None, timestamp=None, num_columns=10, target_size=(1920 // 4, 1080 // 4), image_path=None, use_plt=True):
+def render_artifacts_as_gallery(artifacts, targets=None, qr_code=None, timestamp=None,
+                                num_columns=10, target_size=(1920 // 4, 1080 // 4), image_path=None, use_plt=True):
 
     # Render results image.
     result_images = []

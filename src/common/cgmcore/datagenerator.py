@@ -194,7 +194,8 @@ class DataGenerator(object):
             # Extract the timestamp from the JSON-data.
             timestamp = self._extract_timestamp_from_path(json_path_measure)
 
-            # Filter paths for qrcodes and measurements. Find all JPGs and PCDs for a given QR-code and make sure that the timestamps are related.
+            # Filter paths for qrcodes and measurements. Find all JPGs and PCDs for a
+            # given QR-code and make sure that the timestamps are related.
             jpg_paths = [jpg_path for jpg_path in self.jpg_paths if self._is_matching_measurement(
                 jpg_path, qrcode, timestamp) is True]
             pcd_paths = [pcd_path for pcd_path in self.pcd_paths if self._is_matching_measurement(

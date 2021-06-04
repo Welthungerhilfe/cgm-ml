@@ -37,7 +37,8 @@ def create_multiartifact_sample(artifacts: List[str],
         targets_list.append(targets)
     targets = targets_list[0]
     if not np.all(targets_list == targets):
-        logging.info('Warning: Not all targets are the same!! \n target_list: %s \n artifacts: %s: ', targets_list, artifacts)
+        logging.info('Warning: Not all targets are the same!! \n target_list: %s \n artifacts: %s: ',
+                     targets_list, artifacts)
     return depthmaps, targets
 
 
