@@ -320,20 +320,23 @@ def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
 
 
 def calculate_zscore_lhfa(df):
-    """
-    lhfa : length/height for age
-    """
+    """lhfa: length/height for age"""
     cal = Calculator()
 
-    def utils(age_in_days, height, sex):
+    def _calc_score(age_in_days, height, sex):
         if MIN_HEIGHT < height <= MAX_HEIGHT and age_in_days <= MAX_AGE:
             return cal.zScore_lhfa(age_in_days=age_in_days, sex=sex, height=height)
 
-    df['Z_actual'] = df.apply(lambda row: utils(age_in_days=int(row[COLUMN_NAME_AGE]),
-                                                sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['GT']), axis=1)
-    df['Z_predicted'] = df.apply(lambda row: utils(age_in_days=int(
-        row[COLUMN_NAME_AGE]), sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['predicted']), axis=1)
+    def _fct(row):
+        return _calc_score(age_in_days=int(row[COLUMN_NAME_AGE]),
+                        sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['GT'])
 
+    def _fct2(row):
+        return _calc_score(age_in_days=int(row[COLUMN_NAME_AGE]),
+                        sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['predicted'])
+
+    df['Z_actual'] = df.apply(_fct, axis=1)
+    df['Z_predicted'] = df.apply(_fct2, axis=1)
     return df
 
 
@@ -361,10 +364,14 @@ def calculate_zscore_wfa(df):
         if age_in_days <= MAX_AGE:
             return cal.zScore_wfa(age_in_days=age_in_days, sex=sex, weight=weight)
 
-    df['Z_actual'] = df.apply(lambda row: utils(age_in_days=int(row[COLUMN_NAME_AGE]),
-                                                sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', weight=row['GT']), axis=1)
-    df['Z_predicted'] = df.apply(lambda row: utils(age_in_days=int(
-        row[COLUMN_NAME_AGE]), sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', weight=row['predicted']), axis=1)
+    df['Z_actual'] = df.apply(
+        lambda row: utils(age_in_days=int(row[COLUMN_NAME_AGE]),
+                          sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', weight=row['GT']),
+                          axis=1)
+    df['Z_predicted'] = df.apply(
+        lambda row: utils(age_in_days=int(row[COLUMN_NAME_AGE]),
+                          sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', weight=row['predicted']),
+                          axis=1)
 
     return df
 
