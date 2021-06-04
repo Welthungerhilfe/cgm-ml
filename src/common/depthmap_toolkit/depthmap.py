@@ -143,10 +143,10 @@ def show_result(width: int, height: int, calibration: List[List[float]],
                     output[x][SUBPLOT_PATTERN * height + height - y - 1][1] = vertical / (depth * depth)
 
                 # confidence value
-                output[x][SUBPLOT_CONFIDENCE * height + height - y -
-                          1][:] = utils.parse_confidence(x, y, data, max_confidence, width)
-                if output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][0] == 0:
-                    output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = 1
+                idx = SUBPLOT_CONFIDENCE * height + height - y - 1
+                output[x][idx][:] = utils.parse_confidence(x, y, data, max_confidence, width)
+                if output[x][idx][0] == 0:
+                    output[x][idx][:] = 1
 
                 # RGB data
                 if vec[0] > 0 and vec[1] > 1 and vec[0] < width and vec[1] < height and HAS_RGB:
@@ -156,10 +156,8 @@ def show_result(width: int, height: int, calibration: List[List[float]],
 
                 # ensure pixel clipping
                 for i in range(SUBPLOT_COUNT):
-                    output[x][i * height + height - y -
-                              1][0] = min(max(0, output[x][i * height + height - y - 1][0]), 1)
-                    output[x][i * height + height - y -
-                              1][1] = min(max(0, output[x][i * height + height - y - 1][1]), 1)
-                    output[x][i * height + height - y -
-                              1][2] = min(max(0, output[x][i * height + height - y - 1][2]), 1)
+                    idx = i * height + height - y - 1
+                    output[x][idx][0] = min(max(0, output[x][idx][0]), 1)
+                    output[x][idx][1] = min(max(0, output[x][idx][1]), 1)
+                    output[x][idx][2] = min(max(0, output[x][idx][2]), 1)
     plt.imshow(output)
