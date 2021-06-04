@@ -30,7 +30,8 @@ def create_multiartifact_sample(artifacts: List[str],
     depthmaps = np.zeros((image_target_height, image_target_width, n_artifacts))
 
     for i, artifact_path in enumerate(artifacts):
-        depthmap, targets = _py_load_pickle(artifact_path, normalization_value, image_target_height, image_target_width, targets_indices)
+        depthmap, targets = _py_load_pickle(artifact_path, normalization_value,
+                                            image_target_height, image_target_width, targets_indices)
         depthmap.set_shape((image_target_height, image_target_width, 1))
         depthmaps[:, :, i] = tf.squeeze(depthmap, axis=2)
         targets_list.append(targets)

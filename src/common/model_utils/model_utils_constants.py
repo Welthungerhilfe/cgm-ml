@@ -1,3 +1,5 @@
+# flake8: noqa
+
 SAMPLING_STRATEGY_SYSTEMATIC = "systematic"
 SAMPLING_STRATEGY_WINDOW = "window"
 

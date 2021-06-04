@@ -5,7 +5,8 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 
-logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.WARNING,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 def convert_age_from_days_to_years(age_in_days: pd.Series) -> int:
