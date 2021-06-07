@@ -29,6 +29,7 @@ other_ques_col = [
     "What kind of Collaboration is desired?--OTHER--",
 ]
 
+# Options of the Optional Question
 option_ques = ["--OPTION--|Pradhanmantri Kisan Samman Yojana",
                "--OPTION--|Pradhanmantri Jan-Dhan Khata yojana",
                "--OPTION--|Pradhanmantri Gareen Ann Kalyan Yojana",
