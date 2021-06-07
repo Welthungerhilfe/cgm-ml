@@ -97,22 +97,77 @@ def get_angle_between_camera_and_floor(width: int, height: int, calibration: Lis
     return angle
 
 
-def get_floor_level(width: int, height: int, calibration: List[List[float]], data: bytes, depth_scale: float, max_confidence: float, matrix: list):
+def get_floor_level(width: int,
+                    height: int,
+                    calibration: List[List[float]],
+                    data: bytes,
+                    depth_scale: float,
+                    max_confidence: float,
+                    matrix: list):
     altitudes = []
     for x in range(width):
         for y in range(height):
             depth = utils.parse_depth(x, y, width, height, data, depth_scale)
             v = utils.convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, matrix)
-            xm = utils.convert_2d_to_3d_oriented(calibration[1], x - 1, y, utils.parse_depth_smoothed(x - 1, y, width, height, data, depth_scale), width, height, matrix)
-            xp = utils.convert_2d_to_3d_oriented(calibration[1], x + 1, y, utils.parse_depth_smoothed(x + 1, y, width, height, data, depth_scale), width, height, matrix)
-            yp = utils.convert_2d_to_3d_oriented(calibration[1], x, y + 1, utils.parse_depth_smoothed(x, y + 1, width, height, data, depth_scale), width, height, matrix)
+            xm = utils.convert_2d_to_3d_oriented(
+                calibration[1],
+                x - 1,
+                y,
+                utils.parse_depth_smoothed(
+                    x - 1,
+                    y,
+                    width,
+                    height,
+                    data,
+                    depth_scale),
+                width,
+                height,
+                matrix)
+            xp = utils.convert_2d_to_3d_oriented(
+                calibration[1],
+                x + 1,
+                y,
+                utils.parse_depth_smoothed(
+                    x + 1,
+                    y,
+                    width,
+                    height,
+                    data,
+                    depth_scale),
+                width,
+                height,
+                matrix)
+            yp = utils.convert_2d_to_3d_oriented(
+                calibration[1],
+                x,
+                y + 1,
+                utils.parse_depth_smoothed(
+                    x,
+                    y + 1,
+                    width,
+                    height,
+                    data,
+                    depth_scale),
+                width,
+                height,
+                matrix)
             n = utils.norm(utils.cross(utils.diff(yp, xm), utils.diff(yp, xp)))
             if abs(n[1]) > 0.5:
                 altitudes.append(v[1])
     return statistics.median(altitudes)
 
 
-def render_pixel(output: object, x: int, y: int, width: int, height: int, calibration: List[List[float]], data: bytes, depth_scale: float, max_confidence: float, matrix: list, floor: float):
+def render_pixel(output: object,
+                 x: int,
+                 y: int,
+                 width: int,
+                 height: int,
+                 calibration: List[List[float]],
+                 data: bytes,
+                 depth_scale: float,
+                 max_confidence: float,
+                 matrix: list,
+                 floor: float):
     depth = utils.parse_depth(x, y, width, height, data, depth_scale)
     if (depth):
         # convert ToF coordinates into RGB coordinates
@@ -127,9 +182,48 @@ def render_pixel(output: object, x: int, y: int, width: int, height: int, calibr
 
         # depth data normal
         v = utils.convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, matrix)
-        xm = utils.convert_2d_to_3d_oriented(calibration[1], x - 1, y, utils.parse_depth_smoothed(x - 1, y, width, height, data, depth_scale), width, height, matrix)
-        xp = utils.convert_2d_to_3d_oriented(calibration[1], x + 1, y, utils.parse_depth_smoothed(x + 1, y, width, height, data, depth_scale), width, height, matrix)
-        yp = utils.convert_2d_to_3d_oriented(calibration[1], x, y + 1, utils.parse_depth_smoothed(x, y + 1, width, height, data, depth_scale), width, height, matrix)
+        xm = utils.convert_2d_to_3d_oriented(
+            calibration[1],
+            x - 1,
+            y,
+            utils.parse_depth_smoothed(
+                x - 1,
+                y,
+                width,
+                height,
+                data,
+                depth_scale),
+            width,
+            height,
+            matrix)
+        xp = utils.convert_2d_to_3d_oriented(
+            calibration[1],
+            x + 1,
+            y,
+            utils.parse_depth_smoothed(
+                x + 1,
+                y,
+                width,
+                height,
+                data,
+                depth_scale),
+            width,
+            height,
+            matrix)
+        yp = utils.convert_2d_to_3d_oriented(
+            calibration[1],
+            x,
+            y + 1,
+            utils.parse_depth_smoothed(
+                x,
+                y + 1,
+                width,
+                height,
+                data,
+                depth_scale),
+            width,
+            height,
+            matrix)
         n = utils.norm(utils.cross(utils.diff(yp, xm), utils.diff(yp, xp)))
         output[x][SUBPLOT_NORMAL * height + height - y - 1][0] = abs(n[0])
         output[x][SUBPLOT_NORMAL * height + height - y - 1][1] = abs(n[1])
@@ -147,7 +241,8 @@ def render_pixel(output: object, x: int, y: int, width: int, height: int, calibr
                 output[x][SUBPLOT_SEGMENTATION * height + height - y - 1][1] = vertical / (depth * depth)
 
         # confidence value
-        output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = utils.parse_confidence(x, y, data, max_confidence, width)
+        output[x][SUBPLOT_CONFIDENCE * height + height - y
+                  - 1][:] = utils.parse_confidence(x, y, data, max_confidence, width)
         if output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][0] == 0:
             output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = 1
 
@@ -164,9 +259,23 @@ def render_pixel(output: object, x: int, y: int, width: int, height: int, calibr
             output[x][i * height + height - y - 1][2] = min(max(0, output[x][i * height + height - y - 1][2]), 1)
 
 
-def show_result(width: int, height: int, calibration: List[List[float]], data: bytes, depth_scale: float, max_confidence: float, matrix: list):
+def show_result(width: int,
+                height: int,
+                calibration: List[List[float]],
+                data: bytes,
+                depth_scale: float,
+                max_confidence: float,
+                matrix: list):
     fig = plt.figure()
-    fig.canvas.mpl_connect('button_press_event', functools.partial(onclick, width=width, height=height, data=data, depth_scale=depth_scale, calibration=calibration))
+    fig.canvas.mpl_connect(
+        'button_press_event',
+        functools.partial(
+            onclick,
+            width=width,
+            height=height,
+            data=data,
+            depth_scale=depth_scale,
+            calibration=calibration))
 
     floor = get_floor_level(width, height, calibration, data, depth_scale, max_confidence, matrix)
     output = np.zeros((width, height * SUBPLOT_COUNT, 3))
@@ -174,7 +283,7 @@ def show_result(width: int, height: int, calibration: List[List[float]], data: b
         for y in range(height):
             render_pixel(output, x, y, width, height, calibration, data, depth_scale, max_confidence, matrix, floor)
 
-    #highlight the focused child/object using seed algorithm
+    # highlight the focused child/object using seed algorithm
     highest = floor
     dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]]
     stack = []
