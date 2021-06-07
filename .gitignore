@@ -1,4 +1,6 @@
 # Custom
+src/common/depthmap_toolkit/testdata/lenovo_phab2pro_180x135
+src/common/depthmap_toolkit/tests/huawei_p40pro_full
 wandb/
 old/cgm_database/dbconnection.json
 *.ply

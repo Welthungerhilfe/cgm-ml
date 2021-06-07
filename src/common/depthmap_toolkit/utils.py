@@ -1,7 +1,8 @@
 import logging
 import logging.config
-import numpy as np
 from typing import List
+
+import numpy as np
 
 logging.basicConfig(
     level=logging.INFO,
@@ -280,13 +281,24 @@ def _get_count(width: int, height: int, data: bytes, depth_scale: float, calibra
 
 
 def parse_calibration(filepath: str) -> List[List[float]]:
-    """Parse calibration file"""
+    """Parse calibration file
+
+    filepath: The content of a calibration file looks like this:
+        Color camera intrinsic:
+        0.6786797 0.90489584 0.49585155 0.5035042
+        Depth camera intrinsic:
+        0.6786797 0.90489584 0.49585155 0.5035042
+        Depth camera position:
+        0 0 0
+    """
     with open(filepath, 'r') as f:
         calibration = []
         for _ in range(3):
-            f.readline()[:-1]
-            calibration.append(parse_numbers(f.readline()))
-        calibration[2][1] *= 8.0  # workaround for wrong calibration data
+            f.readline().strip()
+            line_with_numbers = f.readline()
+            intrinsic = _parse_numbers(line_with_numbers)
+            calibration.append(intrinsic)
+    calibration[2][1] *= 8.0  # workaround for wrong calibration data
     return calibration
 
 
@@ -338,8 +350,15 @@ def parse_depth_smoothed(tx: int, ty: int, width: int, height: int, data: bytes,
     return sum(depths) / len(depths)
 
 
-def parse_numbers(line: str) -> List[float]:
-    """Parse line of numbers"""
+def _parse_numbers(line: str) -> List[float]:
+    """Parse line of numbers
+
+    Args:
+        line: Example: `0.6786797 0.90489584 0.49585155 0.5035042`
+
+    Return:
+        numbers: [0.6786797, 0.90489584, 0.49585155, 0.5035042]
+    """
     return [float(value) for value in line.split(' ')]
 
 
@@ -356,6 +375,6 @@ def parse_pcd(filepath: str) -> List[List[float]]:
             if not line:
                 break
             else:
-                values = parse_numbers(line)
+                values = _parse_numbers(line)
                 data.append(values)
     return data
