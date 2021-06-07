@@ -150,7 +150,7 @@ def render_pixel(output: object, x: int, y: int, width: int, height: int, calibr
             output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = 1
 
         # RGB data
-        if vec[0] > 0 and vec[1] > 1 and vec[0] < width and vec[1] < height and HAS_RGB:
+        if 0 < vec[0] < width and 1 < vec[1] < height and HAS_RGB:
             output[x][SUBPLOT_RGB * height + height - y - 1][0] = IM_ARRAY[int(vec[1])][int(vec[0])][0] / 255.0
             output[x][SUBPLOT_RGB * height + height - y - 1][1] = IM_ARRAY[int(vec[1])][int(vec[0])][1] / 255.0
             output[x][SUBPLOT_RGB * height + height - y - 1][2] = IM_ARRAY[int(vec[1])][int(vec[0])][2] / 255.0
