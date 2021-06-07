@@ -141,7 +141,8 @@ def detect_child(output: object,
         depth_center = utils.parse_depth(pixel[0], pixel[1], width, height, data, depth_scale)
 
         # add neighbor points (if there is no floor and they are connected)
-        if output[pixel[0]][SUBPLOT_SEGMENTATION * height + height - pixel[1] - 1][2] < 0.1:
+        index = SUBPLOT_SEGMENTATION * height + height - pixel[1] - 1
+        if output[pixel[0]][index][2] < 0.1:
             for dir in dirs:
                 pixel_dir = [pixel[0] + dir[0], pixel[1] + dir[1]]
                 depth_dir = utils.parse_depth(pixel_dir[0], pixel_dir[1], width, height, data, depth_scale)
