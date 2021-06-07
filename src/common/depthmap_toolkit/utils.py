@@ -195,11 +195,11 @@ def export_obj(filename: str,
                 f.write('vt ' + str(x / width) + ' ' + str(1 - y / height) + '\n')
 
         if triangulate:
-            do_triangulation(width, height, data, depth_scale, indices, f)
+            _do_triangulation(width, height, data, depth_scale, indices, f)
         logging.info('Mesh exported into %s', filename)
 
 
-def do_triangulation(width, height, data, depth_scale, indices, filehandle):
+def _do_triangulation(width, height, data, depth_scale, indices, filehandle):
     max_diff = 0.2
     for x in range(2, width - 2):
         for y in range(2, height - 2):
@@ -232,7 +232,7 @@ def do_triangulation(width, height, data, depth_scale, indices, filehandle):
                     filehandle.write('f ' + a + '/' + a + ' ' + b + '/' + b + ' ' + c + '/' + c + '\n')
 
 
-def write_pcd_header(filehandle, count):
+def _write_pcd_header(filehandle, count):
     filehandle.write('# timestamp 1 1 float 0\n')
     filehandle.write('# .PCD v.7 - Point Cloud Data file format\n')
     filehandle.write('VERSION .7\n')
@@ -251,7 +251,7 @@ def export_pcd(filename: str, width: int, height: int, data: bytes, depth_scale:
                calibration: List[List[float]], max_confidence: float):
     with open(filename, 'w') as f:
         count = str(_get_count(width, height, data, depth_scale, calibration))
-        write_pcd_header(f, count)
+        _write_pcd_header(f, count)
 
         for x in range(2, width - 2):
             for y in range(2, height - 2):
