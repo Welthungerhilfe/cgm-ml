@@ -7,3 +7,4 @@ COVID-19 crises after their return (Health, containment, recordkeeping, food, nu
 etc).
 
 Dataset used in the jupyter notebook involved the Panchayat level Survey to find the feature importance for the incidence of covid cases in the panchayat.
+For survey dataset access, you may contact mmatiaschek@childgrowthmonitor.org.
