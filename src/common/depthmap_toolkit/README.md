@@ -44,6 +44,8 @@ In the future we plan to not support PCD files anymore (due to their big size).
 
 ### Visualisation types
 
+![Depthmap toolkit Viz](docs/depthmapToolkitViz.jpg)
+
 The tool generates 5 different visualisations (from left-to-right order):
 * Depth image - this is a most raw visualisation of depthmap
 * World-oriented normals - green value indicates a horizontal surface, blue and red a vertical surface (supported from scan type v1.0)
