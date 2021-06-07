@@ -89,7 +89,8 @@ def process(dir_path: str, depth: str, rgb: str):
     return width, height, depth_scale, max_confidence, data, matrix
 
 
-def get_angle_between_camera_and_floor(width: int, height: int, calibration: List[List[float]], matrix: list):
+def get_angle_between_camera_and_floor(width: int, height: int, calibration: List[List[float]], matrix: list) -> float:
+    """Calculate an angle between camera and floor based on device pose"""
     centerx = float(width / 2)
     centery = float(height / 2)
     vector = utils.convert_2d_to_3d_oriented(calibration[1], centerx, centery, 1.0, width, height, matrix)
@@ -103,7 +104,8 @@ def get_floor_level(width: int,
                     data: bytes,
                     depth_scale: float,
                     max_confidence: float,
-                    matrix: list):
+                    matrix: list) -> float:
+    """Calculate an altitude of the floor in the world coordinates"""
     altitudes = []
     for x in range(width):
         for y in range(height):
