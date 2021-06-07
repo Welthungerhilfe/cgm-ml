@@ -1,9 +1,8 @@
 from pathlib import Path
 import sys
 
-sys.path.append('./src/common/depthmap_toolkit')  # noqa: E402
-
-from utils import parse_calibration
+sys.path.append('./src/common/depthmap_toolkit')
+from utils import parse_calibration  # noqa: E402
 
 TOOLKIT_DIR = Path(__file__).parents[0].absolute()
 
