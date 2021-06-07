@@ -174,52 +174,59 @@ def render_pixel(output: object,
                  matrix: list,
                  floor: float):
     depth = utils.parse_depth(x, y, width, height, data, depth_scale)
-    if (depth):
-        # convert ToF coordinates into RGB coordinates
-        vec = utils.convert_2d_to_3d(calibration[1], x, y, depth, width, height)
-        vec[0] += calibration[2][0]
-        vec[1] += calibration[2][1]
-        vec[2] += calibration[2][2]
-        vec = utils.convert_3d_to_2d(calibration[0], vec[0], vec[1], vec[2], width, height)
+    if not depth:
+        return
 
-        # depth data scaled to be visible
-        output[SUBPLOT_DEPTH * height + x][height - y - 1] = 1.0 - min(depth / 2.0, 1.0)
+    # convert ToF coordinates into RGB coordinates
+    vec = utils.convert_2d_to_3d(calibration[1], x, y, depth, width, height)
+    vec[0] += calibration[2][0]
+    vec[1] += calibration[2][1]
+    vec[2] += calibration[2][2]
+    vec = utils.convert_3d_to_2d(calibration[0], vec[0], vec[1], vec[2], width, height)
 
-        # get 3d point and normal vector
-        point = utils.convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, matrix)
-        normal = utils.calculate_normal_vector(calibration[1], x, y, width, height, data, depth_scale, matrix)
-        output[x][SUBPLOT_NORMAL * height + height - y - 1][0] = abs(normal[0])
-        output[x][SUBPLOT_NORMAL * height + height - y - 1][1] = abs(normal[1])
-        output[x][SUBPLOT_NORMAL * height + height - y - 1][2] = abs(normal[2])
+    # depth data scaled to be visible
+    index = SUBPLOT_DEPTH * height + height - y - 1
+    output[x][index] = 1.0 - min(depth / 2.0, 1.0)
 
-        # world coordinates visualisation
-        horizontal = (point[1] % 0.1) * 10
-        vertical = (point[0] % 0.1) * 5 + (point[2] % 0.1) * 5
-        if abs(normal[1]) < 0.5:
-            output[x][SUBPLOT_SEGMENTATION * height + height - y - 1][0] = horizontal / (depth * depth)
-        if abs(normal[1]) > 0.5:
-            if abs(point[1] - floor) < 0.1:
-                output[x][SUBPLOT_SEGMENTATION * height + height - y - 1][2] = vertical / (depth * depth)
-            else:
-                output[x][SUBPLOT_SEGMENTATION * height + height - y - 1][1] = vertical / (depth * depth)
+    # get 3d point and normal vector
+    point = utils.convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, matrix)
+    normal = utils.calculate_normal_vector(calibration[1], x, y, width, height, data, depth_scale, matrix)
+    index = SUBPLOT_NORMAL * height + height - y - 1
+    output[x][index][0] = abs(normal[0])
+    output[x][index][1] = abs(normal[1])
+    output[x][index][2] = abs(normal[2])
 
-        # confidence value
-        output[x][SUBPLOT_CONFIDENCE * height + height - y
-                  - 1][:] = utils.parse_confidence(x, y, data, max_confidence, width)
-        if output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][0] == 0:
-            output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = 1
+    # world coordinates visualisation
+    horizontal = (point[1] % 0.1) * 10
+    vertical = (point[0] % 0.1) * 5 + (point[2] % 0.1) * 5
+    index = SUBPLOT_SEGMENTATION * height + height - y - 1
+    if abs(normal[1]) < 0.5:
+        output[x][index][0] = horizontal / (depth * depth)
+    if abs(normal[1]) > 0.5:
+        if abs(point[1] - floor) < 0.1:
+            output[x][index][2] = vertical / (depth * depth)
+        else:
+            output[x][index][1] = vertical / (depth * depth)
 
-        # RGB data
-        if 0 < vec[0] < width and 1 < vec[1] < height and HAS_RGB:
-            output[x][SUBPLOT_RGB * height + height - y - 1][0] = IM_ARRAY[int(vec[1])][int(vec[0])][0] / 255.0
-            output[x][SUBPLOT_RGB * height + height - y - 1][1] = IM_ARRAY[int(vec[1])][int(vec[0])][1] / 255.0
-            output[x][SUBPLOT_RGB * height + height - y - 1][2] = IM_ARRAY[int(vec[1])][int(vec[0])][2] / 255.0
+    # confidence value
+    index = SUBPLOT_CONFIDENCE * height + height - y - 1
+    output[x][index][:] = utils.parse_confidence(x, y, data, max_confidence, width)
+    if output[x][index][0] == 0:
+        output[x][index][:] = 1
 
-        # ensure pixel clipping
-        for i in range(SUBPLOT_COUNT):
-            output[x][i * height + height - y - 1][0] = min(max(0, output[x][i * height + height - y - 1][0]), 1)
-            output[x][i * height + height - y - 1][1] = min(max(0, output[x][i * height + height - y - 1][1]), 1)
-            output[x][i * height + height - y - 1][2] = min(max(0, output[x][i * height + height - y - 1][2]), 1)
+    # RGB data
+    index = SUBPLOT_RGB * height + height - y - 1
+    if 0 < vec[0] < width and 1 < vec[1] < height and HAS_RGB:
+        output[x][index][0] = IM_ARRAY[int(vec[1])][int(vec[0])][0] / 255.0
+        output[x][index][1] = IM_ARRAY[int(vec[1])][int(vec[0])][1] / 255.0
+        output[x][index][2] = IM_ARRAY[int(vec[1])][int(vec[0])][2] / 255.0
+
+    # ensure pixel clipping
+    for i in range(SUBPLOT_COUNT):
+        index = i * height + height - y - 1
+        output[x][index][0] = min(max(0, output[x][index][0]), 1)
+        output[x][index][1] = min(max(0, output[x][index][1]), 1)
+        output[x][index][2] = min(max(0, output[x][index][2]), 1)
 
 
 def show_result(width: int,
