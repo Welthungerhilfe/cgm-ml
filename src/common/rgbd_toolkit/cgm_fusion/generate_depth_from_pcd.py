@@ -4,7 +4,10 @@ import logging
 import logging.config
 sys.path.insert(0, "..")
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+# flake8: noqa: E501
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 #from cgm_fusion import calibration

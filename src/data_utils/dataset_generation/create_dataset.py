@@ -51,7 +51,8 @@ if __name__ == "__main__":
     data = dataset.get_all_data()
     scangroup_data = dataset.get_scangroup_data(data=data, scangroup=SCANGROUP)
     scangroup_qrcodes = dataset.get_unique_qrcode(scangroup_data)
-    new_scangroup_data = dataset.get_usable_data(dataframe=scangroup_qrcodes, amount=NUMBER_OF_SCANS, scan_group=SCANGROUP)
+    new_scangroup_data = dataset.get_usable_data(
+        dataframe=scangroup_qrcodes, amount=NUMBER_OF_SCANS, scan_group=SCANGROUP)
 
     full_dataset = dataset.merge_qrcode_dataset(new_scangroup_data, scangroup_data)
     logging.info("Saving the csv file for EDA notebook.")
@@ -86,7 +87,8 @@ if __name__ == "__main__":
             return
         scantype = pcdfile.split('_')[3]
         pickle_file = pcdfile.replace('.pcd', '.p')
-        labels = np.array([data['height'], data['weight'], data['muac'], data['age'], data['sex'], data['tag'], data['scan_group']])
+        labels = np.array([data['height'], data['weight'], data['muac'],
+                          data['age'], data['sex'], data['tag'], data['scan_group']])
         depthmap_target_path = os.path.join(depthmap_path, qrcode)
         depthmap_complete_path = os.path.join(depthmap_target_path, scantype)
         Path(depthmap_complete_path).mkdir(parents=True, exist_ok=True)

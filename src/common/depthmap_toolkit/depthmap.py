@@ -26,10 +26,12 @@ SUBPLOT_RGB = 4
 SUBPLOT_COUNT = 5
 
 
-def export(type: str, filename: str, width: int, height: int, data: bytes, depth_scale: float, calibration: List[List[float]], max_confidence: float, matrix: list):
+def export(type: str, filename: str, width: int, height: int, data: bytes, depth_scale: float,
+           calibration: List[List[float]], max_confidence: float, matrix: list):
     rgb = CURRENT_RGB
     if type == 'obj':
-        utils.export_obj('export/' + filename, rgb, width, height, data, depth_scale, calibration, matrix, triangulate=True)
+        utils.export_obj('export/' + filename, rgb, width, height, data,
+                         depth_scale, calibration, matrix, triangulate=True)
     if type == 'pcd':
         utils.export_pcd('export/' + filename, width, height, data, depth_scale, calibration, max_confidence)
 

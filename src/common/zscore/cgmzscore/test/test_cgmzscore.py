@@ -9,7 +9,8 @@ import pandas as pd
 
 from cgmzscore import Calculator
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 module_dir = str(os.path.split(os.path.abspath(__file__))[0])
 
@@ -21,8 +22,12 @@ df = pd.read_csv(module_dir + '/testdata.csv')
 
 
 def check_null(i, df):
-    return pd.isnull(df.loc[i, 'WEIGHT']) or pd.isnull(df.loc[i, '_agedays']) or pd.isnull(
-        df.loc[i, '_ZWEI']) or df.loc[i, '_agedays'] == 0 or pd.isnull(df.loc[i, '_ZLEN']) or pd.isnull(df.loc[i, '_ZWFL'])
+    return (pd.isnull(df.loc[i, 'WEIGHT'])
+            or pd.isnull(df.loc[i, '_agedays'])
+            or pd.isnull(df.loc[i, '_ZWEI'])
+            or df.loc[i, '_agedays'] == 0
+            or pd.isnull(df.loc[i, '_ZLEN'])
+            or pd.isnull(df.loc[i, '_ZWFL']))
 
 
 def test_zScore_wfa():

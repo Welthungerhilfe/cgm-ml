@@ -5,7 +5,8 @@ import logging.config
 import numpy as np
 import open3d
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 ENABLE_VISUALIZATION = False
 DOWNSAMPLE = True

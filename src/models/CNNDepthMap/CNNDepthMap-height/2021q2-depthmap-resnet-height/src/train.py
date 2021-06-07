@@ -17,7 +17,8 @@ from constants import MODEL_CKPT_FILENAME, REPO_DIR
 from model import create_res_net
 from train_util import copy_dir
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 # Get the current run.
 run = Run.get_context()
@@ -28,7 +29,8 @@ if run.id.startswith("OfflineRun"):
     temp_common_dir = Path(__file__).parent / "temp_common"
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
-from temp_common.model_utils.preprocessing import filter_blacklisted_qrcodes, preprocess_depthmap, preprocess_targets  # noqa: E402
+from temp_common.model_utils.preprocessing import (  # noqa: E402
+    filter_blacklisted_qrcodes, preprocess_depthmap, preprocess_targets)
 from temp_common.model_utils.utils import (  # noqa: E402
     download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, setup_wandb)
 

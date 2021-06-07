@@ -1,8 +1,7 @@
 [flake8]
 ignore =
   W503,  # line break before binary operator. Deactivated because of incompatibility with black
-  E265,  # Block comment should start with '# '
-  E501  # long lines
+  E265   # Block comment should start with '# '
 max_line_length = 120
 import_order_style = appnexus
 application_package_names = src
