@@ -18,6 +18,8 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
+PATTERN_LENGTH_IN_METERS = 0.1
+
 SUBPLOT_DEPTH = 0
 SUBPLOT_NORMAL = 1
 SUBPLOT_SEGMENTATION = 2
@@ -154,7 +156,7 @@ def detect_child(output: object,
         highest = max(highest, point[1])
 
         # fill the pixels with yellow pattern
-        horizontal = ((point[1] - floor) % 0.1) * 10
+        horizontal = ((point[1] - floor) % PATTERN_LENGTH_IN_METERS) / PATTERN_LENGTH_IN_METERS
         output[pixel[0]][SUBPLOT_SEGMENTATION * height + height - pixel[1] - 1][0] = horizontal
         output[pixel[0]][SUBPLOT_SEGMENTATION * height + height - pixel[1] - 1][1] = horizontal
         output[pixel[0]][SUBPLOT_SEGMENTATION * height + height - pixel[1] - 1][2] = 0.1
@@ -197,8 +199,10 @@ def render_pixel(output: object,
     output[x][index][2] = abs(normal[2])
 
     # world coordinates visualisation
-    horizontal = (point[1] % 0.1) * 10
-    vertical = (point[0] % 0.1) * 5 + (point[2] % 0.1) * 5
+    horizontal = (point[1] % PATTERN_LENGTH_IN_METERS) / PATTERN_LENGTH_IN_METERS
+    vertical_x = (point[0] % PATTERN_LENGTH_IN_METERS) / PATTERN_LENGTH_IN_METERS
+    vertical_z = (point[2] % PATTERN_LENGTH_IN_METERS) / PATTERN_LENGTH_IN_METERS
+    vertical = (vertical_x + vertical_z) / 2.0
     index = SUBPLOT_SEGMENTATION * height + height - y - 1
     if abs(normal[1]) < 0.5:
         output[x][index][0] = horizontal / (depth * depth)
