@@ -157,9 +157,9 @@ def detect_child(output: object,
 
         # fill the pixels with yellow pattern
         horizontal = ((point[1] - floor) % PATTERN_LENGTH_IN_METERS) / PATTERN_LENGTH_IN_METERS
-        output[pixel[0]][SUBPLOT_SEGMENTATION * height + height - pixel[1] - 1][0] = horizontal
-        output[pixel[0]][SUBPLOT_SEGMENTATION * height + height - pixel[1] - 1][1] = horizontal
-        output[pixel[0]][SUBPLOT_SEGMENTATION * height + height - pixel[1] - 1][2] = 0.1
+        output[pixel[0]][index][0] = horizontal
+        output[pixel[0]][index][1] = horizontal
+        output[pixel[0]][index][2] = 0.1
 
     return highest
 
