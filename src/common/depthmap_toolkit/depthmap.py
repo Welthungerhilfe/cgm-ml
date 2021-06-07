@@ -134,7 +134,7 @@ def detect_child(output: object,
     dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]]
     pixel = [int(width / 2), int(height / 2)]
     stack = [pixel]
-    while (len(stack) > 0):
+    while len(stack) > 0:
 
         # get a next pixel from the stack
         pixel = stack.pop()
