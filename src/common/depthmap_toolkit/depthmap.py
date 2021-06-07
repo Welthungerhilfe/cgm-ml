@@ -109,53 +109,11 @@ def get_floor_level(width: int,
     altitudes = []
     for x in range(width):
         for y in range(height):
-            depth = utils.parse_depth(x, y, width, height, data, depth_scale)
-            v = utils.convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, matrix)
-            xm = utils.convert_2d_to_3d_oriented(
-                calibration[1],
-                x - 1,
-                y,
-                utils.parse_depth_smoothed(
-                    x - 1,
-                    y,
-                    width,
-                    height,
-                    data,
-                    depth_scale),
-                width,
-                height,
-                matrix)
-            xp = utils.convert_2d_to_3d_oriented(
-                calibration[1],
-                x + 1,
-                y,
-                utils.parse_depth_smoothed(
-                    x + 1,
-                    y,
-                    width,
-                    height,
-                    data,
-                    depth_scale),
-                width,
-                height,
-                matrix)
-            yp = utils.convert_2d_to_3d_oriented(
-                calibration[1],
-                x,
-                y + 1,
-                utils.parse_depth_smoothed(
-                    x,
-                    y + 1,
-                    width,
-                    height,
-                    data,
-                    depth_scale),
-                width,
-                height,
-                matrix)
-            n = utils.norm(utils.cross(utils.diff(yp, xm), utils.diff(yp, xp)))
-            if abs(n[1]) > 0.5:
-                altitudes.append(v[1])
+            normal = utils.calculate_normal_vector(calibration[1], x, y, width, height, data, depth_scale, matrix)
+            if abs(normal[1]) > 0.5:
+                depth = utils.parse_depth(x, y, width, height, data, depth_scale)
+                point = utils.convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, matrix)
+                altitudes.append(point[1])
     return statistics.median(altitudes)
 
 
@@ -182,62 +140,20 @@ def render_pixel(output: object,
         # depth data scaled to be visible
         output[SUBPLOT_DEPTH * height + x][height - y - 1] = 1.0 - min(depth / 2.0, 1.0)
 
-        # depth data normal
-        v = utils.convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, matrix)
-        xm = utils.convert_2d_to_3d_oriented(
-            calibration[1],
-            x - 1,
-            y,
-            utils.parse_depth_smoothed(
-                x - 1,
-                y,
-                width,
-                height,
-                data,
-                depth_scale),
-            width,
-            height,
-            matrix)
-        xp = utils.convert_2d_to_3d_oriented(
-            calibration[1],
-            x + 1,
-            y,
-            utils.parse_depth_smoothed(
-                x + 1,
-                y,
-                width,
-                height,
-                data,
-                depth_scale),
-            width,
-            height,
-            matrix)
-        yp = utils.convert_2d_to_3d_oriented(
-            calibration[1],
-            x,
-            y + 1,
-            utils.parse_depth_smoothed(
-                x,
-                y + 1,
-                width,
-                height,
-                data,
-                depth_scale),
-            width,
-            height,
-            matrix)
-        n = utils.norm(utils.cross(utils.diff(yp, xm), utils.diff(yp, xp)))
-        output[x][SUBPLOT_NORMAL * height + height - y - 1][0] = abs(n[0])
-        output[x][SUBPLOT_NORMAL * height + height - y - 1][1] = abs(n[1])
-        output[x][SUBPLOT_NORMAL * height + height - y - 1][2] = abs(n[2])
+        # get 3d point and normal vector
+        point = utils.convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, matrix)
+        normal = utils.calculate_normal_vector(calibration[1], x, y, width, height, data, depth_scale, matrix)
+        output[x][SUBPLOT_NORMAL * height + height - y - 1][0] = abs(normal[0])
+        output[x][SUBPLOT_NORMAL * height + height - y - 1][1] = abs(normal[1])
+        output[x][SUBPLOT_NORMAL * height + height - y - 1][2] = abs(normal[2])
 
         # world coordinates visualisation
-        horizontal = (v[1] % 0.1) * 10
-        vertical = (v[0] % 0.1) * 5 + (v[2] % 0.1) * 5
-        if abs(n[1]) < 0.5:
+        horizontal = (point[1] % 0.1) * 10
+        vertical = (point[0] % 0.1) * 5 + (point[2] % 0.1) * 5
+        if abs(normal[1]) < 0.5:
             output[x][SUBPLOT_SEGMENTATION * height + height - y - 1][0] = horizontal / (depth * depth)
-        if abs(n[1]) > 0.5:
-            if abs(v[1] - floor) < 0.1:
+        if abs(normal[1]) > 0.5:
+            if abs(point[1] - floor) < 0.1:
                 output[x][SUBPLOT_SEGMENTATION * height + height - y - 1][2] = vertical / (depth * depth)
             else:
                 output[x][SUBPLOT_SEGMENTATION * height + height - y - 1][1] = vertical / (depth * depth)

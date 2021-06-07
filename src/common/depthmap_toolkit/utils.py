@@ -85,6 +85,29 @@ def matrix_transform_point(point: list, matrix: list) -> list:
     return output
 
 
+def calculate_normal_vector(intrisics: list, x: float, y: float, width: int, height: int,
+                            data: bytes, depth_scale: float, matrix: list) -> list:
+    """Calculate normal vector of depthmap point based on neightbors"""
+
+    # Get depth of the neightbor pixels
+    depth_center = parse_depth_smoothed(x, y, width, height, data, depth_scale)
+    depth_x_minus = parse_depth_smoothed(x - 1, y, width, height, data, depth_scale)
+    depth_y_minus = parse_depth_smoothed(x, y - 1, width, height, data, depth_scale)
+
+    # Create a triangle from neighbor points
+    point_a = convert_2d_to_3d_oriented(intrisics, x, y, depth_center, width, height, matrix)
+    point_b = convert_2d_to_3d_oriented(intrisics, x - 1, y, depth_x_minus, width, height, matrix)
+    point_c = convert_2d_to_3d_oriented(intrisics, x, y - 1, depth_y_minus, width, height, matrix)
+
+    # Calculate a normal of the triangle
+    vector_u = diff(point_a, point_b)
+    vector_v = diff(point_a, point_c)
+    normal = cross(vector_u, vector_v)
+
+    # Ensure the normal has a length of one
+    return norm(normal)
+
+
 def convert_2d_to_3d(intrisics: list, x: float, y: float, z: float, width: int, height: int) -> list:
     """Convert point in pixels into point in meters"""
     fx = intrisics[0] * float(width)
