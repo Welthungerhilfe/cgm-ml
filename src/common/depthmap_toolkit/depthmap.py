@@ -150,8 +150,7 @@ def detect_child(output: object,
 
         # update the highest point
         point = utils.convert_2d_to_3d_oriented(calibration[1], pixel[0], pixel[1], depth_center, width, height, matrix)
-        if highest < point[1]:
-            highest = point[1]
+        highest = max(highest, point[1])
 
         # fill the pixels with yellow pattern
         horizontal = ((point[1] - floor) % 0.1) * 10
