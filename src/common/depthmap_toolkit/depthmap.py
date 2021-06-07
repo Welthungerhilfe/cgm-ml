@@ -116,6 +116,7 @@ def get_floor_level(width: int,
                 altitudes.append(point[1])
     return statistics.median(altitudes)
 
+
 def detect_child(output: object,
                  x: int,
                  y: int,
@@ -159,6 +160,7 @@ def detect_child(output: object,
         output[pixel[0]][SUBPLOT_SEGMENTATION * height + height - pixel[1] - 1][2] = 0.1
 
     return highest
+
 
 def render_pixel(output: object,
                  x: int,
