@@ -143,8 +143,8 @@ def detect_child(output: object,
         # add neighbor points (if there is no floor and they are connected)
         index = SUBPLOT_SEGMENTATION * height + height - pixel[1] - 1
         if output[pixel[0]][index][2] < 0.1:
-            for dir in dirs:
-                pixel_dir = [pixel[0] + dir[0], pixel[1] + dir[1]]
+            for direction in dirs:
+                pixel_dir = [pixel[0] + direction[0], pixel[1] + direction[1]]
                 depth_dir = utils.parse_depth(pixel_dir[0], pixel_dir[1], width, height, data, depth_scale)
                 if depth_dir > 0 and (depth_dir - depth_center) < 0.1:
                     stack.append(pixel_dir)
