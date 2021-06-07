@@ -116,6 +116,49 @@ def get_floor_level(width: int,
                 altitudes.append(point[1])
     return statistics.median(altitudes)
 
+def detect_child(output: object,
+                 x: int,
+                 y: int,
+                 width: int,
+                 height: int,
+                 calibration: List[List[float]],
+                 data: bytes,
+                 depth_scale: float,
+                 max_confidence: float,
+                 matrix: list,
+                 floor: float) -> float:
+
+    # highlight the focused child/object using seed algorithm
+    highest = floor
+    dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]]
+    pixel = [int(width / 2), int(height / 2)]
+    stack = [pixel]
+    while (len(stack) > 0):
+
+        # get a next pixel from the stack
+        pixel = stack.pop()
+        depth_center = utils.parse_depth(pixel[0], pixel[1], width, height, data, depth_scale)
+
+        # add neighbor points (if there is no floor and they are connected)
+        if output[pixel[0]][SUBPLOT_SEGMENTATION * height + height - pixel[1] - 1][2] < 0.1:
+            for dir in dirs:
+                pixel_dir = [pixel[0] + dir[0], pixel[1] + dir[1]]
+                depth_dir = utils.parse_depth(pixel_dir[0], pixel_dir[1], width, height, data, depth_scale)
+                if depth_dir > 0 and (depth_dir - depth_center) < 0.1:
+                    stack.append(pixel_dir)
+
+        # update the highest point
+        point = utils.convert_2d_to_3d_oriented(calibration[1], pixel[0], pixel[1], depth_center, width, height, matrix)
+        if highest < point[1]:
+            highest = point[1]
+
+        # fill the pixels with yellow pattern
+        horizontal = ((point[1] - floor) % 0.1) * 10
+        output[pixel[0]][SUBPLOT_SEGMENTATION * height + height - pixel[1] - 1][0] = horizontal
+        output[pixel[0]][SUBPLOT_SEGMENTATION * height + height - pixel[1] - 1][1] = horizontal
+        output[pixel[0]][SUBPLOT_SEGMENTATION * height + height - pixel[1] - 1][2] = 0.1
+
+    return highest
 
 def render_pixel(output: object,
                  x: int,
@@ -195,34 +238,13 @@ def show_result(width: int,
             depth_scale=depth_scale,
             calibration=calibration))
 
+    # render the visualisations
     floor = get_floor_level(width, height, calibration, data, depth_scale, max_confidence, matrix)
     output = np.zeros((width, height * SUBPLOT_COUNT, 3))
     for x in range(width):
         for y in range(height):
             render_pixel(output, x, y, width, height, calibration, data, depth_scale, max_confidence, matrix, floor)
-
-    # highlight the focused child/object using seed algorithm
-    highest = floor
-    dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]]
-    stack = []
-    p = [int(width / 2), int(height / 2)]
-    stack.append(p)
-    while (len(stack) > 0):
-        p = stack.pop()
-        depth = utils.parse_depth(p[0], p[1], width, height, data, depth_scale)
-        if output[p[0]][SUBPLOT_SEGMENTATION * height + height - p[1] - 1][2] < 0.1:
-            for dir in dirs:
-                t = [p[0] + dir[0], p[1] + dir[1]]
-                d = utils.parse_depth(t[0], t[1], width, height, data, depth_scale)
-                if d > 0 and (d - depth) < 0.1:
-                    stack.append(t)
-        v = utils.convert_2d_to_3d_oriented(calibration[1], p[0], p[1], depth, width, height, matrix)
-        if highest < v[1]:
-            highest = v[1]
-        horizontal = ((v[1] - floor) % 0.1) * 10
-        output[p[0]][SUBPLOT_SEGMENTATION * height + height - p[1] - 1][0] = horizontal
-        output[p[0]][SUBPLOT_SEGMENTATION * height + height - p[1] - 1][1] = horizontal
-        output[p[0]][SUBPLOT_SEGMENTATION * height + height - p[1] - 1][2] = 0.1
+    highest = detect_child(output, x, y, width, height, calibration, data, depth_scale, max_confidence, matrix, floor)
 
     logging.info('height=%fm', highest - floor)
     plt.imshow(output)
