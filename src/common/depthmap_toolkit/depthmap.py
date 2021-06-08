@@ -1,3 +1,4 @@
+from os import stat
 import zipfile
 import logging
 import logging.config
@@ -9,7 +10,7 @@ from PIL import Image
 from pathlib import Path
 import functools
 import statistics
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import utils
 import constants
@@ -62,44 +63,80 @@ def onclick(event, width: int, height: int, data: bytes, depth_scale: float, cal
             logging.info('no valid data')
 
 
+TOOLKIT_DIR = Path(__file__).parents[0].absolute()
+
+
 def extract_depthmap(depthmap_dir: str, depthmap_fname: str):
     """Extract depthmap from given file"""
     with zipfile.ZipFile(Path(depthmap_dir) / 'depth' / depthmap_fname, 'r') as zip_ref:
-        zip_ref.extractall('.')
+        zip_ref.extractall(TOOLKIT_DIR)
+    return TOOLKIT_DIR / constants.EXTRACTED_DEPTH_FILE_NAME
 
-
-def process(depthmap_dir: str,
-            depthmap_fname: str,
-            rgb_fname: str) -> Tuple[bytes, int, int, float, float, list]:
-    """Process depthmap
-
+class Depthmap:  # Artifact
+    """Depthmap
     Args:
-        depthmap_dir: depthmap_dir
-        depthmap_fname: Example: depth_dog_1622182020448_100_234.depth
-        rgb_fname: Example: rgb_dog_1622182020448_100_234.jpg
-
-    Returns:
-        width, height, depth_scale, max_confidence, data, matrix
+        intrinsics ([np.array]): Camera intrinsics
+        width ([int]): Width of the depthmap
+        height ([int]): Height of the depthmap
+        depth_scale: it's in the header of a depthmap file
+        pixel_data ([bytes]): data
+        matrix ([type]): not in header
+                - position and rotation of the pose
+                - pose in different format
     """
-    extract_depthmap(depthmap_dir, depthmap_fname)
+    def __init__(self, intrinsics, width, height, pixel_data):
+        self.intrinsics = intrinsics
+        self.width = width
+        self.height = height
+        self.pixel_data = pixel_data
 
-    data, width, height, depth_scale, max_confidence, matrix = utils.parse_data(constants.EXTRACTED_DEPTH_FILE_NAME)
+    @classmethod
+    def create_from_file(cls,
+                         depthmap_dir: str,
+                         depthmap_fname: str,
+                         rgb_fname: str):
+        width, height, depth_scale, max_confidence, data, matrix = cls.read_file(depthmap_dir, depthmap_fname, rgb_fname)
 
-    # read rgb data
-    global CURRENT_RGB
-    global HAS_RGB
-    global IM_ARRAY
-    if rgb_fname:
-        CURRENT_RGB = depthmap_dir + '/rgb/' + rgb_fname
-        HAS_RGB = 1
-        pil_im = Image.open(CURRENT_RGB)
-        pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
-        IM_ARRAY = np.asarray(pil_im)
-    else:
-        CURRENT_RGB = rgb_fname
-        HAS_RGB = 0
+        # calibration / intrinsics
+        calibration_path = depthmap_dir + '/camera_calibration.txt'  # TODO make work for Lenovo  # get_calibration_from_..
+        intrinsics = utils.parse_calibration(calibration_path)
 
-    return width, height, depth_scale, max_confidence, data, matrix
+        return cls(intrinsics, width, height, pixel_data=data)
+
+    @classmethod
+    def read_file(cls,
+                  depthmap_dir: str,
+                  depthmap_fname: str,
+                  rgb_fname: str) -> Tuple[int, int, float, float, bytes, list]:
+        """Process depthmap
+
+        Args:
+            depthmap_dir: depthmap_dir
+            depthmap_fname: Example: depth_dog_1622182020448_100_234.depth
+            rgb_fname: Example: rgb_dog_1622182020448_100_234.jpg
+
+        Returns:
+            width, height, depth_scale, max_confidence, data, matrix
+        """
+        path = extract_depthmap(depthmap_dir, depthmap_fname)
+
+        data, width, height, depth_scale, max_confidence, matrix = utils.parse_data(path)
+
+        # read rgb data
+        global CURRENT_RGB
+        global HAS_RGB
+        global IM_ARRAY
+        if rgb_fname:
+            CURRENT_RGB = depthmap_dir + '/rgb/' + rgb_fname
+            HAS_RGB = 1
+            pil_im = Image.open(CURRENT_RGB)
+            pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
+            IM_ARRAY = np.asarray(pil_im)
+        else:
+            CURRENT_RGB = rgb_fname
+            HAS_RGB = 0
+
+        return width, height, depth_scale, max_confidence, data, matrix
 
 
 def get_angle_between_camera_and_floor(width: int, height: int, calibration: List[List[float]], matrix: list) -> float:
