@@ -29,16 +29,6 @@ SUBPLOT_RGB = 4
 SUBPLOT_COUNT = 5
 
 
-def export(type: str, filename: str, width: int, height: int, data: bytes, depth_scale: float,
-           calibration: List[List[float]], max_confidence: float, matrix: list):
-    rgb = CURRENT_RGB
-    if type == 'obj':
-        utils.export_obj('export/' + filename, rgb, width, height, data,
-                         depth_scale, calibration, matrix, triangulate=True)
-    if type == 'pcd':
-        utils.export_pcd('export/' + filename, width, height, data, depth_scale, calibration, max_confidence)
-
-
 # click on data
 last = [0, 0, 0]
 
@@ -79,16 +69,19 @@ class Depthmap:  # Artifact
         width ([int]): Width of the depthmap
         height ([int]): Height of the depthmap
         depth_scale: it's in the header of a depthmap file
-        pixel_data ([bytes]): data
+        data ([bytes]): data TODO rename
         matrix ([type]): not in header
                 - position and rotation of the pose
                 - pose in different format
     """
-    def __init__(self, intrinsics, width, height, pixel_data):
+    def __init__(self, intrinsics, width, height, data, depth_scale, max_confidence, matrix):
         self.intrinsics = intrinsics
         self.width = width
         self.height = height
-        self.pixel_data = pixel_data
+        self.data = data
+        self.depth_scale = depth_scale
+        self.max_confidence = max_confidence
+        self.matrix = matrix
 
     @classmethod
     def create_from_file(cls,
@@ -101,7 +94,14 @@ class Depthmap:  # Artifact
         calibration_path = depthmap_dir + '/camera_calibration.txt'  # TODO make work for Lenovo  # get_calibration_from_..
         intrinsics = utils.parse_calibration(calibration_path)
 
-        return cls(intrinsics, width, height, pixel_data=data)
+        return cls(intrinsics,
+                   width,
+                   height,
+                   data,
+                   depth_scale,
+                   max_confidence,
+                   matrix,
+        )
 
     @classmethod
     def read_file(cls,
@@ -139,13 +139,65 @@ class Depthmap:  # Artifact
         return width, height, depth_scale, max_confidence, data, matrix
 
 
-def get_angle_between_camera_and_floor(width: int, height: int, calibration: List[List[float]], matrix: list) -> float:
-    """Calculate an angle between camera and floor based on device pose"""
-    centerx = float(width / 2)
-    centery = float(height / 2)
-    vector = utils.convert_2d_to_3d_oriented(calibration[1], centerx, centery, 1.0, width, height, matrix)
-    angle = 90 + math.degrees(math.atan2(vector[0], vector[1]))
-    return angle
+    def get_angle_between_camera_and_floor(self) -> float:
+        """Calculate an angle between camera and floor based on device pose"""
+        width = self.width
+        height = self.height
+        calibration = self.intrinsics
+        matrix = self.matrix
+
+        centerx = float(width / 2)
+        centery = float(height / 2)
+        vector = utils.convert_2d_to_3d_oriented(calibration[1], centerx, centery, 1.0, width, height, matrix)
+        angle = 90 + math.degrees(math.atan2(vector[0], vector[1]))
+        return angle
+
+    def export(self, type: str, filename: str):
+        data = self.data
+        width = self.width
+        height = self.height
+        depth_scale = self.depth_scale
+        calibration = self.intrinsics
+        max_confidence = self.max_confidence
+        matrix = self.matrix
+
+        rgb = CURRENT_RGB
+        if type == 'obj':
+            utils.export_obj('export/' + filename, rgb, width, height, data,
+                            depth_scale, calibration, matrix, triangulate=True)
+        if type == 'pcd':
+            utils.export_pcd('export/' + filename, width, height, data, depth_scale, calibration, max_confidence)
+
+    def show_result(self):
+        data = self.data
+        width = self.width
+        height = self.height
+        depth_scale = self.depth_scale
+        calibration = self.intrinsics
+        max_confidence = self.max_confidence
+        matrix = self.matrix
+
+        fig = plt.figure()
+        fig.canvas.mpl_connect(
+            'button_press_event',
+            functools.partial(
+                onclick,
+                width=width,
+                height=height,
+                data=data,
+                depth_scale=depth_scale,
+                calibration=calibration))
+
+        # render the visualisations
+        floor = get_floor_level(width, height, calibration, data, depth_scale, max_confidence, matrix)
+        output = np.zeros((width, height * SUBPLOT_COUNT, 3))
+        for x in range(width):
+            for y in range(height):
+                render_pixel(output, x, y, width, height, calibration, data, depth_scale, max_confidence, matrix, floor)
+        highest = detect_child(output, x, y, width, height, calibration, data, depth_scale, max_confidence, matrix, floor)
+
+        logging.info('height=%fm', highest - floor)
+        plt.imshow(output)
 
 
 def get_floor_level(width: int,
@@ -279,33 +331,3 @@ def render_pixel(output: object,
         output[x][index][0] = min(max(0, output[x][index][0]), 1)
         output[x][index][1] = min(max(0, output[x][index][1]), 1)
         output[x][index][2] = min(max(0, output[x][index][2]), 1)
-
-
-def show_result(width: int,
-                height: int,
-                calibration: List[List[float]],
-                data: bytes,
-                depth_scale: float,
-                max_confidence: float,
-                matrix: list):
-    fig = plt.figure()
-    fig.canvas.mpl_connect(
-        'button_press_event',
-        functools.partial(
-            onclick,
-            width=width,
-            height=height,
-            data=data,
-            depth_scale=depth_scale,
-            calibration=calibration))
-
-    # render the visualisations
-    floor = get_floor_level(width, height, calibration, data, depth_scale, max_confidence, matrix)
-    output = np.zeros((width, height * SUBPLOT_COUNT, 3))
-    for x in range(width):
-        for y in range(height):
-            render_pixel(output, x, y, width, height, calibration, data, depth_scale, max_confidence, matrix, floor)
-    highest = detect_child(output, x, y, width, height, calibration, data, depth_scale, max_confidence, matrix, floor)
-
-    logging.info('height=%fm', highest - floor)
-    plt.imshow(output)

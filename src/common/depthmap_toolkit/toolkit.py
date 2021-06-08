@@ -19,51 +19,42 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
-def export_obj(event,
-               width: int,
-               height: int,
-               data: bytes,
-               depth_scale: float,
-               calibration: List[List[float]],
-               max_confidence: float,
-               matrix: list,
-               ):
+def export_obj(event, dmap):
     fname = f'output{index}.obj'
-    depthmap.export('obj', fname, width, height, data, depth_scale, calibration, max_confidence, matrix)
+    dmap.export('obj', fname)
 
 
-def export_pcd(event, width: int, height: int, data: bytes, depth_scale: float,
-               calibration: List[List[float]], max_confidence: float, matrix: list):
+def export_pcd(event, dmap):
     fname = f'output{index}.pcd'
-    depthmap.export('pcd', fname, width, height, data, depth_scale, calibration, max_confidence, matrix)
+    dmap.export('pcd', fname)
 
 
-def next(event, calibration: List[List[float]], depthmap_dir: str):
+def next(event, calibration_file: str, depthmap_dir: str):
     plt.close()
     global index
     index = index + 1
     if (index == size):
         index = 0
-    show(depthmap_dir, calibration)
+    show(depthmap_dir, calibration_file)
 
 
-def prev(event, calibration: List[List[float]], depthmap_dir: str):
+def prev(event, calibration_file: str, depthmap_dir: str):
     plt.close()
     global index
     index = index - 1
     if (index == -1):
         index = size - 1
-    show(depthmap_dir, calibration)
+    show(depthmap_dir, calibration_file)
 
 
-def show(depthmap_dir: str, calibration: List[List[float]]):
+def show(depthmap_dir: str, calibration_file: str):
     rgb_filename = rgb_filenames[index] if rgb_filenames else 0
-    width, height, depth_scale, max_confidence, data, matrix = depthmap.process(
-        depthmap_dir, depth_filenames[index], rgb_filename)
-    angle = depthmap.get_angle_between_camera_and_floor(width, height, calibration, matrix)
+    dmap = depthmap.Depthmap.create_from_file(depthmap_dir, depth_filenames[index], rgb_filename)
+
+    angle = dmap.get_angle_between_camera_and_floor()
     logging.info('angle between camera and floor is %f', angle)
 
-    depthmap.show_result(width, height, calibration, data, depth_scale, max_confidence, matrix)
+    dmap.show_result()
     ax = plt.gca()
     ax.text(
         0.5,
@@ -73,31 +64,17 @@ def show(depthmap_dir: str, calibration: List[List[float]]):
         verticalalignment='center',
         transform=ax.transAxes)
     bprev = Button(plt.axes([0.0, 0.0, 0.1, 0.075]), '<<', color='gray')
-    bprev.on_clicked(functools.partial(prev, calibration=calibration, depthmap_dir=depthmap_dir))
+    bprev.on_clicked(functools.partial(prev, calibration_file=calibration_file, depthmap_dir=depthmap_dir))
     bnext = Button(plt.axes([0.9, 0.0, 0.1, 0.075]), '>>', color='gray')
-    bnext.on_clicked(functools.partial(next, calibration=calibration, depthmap_dir=depthmap_dir))
+    bnext.on_clicked(functools.partial(next, calibration_file=calibration_file, depthmap_dir=depthmap_dir))
     bexport_obj = Button(plt.axes([0.3, 0.0, 0.2, 0.05]), 'Export OBJ', color='gray')
     bexport_obj.on_clicked(
         functools.partial(
-            export_obj,
-            width=width,
-            height=height,
-            data=data,
-            depth_scale=depth_scale,
-            calibration=calibration,
-            max_confidence=max_confidence,
-            matrix=matrix))
+            export_obj, dmap))
     bexport_pcd = Button(plt.axes([0.5, 0.0, 0.2, 0.05]), 'Export PCD', color='gray')
     bexport_pcd.on_clicked(
         functools.partial(
-            export_pcd,
-            width=width,
-            height=height,
-            data=data,
-            depth_scale=depth_scale,
-            calibration=calibration,
-            max_confidence=max_confidence,
-            matrix=matrix))
+            export_pcd, dmap))
     plt.show()
 
 
@@ -121,7 +98,7 @@ if __name__ == "__main__":
         rgb_filenames.extend(filenames)
     rgb_filenames.sort()
 
-    calibration = utils.parse_calibration(calibration_file)
+    # calibration = utils.parse_calibration(calibration_file)
 
     # Clear export folder
     try:
@@ -133,4 +110,4 @@ if __name__ == "__main__":
     # Show viewer
     index = 0
     size = len(depth_filenames)
-    show(depthmap_dir, calibration)
+    show(depthmap_dir, calibration_file)
