@@ -18,6 +18,12 @@ def test_depthmap():
     assert depthmap.width == 240
     assert depthmap.height == 180
 
+    expected = [
+        [0.6786797, 0.90489584, 0.49585155, 0.5035042],
+        [0.6786797, 0.90489584, 0.49585155, 0.5035042],
+    ]
+    assert depthmap.intrinsics == expected
+
 
 if __name__ == '__main__':
     test_depthmap()
