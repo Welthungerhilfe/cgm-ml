@@ -124,12 +124,14 @@ class Calculator(object):
     def zScore_wfl(self, weight=None, muac=None, age_in_days=None, sex=None, height=None):
         if D(age_in_days) > 731:
             return self.zScore_wfh(weight, muac, age_in_days, sex, height)
-        return self.z_score_measurement('wfl', weight=weight, muac=None, age_in_days=age_in_days, sex=sex, height=height)
+        return self.z_score_measurement('wfl', weight=weight, muac=None,
+                                        age_in_days=age_in_days, sex=sex, height=height)
 
     def zScore_wfh(self, weight=None, muac=None, age_in_days=None, sex=None, height=None):
         if D(age_in_days) <= 731:
             return self.zScore_wfl(weight, muac, age_in_days, sex, height)
-        return self.z_score_measurement('wfh', weight=weight, muac=None, age_in_days=age_in_days, sex=sex, height=height)
+        return self.z_score_measurement('wfh', weight=weight, muac=None,
+                                        age_in_days=age_in_days, sex=sex, height=height)
 
     def zScore_lhfa(self, weight=None, muac=None, age_in_days=None, sex=None, height=None):
         return self.z_score_measurement('lhfa', weight=None, muac=None, age_in_days=age_in_days, sex=sex, height=height)

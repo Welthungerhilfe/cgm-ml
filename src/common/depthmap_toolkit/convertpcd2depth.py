@@ -7,7 +7,8 @@ import logging.config
 import pcd2depth
 import utils
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 if __name__ == "__main__":
@@ -23,7 +24,7 @@ if __name__ == "__main__":
 
     depth_filenames = []
     for (dirpath, dirnames, filenames) in os.walk(pcd_dir):
-        depth_filenames = filenames
+        depth_filenames.extend(filenames)
     depth_filenames.sort()
     try:
         shutil.rmtree('output')
@@ -31,6 +32,7 @@ if __name__ == "__main__":
         print('no previous data to delete')
     os.makedirs('output/depth')
 
+    # works for lenovo
     width = int(240 * 0.75)
     height = int(180 * 0.75)
 

@@ -7,7 +7,8 @@ import logging.config
 import depthmap
 import utils
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 if __name__ == "__main__":
@@ -23,7 +24,7 @@ if __name__ == "__main__":
 
     depth_filenames = []
     for (dirpath, dirnames, filenames) in os.walk(depthmap_dir + '/depth'):
-        depth_filenames = filenames
+        depth_filenames.extend(filenames)
     depth_filenames.sort()
     try:
         shutil.rmtree('export')

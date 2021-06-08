@@ -60,10 +60,11 @@ from temp_common.evaluation.eval_utilities import (  # noqa: E402, F401
     calculate_performance_age, calculate_performance_goodbad,
     calculate_performance_sex, download_dataset, draw_age_scatterplot,
     draw_stunting_diagnosis, draw_uncertainty_goodbad_plot,
-    draw_uncertainty_scatterplot, draw_wasting_diagnosis, filter_dataset_according_to_standing_lying, get_column_list, get_dataset_path,
+    draw_uncertainty_scatterplot, draw_wasting_diagnosis, filter_dataset_according_to_standing_lying,
+    get_column_list, get_dataset_path,
     get_depthmap_files, get_model_path)
-from temp_common.evaluation.uncertainty_utils import (  # noqa: E402, F401
-    get_prediction_uncertainty, get_prediction_uncertainty_deepensemble)
+from temp_common.evaluation.uncertainty_utils import \
+    get_prediction_uncertainty_deepensemble  # noqa: E402, F401
 from temp_common.model_utils.preprocessing_multiartifact_python import \
     create_multiartifact_paths_for_qrcodes  # noqa: E402, F401
 from temp_common.model_utils.preprocessing_multiartifact_tensorflow import \
@@ -77,9 +78,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--qa_config_module", default=DEFAULT_CONFIG, help="Configuration file")
     args = parser.parse_args()
-    qa_config = import_module(args.qa_config_module)
+    qa_config_module = args.qa_config_module
+    qa_config = import_module(qa_config_module)
 else:
-    qa_config = import_module(DEFAULT_CONFIG)
+    qa_config_module = DEFAULT_CONFIG
+    qa_config = import_module(qa_config_module)
+logging.info('Using the following config: %s', qa_config_module)
 
 
 MODEL_CONFIG = qa_config.MODEL_CONFIG
@@ -91,7 +95,7 @@ FILTER_CONFIG = qa_config.FILTER_CONFIG if getattr(qa_config, 'FILTER_CONFIG', F
 
 RUN_ID = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else None
 RUN_IDS = MODEL_CONFIG.RUN_IDS if getattr(MODEL_CONFIG, 'RUN_IDS', False) else None
-assert bool(RUN_ID) != bool(RUN_IDS)
+assert bool(RUN_ID) != bool(RUN_IDS), 'RUN_ID xor RUN_IDS needs to be defined'
 
 # Function for loading and processing depthmaps.
 
@@ -198,7 +202,7 @@ if __name__ == "__main__":
     OUTPUT_CSV_PATH = str(REPO_DIR / 'data'
                           / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
     if RUN_ID is not None:
-        MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if run.id.startswith("OfflineRun") else Path('.')
+        MODEL_BASE_DIR = REPO_DIR / 'data' / RUN_ID if run.id.startswith("OfflineRun") else Path('.')
     if RUN_IDS is not None:
         MODEL_BASE_DIR = REPO_DIR / 'data' / \
             MODEL_CONFIG.EXPERIMENT_NAME if run.id.startswith("OfflineRun") else Path('.')
@@ -233,14 +237,14 @@ if __name__ == "__main__":
         download_dataset(workspace, dataset_name, dataset_path)
 
     if RUN_IDS is not None:
-        for id in RUN_IDS:
-            logging.info(f"Downloading run {id}")
+        for run_id in RUN_IDS:
+            logging.info(f"Downloading run {run_id}")
             download_model(
                 workspace=workspace,
                 experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
-                run_id=id,
+                run_id=run_id,
                 input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
-                output_location=MODEL_BASE_DIR / id
+                output_location=MODEL_BASE_DIR / run_id
             )
 
         model_paths = glob.glob(os.path.join(MODEL_BASE_DIR, "*"))
@@ -356,36 +360,39 @@ if __name__ == "__main__":
 
     df_grouped['error'] = df_grouped.apply(avgerror, axis=1)
 
-    if RUN_ID is None:
-        RUN_ID = MODEL_CONFIG.EXPERIMENT_NAME
+    descriptor = RUN_ID if RUN_ID else MODEL_CONFIG.EXPERIMENT_NAME
 
-    csv_fpath = f"{OUTPUT_CSV_PATH}/{RUN_ID}.csv"
+    csv_fpath = f"{OUTPUT_CSV_PATH}/{descriptor}.csv"
     logging.info("Calculate and save the results to %s", csv_fpath)
     calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
                                DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 
-    sample_csv_fpath = f"{OUTPUT_CSV_PATH}/inaccurate_scans_{RUN_ID}.csv"
+    sample_csv_fpath = f"{OUTPUT_CSV_PATH}/inaccurate_scans_{descriptor}.csv"
     df_grouped.to_csv(sample_csv_fpath, index=True)
 
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
-        csv_fpath = f"{OUTPUT_CSV_PATH}/age_evaluation_{RUN_ID}.csv"
+        csv_fpath = f"{OUTPUT_CSV_PATH}/age_evaluation_{descriptor}.csv"
         logging.info("Calculate and save age results to %s", csv_fpath)
         calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
                                    DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
-        png_fpath = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{RUN_ID}.png"
+        png_fpath = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{descriptor}.png"
         logging.info("Calculate and save scatterplot results to %s", png_fpath)
         draw_age_scatterplot(df, png_fpath)
 
-    if HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and AGE_IDX in DATA_CONFIG.TARGET_INDEXES and RUN_ID != MODEL_CONFIG.EXPERIMENT_NAME:
-        png_fpath = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{RUN_ID}.png"
+    if (HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES
+            and AGE_IDX in DATA_CONFIG.TARGET_INDEXES
+            and descriptor != MODEL_CONFIG.EXPERIMENT_NAME):
+        png_fpath = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{descriptor}.png"
         logging.info("Calculate zscores and save confusion matrix results to %s", png_fpath)
         start = time.time()
         draw_stunting_diagnosis(df, png_fpath)
         end = time.time()
         logging.info("Total time for Calculate zscores and save confusion matrix: %.2f", end - start)
 
-    if WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES and AGE_IDX in DATA_CONFIG.TARGET_INDEXES and RUN_ID != MODEL_CONFIG.EXPERIMENT_NAME:
-        png_fpath = f"{OUTPUT_CSV_PATH}/wasting_diagnosis_{RUN_ID}.png"
+    if (WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES
+            and AGE_IDX in DATA_CONFIG.TARGET_INDEXES
+            and descriptor != MODEL_CONFIG.EXPERIMENT_NAME):
+        png_fpath = f"{OUTPUT_CSV_PATH}/wasting_diagnosis_{descriptor}.png"
         logging.info("Calculate and save wasting confusion matrix results to %s", png_fpath)
         start = time.time()
         draw_wasting_diagnosis(df, png_fpath)
@@ -393,12 +400,12 @@ if __name__ == "__main__":
         logging.info("Total time for Calculate zscores and save wasting confusion matrix: %.2f", end - start)
 
     if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
-        csv_fpath = f"{OUTPUT_CSV_PATH}/sex_evaluation_{RUN_ID}.csv"
+        csv_fpath = f"{OUTPUT_CSV_PATH}/sex_evaluation_{descriptor}.csv"
         logging.info("Calculate and save sex results to %s", csv_fpath)
         calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
                                    DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_sex)
     if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
-        csv_fpath = f"{OUTPUT_CSV_PATH}/goodbad_evaluation_{RUN_ID}.csv"
+        csv_fpath = f"{OUTPUT_CSV_PATH}/goodbad_evaluation_{descriptor}.csv"
         logging.info("Calculate performance on bad/good scans and save results to %s", csv_fpath)
         calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
                                    DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_goodbad)
@@ -406,6 +413,8 @@ if __name__ == "__main__":
     if RESULT_CONFIG.USE_UNCERTAINTY:
         assert GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES
         assert COLUMN_NAME_GOODBAD in df
+        assert RUN_IDS
+        assert not RUN_ID
 
         # Sample one artifact per scan (qrcode, scantype combination)
         df_sample = df.groupby(['qrcode', 'scantype']).apply(lambda x: x.sample(1))
@@ -414,29 +423,25 @@ if __name__ == "__main__":
         dataset_sample = prepare_sample_dataset(df_sample, dataset_path)
 
         # Predict uncertainty
-        if RUN_IDS is None:
-            uncertainties = get_prediction_uncertainty(
-                model_path, dataset_sample, RESULT_CONFIG.DROPOUT_STRENGTH, RESULT_CONFIG.NUM_DROPOUT_PREDICTIONS)
-        else:
-            uncertainties = get_prediction_uncertainty_deepensemble(model_paths, dataset_sample)
+        uncertainties = get_prediction_uncertainty_deepensemble(model_paths, dataset_sample)
 
         assert len(df_sample) == len(uncertainties)
         df_sample['uncertainties'] = uncertainties
 
-        png_fpath = f"{OUTPUT_CSV_PATH}/uncertainty_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
+        png_fpath = f"{OUTPUT_CSV_PATH}/uncertainty_distribution.png"
         draw_uncertainty_goodbad_plot(df_sample, png_fpath)
 
         df_sample_100 = df_sample.iloc[df_sample.index.get_level_values('scantype') == '100']
-        png_fpath = f"{OUTPUT_CSV_PATH}/uncertainty_code100_distribution_dropoutstrength{RESULT_CONFIG.DROPOUT_STRENGTH}_{RUN_ID}.png"
+        png_fpath = f"{OUTPUT_CSV_PATH}/uncertainty_code100_distribution.png"
         draw_uncertainty_goodbad_plot(df_sample_100, png_fpath)
 
-        png_fpath = f"{OUTPUT_CSV_PATH}/uncertainty_scatter_distribution_{RUN_ID}.png"
+        png_fpath = f"{OUTPUT_CSV_PATH}/uncertainty_scatter_distribution.png"
         draw_uncertainty_scatterplot(df_sample, png_fpath)
 
         # Filter for scans with high certainty and calculate their accuracy/results
         df_sample['error'] = df_sample.apply(avgerror, axis=1).abs()
         df_sample_better_threshold = df_sample[df_sample['uncertainties'] < RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM]
-        csv_fpath = f"{OUTPUT_CSV_PATH}/uncertainty_smaller_than_{RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM}cm_{RUN_ID}.csv"
+        csv_fpath = f"{OUTPUT_CSV_PATH}/uncertainty_smaller_than_{RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM}cm.csv"
         logging.info("Uncertainty: For more certain than %.2f cm, calculate and save the results to %s",
                      RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM, csv_fpath)
         calculate_and_save_results(df_sample_better_threshold, EVAL_CONFIG.NAME, csv_fpath,

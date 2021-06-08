@@ -8,7 +8,8 @@ import tensorflow as tf
 from azureml.core import Experiment, Run
 from tqdm import tqdm
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 REPO_DIR = Path(__file__).parents[4].absolute()
 
@@ -65,7 +66,9 @@ def standing_laying_predict(qrcode_pcd_rgb, model):
             img = tf.io.read_file(file)                 # read the image in tensorflow
             img = tf.image.decode_jpeg(img, channels=3)   # change the jpg to rgb
             img = tf.cast(img, tf.float32) * (1. / 256)   # Normalization Not necessary
-            if scan_type['Standing_front'] in file or scan_type['Standing_back'] in file or scan_type['Standing_360'] in file:
+            if (scan_type['Standing_front'] in file
+                    or scan_type['Standing_back'] in file
+                    or scan_type['Standing_360'] in file):
                 img = tf.image.rot90(img, k=3)  # rotate the standing by 270 counter-clockwise
             if scan_type['Laying_front'] in file or scan_type['Laying_back'] in file or scan_type['Laying_360'] in file:
                 img = tf.image.rot90(img, k=1)  # rotate the laying by 90 counter-clockwise

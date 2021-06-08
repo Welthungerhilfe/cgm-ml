@@ -1,7 +1,8 @@
 import logging
 import logging.config
-import numpy as np
 from typing import List
+
+import numpy as np
 
 logging.basicConfig(
     level=logging.INFO,
@@ -85,6 +86,29 @@ def matrix_transform_point(point: list, matrix: list) -> list:
     return output
 
 
+def calculate_normal_vector(intrisics: list, x: float, y: float, width: int, height: int,
+                            data: bytes, depth_scale: float, matrix: list) -> list:
+    """Calculate normal vector of depthmap point based on neightbors"""
+
+    # Get depth of the neightbor pixels
+    depth_center = parse_depth_smoothed(x, y, width, height, data, depth_scale)
+    depth_x_minus = parse_depth_smoothed(x - 1, y, width, height, data, depth_scale)
+    depth_y_minus = parse_depth_smoothed(x, y - 1, width, height, data, depth_scale)
+
+    # Create a triangle from neighbor points
+    point_a = convert_2d_to_3d_oriented(intrisics, x, y, depth_center, width, height, matrix)
+    point_b = convert_2d_to_3d_oriented(intrisics, x - 1, y, depth_x_minus, width, height, matrix)
+    point_c = convert_2d_to_3d_oriented(intrisics, x, y - 1, depth_y_minus, width, height, matrix)
+
+    # Calculate a normal of the triangle
+    vector_u = diff(point_a, point_b)
+    vector_v = diff(point_a, point_c)
+    normal = cross(vector_u, vector_v)
+
+    # Ensure the normal has a length of one
+    return norm(normal)
+
+
 def convert_2d_to_3d(intrisics: list, x: float, y: float, z: float, width: int, height: int) -> list:
     """Convert point in pixels into point in meters"""
     fx = intrisics[0] * float(width)
@@ -96,20 +120,23 @@ def convert_2d_to_3d(intrisics: list, x: float, y: float, z: float, width: int, 
     return [tx, ty, z]
 
 
-def convert_2d_to_3d_oriented(intrisics: list, x: float, y: float, z: float, width: int, height: int, matrix: list) -> list:
+def convert_2d_to_3d_oriented(intrisics: list, x: float, y: float, z: float,
+                              width: int, height: int, matrix: list) -> list:
     """Convert point in pixels into point in meters (applying rotation)"""
     res = convert_2d_to_3d(intrisics, x, y, z, width, height)
-    if res:
-        try:
-            # special case for Google Tango devices with different rotation
-            if width == 180 and height == 135:
-                res = [res[0], -res[1], res[2]]
-            else:
-                res = [-res[0], res[1], res[2]]
-            res = matrix_transform_point(res, matrix)
-            res = [res[0], -res[1], res[2]]
-        except NameError:
-            pass
+    if not res:
+        return res
+
+    # special case for Google Tango devices with different rotation
+    if width == 180 and height == 135:
+        res = [res[0], -res[1], res[2]]
+    else:
+        res = [-res[0], res[1], res[2]]
+    try:
+        res = matrix_transform_point(res, matrix)
+        res = [res[0], -res[1], res[2]]
+    except NameError:
+        pass
     return res
 
 
@@ -124,8 +151,17 @@ def convert_3d_to_2d(intrisics: list, x: float, y: float, z: float, width: int, 
     return [tx, ty, z]
 
 
-def export_obj(filename: str, rgb: bool, width: int, height: int, data: bytes, depth_scale: float, calibration: List[List[float]], matrix: list, triangulate: bool):
-    """
+def export_obj(filename: str,
+               rgb: bool,
+               width: int,
+               height: int,
+               data: bytes,
+               depth_scale: float,
+               calibration: List[List[float]],
+               matrix: list,
+               triangulate: bool,
+               ):
+    """Export .obj file, which can be visualized in tools like Meshlab.
 
     triangulate=True generates OBJ of type mesh
     triangulate=False generates OBJ of type pointcloud
@@ -134,7 +170,7 @@ def export_obj(filename: str, rgb: bool, width: int, height: int, data: bytes, d
     count = 0
     indices = np.zeros((width, height))
 
-    # create MTL file (a standart extension of OBJ files to define geometry materials and textures)
+    # Create MTL file (a standart extension of OBJ files to define geometry materials and textures)
     material = filename[:len(filename) - 4] + '.mtl'
     if rgb:
         with open(material, 'w') as f:
@@ -148,71 +184,85 @@ def export_obj(filename: str, rgb: bool, width: int, height: int, data: bytes, d
         for x in range(2, width - 2):
             for y in range(2, height - 2):
                 depth = parse_depth(x, y, width, height, data, depth_scale)
-                if depth:
-                    res = convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, matrix)
-                    if res:
-                        count = count + 1
-                        indices[x][y] = count  # add index of written vertex into array
-                        f.write('v ' + str(res[0]) + ' ' + str(res[1]) + ' ' + str(res[2]) + '\n')
-                        f.write('vt ' + str(x / width) + ' ' + str(1 - y / height) + '\n')
+                if not depth:
+                    continue
+                res = convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, matrix)
+                if not res:
+                    continue
+                count = count + 1
+                indices[x][y] = count  # add index of written vertex into array
+                f.write('v ' + str(res[0]) + ' ' + str(res[1]) + ' ' + str(res[2]) + '\n')
+                f.write('vt ' + str(x / width) + ' ' + str(1 - y / height) + '\n')
 
         if triangulate:
-            max_diff = 0.2
-            for x in range(2, width - 2):
-                for y in range(2, height - 2):
-                    # get depth of all points of 2 potential triangles
-                    d00 = parse_depth(x, y, width, height, data, depth_scale)
-                    d10 = parse_depth(x + 1, y, width, height, data, depth_scale)
-                    d01 = parse_depth(x, y + 1, width, height, data, depth_scale)
-                    d11 = parse_depth(x + 1, y + 1, width, height, data, depth_scale)
-
-                    # check if first triangle points have existing indices
-                    if indices[x][y] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
-                        # check if the triangle size is valid (to prevent generating triangle
-                        # connecting child and background)
-                        if abs(d00 - d10) + abs(d00 - d01) + abs(d10 - d01) < max_diff:
-                            c = str(int(indices[x][y]))
-                            b = str(int(indices[x + 1][y]))
-                            a = str(int(indices[x][y + 1]))
-                            # define triangle indices in (world coordinates / texture coordinates)
-                            f.write('f ' + a + '/' + a + ' ' + b + '/' + b + ' ' + c + '/' + c + '\n')
-
-                    # check if second triangle points have existing indices
-                    if indices[x + 1][y + 1] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
-                        # check if the triangle size is valid (to prevent generating triangle
-                        # connecting child and background)
-                        if abs(d11 - d10) + abs(d11 - d01) + abs(d10 - d01) < max_diff:
-                            a = str(int(indices[x + 1][y + 1]))
-                            b = str(int(indices[x + 1][y]))
-                            c = str(int(indices[x][y + 1]))
-                            # define triangle indices in (world coordinates / texture coordinates)
-                            f.write('f ' + a + '/' + a + ' ' + b + '/' + b + ' ' + c + '/' + c + '\n')
+            _do_triangulation(width, height, data, depth_scale, indices, f)
         logging.info('Mesh exported into %s', filename)
 
 
-def export_pcd(filename: str, width: int, height: int, data: bytes, depth_scale: float, calibration: List[List[float]], max_confidence: float):
+def _do_triangulation(width, height, data, depth_scale, indices, filehandle):
+    max_diff = 0.2
+    for x in range(2, width - 2):
+        for y in range(2, height - 2):
+            # get depth of all points of 2 potential triangles
+            d00 = parse_depth(x, y, width, height, data, depth_scale)
+            d10 = parse_depth(x + 1, y, width, height, data, depth_scale)
+            d01 = parse_depth(x, y + 1, width, height, data, depth_scale)
+            d11 = parse_depth(x + 1, y + 1, width, height, data, depth_scale)
+
+            # check if first triangle points have existing indices
+            if indices[x][y] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
+                # check if the triangle size is valid (to prevent generating triangle
+                # connecting child and background)
+                if abs(d00 - d10) + abs(d00 - d01) + abs(d10 - d01) < max_diff:
+                    c = str(int(indices[x][y]))
+                    b = str(int(indices[x + 1][y]))
+                    a = str(int(indices[x][y + 1]))
+                    # define triangle indices in (world coordinates / texture coordinates)
+                    filehandle.write('f ' + a + '/' + a + ' ' + b + '/' + b + ' ' + c + '/' + c + '\n')
+
+            # check if second triangle points have existing indices
+            if indices[x + 1][y + 1] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
+                # check if the triangle size is valid (to prevent generating triangle
+                # connecting child and background)
+                if abs(d11 - d10) + abs(d11 - d01) + abs(d10 - d01) < max_diff:
+                    a = str(int(indices[x + 1][y + 1]))
+                    b = str(int(indices[x + 1][y]))
+                    c = str(int(indices[x][y + 1]))
+                    # define triangle indices in (world coordinates / texture coordinates)
+                    filehandle.write('f ' + a + '/' + a + ' ' + b + '/' + b + ' ' + c + '/' + c + '\n')
+
+
+def _write_pcd_header(filehandle, count):
+    filehandle.write('# timestamp 1 1 float 0\n')
+    filehandle.write('# .PCD v.7 - Point Cloud Data file format\n')
+    filehandle.write('VERSION .7\n')
+    filehandle.write('FIELDS x y z c\n')
+    filehandle.write('SIZE 4 4 4 4\n')
+    filehandle.write('TYPE F F F F\n')
+    filehandle.write('COUNT 1 1 1 1\n')
+    filehandle.write('WIDTH ' + count + '\n')
+    filehandle.write('HEIGHT 1\n')
+    filehandle.write('VIEWPOINT 0 0 0 1 0 0 0\n')
+    filehandle.write('POINTS ' + count + '\n')
+    filehandle.write('DATA ascii\n')
+
+
+def export_pcd(filename: str, width: int, height: int, data: bytes, depth_scale: float,
+               calibration: List[List[float]], max_confidence: float):
     with open(filename, 'w') as f:
         count = str(_get_count(width, height, data, depth_scale, calibration))
-        f.write('# timestamp 1 1 float 0\n')
-        f.write('# .PCD v.7 - Point Cloud Data file format\n')
-        f.write('VERSION .7\n')
-        f.write('FIELDS x y z c\n')
-        f.write('SIZE 4 4 4 4\n')
-        f.write('TYPE F F F F\n')
-        f.write('COUNT 1 1 1 1\n')
-        f.write('WIDTH ' + count + '\n')
-        f.write('HEIGHT 1\n')
-        f.write('VIEWPOINT 0 0 0 1 0 0 0\n')
-        f.write('POINTS ' + count + '\n')
-        f.write('DATA ascii\n')
+        _write_pcd_header(f, count)
+
         for x in range(2, width - 2):
             for y in range(2, height - 2):
                 depth = parse_depth(x, y, width, height, data, depth_scale)
-                if depth:
-                    res = convert_2d_to_3d(calibration[1], x, y, depth, width, height)
-                    if res:
-                        f.write(str(-res[0]) + ' ' + str(res[1]) + ' '
-                                + str(res[2]) + ' ' + str(parse_confidence(x, y, data, max_confidence, width)) + '\n')
+                if not depth:
+                    continue
+                res = convert_2d_to_3d(calibration[1], x, y, depth, width, height)
+                if not res:
+                    continue
+                f.write(str(-res[0]) + ' ' + str(res[1]) + ' '
+                        + str(res[2]) + ' ' + str(parse_confidence(x, y, data, max_confidence, width)) + '\n')
         logging.info('Pointcloud exported into %s', filename)
 
 
@@ -221,27 +271,34 @@ def _get_count(width: int, height: int, data: bytes, depth_scale: float, calibra
     for x in range(2, width - 2):
         for y in range(2, height - 2):
             depth = parse_depth(x, y, width, height, data, depth_scale)
-            if depth:
-                res = convert_2d_to_3d(calibration[1], x, y, depth, width, height)
-                if res:
-                    count = count + 1
+            if not depth:
+                continue
+            res = convert_2d_to_3d(calibration[1], x, y, depth, width, height)
+            if not res:
+                continue
+            count = count + 1
     return count
 
 
 def parse_calibration(filepath: str) -> List[List[float]]:
-    """Parse calibration file"""
+    """Parse calibration file
+
+    filepath: The content of a calibration file looks like this:
+        Color camera intrinsic:
+        0.6786797 0.90489584 0.49585155 0.5035042
+        Depth camera intrinsic:
+        0.6786797 0.90489584 0.49585155 0.5035042
+        Depth camera position:
+        0 0 0
+    """
     with open(filepath, 'r') as f:
         calibration = []
-        f.readline()[:-1]
-        calibration.append(parse_numbers(f.readline()))
-        # logging.info(str(CALIBRATION[0]) + '\n') #color camera intrinsics - fx, fy, cx, cy
-        f.readline()[:-1]
-        calibration.append(parse_numbers(f.readline()))
-        # logging.info(str(CALIBRATION[1]) + '\n') #depth camera intrinsics - fx, fy, cx, cy
-        f.readline()[:-1]
-        calibration.append(parse_numbers(f.readline()))
-        # logging.info(str(CALIBRATION[2]) + '\n') #depth camera position relativelly to color camera in meters
-        calibration[2][1] *= 8.0  # workaround for wrong calibration data
+        for _ in range(3):
+            f.readline().strip()
+            line_with_numbers = f.readline()
+            intrinsic = _parse_numbers(line_with_numbers)
+            calibration.append(intrinsic)
+    calibration[2][1] *= 8.0  # workaround for wrong calibration data
     return calibration
 
 
@@ -293,8 +350,15 @@ def parse_depth_smoothed(tx: int, ty: int, width: int, height: int, data: bytes,
     return sum(depths) / len(depths)
 
 
-def parse_numbers(line: str) -> List[float]:
-    """Parse line of numbers"""
+def _parse_numbers(line: str) -> List[float]:
+    """Parse line of numbers
+
+    Args:
+        line: Example: "0.6786797 0.90489584 0.49585155 0.5035042"
+
+    Return:
+        numbers: [0.6786797, 0.90489584, 0.49585155, 0.5035042]
+    """
     return [float(value) for value in line.split(' ')]
 
 
@@ -311,6 +375,6 @@ def parse_pcd(filepath: str) -> List[List[float]]:
             if not line:
                 break
             else:
-                values = parse_numbers(line)
+                values = _parse_numbers(line)
                 data.append(values)
     return data

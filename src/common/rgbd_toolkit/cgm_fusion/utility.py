@@ -30,7 +30,8 @@ from pyntcloud.io import write_ply
 from cgm_fusion.calibration import (get_extrinsic_matrix_depth,
                                     get_intrinsic_matrix_depth, get_k_depth)
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 HEIGHT = 224

@@ -14,7 +14,8 @@ import random
 from preprocessing import preprocess_depthmap, preprocess_targets
 import argparse
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 # Parse command line arguments.
 parser = argparse.ArgumentParser(description="Training script.")
