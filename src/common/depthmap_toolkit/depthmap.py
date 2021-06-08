@@ -8,8 +8,9 @@ import statistics
 import numpy as np
 from PIL import Image
 
-import utils
-import constants
+from utils import (
+    matrix_calculate, IDENTITY_MATRIX_4D, parse_numbers, diff, cross, norm, matrix_transform_point)
+from constants import EXTRACTED_DEPTH_FILE_NAME
 
 logging.basicConfig(
     level=logging.INFO,
@@ -23,7 +24,7 @@ def extract_depthmap(depthmap_dir: str, depthmap_fname: str):
     """Extract depthmap from given file"""
     with zipfile.ZipFile(Path(depthmap_dir) / 'depth' / depthmap_fname, 'r') as zip_ref:
         zip_ref.extractall(TOOLKIT_DIR)
-    return TOOLKIT_DIR / constants.EXTRACTED_DEPTH_FILE_NAME
+    return TOOLKIT_DIR / EXTRACTED_DEPTH_FILE_NAME
 
 
 class Depthmap:
@@ -86,9 +87,9 @@ class Depthmap:
             if len(header) >= 10:
                 position = (float(header[7]), float(header[8]), float(header[9]))
                 rotation = (float(header[3]), float(header[4]), float(header[5]), float(header[6]))
-                matrix = utils.matrix_calculate(position, rotation)
+                matrix = matrix_calculate(position, rotation)
             else:
-                matrix = utils.IDENTITY_MATRIX_4D
+                matrix = IDENTITY_MATRIX_4D
             data = f.read()
             f.close()
 
@@ -110,7 +111,7 @@ class Depthmap:
             for _ in range(2):
                 f.readline().strip()
                 line_with_numbers = f.readline()
-                intrinsic = utils.parse_numbers(line_with_numbers)
+                intrinsic = parse_numbers(line_with_numbers)
                 intrinsics.append(intrinsic)
 
         return cls(intrinsics,
@@ -139,12 +140,12 @@ class Depthmap:
         point_c = self.convert_2d_to_3d_oriented(1, x, y - 1, depth_y_minus)
 
         # Calculate a normal of the triangle
-        vector_u = utils.diff(point_a, point_b)
-        vector_v = utils.diff(point_a, point_c)
-        normal = utils.cross(vector_u, vector_v)
+        vector_u = diff(point_a, point_b)
+        vector_v = diff(point_a, point_c)
+        normal = cross(vector_u, vector_v)
 
         # Ensure the normal has a length of one
-        return utils.norm(normal)
+        return norm(normal)
 
     def convert_2d_to_3d(self, sensor: int, x: float, y: float, depth: float) -> list:
         """Convert point in pixels into point in meters"""
@@ -168,7 +169,7 @@ class Depthmap:
         else:
             res = [-res[0], res[1], res[2]]
         try:
-            res = utils.matrix_transform_point(res, self.matrix)
+            res = matrix_transform_point(res, self.matrix)
             res = [res[0], -res[1], res[2]]
         except NameError:
             pass

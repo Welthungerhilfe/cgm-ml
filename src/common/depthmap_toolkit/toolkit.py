@@ -11,9 +11,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 
-import depthmap
-import exporter
-import visualisation
+from depthmap import Depthmap
+from exporter import export_obj
+from visualisation import show
 
 logging.basicConfig(
     level=logging.INFO,
@@ -47,13 +47,13 @@ def onclick(event):
 def export_obj(event):
     global dmap
     fname = f'output{index}.obj'
-    exporter.export_obj('export/' + fname, dmap, triangulate=True)
+    export_obj('export/' + fname, dmap, triangulate=True)
 
 
 def export_pcd(event):
     global dmap
     fname = f'output{index}.pcd'
-    exporter.export_pcd('export/' + fname, dmap)
+    export_pcd('export/' + fname, dmap)
 
 
 def next_click(event, calibration_file: str, depthmap_dir: str):
@@ -76,12 +76,12 @@ def show(depthmap_dir: str, calibration_file: str):
     global dmap
     fig.canvas.manager.set_window_title(depth_filenames[index])
     rgb_filename = rgb_filenames[index] if rgb_filenames else 0
-    dmap = depthmap.Depthmap.create_from_file(depthmap_dir, depth_filenames[index], rgb_filename, calibration_file)
+    dmap = Depthmap.create_from_file(depthmap_dir, depth_filenames[index], rgb_filename, calibration_file)
 
     angle = dmap.get_angle_between_camera_and_floor()
     logging.info('angle between camera and floor is %f', angle)
 
-    visualisation.show(dmap)
+    show(dmap)
     plt.show()
 
 
