@@ -21,30 +21,6 @@ SUBPLOT_RGB = 4
 SUBPLOT_COUNT = 5
 
 
-# click on data
-last = [0, 0, 0]
-
-
-def onclick(event, dmap: Depthmap):
-    if event.xdata is not None and event.ydata is not None:
-        x = int(event.ydata)
-        y = dmap.height - int(event.xdata) - 1
-        if x > 1 and y > 1 and x < dmap.width - 2 and y < dmap.height - 2:
-            depth = dmap.parse_depth(x, y)
-            if depth:
-                res = dmap.convert_2d_to_3d(1, x, y, depth)
-                if res:
-                    diff = [last[0] - res[0], last[1] - res[1], last[2] - res[2]]
-                    dst = np.sqrt(diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2])
-                    res.append(dst)
-                    logging.info('x=%s, y=%s, depth=%s, diff=%s', str(res[0]), str(res[1]), str(res[2]), str(res[3]))
-                    last[0] = res[0]
-                    last[1] = res[1]
-                    last[2] = res[2]
-                    return
-            logging.info('no valid data')
-
-
 def detect_child(output: object,
                  x: int,
                  y: int,
@@ -146,12 +122,6 @@ def render_pixel(output: object,
 
 
 def show(dmap: Depthmap):
-    fig = plt.figure()
-    fig.canvas.mpl_connect(
-        'button_press_event',
-        functools.partial(
-            onclick,
-            dmap=dmap))
 
     # render the visualisations
     floor = dmap.get_floor_level()
