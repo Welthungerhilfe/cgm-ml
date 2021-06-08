@@ -19,7 +19,7 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
-def export_obj(event, dmap):
+def export_obj(event, dmap: depthmap.Depthmap):
     fname = f'output{index}.obj'
     dmap.export('obj', fname)
 
@@ -70,11 +70,11 @@ def show(depthmap_dir: str, calibration_file: str):
     bexport_obj = Button(plt.axes([0.3, 0.0, 0.2, 0.05]), 'Export OBJ', color='gray')
     bexport_obj.on_clicked(
         functools.partial(
-            export_obj, dmap))
+            export_obj, dmap=dmap))
     bexport_pcd = Button(plt.axes([0.5, 0.0, 0.2, 0.05]), 'Export PCD', color='gray')
     bexport_pcd.on_clicked(
         functools.partial(
-            export_pcd, dmap))
+            export_pcd, dmap=dmap))
     plt.show()
 
 
