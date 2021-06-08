@@ -2,6 +2,7 @@ import pandas as pd
 import logging
 import logging.config
 import pickle
+import math
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -12,7 +13,7 @@ logging.basicConfig(level=logging.WARNING,
 def convert_age_from_days_to_years(age_in_days: pd.Series) -> int:
     """Convert age in days into age in years"""
     age_in_years = age_in_days['age'] / 365
-    return round(age_in_years)
+    return math.floor(age_in_years)
 
 
 def extractqrcode(row: pd.Series) -> str:

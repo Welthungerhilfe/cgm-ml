@@ -14,7 +14,8 @@ questionare_col = [
     "What are the reasons?",
     "Are these community committees there in your Panchayat?",
     "What activities are going on in your panchayat to provide livelihoods to returned migrant community?",
-    "Under MNREGA, what activities are going on in your panchayat to provide a livelihood to the returned migrant community?",
+    ("Under MNREGA, what activities are going on in your panchayat to provide a livelihood"
+     "to the returned migrant community?"),
     "What kind of Collaboration is desired?",
 ]
 
@@ -25,7 +26,8 @@ other_ques_col = [
     "What are the reasons?--OTHER--",
     "Are these community committees there in your Panchayat?--OTHER--",
     "What activities are going on in your panchayat to provide livelihoods to returned migrant community?--OTHER--",
-    "Under MNREGA, what activities are going on in your panchayat to provide a livelihood to the returned migrant community?--OTHER--",
+    ("Under MNREGA, what activities are going on in your panchayat to provide a livelihood"
+     "to the returned migrant community?--OTHER--"),
     "What kind of Collaboration is desired?--OTHER--",
 ]
 
@@ -93,7 +95,8 @@ categorical_ques = [
     "How many COVID-19 testing centres or treatment centres are there in your Panchayat?",
     "Are you aware of various Government Schemes for Migrant Labours who have returned?",
     "Are milk, vegetables and daily use essentials supply easily available in your Panchayat?",
-    "We, under COVID-19 response program, will work for livelihood support to returned migrant labour in your panchayat, in which your support is also required. Do you agree?",
+    ("We, under COVID-19 response program, will work for livelihood support to returned migrant"
+     "labour in your panchayat, in which your support is also required. Do you agree?"),
 ]
 
 
@@ -113,7 +116,8 @@ categorical_feat = option_ques + [
     "Have you maintained a record of the Migrant Community who returned during lockdown?",
     "Are you aware of various Government Schemes for Migrant Labours who have returned?",
     "Are milk, vegetables and daily use essentials supply easily available in your Panchayat?",
-    "We, under COVID-19 response program, will work for livelihood support to returned migrant labour in your panchayat, in which your support is also required. Do you agree?",
+    ("We, under COVID-19 response program, will work for livelihood support to returned migrant"
+     "labour in your panchayat, in which your support is also required. Do you agree?"),
 ]
 
 # Index columns of the dataframe
