@@ -108,9 +108,9 @@ def render_pixel(output: object,
     # RGB data visualisation
     index = SUBPLOT_RGB * dmap.height + dmap.height - y - 1
     if 0 < vec[0] < dmap.width and 1 < vec[1] < dmap.height and dmap.has_rgb:
-        output[x][index][0] = dmap.im_array[int(vec[1])][int(vec[0])][0] / 255.0
-        output[x][index][1] = dmap.im_array[int(vec[1])][int(vec[0])][1] / 255.0
-        output[x][index][2] = dmap.im_array[int(vec[1])][int(vec[0])][2] / 255.0
+        output[x][index][0] = dmap.rgb_array[int(vec[1])][int(vec[0])][0] / 255.0
+        output[x][index][1] = dmap.rgb_array[int(vec[1])][int(vec[0])][1] / 255.0
+        output[x][index][2] = dmap.rgb_array[int(vec[1])][int(vec[0])][2] / 255.0
 
     # ensure pixel clipping
     for i in range(SUBPLOT_COUNT):

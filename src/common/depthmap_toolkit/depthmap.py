@@ -41,7 +41,7 @@ class Depthmap:
                 - pose in different format
         rgb_data (str): Path to RGB file (e.g. to the jpg)
         has_rgb (bool): Flag to indicate if the artifact has RGB data
-        im_array (np.array): RGB data TODO rename to rgb_array
+        rgb_array (np.array): RGB data
     """
     def __init__(
             self,
@@ -54,7 +54,7 @@ class Depthmap:
             matrix,
             rgb_data,
             has_rgb,
-            im_array):
+            rgb_array):
         self.intrinsics = intrinsics
         self.width = width
         self.height = height
@@ -64,7 +64,7 @@ class Depthmap:
         self.matrix = matrix
         self.rgb_data = rgb_data
         self.has_rgb = has_rgb
-        self.im_array = im_array
+        self.rgb_array = rgb_array
 
     @classmethod
     def create_from_file(cls,
@@ -98,11 +98,11 @@ class Depthmap:
             has_rgb = True
             pil_im = Image.open(rgb_data)
             pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
-            im_array = np.asarray(pil_im)
+            rgb_array = np.asarray(pil_im)
         else:
             rgb_data = rgb_fname
             has_rgb = False
-            im_array = None
+            rgb_array = None
 
         # read calibration file
         with open(calibration_file, 'r') as f:
@@ -122,7 +122,7 @@ class Depthmap:
                    matrix,
                    rgb_data,
                    has_rgb,
-                   im_array
+                   rgb_array
                    )
 
     def calculate_normal_vector(self, x: float, y: float) -> list:
