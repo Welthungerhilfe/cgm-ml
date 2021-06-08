@@ -74,7 +74,7 @@ class Depthmap:  # Artifact
                 - position and rotation of the pose
                 - pose in different format
     """
-    def __init__(self, intrinsics, width, height, data, depth_scale, max_confidence, matrix):
+    def __init__(self, intrinsics, width, height, data, depth_scale, max_confidence, matrix, rgb_data, has_rgb, im_array):
         self.intrinsics = intrinsics
         self.width = width
         self.height = height
@@ -82,6 +82,9 @@ class Depthmap:  # Artifact
         self.depth_scale = depth_scale
         self.max_confidence = max_confidence
         self.matrix = matrix
+        self.rgb_data = rgb_data
+        self.has_rgb = has_rgb
+        self.im_array = im_array
 
     @classmethod
     def create_from_file(cls,
@@ -89,7 +92,7 @@ class Depthmap:  # Artifact
                          depthmap_fname: str,
                          rgb_fname: str,
                          calibration_file: str):
-        width, height, depth_scale, max_confidence, data, matrix = cls.read_file(depthmap_dir, depthmap_fname, rgb_fname)
+        width, height, depth_scale, max_confidence, data, matrix, rgb_data, has_rgb, im_array = cls.read_file(depthmap_dir, depthmap_fname, rgb_fname)
 
         intrinsics = utils.parse_calibration(calibration_file)
 
@@ -100,6 +103,9 @@ class Depthmap:  # Artifact
                    depth_scale,
                    max_confidence,
                    matrix,
+                   rgb_data,
+                   has_rgb,
+                   im_array
         )
 
     @classmethod
@@ -122,20 +128,18 @@ class Depthmap:  # Artifact
         data, width, height, depth_scale, max_confidence, matrix = utils.parse_data(path)
 
         # read rgb data
-        global CURRENT_RGB
-        global HAS_RGB
-        global IM_ARRAY
         if rgb_fname:
-            CURRENT_RGB = depthmap_dir + '/rgb/' + rgb_fname
-            HAS_RGB = 1
-            pil_im = Image.open(CURRENT_RGB)
+            rgb_data = depthmap_dir + '/rgb/' + rgb_fname
+            has_rgb = 1
+            pil_im = Image.open(rgb_data)
             pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
-            IM_ARRAY = np.asarray(pil_im)
+            im_array = np.asarray(pil_im)
         else:
-            CURRENT_RGB = rgb_fname
-            HAS_RGB = 0
+            rgb_data = rgb_fname
+            has_rgb = 0
+            im_array = None
 
-        return width, height, depth_scale, max_confidence, data, matrix
+        return width, height, depth_scale, max_confidence, data, matrix, rgb_data, has_rgb, im_array
 
 
     def get_angle_between_camera_and_floor(self) -> float:
