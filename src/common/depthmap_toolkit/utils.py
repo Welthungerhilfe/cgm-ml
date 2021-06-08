@@ -354,7 +354,7 @@ def _parse_numbers(line: str) -> List[float]:
     """Parse line of numbers
 
     Args:
-        line: Example: `0.6786797 0.90489584 0.49585155 0.5035042`
+        line: Example: "0.6786797 0.90489584 0.49585155 0.5035042"
 
     Return:
         numbers: [0.6786797, 0.90489584, 0.49585155, 0.5035042]
