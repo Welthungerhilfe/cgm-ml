@@ -26,19 +26,23 @@ def extract_depthmap(depthmap_dir: str, depthmap_fname: str):
     return TOOLKIT_DIR / constants.EXTRACTED_DEPTH_FILE_NAME
 
 
-class Depthmap:  # Artifact
-    """Depthmap
+class Depthmap:
+    """Depthmap and RGB TODO consider renaming to Artifact
+
     Args:
-        intrinsics ([np.array]): Camera intrinsics
-        width ([int]): Width of the depthmap
-        height ([int]): Height of the depthmap
-        depth_scale: it's in the header of a depthmap file
-        data ([bytes]): data TODO rename
-        matrix ([type]): not in header
+        intrinsics (np.array): Camera intrinsics
+        width (int): Width of the depthmap
+        height (int): Height of the depthmap
+        data (bytes): pixel_data
+        depth_scale (float): ??? (it's in the header of a depthmap file)
+        max_confidence (float): ???
+        matrix (list): not in header
                 - position and rotation of the pose
                 - pose in different format
+        rgb_data (str): Path to RGB file (e.g. to the jpg)
+        has_rgb (int): Flag TODO make it bool
+        im_array (np.array): RGB data TODO rename to rgb_array
     """
-
     def __init__(
             self,
             intrinsics,
