@@ -92,7 +92,37 @@ class Depthmap:  # Artifact
                          depthmap_fname: str,
                          rgb_fname: str,
                          calibration_file: str):
-        width, height, depth_scale, max_confidence, data, matrix, rgb_data, has_rgb, im_array = cls.read_file(depthmap_dir, depthmap_fname, rgb_fname)
+
+        # read depthmap data
+        path = extract_depthmap(depthmap_dir, depthmap_fname)
+        with open(path, 'rb') as f:
+            line = f.readline().decode().strip()
+            header = line.split('_')
+            res = header[0].split('x')
+            width = int(res[0])
+            height = int(res[1])
+            depth_scale = float(header[1])
+            max_confidence = float(header[2])
+            if len(header) >= 10:
+                position = (float(header[7]), float(header[8]), float(header[9]))
+                rotation = (float(header[3]), float(header[4]), float(header[5]), float(header[6]))
+                matrix = utils.matrix_calculate(position, rotation)
+            else:
+                matrix = utils.IDENTITY_MATRIX_4D
+            data = f.read()
+            f.close()
+
+        # read rgb data
+        if rgb_fname:
+            rgb_data = depthmap_dir + '/rgb/' + rgb_fname
+            has_rgb = 1
+            pil_im = Image.open(rgb_data)
+            pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
+            im_array = np.asarray(pil_im)
+        else:
+            rgb_data = rgb_fname
+            has_rgb = 0
+            im_array = None
 
         intrinsics = utils.parse_calibration(calibration_file)
 
@@ -107,39 +137,6 @@ class Depthmap:  # Artifact
                    has_rgb,
                    im_array
         )
-
-    @classmethod
-    def read_file(cls,
-                  depthmap_dir: str,
-                  depthmap_fname: str,
-                  rgb_fname: str) -> Tuple[int, int, float, float, bytes, list]:
-        """Process depthmap
-
-        Args:
-            depthmap_dir: depthmap_dir
-            depthmap_fname: Example: depth_dog_1622182020448_100_234.depth
-            rgb_fname: Example: rgb_dog_1622182020448_100_234.jpg
-
-        Returns:
-            width, height, depth_scale, max_confidence, data, matrix
-        """
-        path = extract_depthmap(depthmap_dir, depthmap_fname)
-
-        data, width, height, depth_scale, max_confidence, matrix = utils.parse_data(path)
-
-        # read rgb data
-        if rgb_fname:
-            rgb_data = depthmap_dir + '/rgb/' + rgb_fname
-            has_rgb = 1
-            pil_im = Image.open(rgb_data)
-            pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
-            im_array = np.asarray(pil_im)
-        else:
-            rgb_data = rgb_fname
-            has_rgb = 0
-            im_array = None
-
-        return width, height, depth_scale, max_confidence, data, matrix, rgb_data, has_rgb, im_array
 
 
     def get_angle_between_camera_and_floor(self) -> float:
@@ -164,7 +161,7 @@ class Depthmap:  # Artifact
         max_confidence = self.max_confidence
         matrix = self.matrix
 
-        rgb = CURRENT_RGB
+        rgb = self.rgb_data
         if type == 'obj':
             utils.export_obj('export/' + filename, rgb, width, height, data,
                             depth_scale, calibration, matrix, triangulate=True)
@@ -196,8 +193,8 @@ class Depthmap:  # Artifact
         output = np.zeros((width, height * SUBPLOT_COUNT, 3))
         for x in range(width):
             for y in range(height):
-                render_pixel(output, x, y, width, height, calibration, data, depth_scale, max_confidence, matrix, floor)
-        highest = detect_child(output, x, y, width, height, calibration, data, depth_scale, max_confidence, matrix, floor)
+                render_pixel(output, x, y, floor, self)
+        highest = detect_child(output, x, y, floor, self)
 
         logging.info('height=%fm', highest - floor)
         plt.imshow(output)
@@ -225,14 +222,16 @@ def get_floor_level(width: int,
 def detect_child(output: object,
                  x: int,
                  y: int,
-                 width: int,
-                 height: int,
-                 calibration: List[List[float]],
-                 data: bytes,
-                 depth_scale: float,
-                 max_confidence: float,
-                 matrix: list,
-                 floor: float) -> float:
+                 floor: float,
+                 dmap: Depthmap) -> float:
+
+    data = dmap.data
+    width = dmap.width
+    height = dmap.height
+    depth_scale = dmap.depth_scale
+    calibration = dmap.intrinsics
+    max_confidence = dmap.max_confidence
+    matrix = dmap.matrix
 
     # highlight the focused child/object using seed algorithm
     highest = floor
@@ -270,14 +269,16 @@ def detect_child(output: object,
 def render_pixel(output: object,
                  x: int,
                  y: int,
-                 width: int,
-                 height: int,
-                 calibration: List[List[float]],
-                 data: bytes,
-                 depth_scale: float,
-                 max_confidence: float,
-                 matrix: list,
-                 floor: float):
+                 floor: float,
+                 dmap: Depthmap):
+    data = dmap.data
+    width = dmap.width
+    height = dmap.height
+    depth_scale = dmap.depth_scale
+    calibration = dmap.intrinsics
+    max_confidence = dmap.max_confidence
+    matrix = dmap.matrix
+
     depth = utils.parse_depth(x, y, width, height, data, depth_scale)
     if not depth:
         return
@@ -323,10 +324,10 @@ def render_pixel(output: object,
 
     # RGB data
     index = SUBPLOT_RGB * height + height - y - 1
-    if 0 < vec[0] < width and 1 < vec[1] < height and HAS_RGB:
-        output[x][index][0] = IM_ARRAY[int(vec[1])][int(vec[0])][0] / 255.0
-        output[x][index][1] = IM_ARRAY[int(vec[1])][int(vec[0])][1] / 255.0
-        output[x][index][2] = IM_ARRAY[int(vec[1])][int(vec[0])][2] / 255.0
+    if 0 < vec[0] < width and 1 < vec[1] < height and dmap.has_rgb:
+        output[x][index][0] = dmap.im_array[int(vec[1])][int(vec[0])][0] / 255.0
+        output[x][index][1] = dmap.im_array[int(vec[1])][int(vec[0])][1] / 255.0
+        output[x][index][2] = dmap.im_array[int(vec[1])][int(vec[0])][2] / 255.0
 
     # ensure pixel clipping
     for i in range(SUBPLOT_COUNT):

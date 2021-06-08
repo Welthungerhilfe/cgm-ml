@@ -307,28 +307,6 @@ def parse_confidence(tx: int, ty: int, data: bytes, max_confidence: float, width
     return data[(int(ty) * width + int(tx)) * 3 + 2] / max_confidence
 
 
-def parse_data(filename: str):
-    """Parse depth data"""
-    with open(filename, 'rb') as f:
-        line = f.readline().decode().strip()
-        header = line.split('_')
-        res = header[0].split('x')
-        width = int(res[0])
-        height = int(res[1])
-        depth_scale = float(header[1])
-        max_confidence = float(header[2])
-        if len(header) >= 10:
-            position = (float(header[7]), float(header[8]), float(header[9]))
-            rotation = (float(header[3]), float(header[4]), float(header[5]), float(header[6]))
-            matrix = matrix_calculate(position, rotation)
-        else:
-            matrix = IDENTITY_MATRIX_4D
-        data = f.read()
-        f.close()
-
-    return data, width, height, depth_scale, max_confidence, matrix
-
-
 def parse_depth(tx: int, ty: int, width: int, height: int, data: bytes, depth_scale: float) -> float:
     """Get depth of the point in meters"""
     if tx < 1 or ty < 1 or tx >= width or ty >= height:
