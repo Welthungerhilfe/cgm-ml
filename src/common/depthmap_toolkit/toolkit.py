@@ -49,7 +49,7 @@ def prev(event, calibration_file: str, depthmap_dir: str):
 
 def show(depthmap_dir: str, calibration_file: str):
     rgb_filename = rgb_filenames[index] if rgb_filenames else 0
-    dmap = depthmap.Depthmap.create_from_file(depthmap_dir, depth_filenames[index], rgb_filename)
+    dmap = depthmap.Depthmap.create_from_file(depthmap_dir, depth_filenames[index], rgb_filename, calibration_file)
 
     angle = dmap.get_angle_between_camera_and_floor()
     logging.info('angle between camera and floor is %f', angle)

@@ -20,8 +20,6 @@ if __name__ == "__main__":
     depthmap_dir = sys.argv[1]
     calibration_file = sys.argv[2]
 
-    calibration = utils.parse_calibration(calibration_file)
-
     depth_filenames = []
     for (dirpath, dirnames, filenames) in os.walk(depthmap_dir + '/depth'):
         depth_filenames.extend(filenames)
@@ -32,8 +30,10 @@ if __name__ == "__main__":
         print('no previous data to delete')
     os.mkdir('export')
     for filename in depth_filenames:
-        width, height, depth_scale, max_confidence, data, matrix = depthmap.process(depthmap_dir, filename, 0)
+
+        dmap = depthmap.Depthmap.create_from_file(depthmap_dir, filename, 0, calibration_file)
+
         output_filename = f'output{filename}.pcd'
-        depthmap.export('pcd', output_filename, width, height, data, depth_scale, calibration, max_confidence, matrix)
+        dmap.export('pcd', output_filename)
 
     logging.info('Data exported into folder export')

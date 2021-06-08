@@ -11,8 +11,9 @@ def test_depthmap():
     depthmap_dir = str(TOOLKIT_DIR / 'huawei_p40pro')
     depthmap_fname = 'depth_dog_1622182020448_100_234.depth'
     rgb_fname = 'rgb_dog_1622182020448_100_234.jpg'
+    calibration_file = str(TOOLKIT_DIR / 'huawei_p40pro' / 'camera_calibration.txt')
 
-    depthmap = Depthmap.create_from_file(depthmap_dir, depthmap_fname, rgb_fname)
+    depthmap = Depthmap.create_from_file(depthmap_dir, depthmap_fname, rgb_fname, calibration_file)
 
     assert depthmap.width == 240
     assert depthmap.height == 180

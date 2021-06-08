@@ -87,12 +87,11 @@ class Depthmap:  # Artifact
     def create_from_file(cls,
                          depthmap_dir: str,
                          depthmap_fname: str,
-                         rgb_fname: str):
+                         rgb_fname: str,
+                         calibration_file: str):
         width, height, depth_scale, max_confidence, data, matrix = cls.read_file(depthmap_dir, depthmap_fname, rgb_fname)
 
-        # calibration / intrinsics
-        calibration_path = depthmap_dir + '/camera_calibration.txt'  # TODO make work for Lenovo  # get_calibration_from_..
-        intrinsics = utils.parse_calibration(calibration_path)
+        intrinsics = utils.parse_calibration(calibration_file)
 
         return cls(intrinsics,
                    width,
