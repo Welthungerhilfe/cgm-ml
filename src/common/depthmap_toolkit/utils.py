@@ -296,7 +296,7 @@ def parse_calibration(filepath: str) -> List[List[float]]:
         for _ in range(3):
             f.readline().strip()
             line_with_numbers = f.readline()
-            intrinsic = _parse_numbers(line_with_numbers)
+            intrinsic = parse_numbers(line_with_numbers)
             calibration.append(intrinsic)
     calibration[2][1] *= 8.0  # workaround for wrong calibration data
     return calibration
@@ -328,7 +328,7 @@ def parse_depth_smoothed(tx: int, ty: int, width: int, height: int, data: bytes,
     return sum(depths) / len(depths)
 
 
-def _parse_numbers(line: str) -> List[float]:
+def parse_numbers(line: str) -> List[float]:
     """Parse line of numbers
 
     Args:
@@ -338,21 +338,3 @@ def _parse_numbers(line: str) -> List[float]:
         numbers: [0.6786797, 0.90489584, 0.49585155, 0.5035042]
     """
     return [float(value) for value in line.split(' ')]
-
-
-def parse_pcd(filepath: str) -> List[List[float]]:
-    with open(filepath, 'r') as f:
-        data = []
-        while True:
-            line = str(f.readline())
-            if line.startswith('DATA'):
-                break
-
-        while True:
-            line = str(f.readline())
-            if not line:
-                break
-            else:
-                values = _parse_numbers(line)
-                data.append(values)
-    return data
