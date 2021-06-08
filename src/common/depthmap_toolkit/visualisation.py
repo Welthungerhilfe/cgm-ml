@@ -1,7 +1,6 @@
 import logging
 import logging.config
 
-import functools
 import matplotlib.pyplot as plt
 import numpy as np
 

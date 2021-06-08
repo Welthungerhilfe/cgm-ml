@@ -116,7 +116,7 @@ if __name__ == "__main__":
     index = 0
     size = len(depth_filenames)
     fig = plt.figure()
-    fig.canvas.mpl_connect('button_press_event',functools.partial(onclick))
+    fig.canvas.mpl_connect('button_press_event', functools.partial(onclick))
     bprev = Button(plt.axes([0.0, 0.0, 0.1, 0.075]), '<<', color='gray')
     bprev.on_clicked(functools.partial(prev_click, calibration_file=calibration_file, depthmap_dir=depthmap_dir))
     bnext = Button(plt.axes([0.9, 0.0, 0.1, 0.075]), '>>', color='gray')
