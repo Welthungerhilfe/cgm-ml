@@ -40,7 +40,7 @@ class Depthmap:
                 - position and rotation of the pose
                 - pose in different format
         rgb_data (str): Path to RGB file (e.g. to the jpg)
-        has_rgb (int): Flag TODO make it bool
+        has_rgb (bool): Flag to indicate if the artifact has RGB data
         im_array (np.array): RGB data TODO rename to rgb_array
     """
     def __init__(
@@ -95,13 +95,13 @@ class Depthmap:
         # read rgb data
         if rgb_fname:
             rgb_data = depthmap_dir + '/rgb/' + rgb_fname
-            has_rgb = 1
+            has_rgb = True
             pil_im = Image.open(rgb_data)
             pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
             im_array = np.asarray(pil_im)
         else:
             rgb_data = rgb_fname
-            has_rgb = 0
+            has_rgb = False
             im_array = None
 
         # read calibration file
