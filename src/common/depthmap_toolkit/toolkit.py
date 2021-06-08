@@ -13,6 +13,7 @@ from matplotlib.widgets import Button
 
 import depthmap
 import utils
+import visualisation
 
 logging.basicConfig(
     level=logging.INFO,
@@ -54,7 +55,7 @@ def show(depthmap_dir: str, calibration_file: str):
     angle = dmap.get_angle_between_camera_and_floor()
     logging.info('angle between camera and floor is %f', angle)
 
-    dmap.show_result()
+    visualisation.show(dmap)
     ax = plt.gca()
     ax.text(
         0.5,
