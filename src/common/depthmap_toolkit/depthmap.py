@@ -20,11 +20,13 @@ logging.basicConfig(
 
 TOOLKIT_DIR = Path(__file__).parents[0].absolute()
 
+
 def extract_depthmap(depthmap_dir: str, depthmap_fname: str):
     """Extract depthmap from given file"""
     with zipfile.ZipFile(Path(depthmap_dir) / 'depth' / depthmap_fname, 'r') as zip_ref:
         zip_ref.extractall(TOOLKIT_DIR)
     return TOOLKIT_DIR / constants.EXTRACTED_DEPTH_FILE_NAME
+
 
 class Depthmap:  # Artifact
     """Depthmap
@@ -38,7 +40,19 @@ class Depthmap:  # Artifact
                 - position and rotation of the pose
                 - pose in different format
     """
-    def __init__(self, intrinsics, width, height, data, depth_scale, max_confidence, matrix, rgb_data, has_rgb, im_array):
+
+    def __init__(
+            self,
+            intrinsics,
+            width,
+            height,
+            data,
+            depth_scale,
+            max_confidence,
+            matrix,
+            rgb_data,
+            has_rgb,
+            im_array):
         self.intrinsics = intrinsics
         self.width = width
         self.height = height
@@ -107,8 +121,7 @@ class Depthmap:  # Artifact
                    rgb_data,
                    has_rgb,
                    im_array
-        )
-
+                   )
 
     def calculate_normal_vector(self, x: float, y: float) -> list:
         """Calculate normal vector of depthmap point based on neightbors"""
@@ -131,7 +144,6 @@ class Depthmap:  # Artifact
         # Ensure the normal has a length of one
         return utils.norm(normal)
 
-
     def convert_2d_to_3d(self, sensor: int, x: float, y: float, depth: float) -> list:
         """Convert point in pixels into point in meters"""
         fx = self.intrinsics[sensor][0] * float(self.width)
@@ -141,7 +153,6 @@ class Depthmap:  # Artifact
         tx = (x - cx) * depth / fx
         ty = (y - cy) * depth / fy
         return [tx, ty, depth]
-
 
     def convert_2d_to_3d_oriented(self, sensor: int, x: float, y: float, depth: float) -> list:
         """Convert point in pixels into point in meters (applying rotation)"""
@@ -161,7 +172,6 @@ class Depthmap:  # Artifact
             pass
         return res
 
-
     def convert_3d_to_2d(self, sensor: int, x: float, y: float, depth: float) -> list:
         """Convert point in meters into point in pixels"""
         fx = self.intrinsics[sensor][0] * float(self.width)
@@ -171,7 +181,6 @@ class Depthmap:  # Artifact
         tx = x * fx / depth + cx
         ty = y * fy / depth + cy
         return [tx, ty, depth]
-
 
     def get_angle_between_camera_and_floor(self) -> float:
         """Calculate an angle between camera and floor based on device pose"""
@@ -185,7 +194,6 @@ class Depthmap:  # Artifact
         vector = self.convert_2d_to_3d_oriented(1, centerx, centery, 1.0)
         angle = 90 + math.degrees(math.atan2(vector[0], vector[1]))
         return angle
-
 
     def get_floor_level(self) -> float:
         """Calculate an altitude of the floor in the world coordinates"""
@@ -207,11 +215,9 @@ class Depthmap:  # Artifact
                     altitudes.append(point[1])
         return statistics.median(altitudes)
 
-
     def parse_confidence(self, tx: int, ty):
         """Get confidence of the point in scale 0-1"""
         return self.data[(int(ty) * self.width + int(tx)) * 3 + 2] / self.max_confidence
-
 
     def parse_depth(self, tx: int, ty: int) -> float:
         """Get depth of the point in meters"""
@@ -221,7 +227,6 @@ class Depthmap:  # Artifact
         depth += self.data[(int(ty) * self.width + int(tx)) * 3 + 1]
         depth *= self.depth_scale
         return depth
-
 
     def parse_depth_smoothed(self, tx: int, ty) -> float:
         """Get average depth value from neighboring pixels"""

@@ -27,6 +27,7 @@ SUBPLOT_COUNT = 5
 # click on data
 last = [0, 0, 0]
 
+
 def onclick(event, dmap: Depthmap):
     if event.xdata is not None and event.ydata is not None:
         x = int(event.ydata)
