@@ -96,7 +96,8 @@ def convert_2d_to_3d(intrisics: list, x: float, y: float, z: float, width: int, 
     return [tx, ty, z]
 
 
-def convert_2d_to_3d_oriented(intrisics: list, x: float, y: float, z: float, width: int, height: int, matrix: list) -> list:
+def convert_2d_to_3d_oriented(intrisics: list, x: float, y: float, z: float,
+                              width: int, height: int, matrix: list) -> list:
     """Convert point in pixels into point in meters (applying rotation)"""
     res = convert_2d_to_3d(intrisics, x, y, z, width, height)
     if not res:
@@ -222,7 +223,8 @@ def write_pcd_header(filehandle, count):
     filehandle.write('DATA ascii\n')
 
 
-def export_pcd(filename: str, width: int, height: int, data: bytes, depth_scale: float, calibration: List[List[float]], max_confidence: float):
+def export_pcd(filename: str, width: int, height: int, data: bytes, depth_scale: float,
+               calibration: List[List[float]], max_confidence: float):
     with open(filename, 'w') as f:
         count = str(_get_count(width, height, data, depth_scale, calibration))
         write_pcd_header(f, count)

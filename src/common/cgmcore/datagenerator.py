@@ -21,7 +21,8 @@ import uuid
 import pickle
 from . import utils
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 class DataGenerator(object):
@@ -47,8 +48,10 @@ class DataGenerator(object):
 
         Args:
             dataset_path (string): Where the raw data is.
-            input_type (string): Specifies how the input-data for the Neural Network looks like. Either 'image', 'pointcloud', 'voxgrid'.
-            output_targets (list of strings): A list of targets for the Neural Network. For example *['height', 'weight']*.
+            input_type (string): Specifies how the input-data for the Neural Network looks like.
+                                 Either 'image', 'pointcloud', 'voxgrid'.
+            output_targets (list of strings): A list of targets for the Neural Network.
+                                              For example *['height', 'weight']*.
             sequence_length (int): Specifies the lenght of the sequences. 0 would yield no sequence at all.
             image_target_shape (2D tuple of ints): Target shape of the images.
             voxelgrid_target_shape (3D tuple of ints): Target shape of the voxelgrids.
@@ -193,7 +196,8 @@ class DataGenerator(object):
             # Extract the timestamp from the JSON-data.
             timestamp = self._extract_timestamp_from_path(json_path_measure)
 
-            # Filter paths for qrcodes and measurements. Find all JPGs and PCDs for a given QR-code and make sure that the timestamps are related.
+            # Filter paths for qrcodes and measurements. Find all JPGs and PCDs for a
+            # given QR-code and make sure that the timestamps are related.
             jpg_paths = [jpg_path for jpg_path in self.jpg_paths if self._is_matching_measurement(
                 jpg_path, qrcode, timestamp) is True]
             pcd_paths = [pcd_path for pcd_path in self.pcd_paths if self._is_matching_measurement(
@@ -332,7 +336,10 @@ class DataGenerator(object):
 
             # Create voxelgrid from pointcloud.
             voxelgrid_id = point_cloud.add_structure(
-                "voxelgrid", size_x=self.voxel_size_meters, size_y=self.voxel_size_meters, size_z=self.voxel_size_meters)
+                "voxelgrid",
+                size_x=self.voxel_size_meters,
+                size_y=self.voxel_size_meters,
+                size_z=self.voxel_size_meters)
             voxelgrid = point_cloud.structures[voxelgrid_id].get_feature_vector(mode="density")
 
             # Do the preprocessing.

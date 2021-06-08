@@ -15,7 +15,8 @@ from matplotlib.pyplot import cm
 from PIL import Image
 from sklearn.manifold import TSNE
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 class Autoencoder(tf.keras.Model):
@@ -53,8 +54,12 @@ class Autoencoder(tf.keras.Model):
         if self.size == "tiny":
             self.encoder = tf.keras.models.Sequential([
                 tf.keras.layers.InputLayer(input_shape=input_shape),
-                tf.keras.layers.Conv2D(filters=filters[0], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2D(filters=filters[1], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[0], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[1], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
                 tf.keras.layers.Flatten(),
                 tf.keras.layers.Dense(output_size),
             ])
@@ -63,16 +68,27 @@ class Autoencoder(tf.keras.Model):
                 tf.keras.layers.InputLayer(input_shape=(latent_dim,)),
                 tf.keras.layers.Dense(units=np.prod(bridge_shape), activation="relu"),
                 tf.keras.layers.Reshape(bridge_shape),
-                tf.keras.layers.Conv2DTranspose(filters=filters[0], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2DTranspose(filters=input_shape[-1], kernel_size=3, strides=(2, 2), padding="same", activation="linear")
+                tf.keras.layers.Conv2DTranspose(
+                    filters=filters[0], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(
+                    filters=input_shape[-1], kernel_size=3, strides=(2, 2), padding="same", activation="linear")
             ])
         elif self.size == "small":
             self.encoder = tf.keras.models.Sequential([
                 tf.keras.layers.InputLayer(input_shape=input_shape),
-                tf.keras.layers.Conv2D(filters=filters[0], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2D(filters=filters[1], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2D(filters=filters[2], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2D(filters=filters[3], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[0], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[1], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[2], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[3], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
                 tf.keras.layers.Flatten(),
                 tf.keras.layers.Dense(output_size),
             ])
@@ -81,21 +97,42 @@ class Autoencoder(tf.keras.Model):
                 tf.keras.layers.InputLayer(input_shape=(latent_dim,)),
                 tf.keras.layers.Dense(units=np.prod(bridge_shape), activation="relu"),
                 tf.keras.layers.Reshape(bridge_shape),
-                tf.keras.layers.Conv2DTranspose(filters=filters[2], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2DTranspose(filters=filters[1], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2DTranspose(filters=filters[0], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2DTranspose(filters=input_shape[-1], kernel_size=3, strides=(2, 2), padding="same", activation="linear")
+                tf.keras.layers.Conv2DTranspose(
+                    filters=filters[2], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(
+                    filters=filters[1], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(
+                    filters=filters[0], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(
+                    filters=input_shape[-1], kernel_size=3, strides=(2, 2), padding="same", activation="linear")
             ])
         elif self.size == "big":
             self.encoder = tf.keras.models.Sequential([
                 tf.keras.layers.InputLayer(input_shape=input_shape),
-                tf.keras.layers.Conv2D(filters=filters[0], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2D(filters=filters[1], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2D(filters=filters[2], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2D(filters=filters[3], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2D(filters=filters[4], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2D(filters=filters[5], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2D(filters=filters[6], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[0], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[1], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[2], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[3], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[4], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[5], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[6], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
                 tf.keras.layers.Flatten(),
                 tf.keras.layers.Dense(output_size),
             ])
@@ -104,26 +141,57 @@ class Autoencoder(tf.keras.Model):
                 tf.keras.layers.InputLayer(input_shape=(latent_dim,)),
                 tf.keras.layers.Dense(units=np.prod(bridge_shape), activation="relu"),
                 tf.keras.layers.Reshape(bridge_shape),
-                tf.keras.layers.Conv2DTranspose(filters=filters[5], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2DTranspose(filters=filters[4], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2DTranspose(filters=filters[3], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2DTranspose(filters=filters[2], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2DTranspose(filters=filters[1], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2DTranspose(filters=filters[0], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2DTranspose(filters=input_shape[-1], kernel_size=3, strides=(2, 2), padding="same", activation="linear")
+                tf.keras.layers.Conv2DTranspose(
+                    filters=filters[5], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(
+                    filters=filters[4], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(
+                    filters=filters[3], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(
+                    filters=filters[2], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(
+                    filters=filters[1], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(
+                    filters=filters[0], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(
+                    filters=input_shape[-1], kernel_size=3, strides=(2, 2), padding="same", activation="linear")
             ])
         elif self.size == "huge":
             self.encoder = tf.keras.models.Sequential([
                 tf.keras.layers.InputLayer(input_shape=input_shape),
-                tf.keras.layers.Conv2D(filters=filters[0], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2D(filters=filters[1], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2D(filters=filters[2], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2D(filters=filters[3], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2D(filters=filters[4], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2D(filters=filters[5], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2D(filters=filters[6], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2D(filters=filters[7], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2D(filters=filters[8], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[0], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[1], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[2], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[3], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[4], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[5], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[6], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[7], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2D(
+                    filters=filters[8], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
                 tf.keras.layers.Flatten(),
                 tf.keras.layers.Dense(output_size),
             ])
@@ -132,15 +200,32 @@ class Autoencoder(tf.keras.Model):
                 tf.keras.layers.InputLayer(input_shape=(latent_dim,)),
                 tf.keras.layers.Dense(units=np.prod(bridge_shape), activation="relu"),
                 tf.keras.layers.Reshape(bridge_shape),
-                tf.keras.layers.Conv2DTranspose(filters=filters[7], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2DTranspose(filters=filters[6], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2DTranspose(filters=filters[5], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2DTranspose(filters=filters[4], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2DTranspose(filters=filters[3], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2DTranspose(filters=filters[2], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2DTranspose(filters=filters[1], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2DTranspose(filters=filters[0], kernel_size=3, strides=(2, 2), padding="same", activation="relu"),
-                tf.keras.layers.Conv2DTranspose(filters=input_shape[-1], kernel_size=3, strides=(2, 2), padding="same", activation="linear")
+                tf.keras.layers.Conv2DTranspose(
+                    filters=filters[7], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(
+                    filters=filters[6], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(
+                    filters=filters[5], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(
+                    filters=filters[4], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(
+                    filters=filters[3], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(
+                    filters=filters[2], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(
+                    filters=filters[1], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(
+                    filters=filters[0], kernel_size=3, strides=(
+                        2, 2), padding="same", activation="relu"),
+                tf.keras.layers.Conv2DTranspose(
+                    filters=input_shape[-1], kernel_size=3, strides=(2, 2), padding="same", activation="linear")
             ])
         # Should not happen.
         else:
@@ -284,7 +369,8 @@ class Autoencoder(tf.keras.Model):
             return probs
         return logits
 
-    def train(self, dataset_train, dataset_validate, dataset_anomaly, epochs, batch_size, shuffle_buffer_size, render=False, render_every=1, callbacks=[], outputs_path="."):
+    def train(self, dataset_train, dataset_validate, dataset_anomaly, epochs, batch_size,
+              shuffle_buffer_size, render=False, render_every=1, callbacks=[], outputs_path="."):
         """Trains the model.
 
         Args:
@@ -309,7 +395,11 @@ class Autoencoder(tf.keras.Model):
 
         # Create history object.
         dataset_names = ["train", "validate", "anomaly"]
-        keys = [f"{loss_name}_{dataset_name}" for dataset_name, loss_name in itertools.product(dataset_names, self.loss_names)]
+        keys = [
+            f"{loss_name}_{dataset_name}" for dataset_name,
+            loss_name in itertools.product(
+                dataset_names,
+                self.loss_names)]
         history = {key: [] for key in keys}
         best_validation_loss = 1000000.0
         del dataset_names
@@ -341,9 +431,22 @@ class Autoencoder(tf.keras.Model):
 
         # Render reconstructions and individual losses before training.
         if render:
-            render_reconstructions(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename="reconstruction-0000.png")
-            #render_individual_losses(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename="losses-0000.png")
-            render_embeddings(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename="embeddings-0000.png")
+            render_reconstructions(
+                self,
+                dataset_train_samples,
+                dataset_validate_samples,
+                dataset_anomaly_samples,
+                outputs_path=outputs_path,
+                filename="reconstruction-0000.png")
+            #render_individual_losses(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples,
+            #                         outputs_path=outputs_path, filename="losses-0000.png")
+            render_embeddings(
+                self,
+                dataset_train_samples,
+                dataset_validate_samples,
+                dataset_anomaly_samples,
+                outputs_path=outputs_path,
+                filename="embeddings-0000.png")
 
         # Train.
         logging.info("Train...")
@@ -396,21 +499,58 @@ class Autoencoder(tf.keras.Model):
                 callback.on_epoch_end(epoch, logs=logs)
 
             # Print status.
-            logging.info('Epoch: %d, validate set loss: %d, time elapse for current epoch: %d', epoch, mean_losses_validate[0], end_time - start_time)
+            logging.info('Epoch: %d, validate set loss: %d, time elapse for current epoch: %d',
+                         epoch, mean_losses_validate[0], end_time - start_time)
             # Render reconstructions after every xth epoch.
             if render and (epoch % render_every) == 0:
-                render_reconstructions(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename=f"reconstruction-{epoch:04d}.png")
-                #render_individual_losses(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename=f"losses-{epoch:04d}.png")
-                render_embeddings(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename=f"embeddings-{epoch:04d}.png")
+                render_reconstructions(
+                    self,
+                    dataset_train_samples,
+                    dataset_validate_samples,
+                    dataset_anomaly_samples,
+                    outputs_path=outputs_path,
+                    filename=f"reconstruction-{epoch:04d}.png")
+                #render_individual_losses(self, dataset_train_samples, dataset_validate_samples,
+                #                         dataset_anomaly_samples, outputs_path=outputs_path,
+                #                         filename=f"losses-{epoch:04d}.png")
+                render_embeddings(
+                    self,
+                    dataset_train_samples,
+                    dataset_validate_samples,
+                    dataset_anomaly_samples,
+                    outputs_path=outputs_path,
+                    filename=f"embeddings-{epoch:04d}.png")
 
         # Merge reconstructions into an animation.
         if render:
-            render_reconstructions(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename=f"reconstruction-{epoch:04d}.png")
-            #render_individual_losses(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename=f"losses-{epoch:04d}.png")
-            render_embeddings(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path=outputs_path, filename=f"embeddings-{epoch:04d}.png")
-            create_animation("reconstruction-*", outputs_path=outputs_path, filename="reconstruction-animation.gif", delete_originals=True)
-            #create_animation("losses-*", outputs_path=outputs_path, filename="losses-animation.gif", delete_originals=True)
-            create_animation("embeddings-*", outputs_path=outputs_path, filename="embeddings-animation.gif", delete_originals=True)
+            render_reconstructions(
+                self,
+                dataset_train_samples,
+                dataset_validate_samples,
+                dataset_anomaly_samples,
+                outputs_path=outputs_path,
+                filename=f"reconstruction-{epoch:04d}.png")
+            #render_individual_losses(self, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples,
+            #                         outputs_path=outputs_path, filename=f"losses-{epoch:04d}.png")
+            render_embeddings(
+                self,
+                dataset_train_samples,
+                dataset_validate_samples,
+                dataset_anomaly_samples,
+                outputs_path=outputs_path,
+                filename=f"embeddings-{epoch:04d}.png")
+            create_animation(
+                "reconstruction-*",
+                outputs_path=outputs_path,
+                filename="reconstruction-animation.gif",
+                delete_originals=True)
+            #create_animation("losses-*", outputs_path=outputs_path, filename="losses-animation.gif",
+            #                 delete_originals=True)
+            create_animation(
+                "embeddings-*",
+                outputs_path=outputs_path,
+                filename="embeddings-animation.gif",
+                delete_originals=True)
 
         # Render the history.
         render_history(history, self.loss_names, outputs_path=outputs_path, filename="history.png")
@@ -671,7 +811,8 @@ def render_history(history, loss_names, outputs_path, filename):
     plt.close()
 
 
-def render_embeddings(model, dataset_train_samples, dataset_validate_samples, dataset_anomaly_samples, outputs_path, filename):
+def render_embeddings(model, dataset_train_samples, dataset_validate_samples,
+                      dataset_anomaly_samples, outputs_path, filename):
     """Renders the embeddings.
 
     Args:
@@ -725,7 +866,15 @@ def render_embeddings(model, dataset_train_samples, dataset_validate_samples, da
     # Render the legend
     legend_elements = []
     for name, color in zip(set(names), color_lookup):
-        legend_elements.append(Line2D([0], [0], marker='o', color=color, label=name, markerfacecolor=color, markersize=15))
+        legend_elements.append(
+            Line2D(
+                [0],
+                [0],
+                marker='o',
+                color=color,
+                label=name,
+                markerfacecolor=color,
+                markersize=15))
     plt.legend(handles=legend_elements, loc='center left', bbox_to_anchor=(1, 0.5))
 
     # Save the figure.

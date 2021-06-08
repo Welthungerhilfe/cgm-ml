@@ -29,7 +29,8 @@ from pyntcloud import PyntCloud
 from cgm_fusion.calibration import get_extrinsic_matrix, get_intrinsic_matrix, get_k
 from cgm_fusion.utility import fuse_point_cloud
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 def project_points(pcd_points, calibration_file):

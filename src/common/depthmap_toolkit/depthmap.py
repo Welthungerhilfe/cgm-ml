@@ -25,10 +25,12 @@ SUBPLOT_RGB = 4
 SUBPLOT_COUNT = 5
 
 
-def export(type: str, filename: str, width: int, height: int, data: bytes, depth_scale: float, calibration: List[List[float]], max_confidence: float, matrix: list):
+def export(type: str, filename: str, width: int, height: int, data: bytes, depth_scale: float,
+           calibration: List[List[float]], max_confidence: float, matrix: list):
     rgb = CURRENT_RGB
     if type == 'obj':
-        utils.export_obj('export/' + filename, rgb, width, height, data, depth_scale, calibration, matrix, triangulate=True)
+        utils.export_obj('export/' + filename, rgb, width, height, data,
+                         depth_scale, calibration, matrix, triangulate=True)
     if type == 'pcd':
         utils.export_pcd('export/' + filename, width, height, data, depth_scale, calibration, max_confidence)
 
@@ -94,9 +96,12 @@ def get_angle_between_camera_and_floor(width: int, height: int, calibration: Lis
     return angle
 
 
-def show_result(width: int, height: int, calibration: List[List[float]], data: bytes, depth_scale: float, max_confidence: float, matrix: list):
+def show_result(width: int, height: int, calibration: List[List[float]],
+                data: bytes, depth_scale: float, max_confidence: float, matrix: list):
     fig = plt.figure()
-    fig.canvas.mpl_connect('button_press_event', functools.partial(onclick, width=width, height=height, data=data, depth_scale=depth_scale, calibration=calibration))
+    fig.canvas.mpl_connect('button_press_event',
+                           functools.partial(onclick, width=width, height=height, data=data,
+                                             depth_scale=depth_scale, calibration=calibration))
     output = np.zeros((width, height * SUBPLOT_COUNT, 3))
     for x in range(width):
         for y in range(height):
@@ -114,9 +119,16 @@ def show_result(width: int, height: int, calibration: List[List[float]], data: b
 
                 # depth data normal
                 v = utils.convert_2d_to_3d_oriented(calibration[1], x, y, depth, width, height, matrix)
-                xm = utils.convert_2d_to_3d_oriented(calibration[1], x - 1, y, utils.parse_depth_smoothed(x - 1, y, width, height, data, depth_scale), width, height, matrix)
-                xp = utils.convert_2d_to_3d_oriented(calibration[1], x + 1, y, utils.parse_depth_smoothed(x + 1, y, width, height, data, depth_scale), width, height, matrix)
-                yp = utils.convert_2d_to_3d_oriented(calibration[1], x, y + 1, utils.parse_depth_smoothed(x, y + 1, width, height, data, depth_scale), width, height, matrix)
+
+                average_depth = utils.parse_depth_smoothed(x - 1, y, width, height, data, depth_scale),
+                xm = utils.convert_2d_to_3d_oriented(calibration[1], x - 1, y, average_depth, width, height, matrix)
+
+                average_depth = utils.parse_depth_smoothed(x + 1, y, width, height, data, depth_scale)
+                xp = utils.convert_2d_to_3d_oriented(calibration[1], x + 1, y, average_depth, width, height, matrix)
+
+                average_depth = utils.parse_depth_smoothed(x, y + 1, width, height, data, depth_scale)
+                yp = utils.convert_2d_to_3d_oriented(calibration[1], x, y + 1, average_depth, width, height, matrix)
+
                 n = utils.norm(utils.cross(utils.diff(yp, xm), utils.diff(yp, xp)))
                 output[x][SUBPLOT_NORMAL * height + height - y - 1][0] = abs(n[0])
                 output[x][SUBPLOT_NORMAL * height + height - y - 1][1] = abs(n[1])
@@ -131,9 +143,10 @@ def show_result(width: int, height: int, calibration: List[List[float]], data: b
                     output[x][SUBPLOT_PATTERN * height + height - y - 1][1] = vertical / (depth * depth)
 
                 # confidence value
-                output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = utils.parse_confidence(x, y, data, max_confidence, width)
-                if output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][0] == 0:
-                    output[x][SUBPLOT_CONFIDENCE * height + height - y - 1][:] = 1
+                idx = SUBPLOT_CONFIDENCE * height + height - y - 1
+                output[x][idx][:] = utils.parse_confidence(x, y, data, max_confidence, width)
+                if output[x][idx][0] == 0:
+                    output[x][idx][:] = 1
 
                 # RGB data
                 if vec[0] > 0 and vec[1] > 1 and vec[0] < width and vec[1] < height and HAS_RGB:
@@ -143,7 +156,8 @@ def show_result(width: int, height: int, calibration: List[List[float]], data: b
 
                 # ensure pixel clipping
                 for i in range(SUBPLOT_COUNT):
-                    output[x][i * height + height - y - 1][0] = min(max(0, output[x][i * height + height - y - 1][0]), 1)
-                    output[x][i * height + height - y - 1][1] = min(max(0, output[x][i * height + height - y - 1][1]), 1)
-                    output[x][i * height + height - y - 1][2] = min(max(0, output[x][i * height + height - y - 1][2]), 1)
+                    idx = i * height + height - y - 1
+                    output[x][idx][0] = min(max(0, output[x][idx][0]), 1)
+                    output[x][idx][1] = min(max(0, output[x][idx][1]), 1)
+                    output[x][idx][2] = min(max(0, output[x][idx][2]), 1)
     plt.imshow(output)

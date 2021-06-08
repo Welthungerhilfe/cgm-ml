@@ -15,7 +15,8 @@ import pickle
 from preprocessing import preprocess_pointcloud, preprocess_targets
 import json
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 # Parse the arguments.
 parser = argparse.ArgumentParser(description="Training Script")

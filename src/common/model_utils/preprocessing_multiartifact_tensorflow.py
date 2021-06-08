@@ -6,7 +6,8 @@ import logging.config
 import numpy as np
 import tensorflow as tf
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 def create_multiartifact_sample(artifacts: List[str],
@@ -29,13 +30,15 @@ def create_multiartifact_sample(artifacts: List[str],
     depthmaps = np.zeros((image_target_height, image_target_width, n_artifacts))
 
     for i, artifact_path in enumerate(artifacts):
-        depthmap, targets = _py_load_pickle(artifact_path, normalization_value, image_target_height, image_target_width, targets_indices)
+        depthmap, targets = _py_load_pickle(artifact_path, normalization_value,
+                                            image_target_height, image_target_width, targets_indices)
         depthmap.set_shape((image_target_height, image_target_width, 1))
         depthmaps[:, :, i] = tf.squeeze(depthmap, axis=2)
         targets_list.append(targets)
     targets = targets_list[0]
     if not np.all(targets_list == targets):
-        logging.info('Warning: Not all targets are the same!! \n target_list: %s \n artifacts: %s: ', targets_list, artifacts)
+        logging.info('Warning: Not all targets are the same!! \n target_list: %s \n artifacts: %s: ',
+                     targets_list, artifacts)
     return depthmaps, targets
 
 
