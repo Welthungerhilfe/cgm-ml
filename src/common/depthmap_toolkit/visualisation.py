@@ -20,11 +20,7 @@ SUBPLOT_RGB = 4
 SUBPLOT_COUNT = 5
 
 
-def detect_child(output: object,
-                 x: int,
-                 y: int,
-                 floor: float,
-                 dmap: Depthmap) -> float:
+def detect_child(output: np.array, floor: float, dmap: Depthmap) -> float:
 
     # highlight the focused child/object using seed algorithm
     highest = floor
@@ -121,14 +117,13 @@ def render_pixel(output: object,
 
 
 def show(dmap: Depthmap):
-
     # render the visualisations
     floor = dmap.get_floor_level()
     output = np.zeros((dmap.width, dmap.height * SUBPLOT_COUNT, 3))
     for x in range(dmap.width):
         for y in range(dmap.height):
             render_pixel(output, x, y, floor, dmap)
-    highest = detect_child(output, x, y, floor, dmap)
+    highest = detect_child(output, floor, dmap)
 
     logging.info('height=%fm', highest - floor)
     plt.imshow(output)
