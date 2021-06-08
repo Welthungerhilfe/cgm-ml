@@ -5,6 +5,7 @@ import logging
 import logging.config
 
 import depthmap
+import exporter
 import utils
 
 logging.basicConfig(level=logging.INFO,
@@ -33,7 +34,7 @@ if __name__ == "__main__":
 
         dmap = depthmap.Depthmap.create_from_file(depthmap_dir, filename, 0, calibration_file)
 
-        output_filename = f'output{filename}.pcd'
-        dmap.export('pcd', output_filename)
+        output_filename = f'export/output{filename}.pcd'
+        exporter.export_pcd(output_filename, dmap)
 
     logging.info('Data exported into folder export')

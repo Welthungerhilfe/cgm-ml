@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 
 import depthmap
+import exporter
 import utils
 import visualisation
 
@@ -22,12 +23,12 @@ logging.basicConfig(
 
 def export_obj(event, dmap: depthmap.Depthmap):
     fname = f'output{index}.obj'
-    dmap.export('obj', fname)
+    exporter.export_obj('export/' + fname, dmap, triangulate=True)
 
 
 def export_pcd(event, dmap):
     fname = f'output{index}.pcd'
-    dmap.export('pcd', fname)
+    exporter.export_pcd('export/' + fname, dmap)
 
 
 def next(event, calibration_file: str, depthmap_dir: str):
@@ -98,8 +99,6 @@ if __name__ == "__main__":
     for (dirpath, dirnames, filenames) in walk(Path(depthmap_dir) / 'rgb'):
         rgb_filenames.extend(filenames)
     rgb_filenames.sort()
-
-    # calibration = utils.parse_calibration(calibration_file)
 
     # Clear export folder
     try:
