@@ -6,7 +6,6 @@ import logging.config
 
 import depthmap
 import exporter
-import utils
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')

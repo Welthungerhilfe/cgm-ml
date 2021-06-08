@@ -6,14 +6,12 @@ import logging
 import logging.config
 from pathlib import Path
 import functools
-from typing import List
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 
 import depthmap
 import exporter
-import utils
 import visualisation
 
 logging.basicConfig(

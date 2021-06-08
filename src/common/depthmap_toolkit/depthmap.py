@@ -1,4 +1,3 @@
-from os import stat
 import zipfile
 import logging
 import logging.config
@@ -6,7 +5,6 @@ import math
 
 from pathlib import Path
 import statistics
-from typing import List
 import numpy as np
 from PIL import Image
 
@@ -184,11 +182,6 @@ class Depthmap:  # Artifact
 
     def get_angle_between_camera_and_floor(self) -> float:
         """Calculate an angle between camera and floor based on device pose"""
-        width = self.width
-        height = self.height
-        calibration = self.intrinsics
-        matrix = self.matrix
-
         centerx = float(self.width / 2)
         centery = float(self.height / 2)
         vector = self.convert_2d_to_3d_oriented(1, centerx, centery, 1.0)
@@ -197,17 +190,9 @@ class Depthmap:  # Artifact
 
     def get_floor_level(self) -> float:
         """Calculate an altitude of the floor in the world coordinates"""
-        data = self.data
-        width = self.width
-        height = self.height
-        depth_scale = self.depth_scale
-        calibration = self.intrinsics
-        max_confidence = self.max_confidence
-        matrix = self.matrix
-
         altitudes = []
-        for x in range(width):
-            for y in range(height):
+        for x in range(self.width):
+            for y in range(self.height):
                 normal = self.calculate_normal_vector(x, y)
                 if abs(normal[1]) > 0.5:
                     depth = self.parse_depth(x, y)

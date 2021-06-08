@@ -1,13 +1,10 @@
 import logging
 import logging.config
-import math
 
 import functools
 import matplotlib.pyplot as plt
 import numpy as np
-from typing import List
 
-import utils
 from depthmap import Depthmap
 
 logging.basicConfig(
