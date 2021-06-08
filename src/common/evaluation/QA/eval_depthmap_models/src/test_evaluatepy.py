@@ -17,12 +17,10 @@ def test_copy_dir():
     temp_common_dir = Path(here.parent / "temp_common")
     print("temp_common_dir: ", temp_common_dir)
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
-    
     """if temp_common_dir.exists():
         print("copying successful, temp_common folder was created.")"""
 
     assert temp_common_dir.exists()
-    
     #shutil.rmtree(temp_common_dir)
     try:
         shutil.rmtree(temp_common_dir)
@@ -45,7 +43,7 @@ def test_copy_empty_dir():
         shutil.rmtree(empty_path)
     except OSError as e:
         print("Error: %s : %s" % (empty_path, e.strerror))
-    
+
     try:
         shutil.rmtree(temp_empty_dir)
     except OSError as e:
