@@ -1,12 +1,10 @@
-# https://github.com/airctic/icedata/blob/master/.github/workflows/pypi-release.yml
+# Inspired by https://github.com/airctic/icedata/blob/master/.github/workflows/pypi-release.yml
 name: PyPi Release
 
-on: push
-
-# on:
-#   release:
-#     types: [created]
-#   workflow_dispatch:
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
 
 jobs:
   deploy:
