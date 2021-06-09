@@ -30,13 +30,13 @@ jobs:
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
-        password: pypi-AgENdGVzdC5weXBpLm9yZwIkNjczZTg0YjMtZGU1Yy00OGUwLWJiMmMtMGQ0NmEyOTI5Mzk4AAIleyJwZXJtaXNzaW9ucyI6ICJ1c2VyIiwgInZlcnNpb24iOiAxfQAABiCOARCrYoaMMsu3AGchXqgN1KGxkNNjZXupNpL84oKp-g
+        password: ${{ secrets.test_pypi_password }}
         repository_url: https://test.pypi.org/legacy/
         verbose: true
 
-    # - name: Publish package to PyPI
-    #   uses: pypa/gh-action-pypi-publish@master
-    #   with:
-    #     user: __token__
-    #     password: ${{ secrets.pypi_password }}
-    #     verbose: true
+    - name: Publish package to PyPI
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
+        verbose: true
