@@ -16,10 +16,10 @@ setup(
         'License :: OSI Approved :: GPL-3.0',
         'Operating System :: OS Independent',
     ],
-    # package_dir={"": "src"},
+    package_dir={"": "src"},
     packages=find_packages(
-        include="src/common/model_utils",
-        exclude=['docs', 'src/common/model_utils/tests'],
+        include="common/model_utils",
+        exclude=['docs', 'common/model_utils/tests'],
         ),
     python_requires=">=3.6",
 )
