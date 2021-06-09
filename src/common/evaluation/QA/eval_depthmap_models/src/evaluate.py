@@ -367,7 +367,7 @@ if __name__ == "__main__":
     calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
                                DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 
-    sample_csv_fpath = f"{OUTPUT_CSV_PATH}/inaccurate_scan_analysis/inaccurate_scans_{descriptor}.csv"
+    sample_csv_fpath = f"{OUTPUT_CSV_PATH}/inaccurate_scans_{descriptor}.csv"
     df_grouped.to_csv(sample_csv_fpath, index=True)
 
     if 'AGE_BUCKETS' in RESULT_CONFIG.keys():

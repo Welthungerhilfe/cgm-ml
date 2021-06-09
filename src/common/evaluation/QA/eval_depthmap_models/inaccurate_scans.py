@@ -5,7 +5,8 @@ from glob2 import glob
 from pathlib import Path
 
 ACCURACY_THRESHOLD = 2
-CSV_PATH = "./outputs/**/inaccurate_scan_analysis/inaccurate_scans_*.csv"
+INACCURATE_DIR_NAME = 'inaccurate_scan_analysis'
+CSV_PATH = f"./outputs/**/{INACCURATE_DIR_NAME}/inaccurate_scans_*.csv"
 REPORT_CSV = 'inaccurate_scan_analysis/inaccurate_scan_report.csv'
 
 
@@ -69,14 +70,16 @@ def calculate_inaccurate_scans(csv_filepath: str) -> set:
     accuracy_df = filter_scans(grouped_result, ACCURACY_THRESHOLD)
     accuracy_df['scan_code'] = accuracy_df.apply(merge_qrc, axis=1)
     csv_name = csv_filepath.split('/')[-1]
-    file_name = f"file_{csv_name}"
-    accuracy_df.to_csv(file_name, index=False)
+    file_path_out = Path(f"{INACCURATE_DIR_NAME}/file_{csv_name}")
+    file_path_out.parent.mkdir(parents=True, exist_ok=True)
+    accuracy_df.to_csv(file_path_out, index=False)
     frame_set = frame_to_set(accuracy_df)
     return frame_set
 
 
 if __name__ == "__main__":
     csv_files = glob(CSV_PATH)
+    logging.info(f"csv_files: {csv_files}")
     if len(csv_files) != 2:
         logging.warning("path contains 0 or more than 2 csv files")
 
