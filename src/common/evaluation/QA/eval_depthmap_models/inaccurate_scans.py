@@ -5,8 +5,8 @@ from glob2 import glob
 from pathlib import Path
 
 ACCURACY_THRESHOLD = 2
-CSV_PATH = "./outputs/**/inaccurate_scans_*.csv"
-REPORT_CSV = 'inaccurate_scan_report.csv'
+CSV_PATH = "./outputs/**/inaccurate_scan_analysis/inaccurate_scans_*.csv"
+REPORT_CSV = 'inaccurate_scan_analysis/inaccurate_scan_report.csv'
 
 
 def merge_qrc(row):
