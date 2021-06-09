@@ -21,11 +21,7 @@ setup(
         'Operating System :: OS Independent',
     ],
 
-    # package_dir={"": "src"},
-    packages=find_packages(
-        # include="common/model_utils",
-        # exclude=['docs', 'common/model_utils/tests'],
-        ),
+    packages=find_packages(),
 
     python_requires=">=3.6",
     setup_requires=['pytest-runner', 'flake8'],
