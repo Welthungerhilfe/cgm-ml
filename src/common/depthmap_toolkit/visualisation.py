@@ -116,7 +116,7 @@ def render_pixel(output: object,
         output[x][index][2] = min(max(0, output[x][index][2]), 1)
 
 
-def show(dmap: Depthmap):
+def render_plot(dmap: Depthmap):
     # render the visualisations
     floor = dmap.get_floor_level()
     output = np.zeros((dmap.width, dmap.height * SUBPLOT_COUNT, 3))

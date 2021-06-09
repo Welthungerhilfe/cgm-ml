@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 
 from depthmap import Depthmap
-from exporter import export_obj
-from visualisation import show
+from exporter import export_obj, export_pcd
+from visualisation import render_plot
 
 logging.basicConfig(
     level=logging.INFO,
@@ -44,13 +44,13 @@ def onclick(event):
             logging.info('no valid data')
 
 
-def export_obj(event):
+def export_object(event):
     global dmap
     fname = f'output{index}.obj'
     export_obj('export/' + fname, dmap, triangulate=True)
 
 
-def export_pcd(event):
+def export_pointcloud(event):
     global dmap
     fname = f'output{index}.pcd'
     export_pcd('export/' + fname, dmap)
@@ -81,7 +81,7 @@ def show(depthmap_dir: str, calibration_file: str):
     angle = dmap.get_angle_between_camera_and_floor()
     logging.info('angle between camera and floor is %f', angle)
 
-    show(dmap)
+    render_plot(dmap)
     plt.show()
 
 
@@ -122,8 +122,8 @@ if __name__ == "__main__":
     bnext = Button(plt.axes([0.9, 0.0, 0.1, 0.075]), '>>', color='gray')
     bnext.on_clicked(functools.partial(next_click, calibration_file=calibration_file, depthmap_dir=depthmap_dir))
     bexport_obj = Button(plt.axes([0.3, 0.0, 0.2, 0.05]), 'Export OBJ', color='gray')
-    bexport_obj.on_clicked(functools.partial(export_obj))
+    bexport_obj.on_clicked(functools.partial(export_object))
     bexport_pcd = Button(plt.axes([0.5, 0.0, 0.2, 0.05]), 'Export PCD', color='gray')
-    bexport_pcd.on_clicked(functools.partial(export_pcd))
+    bexport_pcd.on_clicked(functools.partial(export_pointcloud))
     background = Button(plt.axes([0.0, 0.0, 1.0, 1.0]), '', color='white')
     show(depthmap_dir, calibration_file)
