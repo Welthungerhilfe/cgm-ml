@@ -26,6 +26,9 @@ jobs:
     - name: Build package
       run: python setup.py sdist bdist_wheel
 
+    - name: Debug secret
+      run: echo ${{ secrets.test_pypi_password }}
+
     - name: Publish package to TestPyPI
       uses: pypa/gh-action-pypi-publish@master
       with:
