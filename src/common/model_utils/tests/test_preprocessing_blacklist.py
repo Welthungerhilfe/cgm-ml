@@ -1,11 +1,11 @@
 from pathlib import Path
-import pytest
 import sys
 
 sys.path.append(str(Path(__file__).parents[2]))  # common/ dir
 
-from model_utils.preprocessing import filter_blacklisted_qrcodes
-from model_utils.tests.test_preprocessing_constants import BLACKLIST_QRCODES_8SAMPLES, BLACKLIST_QRCODES_WRONG_SIZE, BLACKLIST_QRCODES_EMPTY
+#from model_utils.preprocessing import filter_blacklisted_qrcodes
+#from model_utils.tests.test_preprocessing_constants import BLACKLIST_QRCODES_8SAMPLES,
+# BLACKLIST_QRCODES_WRONG_SIZE, BLACKLIST_QRCODES_EMPTY
 
 
 def test_always_passes():

@@ -1,11 +1,10 @@
 import sys
 import shutil
-import pytest
 from pathlib import Path
 
 from evaluate import copy_dir
 
-here = Path(__file__).resolve() # not sure if this is best practice - find out
+here = Path(__file__).resolve()  # not sure if this is best practice - find out
 
 sys.path.append(str(here.parents[1])) # noqa
 
