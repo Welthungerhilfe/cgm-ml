@@ -1,11 +1,9 @@
 import json
-from tensorflow.keras.models import load_model
+
 import numpy as np
-import tensorflow as tf
-import os
-import sys
-from os import walk
-import config from CONFIG
+from tensorflow.keras.models import load_model
+
+from config import CONFIG
 
 
 def init():

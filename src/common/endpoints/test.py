@@ -2,10 +2,8 @@ import json
 import pickle
 
 import requests
-import numpy as np
 import tensorflow as tf
 from azureml.core import Webservice, Workspace
-from tensorflow.keras.models import load_model
 
 
 ws = Workspace.from_config()

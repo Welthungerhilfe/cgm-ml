@@ -1,15 +1,10 @@
-import json
-import os
-import sys
-from pathlib import Path
-from config import CONFIG
 
-from constants import REPO_DIR
-import numpy as np
-from azureml.core import Environment, Model, Workspace
-from azureml.core.conda_dependencies import CondaDependencies
+from azureml.core import Environment, Workspace
 from azureml.core.model import InferenceConfig, Model
-from azureml.core.webservice import AciWebservice, LocalWebservice, Webservice
+from azureml.core.webservice import AciWebservice, LocalWebservice
+
+from config import CONFIG
+from constants import REPO_DIR
 
 ws = Workspace.from_config()
 model = Model(ws, name=CONFIG.MODEL_NAME)
@@ -20,7 +15,7 @@ cgm_env.docker.enabled = True
 cgm_env.docker.base_image = 'mcr.microsoft.com/azureml/openmpi3.1.2-cuda10.1-cudnn7-ubuntu18.04'
 inference_config_aci = InferenceConfig(
     environment=cgm_env,
-    entry_script=str(REPO_DIR / "src/common/endpoints/entry_deep.py"),
+    entry_script=str(REPO_DIR / "src/common/endpoints/entry_script_aci.py"),
 )
 
 
