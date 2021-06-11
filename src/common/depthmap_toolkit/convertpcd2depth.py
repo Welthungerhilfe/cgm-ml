@@ -5,7 +5,7 @@ import logging
 import logging.config
 
 import pcd2depth
-import utils
+import depthmap_utils
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')

@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image
 from typing import Tuple
 
-from utils import (
+from depthmap_utils import (
     matrix_calculate, IDENTITY_MATRIX_4D, parse_numbers, diff, cross, norm, matrix_transform_point)
 from constants import EXTRACTED_DEPTH_FILE_NAME, MASK_FLOOR, MASK_CHILD
 
@@ -38,7 +38,7 @@ class Depthmap:
         data (bytes): pixel_data
         depth_scale (float): Scalar to scale depthmap pixel to meters
         max_confidence (float): Confidence is amount of IR light reflected
-                                (e.g. 0 to 255 in Lenovo, new standard is 0 to 8)
+                                (e.g. 0 to 255 in Lenovo, new standard is 0 to 7)
                                 This is actually an int.
         matrix (list): Header contains a pose (= position and rotation)
                        - matrix is a list represenation of this pose

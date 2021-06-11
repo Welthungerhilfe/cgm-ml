@@ -3,7 +3,7 @@ import zipfile
 import numpy as np
 
 from typing import List
-from utils import convert_3d_to_2d, parse_numbers
+from depthmap_utils import convert_3d_to_2d, parse_numbers
 
 ENCODING = 'charmap'
 
