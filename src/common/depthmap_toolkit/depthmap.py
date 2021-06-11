@@ -7,10 +7,11 @@ from pathlib import Path
 import statistics
 import numpy as np
 from PIL import Image
+from typing import Tuple
 
 from utils import (
     matrix_calculate, IDENTITY_MATRIX_4D, parse_numbers, diff, cross, norm, matrix_transform_point)
-from constants import EXTRACTED_DEPTH_FILE_NAME
+from constants import EXTRACTED_DEPTH_FILE_NAME, MASK_FLOOR, MASK_CHILD
 
 logging.basicConfig(
     level=logging.INFO,
@@ -184,6 +185,49 @@ class Depthmap:
         tx = x * fx / depth + cx
         ty = y * fy / depth + cy
         return [tx, ty, depth]
+
+    def detect_child(self, floor: float) -> Tuple[np.array, float]:
+
+        # mask the floor
+        mask = np.zeros((self.width, self.height))
+        for x in range(self.width):
+            for y in range(self.height):
+                depth = self.parse_depth(x, y)
+                if not depth:
+                    continue
+                normal = self.calculate_normal_vector(x, y)
+                point = self.convert_2d_to_3d_oriented(1, x, y, depth)
+                if abs(normal[1]) > 0.5:
+                    if abs(point[1] - floor) < 0.1:
+                        mask[x][y] = MASK_FLOOR
+
+        # highlight the focused child/object using seed algorithm
+        highest = floor
+        dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]]
+        pixel = [int(self.width / 2), int(self.height / 2)]
+        stack = [pixel]
+        while len(stack) > 0:
+
+            # get a next pixel from the stack
+            pixel = stack.pop()
+            depth_center = self.parse_depth(pixel[0], pixel[1])
+
+            # add neighbor points (if there is no floor and they are connected)
+            if mask[pixel[0]][pixel[1]] == 0:
+                for direction in dirs:
+                    pixel_dir = [pixel[0] + direction[0], pixel[1] + direction[1]]
+                    depth_dir = self.parse_depth(pixel_dir[0], pixel_dir[1])
+                    if depth_dir > 0 and (depth_dir - depth_center) < 0.1:
+                        stack.append(pixel_dir)
+
+            # update the highest point
+            point = self.convert_2d_to_3d_oriented(1, pixel[0], pixel[1], depth_center)
+            highest = max(highest, point[1])
+
+            # update the mask
+            mask[pixel[0]][pixel[1]] = MASK_CHILD
+
+        return mask, highest
 
     def get_angle_between_camera_and_floor(self) -> float:
         """Calculate an angle between camera and floor based on device pose"""
