@@ -25,7 +25,7 @@ def export_obj(filename: str,
     if dmap.has_rgb:
         with open(material, 'w') as f:
             f.write('newmtl default\n')
-            f.write('map_Kd ../' + dmap.rgb_data + '\n')
+            f.write('map_Kd ../' + dmap.rgb_fpath + '\n')
 
     with open(filename, 'w') as f:
         if dmap.has_rgb:

@@ -41,7 +41,7 @@ class Depthmap:
         matrix (list): not in header
                 - position and rotation of the pose
                 - pose in different format
-        rgb_data (str): Path to RGB file (e.g. to the jpg)
+        rgb_fpath (str): Path to RGB file (e.g. to the jpg)
         has_rgb (bool): Flag to indicate if the artifact has RGB data
         rgb_array (np.array): RGB data
     """
@@ -54,7 +54,7 @@ class Depthmap:
             depth_scale,
             max_confidence,
             matrix,
-            rgb_data,
+            rgb_fpath,
             has_rgb,
             rgb_array):
         self.intrinsics = intrinsics
@@ -64,7 +64,7 @@ class Depthmap:
         self.depth_scale = depth_scale
         self.max_confidence = max_confidence
         self.matrix = matrix
-        self.rgb_data = rgb_data
+        self.rgb_fpath = rgb_fpath
         self.has_rgb = has_rgb
         self.rgb_array = rgb_array
 
@@ -96,13 +96,13 @@ class Depthmap:
 
         # read rgb data
         if rgb_fname:
-            rgb_data = depthmap_dir + '/rgb/' + rgb_fname
+            rgb_fpath = depthmap_dir + '/rgb/' + rgb_fname
             has_rgb = True
-            pil_im = Image.open(rgb_data)
+            pil_im = Image.open(rgb_fpath)
             pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
             rgb_array = np.asarray(pil_im)
         else:
-            rgb_data = rgb_fname
+            rgb_fpath = rgb_fname
             has_rgb = False
             rgb_array = None
 
@@ -122,7 +122,7 @@ class Depthmap:
                    depth_scale,
                    max_confidence,
                    matrix,
-                   rgb_data,
+                   rgb_fpath,
                    has_rgb,
                    rgb_array
                    )
