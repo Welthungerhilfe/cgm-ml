@@ -25,7 +25,7 @@ inference_config_aci = InferenceConfig(
     entry_script=str(REPO_DIR / "src/common/endpoints/entry_script_aci.py"),
 )
 
-if config.LOCALTEST == True:
+if CONFIG.LOCALTEST:
     deployment_config = LocalWebservice.deploy_configuration(port=6789)
 else:
     deployment_config = AciWebservice.deploy_configuration(cpu_cores=1, memory_gb=4)
