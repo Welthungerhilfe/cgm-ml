@@ -3,10 +3,10 @@
 # MAGIC # Create a Dataset using Databricks
 # MAGIC
 # MAGIC Steps
-# MAGIC * databricks driver is connected to our postgres DB
-# MAGIC * databricks driver reads the scan artifacts from postgres DB
-# MAGIC * databricks driver copies all scan artifact blobs to DBFS
-# MAGIC * databricks worker can open and process blobs
+# MAGIC * databricks driver gets list of artifacts from postgres DB
+# MAGIC * databricks driver copies artifacts (from blob stoarage to DBFS)
+# MAGIC * databricks workers process artifacts
+# MAGIC * databricks driver uploads all the blobs (from DBFS to blob storage)
 
 # COMMAND ----------
 
@@ -30,9 +30,7 @@ from skimage.transform import resize
 from tqdm import tqdm
 from azure.storage.blob import BlobServiceClient
 
-from src.common.data_utilities.mlpipeline_utils import (
-  load_depth, parse_depth, preprocess_depthmap, preprocess, prepare_depthmap, get_depthmaps,
-  ArtifactProcessor)
+from src.common.data_utilities.mlpipeline_utils import ArtifactProcessor
 
 # COMMAND ----------
 
@@ -57,7 +55,7 @@ DBFS_DIR = f"/tmp/{ENV}"
 # MAGIC
 # MAGIC #### SQL query
 # MAGIC
-# MAGIC We build our SQL query, so that we get all the required information for ML:
+# MAGIC We build our SQL query, so that we get all the required information for the ML dataset creation:
 # MAGIC - the artifacts (depthmap, RGB, pointcloud)
 # MAGIC - the targets (measured height, weight, and MUAC)
 # MAGIC
@@ -102,11 +100,6 @@ WHERE a.format = 'depth'
 """
 cur.execute(SQL_QUERY)
 
-# Get a query_result row
-if DEBUG:
-    query_result_one: Tuple[str] = cur.fetchone()
-    file_path = query_result_one[0]; file_path
-
 # Get multiple query_result rows
 NUM_ARTIFACTS = 30  # None
 query_results: List[Tuple[str]] = cur.fetchall() if NUM_ARTIFACTS is None else cur.fetchmany(NUM_ARTIFACTS)
@@ -137,14 +130,12 @@ idx2col = {i: col.name for i, col in enumerate(cur.description)}; print(idx2col)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC # Copy mounted files to DBFS
+# MAGIC # Copy artifact files to DBFS
 # MAGIC
 # MAGIC In order for databricks to process the blob data, we need to transfer it to the DBFS of the databricks cluster.
 # MAGIC
 # MAGIC Note:
-# MAGIC * It is not be enough to mount the blob storage.
-# MAGIC * Copying from mount is very very slow.
-# MAGIC
+# MAGIC * Copying from mount is very very slow, therefore we copy the data
 # MAGIC
 # MAGIC ## Download blobs
 # MAGIC
@@ -168,15 +159,8 @@ BLOB_SERVICE_CLIENT = BlobServiceClient.from_connection_string(CONNECTION_STR)
 
 # COMMAND ----------
 
-if DEBUG:
-    file_name = query_results[0][0]; print(file_name)
-    with open('asjj.txt', "wb") as download_file:
-        download_file.write(blob_client.download_blob().readall())
-
-# COMMAND ----------
-
 def download_from_blob_storage(src, dest, container):
-    blob_client = BLOB_SERVICE_CLIENT.get_blob_client(container=container, blob=file_path)
+    blob_client = BLOB_SERVICE_CLIENT.get_blob_client(container=container, blob=src)
     Path(dest).parent.mkdir(parents=True, exist_ok=True)
     with open(dest, "wb") as download_file:
         content = blob_client.download_blob().readall()
@@ -214,9 +198,6 @@ for res in tqdm(query_results):
 # COMMAND ----------
 
 rdd = spark.sparkContext.parallelize(query_results, 2)
-if DEBUG:
-    print(rdd.top(3))  # Inspect first items
-    print(rdd.count())
 
 # COMMAND ----------
 
@@ -227,7 +208,7 @@ artifact_processor = ArtifactProcessor(input_dir, output_dir, idx2col)
 # COMMAND ----------
 
 rdd_processed = rdd.map(artifact_processor.process_artifact_tuple)
-processed_fnames = rdd_processed.collect()  # processed_fnames = rdd_processed.take(12)
+processed_fnames = rdd_processed.collect()
 print(processed_fnames[:3])
 
 # COMMAND ----------
@@ -261,16 +242,6 @@ def upload_to_blob_storage(src, dest, container, directory):
     blob_client = BLOB_SERVICE_CLIENT.get_blob_client(container=container, blob=os.path.join(directory,dest))
     with open(src, "rb") as data:
         blob_client.upload_blob(data, overwrite=False)
-
-# COMMAND ----------
-
-if True:
-    print(len(processed_fnames))
-    print(processed_fnames[0])
-    full_name = processed_fnames[0]
-    assert PREFIX in full_name
-    fname = remove_prefix(full_name, PREFIX)
-    upload_to_blob_storage(src=full_name, dest=fname, container=CONTAINER_NAME_DATASET, directory=directory)
 
 # COMMAND ----------
 
