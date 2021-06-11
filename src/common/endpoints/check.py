@@ -7,15 +7,6 @@ from azureml.core import Webservice, Workspace
 from config import CONFIG
 
 
-if CONFIG.LOCALTEST:
-    ws = Workspace.from_config()
-    service = Webservice(workspace=ws, name=config.ENDPOINT_NAME)
-    uri = service.scoring_uri
-else:
-    uri = 'http://localhost:6789/'
-requests.get(uri)
-
-
 def tf_load_pickle(path, max_value):
     depthmaps = []
 
@@ -33,14 +24,23 @@ def tf_load_pickle(path, max_value):
     return depthmaps
 
 
-depthmap = tf_load_pickle(CONFIG.TEST_FILE, 7.5)
+if __name__ == "__main__":
+    if CONFIG.LOCALTEST:
+        ws = Workspace.from_config()
+        service = Webservice(workspace=ws, name=config.ENDPOINT_NAME)
+        uri = service.scoring_uri
+    else:
+        uri = 'http://localhost:6789/'
 
-headers = {"Content-Type": "application/json"}
-data = {
-    "data": depthmap,
-}
+    requests.get(uri)
+    depthmap = tf_load_pickle(CONFIG.TEST_FILE, 7.5)
 
-data = json.dumps(data)
+    headers = {"Content-Type": "application/json"}
+    data = {
+        "data": depthmap,
+    }
 
-response = requests.post(uri, data=data, headers=headers)
-print(response.json())
+    data = json.dumps(data)
+
+    response = requests.post(uri, data=data, headers=headers)
+    print(response.json())

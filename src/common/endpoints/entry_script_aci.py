@@ -10,7 +10,7 @@ def init():
 
 
 def run(data):
-    test = json.loads(data)
-    data_np = np.array(test['data'])
+    data_json = json.loads(data)
+    data_np = np.array(data_json['data'])
     value = model.predict(data_np)
     return value.tolist()
