@@ -4,8 +4,6 @@ import pickle
 import requests
 import tensorflow as tf
 from azureml.core import Webservice, Workspace
-from config import CONFIG
-
 
 ws = Workspace.from_config()
 service = Webservice(workspace=ws, name="aci-tests-height-s1")
