@@ -3,12 +3,16 @@ import logging.config
 
 import matplotlib.pyplot as plt
 import numpy as np
+from typing import Tuple
 
 from depthmap import Depthmap
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+
+MASK_FLOOR = 1
+MASK_CHILD = 2
 
 PATTERN_LENGTH_IN_METERS = 0.1
 
@@ -20,7 +24,20 @@ SUBPLOT_RGB = 4
 SUBPLOT_COUNT = 5
 
 
-def detect_child(output: np.array, floor: float, dmap: Depthmap) -> float:
+def detect_child(floor: float, dmap: Depthmap) -> Tuple[np.array, float]:
+
+    # mask the floor
+    mask = np.zeros((dmap.width, dmap.height))
+    for x in range(dmap.width):
+        for y in range(dmap.height):
+            depth = dmap.parse_depth(x, y)
+            if not depth:
+                continue
+            normal = dmap.calculate_normal_vector(x, y)
+            point = dmap.convert_2d_to_3d_oriented(1, x, y, depth)
+            if abs(normal[1]) > 0.5:
+                if abs(point[1] - floor) < 0.1:
+                    mask[x][y] = MASK_FLOOR
 
     # highlight the focused child/object using seed algorithm
     highest = floor
@@ -34,8 +51,7 @@ def detect_child(output: np.array, floor: float, dmap: Depthmap) -> float:
         depth_center = dmap.parse_depth(pixel[0], pixel[1])
 
         # add neighbor points (if there is no floor and they are connected)
-        index = SUBPLOT_SEGMENTATION * dmap.height + dmap.height - pixel[1] - 1
-        if output[pixel[0]][index][2] < 0.1:
+        if mask[pixel[0]][pixel[1]] == 0:
             for direction in dirs:
                 pixel_dir = [pixel[0] + direction[0], pixel[1] + direction[1]]
                 depth_dir = dmap.parse_depth(pixel_dir[0], pixel_dir[1])
@@ -46,19 +62,17 @@ def detect_child(output: np.array, floor: float, dmap: Depthmap) -> float:
         point = dmap.convert_2d_to_3d_oriented(1, pixel[0], pixel[1], depth_center)
         highest = max(highest, point[1])
 
-        # fill the pixels with yellow pattern
-        horizontal = ((point[1] - floor) % PATTERN_LENGTH_IN_METERS) / PATTERN_LENGTH_IN_METERS
-        output[pixel[0]][index][0] = horizontal
-        output[pixel[0]][index][1] = horizontal
-        output[pixel[0]][index][2] = 0.1
+        # update the mask
+        mask[pixel[0]][pixel[1]] = MASK_CHILD
 
-    return highest
+    return mask, highest
 
 
 def render_pixel(output: object,
                  x: int,
                  y: int,
                  floor: float,
+                 mask: np.array,
                  dmap: Depthmap):
 
     depth = dmap.parse_depth(x, y)
@@ -87,9 +101,12 @@ def render_pixel(output: object,
     vertical_z = (point[2] % PATTERN_LENGTH_IN_METERS) / PATTERN_LENGTH_IN_METERS
     vertical = (vertical_x + vertical_z) / 2.0
     index = SUBPLOT_SEGMENTATION * dmap.height + dmap.height - y - 1
-    if abs(normal[1]) < 0.5:
+    if mask[x][y] == MASK_CHILD:
         output[x][index][0] = horizontal / (depth * depth)
-    if abs(normal[1]) > 0.5:
+        output[x][index][1] = horizontal / (depth * depth)
+    elif abs(normal[1]) < 0.5:
+        output[x][index][0] = horizontal / (depth * depth)
+    elif abs(normal[1]) > 0.5:
         if abs(point[1] - floor) < 0.1:
             output[x][index][2] = vertical / (depth * depth)
         else:
@@ -117,13 +134,15 @@ def render_pixel(output: object,
 
 
 def render_plot(dmap: Depthmap):
-    # render the visualisations
+    # floor and child detection
     floor = dmap.get_floor_level()
+    mask, highest = detect_child(floor, dmap)
+
+    # render the visualisations
     output = np.zeros((dmap.width, dmap.height * SUBPLOT_COUNT, 3))
     for x in range(dmap.width):
         for y in range(dmap.height):
-            render_pixel(output, x, y, floor, dmap)
-    highest = detect_child(output, floor, dmap)
+            render_pixel(output, x, y, floor, mask, dmap)
 
     logging.info('height=%fm', highest - floor)
     plt.imshow(output)
