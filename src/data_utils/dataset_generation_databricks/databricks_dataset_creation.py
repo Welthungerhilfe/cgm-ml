@@ -14,6 +14,8 @@
 ! pip install tqdm
 ! pip install azure-storage-blob
 
+! pip install --upgrade cgm-ml-common
+
 # COMMAND ----------
 
 from datetime import datetime, timezone
@@ -29,6 +31,10 @@ import psycopg2
 from skimage.transform import resize
 from tqdm import tqdm
 from azure.storage.blob import BlobServiceClient
+
+from src.common.data_utilities.mlpipeline_utils import (
+  load_depth, parse_depth, preprocess_depthmap, preprocess, prepare_depthmap, get_depthmaps, 
+  ArtifactProcessor)
 
 # COMMAND ----------
 
@@ -104,7 +110,7 @@ if DEBUG:
     file_path = query_result_one[0]; file_path
   
 # Get multiple query_result rows
-NUM_ARTIFACTS = 3000  # None
+NUM_ARTIFACTS = 30  # None
 query_results: List[Tuple[str]] = cur.fetchall() if NUM_ARTIFACTS is None else cur.fetchmany(NUM_ARTIFACTS)
 
 # COMMAND ----------
@@ -205,140 +211,7 @@ for res in tqdm(query_results):
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Preprocessing utilities
-# MAGIC 
-# MAGIC In order to preprocess ZIP file to extract a depthmap, we use this code:
-# MAGIC [preprocessing.py](https://github.com/Welthungerhilfe/cgm-rg/blob/92efa0febb91c9656ce8e5dbfad953ff7ce721a9/src/utils/preprocessing.py#L12)
-# MAGIC 
-# MAGIC [file of minor importance](https://github.com/Welthungerhilfe/cgm-ml/blob/c8be9138e025845bedbe7cfc0d131ef668e01d4b/old/cgm_database/command_preprocess.py#L92)
-
-# COMMAND ----------
-
-WIDTH = 240
-HEIGHT = 180
-NORMALIZATION_VALUE = 7.5
-IMAGE_TARGET_HEIGHT, IMAGE_TARGET_WIDTH = HEIGHT, WIDTH
-
-def load_depth(fpath: str) -> Tuple[bytes, int, int, float, float]:
-    """Take ZIP file and extract depth and metadata
-    Args:
-        fpath (str): File path to the ZIP
-    Returns:
-        depth_data (bytes): depthmap data
-        width(int): depthmap width in pixel
-        height(int): depthmap height in pixel
-        depth_scale(float)
-        max_confidence(float)
-    """
-
-    with zipfile.ZipFile(fpath) as z:
-        with z.open('data') as f:
-            # Example for a first_line: '180x135_0.001_7_0.57045287_-0.0057296_0.0022602521_0.82130724_-0.059177425_0.0024800065_0.030834956'
-            first_line = f.readline().decode().strip()
-
-            file_header = first_line.split("_")
-
-            # header[0] example: 180x135
-            width, height = file_header[0].split("x")
-            width, height = int(width), int(height)
-            depth_scale = float(file_header[1])
-            max_confidence = float(file_header[2])
-
-            depth_data = f.read()
-    return depth_data, width, height, depth_scale, max_confidence
-
-
-def parse_depth(tx: int, ty: int, data: bytes, depth_scale: float, width: int) -> float:
-    assert isinstance(tx, int)
-    assert isinstance(ty, int)
-
-    depth = data[(ty * width + tx) * 3 + 0] << 8
-    depth += data[(ty * width + tx) * 3 + 1]
-
-    depth *= depth_scale
-    return depth
-
-def preprocess_depthmap(depthmap):
-    return depthmap.astype("float32")
-
-def preprocess(depthmap):
-    depthmap = preprocess_depthmap(depthmap)
-    depthmap = depthmap / NORMALIZATION_VALUE
-    depthmap = resize(depthmap, (IMAGE_TARGET_HEIGHT, IMAGE_TARGET_WIDTH))
-    depthmap = depthmap.reshape((depthmap.shape[0], depthmap.shape[1], 1))
-    return depthmap
-  
-def prepare_depthmap(data: bytes, width: int, height: int, depth_scale: float) -> np.array:
-    """Convert bytes array into np.array"""
-    output = np.zeros((width, height, 1))
-    for cx in range(width):
-        for cy in range(height):
-            # depth data scaled to be visible
-            output[cx][height - cy - 1] = parse_depth(cx, cy, data, depth_scale, width)
-    arr = np.array(output, dtype='float32')
-    return arr.reshape(width, height)
-
-def get_depthmaps(fpaths):
-    depthmaps = []
-    for fpath in fpaths:
-        data, width, height, depthScale, _ = load_depth(fpath)
-        depthmap = prepare_depthmap(data, width, height, depthScale)
-        depthmap = preprocess(depthmap)
-        depthmaps.append(depthmap)
-
-    depthmaps = np.array(depthmaps)
-    return depthmaps
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## Transform utilities
-
-# COMMAND ----------
-
-def create_and_save_pickle(zip_input_full_path, timestamp, scan_id, scan_step, target_tuple, order_number):
-    """Side effect: Saves and returns file path"""
-    depthmaps = get_depthmaps([zip_input_full_path])
-    if DEBUG:
-        print(depthmaps.shape, depthmaps[0,0,0,0])
-    
-    pickle_output_path = f"qrcode/{scan_id}/{scan_step}/pc_{scan_id}_{timestamp}_{scan_step}_{order_number}.p"  # '/tmp/abc.p'
-    pickle_output_full_path = f"/dbfs{DBFS_DIR}/{pickle_output_path}"
-    Path(pickle_output_full_path).parent.mkdir(parents=True, exist_ok=True)
-    pickle.dump((depthmaps, np.array(target_tuple)), open(pickle_output_full_path, "wb"))
-    return pickle_output_full_path
-
-# COMMAND ----------
-
-def process_artifact_tuple(artifact_tuple):
-    """Side effect: Saves and returns file path"""
-    artifact_dict = {idx2col[i]: el for i, el in enumerate(artifact_tuple)}
-    if DEBUG:
-        print('artifact_dict', artifact_dict)
-    target_tuple = (artifact_dict['height'], artifact_dict['weight'], artifact_dict['muac'])
-    zip_input_full_path = f"/dbfs{DBFS_DIR}/{artifact_dict['file_path']}"
-
-    pickle_output_full_path = create_and_save_pickle(
-        zip_input_full_path=zip_input_full_path,
-        timestamp=artifact_dict['timestamp'],
-        scan_id=artifact_dict['scan_id'],
-        scan_step=artifact_dict['scan_step'],
-        target_tuple=target_tuple,
-        order_number=artifact_dict['order_number'],
-    )
-    return pickle_output_full_path
-
-# COMMAND ----------
-
-# MAGIC %md
 # MAGIC ## Transform
-
-# COMMAND ----------
-
-if DEBUG:
-  # Process on the spark driver
-  for query_result in query_results[:2]:
-      _ = process_artifact_tuple(query_result) 
 
 # COMMAND ----------
 
@@ -349,7 +222,13 @@ if DEBUG:
 
 # COMMAND ----------
 
-rdd_processed = rdd.map(process_artifact_tuple)
+input_dir = f"/dbfs{DBFS_DIR}"
+output_dir = f"/dbfs{DBFS_DIR}"
+artifact_processor = ArtifactProcessor(input_dir, output_dir)
+
+# COMMAND ----------
+
+rdd_processed = rdd.map(artifact_processor.process_artifact_tuple)
 processed_fnames = rdd_processed.collect()  # processed_fnames = rdd_processed.take(12)
 print(processed_fnames[:3])
 
@@ -378,31 +257,30 @@ def remove_prefix(text, prefix):
     if text.startswith(prefix): return text[len(prefix):]
     return text
 
-prefix = f"/dbfs{DBFS_DIR}/"
+PREFIX = f"/dbfs{DBFS_DIR}/"
 
 def upload_to_blob_storage(src, dest, container, directory):
     blob_client = BLOB_SERVICE_CLIENT.get_blob_client(container=container, blob=os.path.join(directory,dest))
-    # print(f"Uploading to Azure Storage as blob: {directory}/{dest}")
     with open(src, "rb") as data:
         blob_client.upload_blob(data, overwrite=False)
 
 # COMMAND ----------
 
-if DEBUG:
+if True:
     print(len(processed_fnames))
-    processed_fnames[0]
+    print(processed_fnames[0])
     full_name = processed_fnames[0]
-    assert prefix in full_name
-    fname = remove_prefix(full_name, prefix)
-    upload_to_blob_storage(src=full_name, dest=fname, container=CONTAINER_NAME_DATASET)
+    assert PREFIX in full_name
+    fname = remove_prefix(full_name, PREFIX)
+    upload_to_blob_storage(src=full_name, dest=fname, container=CONTAINER_NAME_DATASET, directory=directory)
 
 # COMMAND ----------
 
 DATASET_NAME = "dataset"
 directory = datetime.now(timezone.utc).strftime(f"{DATASET_NAME}-%Y-%m-%d-%H-%M-%S")
 for full_name in tqdm(processed_fnames):
-    assert prefix in full_name
-    fname = remove_prefix(full_name, prefix)
+    assert PREFIX in full_name
+    fname = remove_prefix(full_name, PREFIX)
     upload_to_blob_storage(src=full_name, dest=fname, container=CONTAINER_NAME_DATASET, directory=directory)
 
 # COMMAND ----------
