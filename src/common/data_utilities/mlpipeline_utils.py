@@ -34,7 +34,8 @@ def load_depth(fpath: str) -> Tuple[bytes, int, int, float, float]:
 
     with zipfile.ZipFile(fpath) as z:
         with z.open('data') as f:
-            # Example for a first_line: '180x135_0.001_7_0.57045287_-0.0057296_0.0022602521_0.82130724_-0.059177425_0.0024800065_0.030834956'
+            # Example for a first_line:
+            #     '180x135_0.001_7_0.57045287_-0.0057296_0.0022602521_0.82130724_-0.059177425_0.0024800065_0.030834956'
             first_line = f.readline().decode().strip()
 
             file_header = first_line.split("_")
@@ -107,8 +108,7 @@ class ArtifactProcessor:
                                scan_id: str,
                                scan_step: str,
                                target_tuple: Tuple[float, float, float],
-                               order_number: str
-        ):
+                               order_number: str) -> str:
         """Side effect: Saves and returns file path"""
         depthmaps = get_depthmaps([zip_input_full_path])
         pickle_output_path = f"qrcode/{scan_id}/{scan_step}/pc_{scan_id}_{timestamp}_{scan_step}_{order_number}.p"

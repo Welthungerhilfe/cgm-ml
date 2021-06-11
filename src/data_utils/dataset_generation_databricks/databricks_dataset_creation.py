@@ -10,6 +10,8 @@
 
 # COMMAND ----------
 
+# flake8: noqa
+
 ! pip install scikit-image
 ! pip install tqdm
 ! pip install azure-storage-blob
