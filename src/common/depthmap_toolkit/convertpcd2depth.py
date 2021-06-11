@@ -1,11 +1,12 @@
 import os
 import shutil
+
 import sys
 import logging
 import logging.config
 
 import pcd2depth
-import utils
+from depthmap import parse_calibration
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
@@ -20,7 +21,7 @@ if __name__ == "__main__":
     pcd_dir = sys.argv[1]
     calibration_file = sys.argv[2]
 
-    calibration = utils.parse_calibration(calibration_file)
+    calibration = parse_calibration(calibration_file)
 
     depth_filenames = []
     for (dirpath, dirnames, filenames) in os.walk(pcd_dir):
