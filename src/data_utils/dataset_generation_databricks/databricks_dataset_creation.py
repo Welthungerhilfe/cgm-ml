@@ -1,7 +1,7 @@
 # Databricks notebook source
 # MAGIC %md
 # MAGIC # Create a Dataset using Databricks
-# MAGIC 
+# MAGIC
 # MAGIC Steps
 # MAGIC * databricks driver is connected to our postgres DB
 # MAGIC * databricks driver reads the scan artifacts from postgres DB
@@ -21,9 +21,7 @@
 from datetime import datetime, timezone
 import os
 from pathlib import Path
-import pickle
 from typing import Tuple, List
-import zipfile
 
 import numpy as np
 import pandas as pd
@@ -33,7 +31,7 @@ from tqdm import tqdm
 from azure.storage.blob import BlobServiceClient
 
 from src.common.data_utilities.mlpipeline_utils import (
-  load_depth, parse_depth, preprocess_depthmap, preprocess, prepare_depthmap, get_depthmaps, 
+  load_depth, parse_depth, preprocess_depthmap, preprocess, prepare_depthmap, get_depthmaps,
   ArtifactProcessor)
 
 # COMMAND ----------
@@ -56,31 +54,31 @@ DBFS_DIR = f"/tmp/{ENV}"
 
 # MAGIC %md
 # MAGIC ## Access SQL database to find all the scans/artifacts of interest
-# MAGIC 
+# MAGIC
 # MAGIC #### SQL query
-# MAGIC 
+# MAGIC
 # MAGIC We build our SQL query, so that we get all the required information for ML:
 # MAGIC - the artifacts (depthmap, RGB, pointcloud)
 # MAGIC - the targets (measured height, weight, and MUAC)
-# MAGIC 
-# MAGIC The ETL packet shows which tables are involved 
-# MAGIC 
+# MAGIC
+# MAGIC The ETL packet shows which tables are involved
+# MAGIC
 # MAGIC ![image info](https://dev.azure.com/cgmorg/e5b67bad-b36b-4475-bdd7-0cf6875414df/_apis/git/repositories/465970a9-a8a5-4223-81c1-2d3f3bd4ab26/Items?path=%2F.attachments%2Fcgm-solution-architecture-etl-draft-ETL-samplling-71a42e64-72c4-4360-a741-1cfa24622dce.png&download=false&resolveLfs=true&%24format=octetStream&api-version=5.0-preview.1&sanitize=true&versionDescriptor.version=wikiMaster)
-# MAGIC 
+# MAGIC
 # MAGIC The query will produce one artifact per row.
 
 # COMMAND ----------
 
 SECRET_SCOPE = "cgm-ml-ci-dev-databricks-secret-scope"
-if ENV == ENV_SANDBOX: 
+if ENV == ENV_SANDBOX:
     host = "cgm-ml-ci-dev-mlapi-psql.postgres.database.azure.com"
     user = dbutils.secrets.get(scope=SECRET_SCOPE, key="psql-username")
     password = dbutils.secrets.get(scope=SECRET_SCOPE, key="psql-password")
-elif ENV == ENV_PROD: 
+elif ENV == ENV_PROD:
     host = "cgm-ml-ci-prod-mlapi-psql.postgres.database.azure.com"
     user = dbutils.secrets.get(scope=SECRET_SCOPE, key="prod-psql-username")
     password = dbutils.secrets.get(scope=SECRET_SCOPE, key="prod-psql-password")
-else: 
+else:
     raise Exception(f"Unknown environment: {ENV}")
 
 conn = psycopg2.connect(host=host, database='cgm-ml', user=user, password=password)
@@ -92,13 +90,13 @@ cur = conn.cursor()
 # COMMAND ----------
 
 SQL_QUERY = """
-SELECT f.file_path, f.created as timestamp, 
-       s.id as scan_id, s.scan_type_id as scan_step, 
+SELECT f.file_path, f.created as timestamp,
+       s.id as scan_id, s.scan_type_id as scan_step,
        m.height, m.weight, m.muac,
        a.ord as order_number
-FROM file f 
-INNER JOIN artifact a ON f.id = a.file_id 
-INNER JOIN scan s     ON s.id = a.scan_id 
+FROM file f
+INNER JOIN artifact a ON f.id = a.file_id
+INNER JOIN scan s     ON s.id = a.scan_id
 INNER JOIN measure m  ON m.person_id = s.person_id
 WHERE a.format = 'depth'
 """
@@ -108,7 +106,7 @@ cur.execute(SQL_QUERY)
 if DEBUG:
     query_result_one: Tuple[str] = cur.fetchone()
     file_path = query_result_one[0]; file_path
-  
+
 # Get multiple query_result rows
 NUM_ARTIFACTS = 30  # None
 query_results: List[Tuple[str]] = cur.fetchall() if NUM_ARTIFACTS is None else cur.fetchmany(NUM_ARTIFACTS)
@@ -117,9 +115,9 @@ query_results: List[Tuple[str]] = cur.fetchall() if NUM_ARTIFACTS is None else c
 
 # MAGIC %md
 # MAGIC **Explanation of a file_path**
-# MAGIC 
+# MAGIC
 # MAGIC The SQL result provides file_paths which have this format
-# MAGIC 
+# MAGIC
 # MAGIC ```
 # MAGIC Example: '1618896404960/2fe0ee0e-daf0-45a4-931e-cfc7682e1ce6'
 # MAGIC Format: f'{unix-timeatamp}/{random uuid}'
@@ -140,28 +138,28 @@ idx2col = {i: col.name for i, col in enumerate(cur.description)}; print(idx2col)
 
 # MAGIC %md
 # MAGIC # Copy mounted files to DBFS
-# MAGIC 
+# MAGIC
 # MAGIC In order for databricks to process the blob data, we need to transfer it to the DBFS of the databricks cluster.
-# MAGIC 
+# MAGIC
 # MAGIC Note:
-# MAGIC * It is not be enough to mount the blob storage. 
+# MAGIC * It is not be enough to mount the blob storage.
 # MAGIC * Copying from mount is very very slow.
-# MAGIC 
-# MAGIC 
-# MAGIC ## Download blobs 
-# MAGIC 
+# MAGIC
+# MAGIC
+# MAGIC ## Download blobs
+# MAGIC
 # MAGIC We use [Manage blobs Python SDK](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#download-blobs)
 # MAGIC to download blobs directly from the Storage Account(SA) to [DBFS](https://docs.databricks.com/data/databricks-file-system.html).
 
 # COMMAND ----------
 
-if ENV == ENV_SANDBOX: 
+if ENV == ENV_SANDBOX:
     CONNECTION_STR = dbutils.secrets.get(scope=SECRET_SCOPE, key="dev-sa-connection-string")
     STORAGE_ACCOUNT_NAME = "cgmmlcidevmlapisa"
     CONTAINER_NAME = "cgm-result"
-elif ENV == ENV_PROD: 
+elif ENV == ENV_PROD:
     raise Exception("Not yet setup this SA connection string")
-else: 
+else:
     raise Exception(f"Unknown environment: {ENV}")
 
 # COMMAND ----------
@@ -195,14 +193,14 @@ for res in tqdm(query_results):
 
 # MAGIC %md
 # MAGIC # Transform ZIP into pickle
-# MAGIC 
+# MAGIC
 # MAGIC Here we document the format of the artifact path
-# MAGIC 
+# MAGIC
 # MAGIC ```
 # MAGIC f"scans/1583462505-43bak4gvfa/101/pc_1583462505-43bak4gvfa_1591122173510_101_002.p"
 # MAGIC f"qrcode/{scan_id}/{scan_step}/pc_{scan_id}_{timestamp}_{scan_step}_{order_number}.p"
 # MAGIC ```
-# MAGIC 
+# MAGIC
 # MAGIC Idea for a future format could be to include person_id like so:
 # MAGIC ```
 # MAGIC f"qrcode/{person_id}/{scan_step}/pc_{scan_id}_{timestamp}_{scan_step}_{order_number}.p"
@@ -224,7 +222,7 @@ if DEBUG:
 
 input_dir = f"/dbfs{DBFS_DIR}"
 output_dir = f"/dbfs{DBFS_DIR}"
-artifact_processor = ArtifactProcessor(input_dir, output_dir)
+artifact_processor = ArtifactProcessor(input_dir, output_dir, idx2col)
 
 # COMMAND ----------
 
@@ -236,19 +234,19 @@ print(processed_fnames[:3])
 
 # MAGIC %md
 # MAGIC # Upload to blob storage
-# MAGIC 
+# MAGIC
 # MAGIC We use [Manage blobs Python SDK](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#upload-blobs-to-a-container)
 # MAGIC to upload blobs
 
 # COMMAND ----------
 
-if ENV == ENV_SANDBOX: 
+if ENV == ENV_SANDBOX:
     STORAGE_ACCOUNT_NAME = "cgmmlcidevmlapisa"
     CONTAINER_NAME_DATASET = "cgm-datasets"
     CONNECT_STR_DATASET = CONNECTION_STR
-elif ENV == ENV_PROD: 
+elif ENV == ENV_PROD:
     raise Exception("Not yet setup this SA connection string")
-else: 
+else:
     raise Exception(f"Unknown environment: {ENV}")
 
 # COMMAND ----------

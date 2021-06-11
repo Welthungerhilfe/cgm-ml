@@ -1,3 +1,13 @@
+"""Preprocessing utilities
+
+In order to preprocess ZIP file to extract a depthmap, we use this code:
+https://github.com/Welthungerhilfe/cgm-rg/blob/92efa0febb91c9656ce8e5dbfad953ff7ce721a9/src/utils/preprocessing.py#L12
+
+file of minor importance:
+https://github.com/Welthungerhilfe/cgm-ml/blob/c8be9138e025845bedbe7cfc0d131ef668e01d4b/old
+/cgm_database/command_preprocess.py#L92
+"""
+
 from pathlib import Path
 import pickle
 from typing import Tuple
@@ -6,25 +16,8 @@ import zipfile
 import numpy as np
 from skimage.transform import resize
 
-# Constants
-ENV_PROD = "env_prod"
-ENV_SANDBOX = "env_sandbox"
-
-# Configuration
-DEBUG = False
-ENV = ENV_SANDBOX
-
-MOUNT_POINT = f"/mnt/{ENV}_input"
-MOUNT_DATASET = f"/mnt/{ENV}_dataset"
-DBFS_DIR = f"/tmp/{ENV}"
-
-WIDTH = 240
-HEIGHT = 180
 NORMALIZATION_VALUE = 7.5
-IMAGE_TARGET_HEIGHT, IMAGE_TARGET_WIDTH = HEIGHT, WIDTH
-
-col2idx = {'file_path': 0, 'timestamp': 1, 'scan_id': 2, 'scan_step': 3, 'height': 4, 'weight': 5, 'muac': 6, 'order_number': 7}
-idx2col = {0: 'file_path', 1: 'timestamp', 2: 'scan_id', 3: 'scan_step', 4: 'height', 5: 'weight', 6: 'muac', 7: 'order_number'}
+IMAGE_TARGET_HEIGHT, IMAGE_TARGET_WIDTH = 180, 240
 
 
 def load_depth(fpath: str) -> Tuple[bytes, int, int, float, float]:
@@ -103,17 +96,15 @@ def get_depthmaps(fpaths):
 
 
 class ArtifactProcessor:
-    def __init__(self, input_dir, output_dir, is_offline_run=False):
+    def __init__(self, input_dir, output_dir, idx2col):
         self.input_dir = input_dir
         self.output_dir = output_dir
+        self.idx2col = idx2col
 
     def create_and_save_pickle(self, zip_input_full_path, timestamp, scan_id, scan_step, target_tuple, order_number):
         """Side effect: Saves and returns file path"""
         depthmaps = get_depthmaps([zip_input_full_path])
-        if DEBUG:
-            print(depthmaps.shape, depthmaps[0, 0, 0, 0])
-
-        pickle_output_path = f"qrcode/{scan_id}/{scan_step}/pc_{scan_id}_{timestamp}_{scan_step}_{order_number}.p"  # '/tmp/abc.p'
+        pickle_output_path = f"qrcode/{scan_id}/{scan_step}/pc_{scan_id}_{timestamp}_{scan_step}_{order_number}.p"
         pickle_output_full_path = f"{self.output_dir}/{pickle_output_path}"
         Path(pickle_output_full_path).parent.mkdir(parents=True, exist_ok=True)
         pickle.dump((depthmaps, np.array(target_tuple)), open(pickle_output_full_path, "wb"))
@@ -121,9 +112,7 @@ class ArtifactProcessor:
 
     def process_artifact_tuple(self, artifact_tuple):
         """Side effect: Saves and returns file path"""
-        artifact_dict = {idx2col[i]: el for i, el in enumerate(artifact_tuple)}
-        if DEBUG:
-            print('artifact_dict', artifact_dict)
+        artifact_dict = {self.idx2col[i]: el for i, el in enumerate(artifact_tuple)}
         target_tuple = (artifact_dict['height'], artifact_dict['weight'], artifact_dict['muac'])
         zip_input_full_path = f"{self.input_dir}/{artifact_dict['file_path']}"
 
