@@ -26,6 +26,7 @@ INDEX = 0
 # current depthmap
 DMAP = 0
 
+
 def onclick(event):
     global DMAP
     global LAST
