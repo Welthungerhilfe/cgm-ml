@@ -4,12 +4,16 @@ import pickle
 import requests
 import tensorflow as tf
 from azureml.core import Webservice, Workspace
+from config import CONFIG
 
-ws = Workspace.from_config()
-service = Webservice(workspace=ws, name="aci-tests-height-s1")
 
-uri = service.scoring_uri
-print(requests.get(uri))
+if CONFIG.LOCALTEST:
+    ws = Workspace.from_config()
+    service = Webservice(workspace=ws, name=config.ENDPOINT_NAME)
+    uri = service.scoring_uri
+else:
+    uri = 'http://localhost:6789/'
+requests.get(uri)
 
 
 def tf_load_pickle(path, max_value):
@@ -29,8 +33,7 @@ def tf_load_pickle(path, max_value):
     return depthmaps
 
 
-depthmap = tf_load_pickle(
-    '/Users/prajwalsingh/cgm-ml/data/anon-depthmap-mini/scans/1583462470-16tvfmb1d0/100/pc_1583462470-16tvfmb1d0_1591122155216_100_000.p', 7.5)
+depthmap = tf_load_pickle(CONFIG.TEST_FILE, 7.5)
 
 headers = {"Content-Type": "application/json"}
 data = {
