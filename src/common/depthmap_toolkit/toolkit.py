@@ -20,68 +20,71 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 # click on data
-last = [0, 0, 0]
-
+LAST = [0, 0, 0]
+# INDEX of the current depthmap/rgb frame
+INDEX = 0
+# current depthmap
+DMAP = 0
 
 def onclick(event):
     if event.xdata is not None and event.ydata is not None:
-        global dmap
+        global DMAP
         x = int(event.ydata)
-        y = dmap.height - int(event.xdata) - 1
-        if x > 1 and y > 1 and x < dmap.width - 2 and y < dmap.height - 2:
-            depth = dmap.parse_depth(x, y)
+        y = DMAP.height - int(event.xdata) - 1
+        if x > 1 and y > 1 and x < DMAP.width - 2 and y < DMAP.height - 2:
+            depth = DMAP.parse_depth(x, y)
             if depth:
-                res = dmap.convert_2d_to_3d(1, x, y, depth)
+                res = DMAP.convert_2d_to_3d(1, x, y, depth)
                 if res:
-                    diff = [last[0] - res[0], last[1] - res[1], last[2] - res[2]]
+                    diff = [LAST[0] - res[0], LAST[1] - res[1], LAST[2] - res[2]]
                     dst = np.sqrt(diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2])
                     res.append(dst)
                     logging.info('x=%s, y=%s, depth=%s, diff=%s', str(res[0]), str(res[1]), str(res[2]), str(res[3]))
-                    last[0] = res[0]
-                    last[1] = res[1]
-                    last[2] = res[2]
+                    LAST[0] = res[0]
+                    LAST[1] = res[1]
+                    LAST[2] = res[2]
                     return
             logging.info('no valid data')
 
 
 def export_object(event):
-    global dmap
-    fname = f'output{index}.obj'
-    export_obj('export/' + fname, dmap, triangulate=True)
+    global DMAP
+    fname = f'output{INDEX}.obj'
+    export_obj('export/' + fname, DMAP, triangulate=True)
 
 
 def export_pointcloud(event):
-    global dmap
-    fname = f'output{index}.pcd'
-    export_pcd('export/' + fname, dmap)
+    global DMAP
+    fname = f'output{INDEX}.pcd'
+    export_pcd('export/' + fname, DMAP)
 
 
 def next_click(event, calibration_file: str, depthmap_dir: str):
-    global index
-    index = index + 1
-    if (index == size):
-        index = 0
+    global INDEX
+    INDEX = INDEX + 1
+    if (INDEX == size):
+        INDEX = 0
     show(depthmap_dir, calibration_file)
 
 
 def prev_click(event, calibration_file: str, depthmap_dir: str):
-    global index
-    index = index - 1
-    if (index == -1):
-        index = size - 1
+    global INDEX
+    INDEX = INDEX - 1
+    if (INDEX == -1):
+        INDEX = size - 1
     show(depthmap_dir, calibration_file)
 
 
 def show(depthmap_dir: str, calibration_file: str):
-    global dmap
-    fig.canvas.manager.set_window_title(depth_filenames[index])
-    rgb_filename = rgb_filenames[index] if rgb_filenames else 0
-    dmap = Depthmap.create_from_file(depthmap_dir, depth_filenames[index], rgb_filename, calibration_file)
+    global DMAP
+    fig.canvas.manager.set_window_title(depth_filenames[INDEX])
+    rgb_filename = rgb_filenames[INDEX] if rgb_filenames else 0
+    DMAP = Depthmap.create_from_file(depthmap_dir, depth_filenames[INDEX], rgb_filename, calibration_file)
 
-    angle = dmap.get_angle_between_camera_and_floor()
+    angle = DMAP.get_angle_between_camera_and_floor()
     logging.info('angle between camera and floor is %f', angle)
 
-    render_plot(dmap)
+    render_plot(DMAP)
     plt.show()
 
 
@@ -113,7 +116,7 @@ if __name__ == "__main__":
     os.mkdir('export')
 
     # Show viewer
-    index = 0
+    INDEX = 0
     size = len(depth_filenames)
     fig = plt.figure()
     fig.canvas.mpl_connect('button_press_event', functools.partial(onclick))
