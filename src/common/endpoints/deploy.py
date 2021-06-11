@@ -25,9 +25,11 @@ inference_config_aci = InferenceConfig(
     entry_script=str(REPO_DIR / "src/common/endpoints/entry_script_aci.py"),
 )
 
-#deployment_config = AciWebservice.deploy_configuration(cpu_cores=1, memory_gb=4)
+if config.LOCALTEST == True:
+    deployment_config = LocalWebservice.deploy_configuration(port=6789)
+else:
+    deployment_config = AciWebservice.deploy_configuration(cpu_cores=1, memory_gb=4)
 
-deployment_config = LocalWebservice.deploy_configuration(port=6789)
 service = Model.deploy(workspace, CONFIG.ENDPOINT_NAME, [model],
                        inference_config_aci, deployment_config, overwrite=True,)
 service.wait_for_deployment(show_output=True)

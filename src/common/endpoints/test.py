@@ -4,6 +4,7 @@ import pickle
 import requests
 import tensorflow as tf
 from azureml.core import Webservice, Workspace
+from config import CONFIG
 
 
 ws = Workspace.from_config()
@@ -12,13 +13,10 @@ service = Webservice(workspace=ws, name="aci-tests-height-s1")
 uri = service.scoring_uri
 print(requests.get(uri))
 
-"""Load the list of depthmaps in scan as numpy array"""
-
 
 def tf_load_pickle(path, max_value):
     depthmaps = []
 
-    """Utility to load the depthmap pickle file"""
     def py_load_pickle(path, max_value):
         depthmap, _ = pickle.load(open(path.numpy(), "rb"))
         depthmap = depthmap.astype("float32")
