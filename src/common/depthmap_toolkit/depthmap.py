@@ -7,7 +7,7 @@ from pathlib import Path
 import statistics
 import numpy as np
 from PIL import Image
-from typing import Tuple
+from typing import List, Tuple
 
 from depthmap_utils import (
     matrix_calculate, IDENTITY_MATRIX_4D, parse_numbers, diff, cross, norm, matrix_transform_point)
@@ -109,13 +109,7 @@ class Depthmap:
             rgb_array = None
 
         # read calibration file
-        with open(calibration_file, 'r') as f:
-            intrinsics = []
-            for _ in range(2):
-                f.readline().strip()
-                line_with_numbers = f.readline()
-                intrinsic = parse_numbers(line_with_numbers)
-                intrinsics.append(intrinsic)
+        intrinsics = parse_calibration(calibration_file)
 
         return cls(intrinsics,
                    width,
@@ -176,16 +170,6 @@ class Depthmap:
         except NameError:
             pass
         return res
-
-    def convert_3d_to_2d(self, sensor: int, x: float, y: float, depth: float) -> list:
-        """Convert point in meters into point in pixels"""
-        fx = self.intrinsics[sensor][0] * float(self.width)
-        fy = self.intrinsics[sensor][1] * float(self.height)
-        cx = self.intrinsics[sensor][2] * float(self.width)
-        cy = self.intrinsics[sensor][3] * float(self.height)
-        tx = x * fx / depth + cx
-        ty = y * fy / depth + cy
-        return [tx, ty, depth]
 
     def detect_child(self, floor: float) -> Tuple[np.array, float]:
 
@@ -272,3 +256,45 @@ class Depthmap:
         depth_y_plus = self.parse_depth(tx, ty + 1)
         depths = [depth_x_minus, depth_x_plus, depth_y_minus, depth_y_plus, depth_center]
         return sum(depths) / len(depths)
+
+    def convert_3d_to_2d(self, sensor: int, x: float, y: float, depth: float) -> list:
+        """Convert point in meters into point in pixels
+
+        Args:
+            sensor: Tells if this is ToF sensor or RGB sensor
+            x: X-pos in m
+            y: Y-pos in m
+            depth: distance from sensor to object at (x, y)
+
+        Returns:
+            tx, ty, depth
+        """
+        return convert_3d_to_2d(self.intrinsics[sensor], x, y, depth, self.width, self.height)
+
+
+def convert_3d_to_2d(intrinsics: list, x: float, y: float, depth: float, width: int, height: int):
+    fx = intrinsics[0] * float(width)
+    fy = intrinsics[1] * float(height)
+    cx = intrinsics[2] * float(width)
+    cy = intrinsics[3] * float(height)
+    tx = x * fx / depth + cx
+    ty = y * fy / depth + cy
+    return [tx, ty, depth]
+
+
+def parse_calibration(filepath: str) -> List[List[float]]:
+    """Parse calibration file
+    filepath: The content of a calibration file looks like this:
+        Color camera intrinsic:
+        0.6786797 0.90489584 0.49585155 0.5035042
+        Depth camera intrinsic:
+        0.6786797 0.90489584 0.49585155 0.5035042
+    """
+    with open(filepath, 'r') as f:
+        calibration = []
+        for _ in range(2):
+            f.readline().strip()
+            line_with_numbers = f.readline()
+            intrinsic = parse_numbers(line_with_numbers)
+            calibration.append(intrinsic)
+    return calibration
