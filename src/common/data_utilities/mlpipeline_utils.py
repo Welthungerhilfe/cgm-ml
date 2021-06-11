@@ -10,7 +10,7 @@ https://github.com/Welthungerhilfe/cgm-ml/blob/c8be9138e025845bedbe7cfc0d131ef66
 
 from pathlib import Path
 import pickle
-from typing import Tuple
+from typing import Dict, List, Tuple
 import zipfile
 
 import numpy as np
@@ -60,11 +60,11 @@ def parse_depth(tx: int, ty: int, data: bytes, depth_scale: float, width: int) -
     return depth
 
 
-def preprocess_depthmap(depthmap):
+def preprocess_depthmap(depthmap: np.array) -> np.array:
     return depthmap.astype("float32")
 
 
-def preprocess(depthmap):
+def preprocess(depthmap: np.array) -> np.array:
     depthmap = preprocess_depthmap(depthmap)
     depthmap = depthmap / NORMALIZATION_VALUE
     depthmap = resize(depthmap, (IMAGE_TARGET_HEIGHT, IMAGE_TARGET_WIDTH))
@@ -83,7 +83,7 @@ def prepare_depthmap(data: bytes, width: int, height: int, depth_scale: float) -
     return arr.reshape(width, height)
 
 
-def get_depthmaps(fpaths):
+def get_depthmaps(fpaths: List[str]) -> np.array:
     depthmaps = []
     for fpath in fpaths:
         data, width, height, depthScale, _ = load_depth(fpath)
@@ -96,12 +96,19 @@ def get_depthmaps(fpaths):
 
 
 class ArtifactProcessor:
-    def __init__(self, input_dir, output_dir, idx2col):
+    def __init__(self, input_dir: str, output_dir: str, idx2col: Dict[int, str]):
         self.input_dir = input_dir
         self.output_dir = output_dir
         self.idx2col = idx2col
 
-    def create_and_save_pickle(self, zip_input_full_path, timestamp, scan_id, scan_step, target_tuple, order_number):
+    def create_and_save_pickle(self,
+                               zip_input_full_path: str,
+                               timestamp: str,
+                               scan_id: str,
+                               scan_step: str,
+                               target_tuple: Tuple[float, float, float],
+                               order_number: str
+        ):
         """Side effect: Saves and returns file path"""
         depthmaps = get_depthmaps([zip_input_full_path])
         pickle_output_path = f"qrcode/{scan_id}/{scan_step}/pc_{scan_id}_{timestamp}_{scan_step}_{order_number}.p"
@@ -110,7 +117,7 @@ class ArtifactProcessor:
         pickle.dump((depthmaps, np.array(target_tuple)), open(pickle_output_full_path, "wb"))
         return pickle_output_full_path
 
-    def process_artifact_tuple(self, artifact_tuple):
+    def process_artifact_tuple(self, artifact_tuple: tuple):
         """Side effect: Saves and returns file path"""
         artifact_dict = {self.idx2col[i]: el for i, el in enumerate(artifact_tuple)}
         target_tuple = (artifact_dict['height'], artifact_dict['weight'], artifact_dict['muac'])

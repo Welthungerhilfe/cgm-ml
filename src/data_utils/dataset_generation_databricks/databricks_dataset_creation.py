@@ -159,7 +159,7 @@ BLOB_SERVICE_CLIENT = BlobServiceClient.from_connection_string(CONNECTION_STR)
 
 # COMMAND ----------
 
-def download_from_blob_storage(src, dest, container):
+def download_from_blob_storage(src: str, dest: str, container: str):
     blob_client = BLOB_SERVICE_CLIENT.get_blob_client(container=container, blob=src)
     Path(dest).parent.mkdir(parents=True, exist_ok=True)
     with open(dest, "wb") as download_file:
@@ -232,13 +232,13 @@ else:
 
 # COMMAND ----------
 
-def remove_prefix(text, prefix):
+def remove_prefix(text: str, prefix: str) -> str:
     if text.startswith(prefix): return text[len(prefix):]
     return text
 
 PREFIX = f"/dbfs{DBFS_DIR}/"
 
-def upload_to_blob_storage(src, dest, container, directory):
+def upload_to_blob_storage(src: str, dest: str, container: str, directory: str):
     blob_client = BLOB_SERVICE_CLIENT.get_blob_client(container=container, blob=os.path.join(directory,dest))
     with open(src, "rb") as data:
         blob_client.upload_blob(data, overwrite=False)
