@@ -3,13 +3,11 @@ import json
 import numpy as np
 from tensorflow.keras.models import load_model
 
-from config import CONFIG
-
 
 def init():
-    global model
+    global model  # pylint: disable=global-statement
     model = load_model(
-        str('/var/azureml-app/azureml-models' / CONFIG.MODEL_NAME / CONFIG.VERSION / 'outputs/best_model.ckpt/'), compile=False)
+        str('/var/azureml-app/azureml-models' / 'Deepensemble' / '5' / 'outputs/best_model.ckpt/'), compile=False)
 
 
 def run(data):
