@@ -29,20 +29,21 @@ def extract_depthmap(depthmap_dir: str, depthmap_fname: str):
 
 
 class Depthmap:
-    """Depthmap and RGB TODO consider renaming to Artifact
+    """Depthmap and optional RGB
 
     Args:
         intrinsics (np.array): Camera intrinsics
         width (int): Width of the depthmap
         height (int): Height of the depthmap
         data (bytes): pixel_data
-        depth_scale (float): ??? (it's in the header of a depthmap file)
-        max_confidence (float): ???
-        matrix (list): not in header
-                - position and rotation of the pose
-                - pose in different format
+        depth_scale (float): Scalar to scale depthmap pixel to meters
+        max_confidence (float): Confidence is amount of IR light reflected
+                                (e.g. 0 to 255 in Lenovo, new standard is 0 to 8)
+                                This is actually an int.
+        matrix (list): Header contains a pose (= position and rotation)
+                       - matrix is a list represenation of this pose
+                       - can be used to project into a different space
         rgb_fpath (str): Path to RGB file (e.g. to the jpg)
-        has_rgb (bool): Flag to indicate if the artifact has RGB data
         rgb_array (np.array): RGB data
     """
     def __init__(
@@ -55,7 +56,6 @@ class Depthmap:
             max_confidence,
             matrix,
             rgb_fpath,
-            has_rgb,
             rgb_array):
         self.intrinsics = intrinsics
         self.width = width
@@ -65,8 +65,12 @@ class Depthmap:
         self.max_confidence = max_confidence
         self.matrix = matrix
         self.rgb_fpath = rgb_fpath
-        self.has_rgb = has_rgb
         self.rgb_array = rgb_array
+
+    @property
+    def has_rgb(self) -> bool:
+        """Bool that indicates if the object has RGB data"""
+        return self.rgb_array is not None
 
     @classmethod
     def create_from_file(cls,
@@ -97,13 +101,11 @@ class Depthmap:
         # read rgb data
         if rgb_fname:
             rgb_fpath = depthmap_dir + '/rgb/' + rgb_fname
-            has_rgb = True
             pil_im = Image.open(rgb_fpath)
             pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
             rgb_array = np.asarray(pil_im)
         else:
             rgb_fpath = rgb_fname
-            has_rgb = False
             rgb_array = None
 
         # read calibration file
@@ -123,7 +125,6 @@ class Depthmap:
                    max_confidence,
                    matrix,
                    rgb_fpath,
-                   has_rgb,
                    rgb_array
                    )
 
