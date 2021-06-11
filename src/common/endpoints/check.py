@@ -4,6 +4,7 @@ import pickle
 import requests
 import tensorflow as tf
 from azureml.core import Webservice, Workspace
+
 from config import CONFIG
 
 

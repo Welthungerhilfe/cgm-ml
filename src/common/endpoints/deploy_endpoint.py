@@ -1,7 +1,7 @@
-
 from azureml.core import Environment, Workspace
 from azureml.core.model import InferenceConfig, Model
-from azureml.core.webservice import AciWebservice, LocalWebservice  # noqa: E401
+from azureml.core.webservice import (AciWebservice,  # noqa: E401
+                                     LocalWebservice)
 
 from config import CONFIG
 from constants import REPO_DIR
