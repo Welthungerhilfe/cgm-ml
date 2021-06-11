@@ -27,8 +27,9 @@ INDEX = 0
 DMAP = 0
 
 def onclick(event):
+    global DMAP
+    global LAST
     if event.xdata is not None and event.ydata is not None:
-        global DMAP
         x = int(event.ydata)
         y = DMAP.height - int(event.xdata) - 1
         if x > 1 and y > 1 and x < DMAP.width - 2 and y < DMAP.height - 2:
