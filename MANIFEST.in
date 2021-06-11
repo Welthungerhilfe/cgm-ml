@@ -1,0 +1,12 @@
+include LICENSE
+include README.md
+include setup.py
+recursive-include src/common *.py
+global-exclude src/data_utils/**
+global-exclude src/models/**
+global-exclude src/analyses/**
+global-exclude test_*.py
+global-exclude .ipynb_checkpoints/**
+global-exclude temp_eval/**
+global-exclude temp_common/**
+global-exclude *.py[cod]

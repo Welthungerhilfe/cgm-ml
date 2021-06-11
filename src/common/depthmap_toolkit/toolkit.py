@@ -6,98 +6,87 @@ import logging
 import logging.config
 from pathlib import Path
 import functools
-from typing import List
 
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 
-import depthmap
-import utils
+from depthmap import Depthmap
+from exporter import export_obj, export_pcd
+from visualisation import render_plot
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
-
-def export_obj(event,
-               width: int,
-               height: int,
-               data: bytes,
-               depth_scale: float,
-               calibration: List[List[float]],
-               max_confidence: float,
-               matrix: list,
-               ):
-    fname = f'output{index}.obj'
-    depthmap.export('obj', fname, width, height, data, depth_scale, calibration, max_confidence, matrix)
+# click on data
+LAST = [0, 0, 0]
+# INDEX of the current depthmap/rgb frame
+INDEX = 0
+# current depthmap
+DMAP = 0
 
 
-def export_pcd(event, width: int, height: int, data: bytes, depth_scale: float,
-               calibration: List[List[float]], max_confidence: float, matrix: list):
-    fname = f'output{index}.pcd'
-    depthmap.export('pcd', fname, width, height, data, depth_scale, calibration, max_confidence, matrix)
+def onclick(event):
+    global DMAP
+    global LAST
+    if event.xdata is not None and event.ydata is not None:
+        x = int(event.ydata)
+        y = DMAP.height - int(event.xdata) - 1
+        if x > 1 and y > 1 and x < DMAP.width - 2 and y < DMAP.height - 2:
+            depth = DMAP.parse_depth(x, y)
+            if depth:
+                res = DMAP.convert_2d_to_3d(1, x, y, depth)
+                if res:
+                    diff = [LAST[0] - res[0], LAST[1] - res[1], LAST[2] - res[2]]
+                    dst = np.sqrt(diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2])
+                    res.append(dst)
+                    logging.info('x=%s, y=%s, depth=%s, diff=%s', str(res[0]), str(res[1]), str(res[2]), str(res[3]))
+                    LAST[0] = res[0]
+                    LAST[1] = res[1]
+                    LAST[2] = res[2]
+                    return
+            logging.info('no valid data')
 
 
-def next(event, calibration: List[List[float]], depthmap_dir: str):
-    plt.close()
-    global index
-    index = index + 1
-    if (index == size):
-        index = 0
-    show(depthmap_dir, calibration)
+def export_object(event):
+    global DMAP
+    fname = f'output{INDEX}.obj'
+    export_obj('export/' + fname, DMAP, triangulate=True)
 
 
-def prev(event, calibration: List[List[float]], depthmap_dir: str):
-    plt.close()
-    global index
-    index = index - 1
-    if (index == -1):
-        index = size - 1
-    show(depthmap_dir, calibration)
+def export_pointcloud(event):
+    global DMAP
+    fname = f'output{INDEX}.pcd'
+    export_pcd('export/' + fname, DMAP)
 
 
-def show(depthmap_dir: str, calibration: List[List[float]]):
-    rgb_filename = rgb_filenames[index] if rgb_filenames else 0
-    width, height, depth_scale, max_confidence, data, matrix = depthmap.process(
-        depthmap_dir, depth_filenames[index], rgb_filename)
-    angle = depthmap.get_angle_between_camera_and_floor(width, height, calibration, matrix)
+def next_click(event, calibration_file: str, depthmap_dir: str):
+    global INDEX
+    INDEX = INDEX + 1
+    if (INDEX == size):
+        INDEX = 0
+    show(depthmap_dir, calibration_file)
+
+
+def prev_click(event, calibration_file: str, depthmap_dir: str):
+    global INDEX
+    INDEX = INDEX - 1
+    if (INDEX == -1):
+        INDEX = size - 1
+    show(depthmap_dir, calibration_file)
+
+
+def show(depthmap_dir: str, calibration_file: str):
+    global DMAP
+    fig.canvas.manager.set_window_title(depth_filenames[INDEX])
+    rgb_filename = rgb_filenames[INDEX] if rgb_filenames else 0
+    DMAP = Depthmap.create_from_file(depthmap_dir, depth_filenames[INDEX], rgb_filename, calibration_file)
+
+    angle = DMAP.get_angle_between_camera_and_floor()
     logging.info('angle between camera and floor is %f', angle)
 
-    depthmap.show_result(width, height, calibration, data, depth_scale, max_confidence, matrix)
-    ax = plt.gca()
-    ax.text(
-        0.5,
-        1.075,
-        depth_filenames[index],
-        horizontalalignment='center',
-        verticalalignment='center',
-        transform=ax.transAxes)
-    bprev = Button(plt.axes([0.0, 0.0, 0.1, 0.075]), '<<', color='gray')
-    bprev.on_clicked(functools.partial(prev, calibration=calibration, depthmap_dir=depthmap_dir))
-    bnext = Button(plt.axes([0.9, 0.0, 0.1, 0.075]), '>>', color='gray')
-    bnext.on_clicked(functools.partial(next, calibration=calibration, depthmap_dir=depthmap_dir))
-    bexport_obj = Button(plt.axes([0.3, 0.0, 0.2, 0.05]), 'Export OBJ', color='gray')
-    bexport_obj.on_clicked(
-        functools.partial(
-            export_obj,
-            width=width,
-            height=height,
-            data=data,
-            depth_scale=depth_scale,
-            calibration=calibration,
-            max_confidence=max_confidence,
-            matrix=matrix))
-    bexport_pcd = Button(plt.axes([0.5, 0.0, 0.2, 0.05]), 'Export PCD', color='gray')
-    bexport_pcd.on_clicked(
-        functools.partial(
-            export_pcd,
-            width=width,
-            height=height,
-            data=data,
-            depth_scale=depth_scale,
-            calibration=calibration,
-            max_confidence=max_confidence,
-            matrix=matrix))
+    render_plot(DMAP)
     plt.show()
 
 
@@ -121,8 +110,6 @@ if __name__ == "__main__":
         rgb_filenames.extend(filenames)
     rgb_filenames.sort()
 
-    calibration = utils.parse_calibration(calibration_file)
-
     # Clear export folder
     try:
         shutil.rmtree('export')
@@ -131,6 +118,17 @@ if __name__ == "__main__":
     os.mkdir('export')
 
     # Show viewer
-    index = 0
+    INDEX = 0
     size = len(depth_filenames)
-    show(depthmap_dir, calibration)
+    fig = plt.figure()
+    fig.canvas.mpl_connect('button_press_event', functools.partial(onclick))
+    bprev = Button(plt.axes([0.0, 0.0, 0.1, 0.075]), '<<', color='gray')
+    bprev.on_clicked(functools.partial(prev_click, calibration_file=calibration_file, depthmap_dir=depthmap_dir))
+    bnext = Button(plt.axes([0.9, 0.0, 0.1, 0.075]), '>>', color='gray')
+    bnext.on_clicked(functools.partial(next_click, calibration_file=calibration_file, depthmap_dir=depthmap_dir))
+    bexport_obj = Button(plt.axes([0.3, 0.0, 0.2, 0.05]), 'Export OBJ', color='gray')
+    bexport_obj.on_clicked(functools.partial(export_object))
+    bexport_pcd = Button(plt.axes([0.5, 0.0, 0.2, 0.05]), 'Export PCD', color='gray')
+    bexport_pcd.on_clicked(functools.partial(export_pointcloud))
+    background = Button(plt.axes([0.0, 0.0, 1.0, 1.0]), '', color='white')
+    show(depthmap_dir, calibration_file)
