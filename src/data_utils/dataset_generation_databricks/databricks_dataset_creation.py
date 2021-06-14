@@ -40,7 +40,7 @@ from src.common.data_utilities.mlpipeline_utils import ArtifactProcessor
 # Constants
 ENV_PROD = "env_prod"
 ENV_PROD = "env_qa"
-ENV_SANDBOX = "env_env"
+ENV_SANDBOX = "env_dev"
 
 # COMMAND ----------
 
@@ -116,7 +116,7 @@ WHERE a.format = 'depth'
 sql_cursor.execute(SQL_QUERY)
 
 # Get multiple query_result rows
-NUM_ARTIFACTS = 30  # None
+NUM_ARTIFACTS = 300  # None
 query_results_tmp: List[Tuple[str]] = sql_cursor.fetchall() if NUM_ARTIFACTS is None else sql_cursor.fetchmany(NUM_ARTIFACTS)
 
 # COMMAND ----------
@@ -149,6 +149,10 @@ len(query_results)
 # COMMAND ----------
 
 len(df.scan_id.unique())
+
+# COMMAND ----------
+
+len(df.file_path.unique())
 
 # COMMAND ----------
 
@@ -191,15 +195,18 @@ def download_from_blob_storage(src: str, dest: str, container: str):
 
 # COMMAND ----------
 
-file_path_idx = col2idx['file_path']  # TODO iterate only take unique values
-for res in tqdm(query_results):
-    file_path = res[file_path_idx]
-    print(f"dbfs:{DBFS_DIR}/{file_path}")  # TODO remove
-    download_from_blob_storage(src=file_path, dest=f"dbfs:{DBFS_DIR}/{file_path}", container=CONTAINER_NAME)
+file_path_idx = col2idx['file_path']
 
-# COMMAND ----------
+# Gather file_paths
+_file_paths = [query_result[file_path_idx] for query_result in query_results]
 
-f"dbfs:{DBFS_DIR}/{file_path}"  # TODO remove
+# Remove duplicates
+_file_paths = list(set(_file_paths))
+print(f"Number of files to download: {len(_file_paths)}")
+
+# Download
+for file_path in tqdm(_file_paths):
+    download_from_blob_storage(src=file_path, dest=f"/dbfs{DBFS_DIR}/{file_path}", container=CONTAINER_NAME)
 
 # COMMAND ----------
 
@@ -225,7 +232,7 @@ print(rdd.getNumPartitions())
 
 # COMMAND ----------
 
-input_dir = f"/dbfs:{DBFS_DIR}"
+input_dir = f"/dbfs{DBFS_DIR}"
 output_dir = f"/dbfs{DBFS_DIR}"
 artifact_processor = ArtifactProcessor(input_dir, output_dir, idx2col)
 
