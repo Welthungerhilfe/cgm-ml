@@ -51,8 +51,9 @@ def onclick(event):
 
 def export_object(event):
     global DMAP
+    floor = DMAP.get_floor_level()
     fname = f'output{INDEX}.obj'
-    export_obj('export/' + fname, DMAP, triangulate=True)
+    export_obj('export/' + fname, DMAP, floor, triangulate=True)
 
 
 def export_pointcloud(event):
