@@ -4,9 +4,9 @@ import os
 import pytest
 
 here = Path(__file__).resolve()
-sys.path.append(str(here.parents[2]))  # noqa common/ dir
+sys.path.append(str(here.parents[2]))  # common/ dir
 
-from model_utils.preprocessing import filter_blacklisted_qrcodes
+from model_utils.preprocessing import filter_blacklisted_qrcodes  # noqa: E402
 
 #sys.path.append(str(Path(__file__).parents[2]))  # common/ dir THIS DOES NOT WORK. GIVES ME INDEXERROR: 2
 
