@@ -1,7 +1,6 @@
 import logging
 import logging.config
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 from constants import MASK_CHILD
@@ -86,7 +85,7 @@ def render_pixel(output: object,
         output[x][index][2] = min(max(0, output[x][index][2]), 1)
 
 
-def render_plot(dmap: Depthmap):
+def render_plot(dmap: Depthmap) -> np.array:
     # floor and child detection
     floor = dmap.get_floor_level()
     mask, highest = dmap.detect_child(floor)
@@ -98,4 +97,4 @@ def render_plot(dmap: Depthmap):
             render_pixel(output, x, y, floor, mask, dmap)
 
     logging.info('height=%fm', highest - floor)
-    plt.imshow(output)
+    return output

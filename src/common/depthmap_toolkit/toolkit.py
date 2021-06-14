@@ -87,7 +87,7 @@ def show(depthmap_dir: str, calibration_file: str):
     angle = DMAP.get_angle_between_camera_and_floor()
     logging.info('angle between camera and floor is %f', angle)
 
-    render_plot(DMAP)
+    plt.imshow(render_plot(DMAP))
     plt.show()
 
 
