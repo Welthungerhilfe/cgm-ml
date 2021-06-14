@@ -39,17 +39,37 @@ from src.common.data_utilities.mlpipeline_utils import ArtifactProcessor
 
 # Constants
 ENV_PROD = "env_prod"
-ENV_SANDBOX = "env_sandbox"
+ENV_PROD = "env_qa"
+ENV_SANDBOX = "env_env"
 
 # COMMAND ----------
 
 # Configuration
-DEBUG = False
 ENV = ENV_SANDBOX
 
 MOUNT_POINT = f"/mnt/{ENV}_input"
 MOUNT_DATASET = f"/mnt/{ENV}_dataset"
 DBFS_DIR = f"/tmp/{ENV}"
+
+# COMMAND ----------
+
+# MAGIC %md 
+# MAGIC ## Secret scopes
+# MAGIC 
+# MAGIC For reading secrets, we use [secret scopes](https://docs.microsoft.com/en-us/azure/databricks/security/secrets/secret-scopes).
+# MAGIC 
+# MAGIC When we create scopes, we name it `<key vault name>-scope`. 
+
+# COMMAND ----------
+
+if ENV == ENV_SANDBOX:
+    SECRET_SCOPE = "cgm-ml-ci-dev-mlapi-kv-scope"
+elif ENV == ENV_QA:
+    SECRET_SCOPE = "cgm-ml-ci-qa-mlapi-kv-scope"
+elif ENV == ENV_PROD:
+    SECRET_SCOPE = "cgm-ml-ci-prod-mlapi-kv-scope"
+else:
+    raise Exception(f"Unknown environment: {ENV}")
 
 # COMMAND ----------
 
@@ -70,17 +90,9 @@ DBFS_DIR = f"/tmp/{ENV}"
 
 # COMMAND ----------
 
-SECRET_SCOPE = "cgm-ml-ci-dev-databricks-secret-scope"
-if ENV == ENV_SANDBOX:
-    host = "cgm-ml-ci-dev-mlapi-psql.postgres.database.azure.com"
-    user = dbutils.secrets.get(scope=SECRET_SCOPE, key="psql-username")
-    password = dbutils.secrets.get(scope=SECRET_SCOPE, key="psql-password")
-elif ENV == ENV_PROD:
-    host = "cgm-ml-ci-prod-mlapi-psql.postgres.database.azure.com"
-    user = dbutils.secrets.get(scope=SECRET_SCOPE, key="prod-psql-username")
-    password = dbutils.secrets.get(scope=SECRET_SCOPE, key="prod-psql-password")
-else:
-    raise Exception(f"Unknown environment: {ENV}")
+host = dbutils.secrets.get(scope=SECRET_SCOPE, key="mlapi-appsetting-db-host")
+user = dbutils.secrets.get(scope=SECRET_SCOPE, key="mlapi-appsetting-db-user")
+password = dbutils.secrets.get(scope=SECRET_SCOPE, key="mlapi-appsetting-db-pw")
 
 conn = psycopg2.connect(host=host, database='cgm-ml', user=user, password=password)
 
@@ -104,7 +116,7 @@ WHERE a.format = 'depth'
 sql_cursor.execute(SQL_QUERY)
 
 # Get multiple query_result rows
-NUM_ARTIFACTS = 30000  # None
+NUM_ARTIFACTS = 30  # None
 query_results_tmp: List[Tuple[str]] = sql_cursor.fetchall() if NUM_ARTIFACTS is None else sql_cursor.fetchmany(NUM_ARTIFACTS)
 
 # COMMAND ----------
@@ -146,7 +158,7 @@ idx2col = {i: col.name for i, col in enumerate(column_names)}; print(idx2col)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC # Copy artifact files to DBFS
+# MAGIC # Download artifact files to DBFS
 # MAGIC 
 # MAGIC In order for databricks to process the blob data, we need to transfer it to the DBFS of the databricks cluster.
 # MAGIC 
@@ -160,14 +172,9 @@ idx2col = {i: col.name for i, col in enumerate(column_names)}; print(idx2col)
 
 # COMMAND ----------
 
-if ENV == ENV_SANDBOX:
-    CONNECTION_STR = dbutils.secrets.get(scope=SECRET_SCOPE, key="dev-sa-connection-string")
-    STORAGE_ACCOUNT_NAME = "cgmmlcidevmlapisa"
-    CONTAINER_NAME = "cgm-result"
-elif ENV == ENV_PROD:
-    raise Exception("Not yet setup this SA connection string")
-else:
-    raise Exception(f"Unknown environment: {ENV}")
+CONNECTION_STR = dbutils.secrets.get(scope=SECRET_SCOPE, key="mlapi-appsetting-sa-connectionstring")
+STORAGE_ACCOUNT_NAME = dbutils.secrets.get(scope=SECRET_SCOPE, key="mlapi-appsetting-sa-name")
+CONTAINER_NAME = "cgm-result"
 
 # COMMAND ----------
 
@@ -184,10 +191,15 @@ def download_from_blob_storage(src: str, dest: str, container: str):
 
 # COMMAND ----------
 
-file_path_idx = col2idx['file_path']
+file_path_idx = col2idx['file_path']  # TODO iterate only take unique values
 for res in tqdm(query_results):
     file_path = res[file_path_idx]
+    print(f"dbfs:{DBFS_DIR}/{file_path}")  # TODO remove
     download_from_blob_storage(src=file_path, dest=f"dbfs:{DBFS_DIR}/{file_path}", container=CONTAINER_NAME)
+
+# COMMAND ----------
+
+f"dbfs:{DBFS_DIR}/{file_path}"  # TODO remove
 
 # COMMAND ----------
 
@@ -213,7 +225,7 @@ print(rdd.getNumPartitions())
 
 # COMMAND ----------
 
-input_dir = f"/dbfs{DBFS_DIR}"
+input_dir = f"/dbfs:{DBFS_DIR}"
 output_dir = f"/dbfs{DBFS_DIR}"
 artifact_processor = ArtifactProcessor(input_dir, output_dir, idx2col)
 
@@ -233,14 +245,7 @@ print(processed_fnames[:3])
 
 # COMMAND ----------
 
-if ENV == ENV_SANDBOX:
-    STORAGE_ACCOUNT_NAME = "cgmmlcidevmlapisa"
-    CONTAINER_NAME_DATASET = "cgm-datasets"
-    CONNECT_STR_DATASET = CONNECTION_STR
-elif ENV == ENV_PROD:
-    raise Exception("Not yet setup this SA connection string")
-else:
-    raise Exception(f"Unknown environment: {ENV}")
+CONTAINER_NAME_DATASET = "cgm-datasets"
 
 # COMMAND ----------
 
