@@ -26,6 +26,7 @@ https://docs.microsoft.com/en-us/azure/machine-learning/how-to-deploy-and-where?
 #### Endpoint Naming convention
 
 service-ModalName-ModalNumber(If any)-version
+Eg.aci-2021q1-depthmap-ensemble-height-95k-m001-v1
 
 
 #### FutureTask:
