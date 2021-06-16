@@ -25,10 +25,8 @@ IDX2COL = {i: col for i, col in enumerate(_COLUMN_NAMES)}
 
 def test_load_depth_hugh():
     depth_file = DATA_UTILITIES_DIR / 'tests' / 'zip_files' / ARTIFACT_ZIP_PATH
-    data, width, height, _depth_scale, _max_confidence = load_depth(depth_file)
+    data, _width, _height, _depth_scale, _max_confidence = load_depth(depth_file)
     assert isinstance(data, bytes)
-    assert width == IMAGE_TARGET_WIDTH
-    assert height == IMAGE_TARGET_HEIGHT
 
 
 def test_artifact_processor():
@@ -63,4 +61,4 @@ def test_get_depthmaps():
 
 
 if __name__ == '__main__':
-    test_artifact_processor()
+    test_load_depth_hugh()
