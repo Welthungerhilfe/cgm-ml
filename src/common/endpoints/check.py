@@ -6,8 +6,8 @@ from azureml.core import Webservice, Workspace
 
 from config import CONFIG
 
-sys.path.append('./src/common/data_utilities')  # noqa E402
-import mlpipeline_utils
+sys.path.append('./src/common/data_utilities')  # noqa
+import mlpipeline_utils  # noqa: E402
 
 if __name__ == "__main__":
     if CONFIG.LOCALTEST:

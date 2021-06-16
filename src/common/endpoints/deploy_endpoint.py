@@ -8,8 +8,8 @@ from azureml.core.webservice import LocalWebservice
 from config import CONFIG
 from constants import REPO_DIR
 
-sys.path.append('./src/common/model_utils')  # noqa E402
-import environment
+sys.path.append('./src/common/model_utils')  # noqa
+import environment  # noqa: E402
 
 if __name__ == "__main__":
 

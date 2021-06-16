@@ -3,8 +3,8 @@ import sys
 
 from azureml.core import Environment
 
-sys.path.append('./src/common/endpoints')  # noqa E402
-from constants import REPO_DIR
+sys.path.append('./src/common/endpoints')  # noqa
+from constants import REPO_DIR  # noqa: E402
 
 
 def cgm_environemnt(workspace, curated_env_name, env_exist):
