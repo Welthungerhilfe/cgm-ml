@@ -7,6 +7,7 @@ import_order_style = appnexus
 application_package_names = src
 exclude =
     .git,
+    .eggs/
     __pycache__,
     .ipynb_checkpoints,
     src/models/GAPNet/GAPNet-height,
@@ -18,4 +19,8 @@ exclude =
     src/models/CNNDepthMap/CNNDepthMap-height/q2s1-cnndepthmap-height,
     */tmp_*,
     */temp_*,
-    dist/
+    build/,
+    dist/,
+    data/,
+    logs/,
+    wandb

@@ -130,7 +130,6 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-*.p
 *.h5
 
 #VS Code
