@@ -13,12 +13,12 @@ if __name__ == "__main__":
     if CONFIG.LOCALTEST:
         uri = 'http://localhost:6789/'
     else:
-        ws = Workspace.from_config()
-        service = Webservice(workspace=ws, name=CONFIG.ENDPOINT_NAME)
+        workspace = Workspace.from_config()
+        service = Webservice(workspace=workspace, name=CONFIG.ENDPOINT_NAME)
         uri = service.scoring_uri
 
     requests.get(uri)
-    depthmap = mlpipeline_utils.get_depthmaps(CONFIG.TEST_FILE).tolist()
+    depthmap = mlpipeline_utils.get_depthmaps(CONFIG.TEST_FILE).tolist() # Make JSON serializable
 
     headers = {"Content-Type": "application/json"}
     data = {
