@@ -18,7 +18,7 @@ if __name__ == "__main__":
         uri = service.scoring_uri
 
     requests.get(uri)
-    depthmap = mlpipeline_utils.get_depthmaps(CONFIG.TEST_FILE).tolist() # Make JSON serializable
+    depthmap = mlpipeline_utils.get_depthmaps(CONFIG.TEST_FILE).tolist()  # Make JSON serializable
 
     headers = {"Content-Type": "application/json"}
     data = {
