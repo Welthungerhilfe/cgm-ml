@@ -45,6 +45,7 @@ if __name__ == "__main__":
     parser.add_argument("--qa_config_module", default=DEFAULT_CONFIG, help="Configuration file")
     args = parser.parse_args()
 
+    logging.info('Using the following config: %s', args.qa_config_module)
     qa_config = import_module(f'src.{args.qa_config_module}')
     MODEL_CONFIG = qa_config.MODEL_CONFIG
     EVAL_CONFIG = qa_config.EVAL_CONFIG
@@ -64,23 +65,36 @@ if __name__ == "__main__":
     from temp_eval.temp_common.evaluation.eval_utilities import download_model  # noqa: E402, F401
 
     workspace = Workspace.from_config()
-
     run = Run.get_context()
 
     # When we run scripts locally(e.g. for debugging), we want to use another directory
     USE_LOCAL = False
 
-    MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if USE_LOCAL else temp_path
+    RUN_ID = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else None
+    RUN_IDS = MODEL_CONFIG.RUN_IDS if getattr(MODEL_CONFIG, 'RUN_IDS', False) else None
+    assert bool(RUN_ID) != bool(RUN_IDS), 'RUN_ID xor RUN_IDS needs to be defined'
+
+    if RUN_ID:
+        MODEL_BASE_DIR = REPO_DIR / 'data' / RUN_ID if USE_LOCAL else temp_path
+    elif RUN_IDS:
+        MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.EXPERIMENT_NAME if USE_LOCAL else temp_path
     logging.info('MODEL_BASE_DIR: %s', MODEL_BASE_DIR)
     MODEL_BASE_DIR.mkdir(parents=True, exist_ok=True)
 
     # Copy model to temp folder
-    if getattr(MODEL_CONFIG, 'RUN_ID', False) and not getattr(MODEL_CONFIG, 'RUN_IDS', False):
+    if RUN_ID:
         download_model(workspace=workspace,
                        experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
                        run_id=MODEL_CONFIG.RUN_ID,
                        input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
                        output_location=MODEL_BASE_DIR)
+    elif USE_LOCAL and RUN_IDS:
+        for run_id in RUN_IDS:
+            download_model(workspace=workspace,
+                           experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
+                           run_id=run_id,
+                           input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
+                           output_location=MODEL_BASE_DIR / run_id)
 
     # Copy filter to temp folder
     if FILTER_CONFIG is not None and FILTER_CONFIG.IS_ENABLED:

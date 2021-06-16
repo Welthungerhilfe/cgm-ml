@@ -51,7 +51,10 @@ DATA_CONFIG = Bunch(dict(
     BATCH_SIZE=512,  # Batch size for evaluation
     NORMALIZATION_VALUE=7.5,
 
-    TARGET_INDEXES=[0, ],  # 0 is height, 1 is weight, 2 is muac, 3 is age, 4 is sex('male' or 'female'), 5 is quality ('good' or 'bad'), 6 is test
+    # 0 is height, 1 is weight, 2 is muac, 3 is age,
+    # 4 is sex('male' or 'female'), 5 is quality ('good' or 'bad'), 6 is test
+    TARGET_INDEXES=[0, ],
+
     CODES=['100', '101', '102', '200', '201', '202'],
     CODES_FOR_POSE_AND_SCANSTEP=['100', '101', '102', '200', '201', '202']
 ))

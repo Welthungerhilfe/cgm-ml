@@ -4,7 +4,8 @@ import logging.config
 from azureml.core import Workspace
 from azureml.core.authentication import AuthenticationException, AzureCliAuthentication
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 def get_auth():

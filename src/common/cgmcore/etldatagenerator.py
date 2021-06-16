@@ -16,7 +16,8 @@ from pyntcloud import PyntCloud
 import pickle
 from . import utils
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 class ETLDataGenerator(object):
@@ -42,8 +43,10 @@ class ETLDataGenerator(object):
 
         Args:
             dataset_path (string): Where the raw data is.
-            input_type (string): Specifies how the input-data for the Neural Network looks like. Either 'image', 'pointcloud', 'voxgrid'.
-            output_targets (list of strings): A list of targets for the Neural Network. For example *['height', 'weight']*.
+            input_type (string): Specifies how the input-data for the Neural Network looks like.
+                                 Either 'image', 'pointcloud', 'voxgrid'.
+            output_targets (list of strings): A list of targets for the Neural Network.
+                                 For example *['height', 'weight']*.
             sequence_length (int): Specifies the lenght of the sequences. 0 would yield no sequence at all.
             image_target_shape (2D tuple of ints): Target shape of the images.
             voxelgrid_target_shape (3D tuple of ints): Target shape of the voxelgrids.
@@ -281,7 +284,10 @@ class ETLDataGenerator(object):
 
             # Create voxelgrid from pointcloud.
             voxelgrid_id = point_cloud.add_structure(
-                "voxelgrid", size_x=self.voxel_size_meters, size_y=self.voxel_size_meters, size_z=self.voxel_size_meters)
+                "voxelgrid",
+                size_x=self.voxel_size_meters,
+                size_y=self.voxel_size_meters,
+                size_z=self.voxel_size_meters)
             voxelgrid = point_cloud.structures[voxelgrid_id].get_feature_vector(mode="density")
 
             # Do the preprocessing.

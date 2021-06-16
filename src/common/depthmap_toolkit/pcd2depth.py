@@ -2,9 +2,29 @@ import zipfile
 
 import numpy as np
 
-from utils import parse_pcd, convert_3d_to_2d
+from typing import List
+from depthmap import convert_3d_to_2d
+from depthmap_utils import parse_numbers
 
 ENCODING = 'charmap'
+
+
+def parse_pcd(filepath: str) -> List[List[float]]:
+    with open(filepath, 'r') as f:
+        data = []
+        while True:
+            line = str(f.readline())
+            if line.startswith('DATA'):
+                break
+
+        while True:
+            line = str(f.readline())
+            if not line:
+                break
+            else:
+                values = parse_numbers(line)
+                data.append(values)
+    return data
 
 
 def process(calibration, pcd_fpath: str, width: int, height: int):
@@ -40,7 +60,3 @@ def write_depthmap(output_depth_fpath: str, depthmap, width: int, height: int):
     with zipfile.ZipFile(output_depth_fpath, "w", zipfile.ZIP_DEFLATED) as f:
         f.write('data', 'data')
         f.close()
-    # Visualsiation for debug
-    #print str(width) + "x" + str(height)
-    #plt.imshow(output)
-    #plt.show()

@@ -28,9 +28,11 @@ if run.id.startswith("OfflineRun"):
     for p in utils_paths:
         shutil.copy(p, temp_model_util_dir)
 
-from model import create_cnn  # noqa: E402
+from tmp_model_util.model_plaincnn import create_cnn  # noqa: E402
 from tmp_model_util.preprocessing import preprocess_depthmap, preprocess_targets  # noqa: E402
-from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer  # noqa: E402
+from tmp_model_util.utils import (  # noqa: E402
+    download_dataset, get_dataset_path, AzureLogCallback,
+    create_tensorboard_callback, get_optimizer)
 
 # Make experiment reproducible. Set random seeds for splitting.
 tf.random.set_seed(CONFIG.SPLIT_SEED)
