@@ -1,28 +1,22 @@
+import sys
+
 from azureml.core import Environment, Workspace
 from azureml.core.model import InferenceConfig, Model
-from azureml.core.webservice import (AciWebservice,  # noqa: E401
-                                     LocalWebservice)
+from azureml.core.webservice import AciWebservice  # noqa: E401
+from azureml.core.webservice import LocalWebservice
 
 from config import CONFIG
 from constants import REPO_DIR
 
+sys.path.append('./src/common/model_utils')  # noqa
+import environment
 
 if __name__ == "__main__":
 
     workspace = Workspace.from_config()
     model = Model(workspace, name=CONFIG.MODEL_NAME)
 
-    curated_env_name = "cgm-env"
-
-    ENV_EXISTS = True
-    if ENV_EXISTS:
-        cgm_env = Environment.get(workspace=workspace, name=curated_env_name)
-    else:
-        cgm_env = Environment.from_conda_specification(
-            name=curated_env_name, file_path=REPO_DIR / "environment_train.yml")
-        cgm_env.docker.enabled = True
-        cgm_env.docker.base_image = 'mcr.microsoft.com/azureml/openmpi3.1.2-cuda10.1-cudnn7-ubuntu18.04'
-        # cgm_env.register(workspace)  # Please be careful not to overwrite existing environments
+    cgm_env = environment.cgm_environemnt(workspace=workspace, curated_env_name="cgm-env", env_exist=True)
 
     inference_config_aci = InferenceConfig(
         environment=cgm_env,
