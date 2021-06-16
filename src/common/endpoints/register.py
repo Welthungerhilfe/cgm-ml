@@ -1,6 +1,5 @@
 from azureml.core import Experiment, Run, Workspace
-
-from config import CONFIG
+from config_deepensemble_1 import CONFIG
 
 if __name__ == "__main__":
 

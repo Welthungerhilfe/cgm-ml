@@ -1,12 +1,13 @@
 import json
 import sys
+from pathlib import Path
 
 import requests
 from azureml.core import Webservice, Workspace
 
-from config import CONFIG
+from config_deepensemble_1 import CONFIG
 
-sys.path.append('./src/common/data_utilities')  # noqa
+sys.path.append(str(Path(__file__).parents[1]) / 'data_utilities')  # noqa
 import mlpipeline_utils  # noqa: E402
 
 if __name__ == "__main__":

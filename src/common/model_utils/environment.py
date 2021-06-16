@@ -1,13 +1,14 @@
 
 import sys
+from pathlib import Path
 
 from azureml.core import Environment
 
-sys.path.append('./src/common/endpoints')  # noqa
+sys.path.append(str(Path(__file__).parents[1]) / 'endpoints')  # noqa
 from constants import REPO_DIR  # noqa: E402
 
 
-def cgm_environemnt(workspace, curated_env_name, env_exist):
+def cgm_environment(workspace, curated_env_name, env_exist):
     if env_exist:
         cgm_env = Environment.get(workspace=workspace, name=curated_env_name)
     else:

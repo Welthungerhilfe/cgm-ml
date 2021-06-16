@@ -1,4 +1,5 @@
 from bunch import Bunch
+
 from constants import REPO_DIR
 
 CONFIG = Bunch(dict(
