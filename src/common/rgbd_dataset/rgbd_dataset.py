@@ -115,8 +115,8 @@ def process_depthmap(depthmaps):
         pickle_file = artifact_name.replace('.jpg', '.p')
         full_fpath = f'{scan_type_dirpath}/{pickle_file}'
         Path(scan_type_dirpath).mkdir(parents=True, exist_ok=True)
-        data, width, height, depthScale, _ = load_depth(depthmap_image_path)
-        depthmap_huawei = prepare_depthmap(data, width, height, depthScale)
+        data, width, height, depth_scale, _ = load_depth(depthmap_image_path)
+        depthmap_huawei = prepare_depthmap(data, width, height, depth_scale)
         image_full_fpath = f'{rgb_dirpath}/{image_path}'
         resized_image = image_resize(image_full_fpath)
         pickled_data = (resized_image, depthmap_huawei, labels)

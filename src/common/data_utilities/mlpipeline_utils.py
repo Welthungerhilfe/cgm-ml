@@ -87,8 +87,8 @@ def prepare_depthmap(data: bytes, width: int, height: int, depth_scale: float) -
 def get_depthmaps(fpaths: List[str]) -> np.array:
     depthmaps = []
     for fpath in fpaths:
-        data, width, height, depthScale, _ = load_depth(fpath)
-        depthmap = prepare_depthmap(data, width, height, depthScale)
+        data, width, height, depth_scale, _ = load_depth(fpath)
+        depthmap = prepare_depthmap(data, width, height, depth_scale)
         depthmap = preprocess(depthmap)
         depthmaps.append(depthmap)
 
