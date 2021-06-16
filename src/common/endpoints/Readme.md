@@ -23,6 +23,10 @@ https://docs.microsoft.com/en-us/azure/machine-learning/how-to-deploy-and-where?
     TEST_FILE=Test file location
 
 
+#### Endpoint Naming convention
+
+service-ModalName-ModalNumber(If any)-version
+
 
 #### FutureTask:
 If heavy model use AKS service.
