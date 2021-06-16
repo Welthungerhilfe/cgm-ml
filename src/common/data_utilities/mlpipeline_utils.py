@@ -111,7 +111,7 @@ class ArtifactProcessor:
                                order_number: str) -> str:
         """Side effect: Saves and returns file path"""
         depthmaps = get_depthmaps([zip_input_full_path])
-        pickle_output_path = f"qrcode/{scan_id}/{scan_step}/pc_{scan_id}_{timestamp}_{scan_step}_{order_number}.p"
+        pickle_output_path = f"scans/{scan_id}/{scan_step}/pc_{scan_id}_{timestamp}_{scan_step}_{order_number}.p"
         pickle_output_full_path = f"{self.output_dir}/{pickle_output_path}"
         Path(pickle_output_full_path).parent.mkdir(parents=True, exist_ok=True)
         pickle.dump((depthmaps, np.array(target_tuple)), open(pickle_output_full_path, "wb"))
