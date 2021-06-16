@@ -1,6 +1,6 @@
 import sys
 
-from azureml.core import Environment, Workspace
+from azureml.core import Workspace
 from azureml.core.model import InferenceConfig, Model
 from azureml.core.webservice import AciWebservice  # noqa: E401
 from azureml.core.webservice import LocalWebservice

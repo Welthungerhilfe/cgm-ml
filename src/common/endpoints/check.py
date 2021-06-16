@@ -1,29 +1,16 @@
 import json
 import pickle
+import sys
 
+import numpy as np
 import requests
 import tensorflow as tf
 from azureml.core import Webservice, Workspace
 
 from config import CONFIG
 
-
-def tf_load_pickle(path, max_value):
-    depthmaps = []
-
-    def py_load_pickle(path, max_value):
-        depthmap, _ = pickle.load(open(path.numpy(), "rb"))
-        depthmap = depthmap.astype("float32")
-        depthmap = depthmap / max_value
-        depthmap = tf.image.resize(depthmap, (240, 180))
-        return depthmap, _
-
-    depthmap, _ = tf.py_function(py_load_pickle, [path, max_value], [tf.float32, tf.float32])
-    depthmap.set_shape((240, 180, 1))
-    depthmap = depthmap.numpy().tolist()
-    depthmaps.append(depthmap)
-    return depthmaps
-
+sys.path.append('./src/common/data_utilities')  # noqa
+import mlpipeline_utils
 
 if __name__ == "__main__":
     if CONFIG.LOCALTEST:
@@ -34,7 +21,7 @@ if __name__ == "__main__":
         uri = service.scoring_uri
 
     requests.get(uri)
-    depthmap = tf_load_pickle(CONFIG.TEST_FILE, 7.5)
+    depthmap = mlpipeline_utils.get_depthmaps(CONFIG.TEST_FILE).tolist()
 
     headers = {"Content-Type": "application/json"}
     data = {
