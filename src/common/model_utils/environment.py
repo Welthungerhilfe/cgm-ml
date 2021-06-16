@@ -3,7 +3,7 @@ import sys
 
 from azureml.core import Environment
 
-sys.path.append('./src/common/endpoints')  # noqa
+sys.path.append('./src/common/endpoints')  # noqa E402
 from constants import REPO_DIR
 
 

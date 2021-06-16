@@ -1,15 +1,12 @@
 import json
-import pickle
 import sys
 
-import numpy as np
 import requests
-import tensorflow as tf
 from azureml.core import Webservice, Workspace
 
 from config import CONFIG
 
-sys.path.append('./src/common/data_utilities')  # noqa
+sys.path.append('./src/common/data_utilities')  # noqa E402
 import mlpipeline_utils
 
 if __name__ == "__main__":
