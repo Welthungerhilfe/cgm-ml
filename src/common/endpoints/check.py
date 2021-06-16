@@ -27,11 +27,11 @@ def tf_load_pickle(path, max_value):
 
 if __name__ == "__main__":
     if CONFIG.LOCALTEST:
+        uri = 'http://localhost:6789/'
+    else:
         ws = Workspace.from_config()
         service = Webservice(workspace=ws, name=CONFIG.ENDPOINT_NAME)
         uri = service.scoring_uri
-    else:
-        uri = 'http://localhost:6789/'
 
     requests.get(uri)
     depthmap = tf_load_pickle(CONFIG.TEST_FILE, 7.5)
