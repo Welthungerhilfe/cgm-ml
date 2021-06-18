@@ -15,6 +15,7 @@ from evaluate import copy_dir  # noqa: E402
 from evaluate import prepare_sample_dataset  # noqa: E402
 #from evaluation.eval_utilities import get_column_list  # noqa: E402
 
+
 def test_copy_dir():
     common_dir_path = Path(REPO_DIR + "/src/common")
     temp_common_dir = Path(here.parent / "temp_common")
@@ -59,10 +60,10 @@ def test_prepare_sample_dataset():
     #prepare df
     qrcode_list = [
         "1585004725-18cqo1np0j",
-        "1585004725-18cqo1np0j", 
         "1585004725-18cqo1np0j",
         "1585004725-18cqo1np0j",
-        "1585004725-18cqo1np0j", 
+        "1585004725-18cqo1np0j",
+        "1585004725-18cqo1np0j",
         "1585012629-ac1ippx2qy",
         "1585012629-ac1ippx2qy",
         "1585012629-ac1ippx2qy",
@@ -73,7 +74,7 @@ def test_prepare_sample_dataset():
         "1585012645-ii2eyvdpib",
         "1585012645-ii2eyvdpib",
         "1585012645-ii2eyvdpib",
-        ]
+    ]
 
     scantype_list = [
         "100",  # 1st qrcode
@@ -91,7 +92,7 @@ def test_prepare_sample_dataset():
         "101",
         "102",
         "102",
-        ]
+    ]
 
     artifact_list = [
         "pc_1585004725-18cqo1np0j_1592801845251_100_000.p",  # 100 1st qrcode
@@ -109,7 +110,7 @@ def test_prepare_sample_dataset():
         "pc_1585012645-ii2eyvdpib_1591848619397_101_008.p",  # 101
         "pc_1585012645-ii2eyvdpib_1591848619397_102_045.p",  # 102
         "pc_1585012645-ii2eyvdpib_1591848619397_102_046.p",  # 102
-        ]
+    ]
 
     prediction_list = [
         96.8,
@@ -147,7 +148,7 @@ def test_prepare_sample_dataset():
         79.1,
     ]
 
-    COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted']
+    COLUMNS = ['qrcode', 'artifact', 'scantype', 'GT', 'predicted']
 
     df = pd.DataFrame({
         'qrcode': qrcode_list,
@@ -168,37 +169,6 @@ def test_prepare_sample_dataset():
 
 
 test_prepare_sample_dataset()
-
-# so wird df gemacht
-"""      qrcode_list, scantype_list, artifact_list, prediction_list, target_list = get_column_list(
-            new_paths_evaluation, prediction_list_one, DATA_CONFIG, FILTER_CONFIG)"""
-"""df = pd.DataFrame({
-            'qrcode': qrcode_list,
-            'artifact': artifact_list,
-            'scantype': scantype_list,
-            'GT': target_list if target_list[0].shape == tuple() else [el[0] for el in target_list],
-            'predicted': prediction_list
-        }, columns=RESULT_CONFIG.COLUMNS)"""
-# columns=RESULT_CONFIG.COLUMNS --> from qa_config_height_clean: COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],
-
-# so ist die funktion definiert
-"""def prepare_sample_dataset(df_sample, dataset_path):
-    df_sample['artifact_path'] = df_sample.apply(
-        lambda x: f"{dataset_path}/{x['qrcode']}/{x['scantype']}/{x['artifact']}", axis=1)
-    paths_evaluation = list(df_sample['artifact_path'])
-    dataset_sample = tf.data.Dataset.from_tensor_slices(paths_evaluation)
-    dataset_sample = dataset_sample.map(lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE))
-    dataset_sample = dataset_sample.map(lambda _path, depthmap, targets: (depthmap, targets))
-    dataset_sample = dataset_sample.cache()
-    dataset_sample = dataset_sample.prefetch(tf.data.experimental.AUTOTUNE)
-    return dataset_sample"""
-
-# so wirds aufgerufen
-"""      # Sample one artifact per scan (qrcode, scantype combination)
-        df_sample = df.groupby(['qrcode', 'scantype']).apply(lambda x: x.sample(1))
-
-        # Prepare uncertainty prediction on these artifacts
-        dataset_sample = prepare_sample_dataset(df_sample, dataset_path)"""
 
 
 def test_always_passes():
