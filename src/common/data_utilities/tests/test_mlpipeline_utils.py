@@ -58,7 +58,3 @@ def test_get_depthmaps():
     zip_input_full_path = DATA_UTILITIES_DIR / 'tests' / 'zip_files' / ARTIFACT_ZIP_PATH
     preprocessed_depthmaps = get_depthmaps([zip_input_full_path])
     assert preprocessed_depthmaps[0].shape == (180, 240, 1), preprocessed_depthmaps[0].shape
-
-
-if __name__ == '__main__':
-    test_load_depth_hugh()
