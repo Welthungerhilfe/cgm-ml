@@ -53,13 +53,13 @@ def export_object(event):
     global DMAP
     floor = DMAP.get_floor_level()
     fname = f'output{INDEX}.obj'
-    export_obj('export/' + fname, DMAP, floor, triangulate=True)
+    export_obj(f'export/{fname}', DMAP, floor, triangulate=True)
 
 
 def export_pointcloud(event):
     global DMAP
     fname = f'output{INDEX}.pcd'
-    export_pcd('export/' + fname, DMAP)
+    export_pcd(f'export/{fname}', DMAP)
 
 
 def next_click(event, calibration_file: str, depthmap_dir: str):
