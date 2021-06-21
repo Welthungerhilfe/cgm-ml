@@ -39,7 +39,7 @@ def blur_face(data: np.array, highest: list, dmap: Depthmap) -> np.array:
                 continue
             point = dmap.convert_2d_to_3d_oriented(1, x, y, depth)
             distance = length(diff(point, highest))
-            if (distance < 0.25):
+            if distance < 0.25:
 
                 # Gausian blur
                 pixel = [0, 0, 0]
