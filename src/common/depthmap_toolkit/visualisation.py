@@ -49,14 +49,10 @@ def blur_face(data: np.array, highest: list, dmap: Depthmap) -> np.array:
                     for ty in range(y - step, y + step):
                         if tx > 0 and ty > 0 and tx < dmap.width and ty < dmap.height:
                             index = SUBPLOT_RGB * dmap.height + dmap.height - ty - 1
-                            pixel[0] = pixel[0] + data[tx][index][0]
-                            pixel[1] = pixel[1] + data[tx][index][1]
-                            pixel[2] = pixel[2] + data[tx][index][2]
+                            pixel = pixel + data[tx][index][0]
                             count = count + 1
                 index = SUBPLOT_RGB * dmap.height + dmap.height - y - 1
-                output[x][index][0] = pixel[0] / count
-                output[x][index][1] = pixel[1] / count
-                output[x][index][2] = pixel[2] / count
+                output[x][index] = pixel / count
 
     return output
 
