@@ -9,8 +9,8 @@ TOOLKIT_DIR = Path(__file__).parents[0].absolute()
 
 def test_depthmap():
     depthmap_dir = str(TOOLKIT_DIR / 'huawei_p40pro')
-    depthmap_fname = 'depth_dog_1622182020448_100_234.depth'
-    rgb_fname = 'rgb_dog_1622182020448_100_234.jpg'
+    depthmap_fname = 'depth_dog_1622182020448_100_282.depth'
+    rgb_fname = 'rgb_dog_1622182020448_100_282.jpg'
     calibration_file = str(TOOLKIT_DIR / 'huawei_p40pro' / 'camera_calibration.txt')
 
     dmap = Depthmap.create_from_file(depthmap_dir, depthmap_fname, rgb_fname, calibration_file)
