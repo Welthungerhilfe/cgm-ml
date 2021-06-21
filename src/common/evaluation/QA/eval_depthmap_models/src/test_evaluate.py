@@ -50,9 +50,9 @@ def test_copy_empty_dir():
         print("Error: %s : %s" % (temp_empty_dir, e.strerror))
 
 
-def test_prepare_sample_dataset():
+def test_prepare_sample_dataset():  # damn this only works on my machine bec I forgot that cgm-ml/data/anon-depthmap-mini is not usually part of the repo....
     # prepare sample dataset
-    dataset_path = str(REPO_DIR + "/data/anon-depthmap-mini/scans")
+    dataset_path = str(REPO_DIR + "/data/anon-depthmap-mini/scans") 
 
     #prepare df
     qrcode_list = [
@@ -122,8 +122,10 @@ def test_prepare_sample_dataset():
 #tf load pickle
 def test_tf_load_pickle():
     pickle_path = str(REPO_DIR
-                      + "/data/anon-depthmap-mini/scans/1585004725-18cqo1np0j/100/"
-                      + "pc_1585004725-18cqo1np0j_1592801845251_100_000.p")
+                      + "/src/common/data_utilities/tests/pickle_files/scans/c571de02-"
+                      + "a723-11eb-8845-bb6589a1fbe8/102/pc_c571de02-a723-11eb-8845-bb"
+                      + "6589a1fbe8_2021-04-22 13:34:33.302557_102_3.p")
+                      
 
     NORMALIZATION_VALUE = 7.5
     IMAGE_TARGET_HEIGHT = 240
