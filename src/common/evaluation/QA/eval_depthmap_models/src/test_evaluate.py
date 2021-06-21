@@ -121,11 +121,13 @@ def test_prepare_sample_dataset():
 
 #tf load pickle
 def test_tf_load_pickle():
-    pickle_path = str(REPO_DIR + "/data/anon-depthmap-mini/scans/1585004725-18cqo1np0j/100/pc_1585004725-18cqo1np0j_1592801845251_100_000.p")
+    pickle_path = str(REPO_DIR
+                      + "/data/anon-depthmap-mini/scans/1585004725-18cqo1np0j/100/"
+                      + "pc_1585004725-18cqo1np0j_1592801845251_100_000.p")
 
-    NORMALIZATION_VALUE=7.5
-    IMAGE_TARGET_HEIGHT=240
-    IMAGE_TARGET_WIDTH=180
+    NORMALIZATION_VALUE = 7.5
+    IMAGE_TARGET_HEIGHT = 240
+    IMAGE_TARGET_WIDTH = 180
 
     test_image = tf_load_pickle(pickle_path, NORMALIZATION_VALUE)
 
@@ -137,7 +139,10 @@ def test_tf_load_pickle():
     print("test_image[1] shape 2 = ", test_image[1].shape[2])
     print("test_image[2] = ", test_image[2])  # tensor info
 
-    assert (type(test_image) == tuple) and (test_image[1].shape[0] == IMAGE_TARGET_HEIGHT) and (test_image[1].shape[1] == IMAGE_TARGET_WIDTH)
+    assert (type(test_image)
+            == tuple) and (test_image[1].shape[0]
+                           == IMAGE_TARGET_HEIGHT) and (test_image[1].shape[1]
+                                                        == IMAGE_TARGET_WIDTH)
 
 
 # not sure if this is good
@@ -146,9 +151,7 @@ def test_tf_load_not_a_pickle():
     try:
         wrong_path = str(REPO_DIR + "/data/anon-depthmap-mini/labels/testing.csv")
 
-        NORMALIZATION_VALUE=7.5
-        IMAGE_TARGET_HEIGHT=240
-        IMAGE_TARGET_WIDTH=180
+        NORMALIZATION_VALUE = 7.5
 
         test_image = tf_load_pickle(wrong_path, NORMALIZATION_VALUE)
 
@@ -159,7 +162,7 @@ def test_tf_load_not_a_pickle():
         print("test_image[1] shape 1 = ", test_image[1].shape[1])  # img width 180
         print("test_image[1] shape 2 = ", test_image[1].shape[2])
         print("test_image[2] = ", test_image[2])  # tensor info
-    except:
+    except ValueError:
         print("exception: Unknown: UnpicklingError")
         exception_caught = True
 
@@ -179,7 +182,7 @@ def test_tf_load_empty_pickle():
         empty_file.close()
         print("ho")
 
-        NORMALIZATION_VALUE=7.5
+        NORMALIZATION_VALUE = 7.5
         test_image = tf_load_pickle('empty_pickle_file.p', NORMALIZATION_VALUE)
 
         print(type(test_image))
@@ -189,7 +192,7 @@ def test_tf_load_empty_pickle():
         print("test_image[1] shape 1 = ", test_image[1].shape[1])  # img width 180
         print("test_image[1] shape 2 = ", test_image[1].shape[2])
         print("test_image[2] = ", test_image[2])  # tensor info
-    except:
+    except ValueError:
         print("value error")
         exception_caught = True
 
