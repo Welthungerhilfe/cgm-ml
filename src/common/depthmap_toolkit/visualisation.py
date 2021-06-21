@@ -11,6 +11,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
+CHILD_HEAD_HEIGHT_IN_METERS = 0.25
 PATTERN_LENGTH_IN_METERS = 0.1
 
 SUBPLOT_DEPTH = 0
@@ -24,10 +25,7 @@ SUBPLOT_COUNT = 5
 def blur_face(data: np.array, highest: list, dmap: Depthmap) -> np.array:
 
     # copy values
-    output = np.zeros((dmap.width, dmap.height * SUBPLOT_COUNT, 3))
-    for x in range(dmap.width):
-        for y in range(dmap.height * SUBPLOT_COUNT):
-            output[x][y][:] = data[x][y][:]
+    output = np.copy(data)
 
     # blur RGB data around face
     for x in range(dmap.width):
@@ -39,7 +37,7 @@ def blur_face(data: np.array, highest: list, dmap: Depthmap) -> np.array:
                 continue
             point = dmap.convert_2d_to_3d_oriented(1, x, y, depth)
             distance = length(diff(point, highest))
-            if distance < 0.25:
+            if distance < CHILD_HEAD_HEIGHT_IN_METERS:
 
                 # Gausian blur
                 pixel = [0, 0, 0]
