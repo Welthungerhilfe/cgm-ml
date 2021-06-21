@@ -234,7 +234,7 @@ class Depthmap:
         highest = [-sys.maxsize, -sys.maxsize, -sys.maxsize]
         for x in range(self.width):
             for y in range(self.height):
-                if (mask[x][y] == MASK_CHILD):
+                if mask[x][y] == MASK_CHILD:
                     depth = self.parse_depth(x, y)
                     point = self.convert_2d_to_3d_oriented(1, x, y, depth)
                     if highest[1] < point[1]:
