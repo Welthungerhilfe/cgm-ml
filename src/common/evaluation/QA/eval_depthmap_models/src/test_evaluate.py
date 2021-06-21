@@ -13,7 +13,6 @@ REPO_DIR = str(here.parents[6].absolute())
 
 from evaluate import copy_dir  # noqa: E402
 from evaluate import prepare_sample_dataset  # noqa: E402
-#from evaluation.eval_utilities import get_column_list  # noqa: E402
 
 
 def test_copy_dir():
@@ -53,7 +52,6 @@ def test_copy_empty_dir():
 def test_prepare_sample_dataset():
     print("Entering test_prepare_sample_dataset")
     # prepare sample dataset
-    # for datasetpath, use cgm-ml/data/anon-depthmap-mini/scans dataset_path = str(REPO_DIR / "data" / dataset_name)
     dataset_path = str(REPO_DIR + "/data/anon-depthmap-mini")
     print("datasetpath", dataset_path)
 
@@ -165,10 +163,8 @@ def test_prepare_sample_dataset():
 
     print("Exiting test_prepare_sample_dataset")
 
-    assert (len(dataset_sample) != 0)
+    assert (len(dataset_sample) != 0)  # how can I write a better assert statement here?
 
-
-test_prepare_sample_dataset()
 
 
 def test_always_passes():
