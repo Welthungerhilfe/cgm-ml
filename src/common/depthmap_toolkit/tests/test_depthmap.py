@@ -27,8 +27,9 @@ def test_depthmap():
     assert dmap.depth_scale == 0.001
 
     floor = dmap.get_floor_level()
-    mask, highest = dmap.detect_child(floor)
-    child_height_in_m = highest - floor
+    mask = dmap.detect_child(floor)
+    highest = dmap.get_highest_point(mask)
+    child_height_in_m = highest[1] - floor
     assert 0 < child_height_in_m < 1.2
     assert mask.shape[0] == dmap.rgb_array.shape[1]
     assert mask.shape[1] == dmap.rgb_array.shape[0]
