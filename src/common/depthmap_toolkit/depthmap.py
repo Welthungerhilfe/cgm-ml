@@ -46,6 +46,7 @@ class Depthmap:
         rgb_fpath (str): Path to RGB file (e.g. to the jpg)
         rgb_array (np.array): RGB data
     """
+
     def __init__(
             self,
             intrinsics,
@@ -229,7 +230,6 @@ class Depthmap:
                     altitudes.append(point[1])
         return statistics.median(altitudes)
 
-
     def get_highest_point(self, mask: np.array) -> float:
         highest = [-9999, -9999, -9999]
         for x in range(self.width):
@@ -240,7 +240,6 @@ class Depthmap:
                     if highest[1] < point[1]:
                         highest = point
         return highest
-
 
     def parse_confidence(self, tx: int, ty):
         """Get confidence of the point in scale 0-1"""

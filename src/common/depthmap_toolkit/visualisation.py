@@ -60,6 +60,7 @@ def blur_face(input: np.array, highest: list, dmap: Depthmap) -> np.array:
 
     return output
 
+
 def render_pixel(output: np.array,
                  x: int,
                  y: int,
