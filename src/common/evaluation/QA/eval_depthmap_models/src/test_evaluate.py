@@ -166,7 +166,6 @@ def test_prepare_sample_dataset():
     assert (len(dataset_sample) != 0)  # how can I write a better assert statement here?
 
 
-
 def test_always_passes():
     assert True
 
