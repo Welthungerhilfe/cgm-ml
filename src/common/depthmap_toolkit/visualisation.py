@@ -5,7 +5,7 @@ import numpy as np
 
 from constants import MASK_CHILD
 from depthmap import Depthmap
-from depthmap_utils import diff, len
+from depthmap_utils import diff, length
 
 logging.basicConfig(
     level=logging.INFO,
@@ -21,13 +21,13 @@ SUBPLOT_RGB = 4
 SUBPLOT_COUNT = 5
 
 
-def blur_face(input: np.array, highest: list, dmap: Depthmap) -> np.array:
+def blur_face(data: np.array, highest: list, dmap: Depthmap) -> np.array:
 
     # copy values
     output = np.zeros((dmap.width, dmap.height * SUBPLOT_COUNT, 3))
     for x in range(dmap.width):
         for y in range(dmap.height * SUBPLOT_COUNT):
-            output[x][y][:] = input[x][y][:]
+            output[x][y][:] = data[x][y][:]
 
     # blur RGB data around face
     for x in range(dmap.width):
@@ -38,7 +38,7 @@ def blur_face(input: np.array, highest: list, dmap: Depthmap) -> np.array:
             if not depth:
                 continue
             point = dmap.convert_2d_to_3d_oriented(1, x, y, depth)
-            distance = len(diff(point, highest))
+            distance = length(diff(point, highest))
             if (distance < 0.25):
 
                 # Gausian blur
@@ -49,9 +49,9 @@ def blur_face(input: np.array, highest: list, dmap: Depthmap) -> np.array:
                     for ty in range(y - step, y + step):
                         if tx > 0 and ty > 0 and tx < dmap.width and ty < dmap.height:
                             index = SUBPLOT_RGB * dmap.height + dmap.height - ty - 1
-                            pixel[0] = pixel[0] + input[tx][index][0]
-                            pixel[1] = pixel[1] + input[tx][index][1]
-                            pixel[2] = pixel[2] + input[tx][index][2]
+                            pixel[0] = pixel[0] + data[tx][index][0]
+                            pixel[1] = pixel[1] + data[tx][index][1]
+                            pixel[2] = pixel[2] + data[tx][index][2]
                             count = count + 1
                 index = SUBPLOT_RGB * dmap.height + dmap.height - y - 1
                 output[x][index][0] = pixel[0] / count

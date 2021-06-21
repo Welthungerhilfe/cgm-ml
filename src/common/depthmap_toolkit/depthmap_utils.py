@@ -27,7 +27,7 @@ def diff(a: list, b: list) -> list:
     return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
 
 
-def len(v: list) -> float:
+def length(v: list) -> float:
     """Vector length"""
     return sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
 
