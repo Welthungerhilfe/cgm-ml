@@ -5,7 +5,7 @@ import logging
 import logging.config
 
 import depthmap
-import utils
+import exporter
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
@@ -20,8 +20,6 @@ if __name__ == "__main__":
     depthmap_dir = sys.argv[1]
     calibration_file = sys.argv[2]
 
-    calibration = utils.parse_calibration(calibration_file)
-
     depth_filenames = []
     for (dirpath, dirnames, filenames) in os.walk(depthmap_dir + '/depth'):
         depth_filenames.extend(filenames)
@@ -32,8 +30,10 @@ if __name__ == "__main__":
         print('no previous data to delete')
     os.mkdir('export')
     for filename in depth_filenames:
-        width, height, depth_scale, max_confidence, data, matrix = depthmap.process(depthmap_dir, filename, 0)
-        output_filename = f'output{filename}.pcd'
-        depthmap.export('pcd', output_filename, width, height, data, depth_scale, calibration, max_confidence, matrix)
+
+        dmap = depthmap.Depthmap.create_from_file(depthmap_dir, filename, 0, calibration_file)
+
+        output_filename = f'export/output{filename}.pcd'
+        exporter.export_pcd(output_filename, dmap)
 
     logging.info('Data exported into folder export')
