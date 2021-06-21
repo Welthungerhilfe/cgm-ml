@@ -231,7 +231,7 @@ class Depthmap:
         return statistics.median(altitudes)
 
     def get_highest_point(self, mask: np.array) -> float:
-        highest = [-9999, -9999, -9999]
+        highest = [-sys.maxsize, -sys.maxsize, -sys.maxsize]
         for x in range(self.width):
             for y in range(self.height):
                 if (mask[x][y] == MASK_CHILD):
