@@ -23,6 +23,8 @@ SUBPLOT_COUNT = 5
 
 
 def blur_face(data: np.array, highest: list, dmap: Depthmap) -> np.array:
+    """Faceblur of the detected standing child."""
+    """It uses the highest point of the child and blur all pixels in distance less than CHILD_HEAD_HEIGHT_IN_METERS."""
 
     # copy values
     output = np.copy(data)
@@ -45,10 +47,11 @@ def blur_face(data: np.array, highest: list, dmap: Depthmap) -> np.array:
                 step = 5
                 for tx in range(x - step, x + step):
                     for ty in range(y - step, y + step):
-                        if tx > 0 and ty > 0 and tx < dmap.width and ty < dmap.height:
-                            index = SUBPLOT_RGB * dmap.height + dmap.height - ty - 1
-                            pixel = pixel + data[tx][index][0]
-                            count = count + 1
+                        if tx <= 0 or ty <= 0 or tx >= dmap.width or ty >= dmap.height:
+                            continue
+                        index = SUBPLOT_RGB * dmap.height + dmap.height - ty - 1
+                        pixel = pixel + data[tx][index][0]
+                        count = count + 1
                 index = SUBPLOT_RGB * dmap.height + dmap.height - y - 1
                 output[x][index] = pixel / count
 
