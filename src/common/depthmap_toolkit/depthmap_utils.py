@@ -1,5 +1,6 @@
 import logging
 import logging.config
+from math import sqrt
 from typing import List
 
 
@@ -24,6 +25,11 @@ def cross(a: list, b: list) -> list:
 def diff(a: list, b: list) -> list:
     """Difference of two vectors"""
     return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
+
+
+def len(v: list) -> float:
+    """Vector length"""
+    return sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
 
 
 def norm(v: list) -> list:

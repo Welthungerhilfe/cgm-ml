@@ -5,6 +5,7 @@ import numpy as np
 
 from constants import MASK_CHILD
 from depthmap import Depthmap
+from depthmap_utils import diff, len
 
 logging.basicConfig(
     level=logging.INFO,
@@ -20,12 +21,57 @@ SUBPLOT_RGB = 4
 SUBPLOT_COUNT = 5
 
 
-def render_pixel(output: object,
+def blur_face(input: np.array, highest: list, dmap: Depthmap) -> np.array:
+
+    # copy values
+    output = np.zeros((dmap.width, dmap.height * SUBPLOT_COUNT, 3))
+    for x in range(dmap.width):
+        for y in range(dmap.height * SUBPLOT_COUNT):
+            output[x][y][:] = input[x][y][:]
+
+    # blur RGB data around face
+    for x in range(dmap.width):
+        for y in range(dmap.height):
+
+            # count distance from the highest child point
+            depth = dmap.parse_depth(x, y)
+            if not depth:
+                continue
+            point = dmap.convert_2d_to_3d_oriented(1, x, y, depth)
+            distance = len(diff(point, highest))
+            if (distance < 0.25):
+
+                # Gausian blur
+                pixel = [0, 0, 0]
+                count = 0
+                step = 5
+                for tx in range(x - step, x + step):
+                    for ty in range(y - step, y + step):
+                        if tx > 0 and ty > 0 and tx < dmap.width and ty < dmap.height:
+                            index = SUBPLOT_RGB * dmap.height + dmap.height - ty - 1
+                            pixel[0] = pixel[0] + input[tx][index][0]
+                            pixel[1] = pixel[1] + input[tx][index][1]
+                            pixel[2] = pixel[2] + input[tx][index][2]
+                            count = count + 1
+                index = SUBPLOT_RGB * dmap.height + dmap.height - y - 1
+                output[x][index][0] = pixel[0] / count
+                output[x][index][1] = pixel[1] / count
+                output[x][index][2] = pixel[2] / count
+
+    return output
+
+def render_pixel(output: np.array,
                  x: int,
                  y: int,
                  floor: float,
                  mask: np.array,
                  dmap: Depthmap):
+
+    # RGB data visualisation
+    index = SUBPLOT_RGB * dmap.height + dmap.height - y - 1
+    output[x][index][0] = dmap.rgb_array[y][x][0] / 255.0
+    output[x][index][1] = dmap.rgb_array[y][x][1] / 255.0
+    output[x][index][2] = dmap.rgb_array[y][x][2] / 255.0
 
     depth = dmap.parse_depth(x, y)
     if not depth:
@@ -70,13 +116,6 @@ def render_pixel(output: object,
     if output[x][index][0] == 0:
         output[x][index][:] = 1
 
-    # RGB data visualisation
-    index = SUBPLOT_RGB * dmap.height + dmap.height - y - 1
-    if 0 < vec[0] < dmap.width and 1 < vec[1] < dmap.height and dmap.has_rgb:
-        output[x][index][0] = dmap.rgb_array[int(vec[1])][int(vec[0])][0] / 255.0
-        output[x][index][1] = dmap.rgb_array[int(vec[1])][int(vec[0])][1] / 255.0
-        output[x][index][2] = dmap.rgb_array[int(vec[1])][int(vec[0])][2] / 255.0
-
     # ensure pixel clipping
     for i in range(SUBPLOT_COUNT):
         index = i * dmap.height + dmap.height - y - 1
@@ -88,13 +127,15 @@ def render_pixel(output: object,
 def render_plot(dmap: Depthmap) -> np.array:
     # floor and child detection
     floor = dmap.get_floor_level()
-    mask, highest = dmap.detect_child(floor)
+    mask = dmap.detect_child(floor)
+    highest = dmap.get_highest_point(mask)
 
     # render the visualisations
     output = np.zeros((dmap.width, dmap.height * SUBPLOT_COUNT, 3))
     for x in range(dmap.width):
         for y in range(dmap.height):
             render_pixel(output, x, y, floor, mask, dmap)
+    output = blur_face(output, highest, dmap)
 
-    logging.info('height=%fm', highest - floor)
+    logging.info('height=%fm', highest[1] - floor)
     return output
