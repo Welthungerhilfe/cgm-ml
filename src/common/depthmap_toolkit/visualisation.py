@@ -69,10 +69,11 @@ def render_pixel(output: np.array,
                  dmap: Depthmap):
 
     # RGB data visualisation
-    index = SUBPLOT_RGB * dmap.height + dmap.height - y - 1
-    output[x][index][0] = dmap.rgb_array[y][x][0] / 255.0
-    output[x][index][1] = dmap.rgb_array[y][x][1] / 255.0
-    output[x][index][2] = dmap.rgb_array[y][x][2] / 255.0
+    if dmap.has_rgb:
+        index = SUBPLOT_RGB * dmap.height + dmap.height - y - 1
+        output[x][index][0] = dmap.rgb_array[y][x][0] / 255.0
+        output[x][index][1] = dmap.rgb_array[y][x][1] / 255.0
+        output[x][index][2] = dmap.rgb_array[y][x][2] / 255.0
 
     depth = dmap.parse_depth(x, y)
     if not depth:
@@ -136,7 +137,8 @@ def render_plot(dmap: Depthmap) -> np.array:
     for x in range(dmap.width):
         for y in range(dmap.height):
             render_pixel(output, x, y, floor, mask, dmap)
-    output = blur_face(output, highest, dmap)
+    if dmap.has_rgb:
+        output = blur_face(output, highest, dmap)
 
     logging.info('height=%fm', highest[1] - floor)
     return output
