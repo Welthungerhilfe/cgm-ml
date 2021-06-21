@@ -162,7 +162,7 @@ def test_tf_load_not_a_pickle():
         print("test_image[1] shape 1 = ", test_image[1].shape[1])  # img width 180
         print("test_image[1] shape 2 = ", test_image[1].shape[2])
         print("test_image[2] = ", test_image[2])  # tensor info
-    except ValueError:
+    except Exception:
         print("exception: Unknown: UnpicklingError")
         exception_caught = True
 
@@ -192,7 +192,7 @@ def test_tf_load_empty_pickle():
         print("test_image[1] shape 1 = ", test_image[1].shape[1])  # img width 180
         print("test_image[1] shape 2 = ", test_image[1].shape[2])
         print("test_image[2] = ", test_image[2])  # tensor info
-    except ValueError:
+    except Exception:
         print("value error")
         exception_caught = True
 
