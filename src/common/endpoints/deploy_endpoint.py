@@ -9,7 +9,7 @@ from config_deepensemble_1 import CONFIG
 
 from constants import REPO_DIR
 
-sys.path.append(str(Path(__file__).parents[1]) / 'model_utils')  # noqa
+sys.path.append(str(Path(__file__).parents[1] / 'model_utils'))   # noqa
 import environment  # noqa: E402
 
 if __name__ == "__main__":

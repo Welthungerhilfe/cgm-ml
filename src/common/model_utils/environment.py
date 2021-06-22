@@ -4,7 +4,7 @@ from pathlib import Path
 
 from azureml.core import Environment
 
-sys.path.append(str(Path(__file__).parents[1]) / 'endpoints')  # noqa
+sys.path.append(str(Path(__file__).parents[1] / 'endpoints'))  # noqa
 from constants import REPO_DIR  # noqa: E402
 
 

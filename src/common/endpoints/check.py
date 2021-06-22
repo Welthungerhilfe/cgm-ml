@@ -7,7 +7,7 @@ from azureml.core import Webservice, Workspace
 
 from config_deepensemble_1 import CONFIG
 
-sys.path.append(str(Path(__file__).parents[1]) / 'data_utilities')  # noqa
+sys.path.append(str(Path(__file__).parents[1] / 'data_utilities'))  # noqa
 import mlpipeline_utils  # noqa: E402
 
 if __name__ == "__main__":

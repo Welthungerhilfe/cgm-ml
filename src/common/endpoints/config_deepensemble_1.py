@@ -5,7 +5,7 @@ from constants import REPO_DIR
 CONFIG = Bunch(dict(
     MODEL_NAME="2021q1-depthmap-ensemble-height-95k",
     VERSION='1',
-    ENDPOINT_NAME='aci-2021q1-depthmap-ensemble-height-95k-m001-v1',
+    ENDPOINT_NAME='aci-21q1-ensemble-h-95k-m01-v1',
     EXPERIMENT_NAME='2021q1-depthmap-ensemble-height-95k',
     RUN_ID='2021q1-depthmap-ensemble-height-95k_1622230334_67c64a77',
     LOCALTEST=False,
