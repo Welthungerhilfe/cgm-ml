@@ -7,7 +7,7 @@ import pickle
 
 here = Path(__file__).resolve()
 
-sys.path.append(str(here.parents[4]))
+sys.path.append(str(here.parents[0]))
 
 REPO_DIR = str(here.parents[6].absolute())
 
