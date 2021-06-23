@@ -29,18 +29,29 @@ Visit that URL and login to Databricks.
 	* Libraries: Install the following libraries from PyPI
 		* scikit-image
 		* cgm-ml-common
+        
+---
+**NOTE**
+
+If you get error following error
+```
+Code: MissingSubscriptionRegistration
+Message: The subscription is not registered to use namespace {resource-provider-namespace}
+```
+
+follow https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/error-register-resource-provider#solution-3---azure-portal
+
+---
 
 ### Setup Compute
 
 In the Azure Portal, put secrets into key vault:
 
-* dset-sa-connectionstring
-* dset-sa-name
+* dset-sa-sas-token
 * mlapi-db-host
 * mlapi-db-pw
 * mlapi-db-user
-* mlapi-sa-connectionstring
-* mlapi-sa-name
+* mlapi-sa-sas-token
 
 In Databricks:
 
