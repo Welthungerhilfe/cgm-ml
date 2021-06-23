@@ -169,7 +169,7 @@ idx2col = {i: col.name for i, col in enumerate(column_names)}; print(idx2col)
 
 # COMMAND ----------
 
-CONNECTION_STR_SRC_SA = dbutils.secrets.get(scope=SECRET_SCOPE, key="mlapi-sa-connectionstring")
+CONNECTION_STR_SRC_SA = dbutils.secrets.get(scope=SECRET_SCOPE, key="mlapi-sa-sas-token")
 # STORAGE_ACCOUNT_NAME = dbutils.secrets.get(scope=SECRET_SCOPE, key="mlapi-sa-name")
 CONTAINER_NAME_SRC_SA = "cgm-result"
 
@@ -245,7 +245,7 @@ print(processed_fnames[:3])
 
 # COMMAND ----------
 
-CONNECTION_STR_DEST_SA = dbutils.secrets.get(scope=SECRET_SCOPE, key="dset-sa-connectionstring")
+CONNECTION_STR_DEST_SA = dbutils.secrets.get(scope=SECRET_SCOPE, key="dset-sa-sas-token")
 # STORAGE_ACCOUNT_NAME_DEST_SA = dbutils.secrets.get(scope=SECRET_SCOPE, key="dset-sa-name")
 CONTAINER_NAME_DEST_SA = "cgm-datasets"
 BLOB_SERVICE_CLIENT_DSET = BlobServiceClient.from_connection_string(CONNECTION_STR_DEST_SA)
