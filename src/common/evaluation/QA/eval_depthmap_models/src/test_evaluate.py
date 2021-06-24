@@ -11,8 +11,7 @@ sys.path.append(str(here.parents[4]))
 
 REPO_DIR = str(here.parents[6].absolute())
 
-from evaluation.QA.eval_depthmap_models.src.evaluate import copy_dir, prepare_sample_dataset  # noqa: E402
-from evaluation.QA.eval_depthmap_models.src.evaluate import tf_load_pickle  # noqa: E402
+from evaluation.QA.eval_depthmap_models.src.evaluate import copy_dir, prepare_sample_dataset, tf_load_pickle  # noqa: E402
 
 
 def test_copy_dir():
