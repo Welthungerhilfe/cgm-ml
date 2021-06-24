@@ -2,6 +2,7 @@ import argparse
 import logging
 import logging.config
 import os
+import sys
 import pickle
 import random
 import shutil
@@ -18,7 +19,12 @@ from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 from tensorflow.keras.models import load_model
 
-from constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR
+
+here = Path(__file__).resolve()
+
+sys.path.append(str(here.parents[4]))
+
+from evaluation.QA.eval_depthmap_models.src.constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR  # noqa: E402
 
 
 def copy_dir(src: Path, tgt: Path, glob_pattern: str, should_touch_init: bool = False):
@@ -35,7 +41,6 @@ def copy_dir(src: Path, tgt: Path, glob_pattern: str, should_touch_init: bool = 
         destpath = tgt / p.relative_to(src)
         destpath.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(p, destpath)
-
 
 # Get the current run.
 run = Run.get_context()

@@ -7,11 +7,11 @@ import pickle
 
 here = Path(__file__).resolve()
 
-sys.path.append(str(here.parents[0]))
+sys.path.append(str(here.parents[4]))
 
 REPO_DIR = str(here.parents[6].absolute())
 
-from evaluate import copy_dir, prepare_sample_dataset, tf_load_pickle  # noqa: E402
+from evaluation.QA.eval_depthmap_models.src.evaluate import copy_dir, prepare_sample_dataset, tf_load_pickle  # noqa: E402
 
 
 def test_copy_dir():
