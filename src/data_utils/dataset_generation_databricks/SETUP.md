@@ -29,29 +29,18 @@ Visit that URL and login to Databricks.
 	* Libraries: Install the following libraries from PyPI
 		* scikit-image
 		* cgm-ml-common
-        
----
-**NOTE**
 
-If you get error following error
-```
-Code: MissingSubscriptionRegistration
-Message: The subscription is not registered to use namespace {resource-provider-namespace}
-```
-
-follow https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/error-register-resource-provider#solution-3---azure-portal
-
----
-
-### Setup Compute
+### Setup Secrets
 
 In the Azure Portal, put secrets into key vault:
 
-* dset-sa-sas-token
+* dset-sa-connectionstring
+* dset-sa-name
 * mlapi-db-host
 * mlapi-db-pw
 * mlapi-db-user
-* mlapi-sa-sas-token
+* mlapi-sa-connectionstring
+* mlapi-sa-name
 
 In Databricks:
 
@@ -59,7 +48,18 @@ In Databricks:
 	* name: 'cgm-ml-scope'
 	* Manage Principal: All Users
   	* Get DNS Name and Resource ID from Azure Portal
+    
+#### Generating SAS tokens
+
+To generate SAS token for access to a storage account in portal, go to the storage account in portal and from left panel select Shared access signature from Security+Networking
+
+for more details you can check this https://adamtheautomator.com/azure-sas-token/
 
 ### Check if setup is correct
 
 To check if the setup is correct, you can run the databricks notebook and see if all the steps succeed.
+
+
+# Databricks setup for new user
+
+A new user should setup github repository by following steps defined above.
