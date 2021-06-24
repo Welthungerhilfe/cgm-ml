@@ -53,6 +53,15 @@ In Databricks:
 
 To generate SAS token for access to a storage account in portal, go to the storage account in portal and from left panel select Shared access signature from Security+Networking
 
+* Permissions for mlapi storage account
+    * Read
+    * List
+
+* Permissions for dset storage account
+    * Read
+    * List
+    * Write
+
 for more details you can check this https://adamtheautomator.com/azure-sas-token/
 
 ### Check if setup is correct
@@ -62,4 +71,4 @@ To check if the setup is correct, you can run the databricks notebook and see if
 
 # Databricks setup for new user
 
-A new user should setup github repository by following steps defined above.
+A new user should setup cgm-ml git(hub) repository by following steps defined above.
