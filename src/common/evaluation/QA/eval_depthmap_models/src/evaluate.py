@@ -20,7 +20,7 @@ from azureml.core.run import Run
 from tensorflow.keras.models import load_model
 
 
-here = Path(__file__).resolve()
+HERE = Path(__file__).resolve()
 
 sys.path.append(str(here.parents[4]))
 
