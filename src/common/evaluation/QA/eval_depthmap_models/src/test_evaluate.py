@@ -19,7 +19,7 @@ def test_copy_dir():
     temp_common_dir = Path(here.parent / "temp_common")
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
-    assert temp_common_dir.exists()
+    assert temp_common_dir.is_dir()
     try:
         shutil.rmtree(temp_common_dir)
     except OSError as e:
