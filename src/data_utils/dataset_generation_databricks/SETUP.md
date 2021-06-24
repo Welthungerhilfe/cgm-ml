@@ -71,4 +71,12 @@ To check if the setup is correct, you can run the databricks notebook and see if
 
 # Databricks setup for new user
 
-A new user should setup cgm-ml git(hub) repository by following steps defined above.
+A new user should setup cgm-ml git(hub) repository
+
+* Repos -> Add Repo
+	* cgm-ml with HTTPS
+	* open databricks notebook
+* Create git access token
+	* Go to https://github.com/settings/tokens and create a token -> remember this
+* User settings -> Git integration:
+	* Select: Github, Supply your github handle + token
