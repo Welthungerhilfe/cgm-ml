@@ -20,9 +20,9 @@ from azureml.core.run import Run
 from tensorflow.keras.models import load_model
 
 
-HERE = Path(__file__).resolve()
+CWD = Path(__file__).resolve()
 
-sys.path.append(str(here.parents[4]))
+sys.path.append(str(CWD.parents[4]))
 
 from evaluation.QA.eval_depthmap_models.src.constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR  # noqa: E402
 
