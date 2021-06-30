@@ -24,7 +24,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-cache-v2-
     - run: python -m venv ./.venv && . ./.venv/bin/activate &&
-           python -m pip install --upgrade pip && pip install setuptools==50.3.2 wheel==0.36.2 && pip install -r requirements.txt
+           python -m pip install --upgrade pip==20.2 && pip install setuptools==50.3.2 wheel==0.36.2 && pip install -r requirements.txt
       if: steps.cache-venv.outputs.cache-hit != 'true'
     - name: flake8
       run: |
