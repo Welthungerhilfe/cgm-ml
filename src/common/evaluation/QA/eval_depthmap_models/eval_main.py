@@ -17,10 +17,9 @@ from azureml.core.script_run_config import ScriptRunConfig
 from azureml.train.dnn import TensorFlow
 
 CWD = Path(__file__).parent
+print(f'CWD: {CWD}')
 
-sys.path.append(str(CWD / 'src'))
-
-from constants import REPO_DIR, DEFAULT_CONFIG  # noqa: E402
+from src.constants import REPO_DIR, DEFAULT_CONFIG  # noqa: E402
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
