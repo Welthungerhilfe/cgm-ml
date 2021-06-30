@@ -13,6 +13,7 @@ def preprocess_targets(targets, targets_indices):
 
 def filter_blacklisted_qrcodes(qrcode_paths):
     qrcode_paths_filtered = []
+    assert len(qrcode_paths) != 0, 'The provided qrcode_path is empty'
     for qrcode_path in qrcode_paths:
         qrcode_str = qrcode_path.split('/')[-1]
         assert '-' in qrcode_str and len(qrcode_str) == 21, qrcode_str

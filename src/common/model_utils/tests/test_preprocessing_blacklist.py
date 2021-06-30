@@ -13,7 +13,7 @@ BASE_PATH = "this/is/the/test/path"
 
 
 def prepare_qrs():
-    QRCODES_11SAMPLES = [
+    qrcodes_samples = [
         "1585000019-syglokl9nx",
         "1585366118-qao4zsk0m3",
         "1585360775-fa64muouel",
@@ -26,12 +26,10 @@ def prepare_qrs():
         '1111111111-1111111111',
         '2222222222-2222222222',
     ]
-
     qrcode_paths = []
-    for qrcode in QRCODES_11SAMPLES:
+    for qrcode in qrcodes_samples:
         qrcode_path = os.path.join(BASE_PATH + '/' + qrcode)
         qrcode_paths.append(qrcode_path)
-
     return qrcode_paths
 
 
@@ -42,7 +40,7 @@ def test_filter_blacklisted_qrcodes():
 
 
 def prepare_wrong_qrs():
-    QRCODES_WRONG_SIZE = [
+    qrcodes_wrong_size = [
         "1585000019-syglokl9nx",
         "1585366118-qao4zsk0m3",
         "0000000000-0000000000",
@@ -50,12 +48,11 @@ def prepare_wrong_qrs():
         "1585360775-fa64muouelXXXX",
         "2222222222-2222222222",
     ]
-
     qrcode_paths_wrong = []
-    for qrcode in QRCODES_WRONG_SIZE:
+    for qrcode in qrcodes_wrong_size:
         qrcode_path = os.path.join(BASE_PATH + '/' + qrcode)
         qrcode_paths_wrong.append(qrcode_path)
-
+    print("qrcodes_paths_wrong", qrcode_paths_wrong)
     return qrcode_paths_wrong
 
 
@@ -63,19 +60,20 @@ def test_filter_qrcodes_wrong_size():
     qrcode_paths_wrong = prepare_wrong_qrs()
     with pytest.raises(AssertionError) as e:
         filter_blacklisted_qrcodes(qrcode_paths_wrong)
-    assert str(e.value) == "1585360775-fa64muouelXXXX"  # first wrong qrcode
+    assert str(e.value) == "1585360775-fa64muouelXXXX", "first wrong qrcode"
 
 
-"""def prepare_empty_qrs():
-    QRCODES_EMPTY = []
+def prepare_empty_qrs():
+    qrcodes_empty = []
     qrcode_paths_empty = []
-    for qrcode in QRCODES_EMPTY:
+    for qrcode in qrcodes_empty:
         qrcode_path = os.path.join(BASE_PATH + '/' + qrcode)
         qrcode_paths_empty.append(qrcode_path)
+    return qrcode_paths_empty
 
 
 def test_filter_qrcodes_empty():
     qrcode_paths_empty = prepare_empty_qrs()
-    print(qrcode_paths_empty)
-    filtered_qrcode_paths = filter_blacklisted_qrcodes(qrcode_paths_empty)
-    assert (len(filtered_qrcode_paths) == 0)"""
+    with pytest.raises(Exception) as e:
+        filter_blacklisted_qrcodes(qrcode_paths_empty)
+    assert str(e.value) == "The provided qrcode_path is empty"

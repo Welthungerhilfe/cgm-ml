@@ -4,7 +4,6 @@ from pathlib import Path
 import pytest
 
 import pandas as pd
-import pickle
 
 CWD = Path(__file__).resolve()
 
@@ -20,11 +19,10 @@ from evaluation.QA.eval_depthmap_models.src.evaluate import (copy_dir, prepare_s
 def temp_common_dir():
     temp_common_dir = Path(CWD.parent / "temp_common")
     yield temp_common_dir
-    shutil.rmtree(temp_common_dir)
-    """try:
-        shutil.rmtree(temp_common_dir) 
-    except OSError as e:
-        print("Error: %s : %s" % (temp_common_dir, e.strerror))"""
+    try:
+        shutil.rmtree(temp_common_dir)
+    except OSError:
+        pass
 
 
 @pytest.fixture
@@ -32,25 +30,31 @@ def empty_dir():
     empty_dir = Path(CWD.parent / "copy_empty")
     empty_dir.mkdir(parents=True, exist_ok=True)
     yield empty_dir
-    shutil.rmtree(empty_dir)
+    try:
+        shutil.rmtree(empty_dir)
+    except OSError:
+        pass
 
 
 @pytest.fixture
 def temp_empty_dir():
     temp_empty_dir = Path(CWD.parent / "temp_empty_dir")
     yield temp_empty_dir
-    shutil.rmtree(temp_empty_dir)
+    try:
+        shutil.rmtree(temp_empty_dir)
+    except OSError:
+        pass
 
 
 def test_copy_dir(temp_common_dir):
     common_dir_path = Path(REPO_DIR + "/src/common")
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
-    assert temp_common_dir.is_dir()
+    assert temp_common_dir.is_dir(), 'The temp_common_dir does not exist. Did copy_dir fail?'
 
 
 def test_copy_empty_dir(empty_dir, temp_empty_dir):
     copy_dir(src=empty_dir, tgt=temp_empty_dir, glob_pattern='*/*.py', should_touch_init=False)
-    assert temp_empty_dir.is_dir()
+    assert temp_empty_dir.is_dir(), 'The temp_empty_dir does not exist. Did copy_dir fail for an empty directory?'
 
 
 def test_prepare_sample_dataset():
@@ -91,7 +95,7 @@ def test_prepare_sample_dataset():
         85.0,
     ]
 
-    COLUMNS = ['qrcode', 'artifact', 'scantype', 'GT', 'predicted']
+    columns = ['qrcode', 'artifact', 'scantype', 'GT', 'predicted']
 
     df = pd.DataFrame({
         'qrcode': qrcode_list,
@@ -99,10 +103,9 @@ def test_prepare_sample_dataset():
         'scantype': scantype_list,
         'GT': target_list,
         'predicted': prediction_list
-    }, columns=COLUMNS)
+    }, columns=columns)
 
     df_sample = df.groupby(['qrcode', 'scantype']).apply(lambda x: x.sample(1))
-
     dataset_sample = prepare_sample_dataset(df_sample, dataset_path)
 
     assert len(dataset_sample) == 3, 'There should be 3 samples in the dataset'
@@ -117,26 +120,22 @@ def test_tf_load_pickle():
     normalization_value = 7.5
     image_target_height = 240
     image_target_width = 180
-
     test_image = tf_load_pickle(pickle_path, normalization_value)
 
-    assert isinstance(test_image, tuple)
-    assert test_image[1].shape[0] == image_target_height
-    assert test_image[1].shape[1] == image_target_width
+    assert isinstance(test_image, tuple), 'The type of object should be a tuple'
+    assert test_image[1].shape[0] == image_target_height, f"The height of the object should be {image_target_height}"
+    assert test_image[1].shape[1] == image_target_width, f"The width of the object should be {image_target_width}"
 
 
 def test_tf_load_not_a_pickle():
     wrong_path = str(REPO_DIR + "/data/anon-depthmap-mini/labels/testing.csv")
     normalization_value = 7.5
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match='unpickling stack underflow'):
         tf_load_pickle(wrong_path, normalization_value)
 
 
 def test_tf_load_empty_pickle():
-    empty_dict = {}
-    empty_file = open('empty_pickle_file.p', 'wb')
-    pickle.dump(empty_dict, empty_file)
-    empty_file.close()
+    empty_path = str(REPO_DIR + "/src/common/evaluation/QA/eval_depthmap_models/src/testfiles/empty_pickle_file.p")
     normalization_value = 7.5
-    with pytest.raises(Exception):
-        tf_load_pickle('empty_pickle_file.p', normalization_value)
+    with pytest.raises(Exception, match='not enough values to unpack'):
+        tf_load_pickle(empty_path, normalization_value)
