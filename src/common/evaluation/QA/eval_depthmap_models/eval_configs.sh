@@ -2,6 +2,7 @@
 
 set -euox pipefail
 
+
 python eval_main.py --qa_config_module qa_config_height_deep_ensemble
 python eval_main.py --qa_config_module qa_config_height_mcnn
 python eval_main.py --qa_config_module qa_config_height
