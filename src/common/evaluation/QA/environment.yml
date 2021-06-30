@@ -10,7 +10,7 @@ dependencies:
   - scikit-image
   - pip:
     - azure-cli==2.25.0
-    - azureml-sdk==1.21.0
+    - azureml-sdk==1.31.0
     - matplotlib==3.3.4
     - glob2==0.7
     - tensorflow==2.4.2
