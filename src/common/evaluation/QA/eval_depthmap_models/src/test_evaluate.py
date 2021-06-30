@@ -16,34 +16,41 @@ from evaluation.QA.eval_depthmap_models.src.evaluate import (copy_dir, prepare_s
                                                              tf_load_pickle)
 
 
-def test_copy_dir():
-    common_dir_path = Path(REPO_DIR + "/src/common")
+@pytest.fixture
+def temp_common_dir():
     temp_common_dir = Path(CWD.parent / "temp_common")
-    copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
-
-    assert temp_common_dir.is_dir()
-    try:
-        shutil.rmtree(temp_common_dir)
+    yield temp_common_dir
+    shutil.rmtree(temp_common_dir)
+    """try:
+        shutil.rmtree(temp_common_dir) 
     except OSError as e:
-        print("Error: %s : %s" % (temp_common_dir, e.strerror))
+        print("Error: %s : %s" % (temp_common_dir, e.strerror))"""
 
 
-def test_copy_empty_dir():
-    empty_path = Path(CWD.parent / "copy_empty")
-    empty_path.mkdir(parents=True, exist_ok=True)
+@pytest.fixture
+def empty_dir():
+    empty_dir = Path(CWD.parent / "copy_empty")
+    empty_dir.mkdir(parents=True, exist_ok=True)
+    yield empty_dir
+    shutil.rmtree(empty_dir)
+
+
+@pytest.fixture
+def temp_empty_dir():
     temp_empty_dir = Path(CWD.parent / "temp_empty_dir")
-    copy_dir(src=empty_path, tgt=temp_empty_dir, glob_pattern='*/*.py', should_touch_init=False)
+    yield temp_empty_dir
+    shutil.rmtree(temp_empty_dir)
 
-    assert temp_empty_dir.exists()
-    try:
-        shutil.rmtree(empty_path)
-    except OSError as e:
-        print("Error: %s : %s" % (empty_path, e.strerror))
 
-    try:
-        shutil.rmtree(temp_empty_dir)
-    except OSError as e:
-        print("Error: %s : %s" % (temp_empty_dir, e.strerror))
+def test_copy_dir(temp_common_dir):
+    common_dir_path = Path(REPO_DIR + "/src/common")
+    copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
+    assert temp_common_dir.is_dir()
+
+
+def test_copy_empty_dir(empty_dir, temp_empty_dir):
+    copy_dir(src=empty_dir, tgt=temp_empty_dir, glob_pattern='*/*.py', should_touch_init=False)
+    assert temp_empty_dir.is_dir()
 
 
 def test_prepare_sample_dataset():
