@@ -128,9 +128,10 @@ def test_tf_load_pickle():
 
 
 def test_tf_load_not_a_pickle():
-    wrong_path = str(REPO_DIR + "/data/anon-depthmap-mini/labels/testing.csv")
+    wrong_path = str(REPO_DIR + "/src/common/data_utilities/tests/zip_files/be1faf54-"
+                     + "69c7-11eb-984b-a3ffd42e7b5a/depth/bd67cd9e-69c7-11eb-984b-77ac9d2b4986")
     normalization_value = 7.5
-    with pytest.raises(Exception, match='unpickling stack underflow'):
+    with pytest.raises(Exception, match='UnpicklingError'):
         tf_load_pickle(wrong_path, normalization_value)
 
 
