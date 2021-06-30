@@ -6,7 +6,6 @@ import shutil
 import time
 from importlib import import_module
 from pathlib import Path
-import sys
 
 import azureml._restclient.snapshots_client
 from azureml.core import Experiment, Workspace, Environment
@@ -16,15 +15,12 @@ from azureml.core.run import Run
 from azureml.core.script_run_config import ScriptRunConfig
 from azureml.train.dnn import TensorFlow
 
-CWD = Path(__file__).parent
-print(f'CWD: {CWD}')
-
 from src.constants import REPO_DIR, DEFAULT_CONFIG  # noqa: E402
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
-
+CWD = Path(__file__).parent
 TAGS = {}
 
 
@@ -50,7 +46,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     logging.info('Using the following config: %s', args.qa_config_module)
-    qa_config = import_module(f'{args.qa_config_module}')
+    qa_config = import_module(f'src.{args.qa_config_module}')
     MODEL_CONFIG = qa_config.MODEL_CONFIG
     EVAL_CONFIG = qa_config.EVAL_CONFIG
     DATA_CONFIG = qa_config.DATA_CONFIG
