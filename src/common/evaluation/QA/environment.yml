@@ -5,7 +5,7 @@ dependencies:
   - setuptools=50.3.0
   - wheel=0.36.2
   - python=3.7
-  - pip
+  - pip==20.2
   - nb_conda_kernels==2.2.1
   - scikit-image
   - pip:
