@@ -15,7 +15,7 @@ from azureml.core.run import Run
 from azureml.core.script_run_config import ScriptRunConfig
 from azureml.train.dnn import TensorFlow
 
-from src.constants import REPO_DIR, DEFAULT_CONFIG  # noqa: E402
+from src.constants import REPO_DIR, DEFAULT_CONFIG
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
@@ -83,6 +83,7 @@ if __name__ == "__main__":
 
     # Copy model to temp folder
     if RUN_ID:
+        logging.info(f'Model will be downloaded: {MODEL_CONFIG.INPUT_LOCATION}, {MODEL_CONFIG.NAME}, {MODEL_BASE_DIR}')
         download_model(workspace=workspace,
                        experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
                        run_id=MODEL_CONFIG.RUN_ID,
