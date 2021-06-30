@@ -154,10 +154,7 @@ del dataset_norm
 
 # Note: Now the datasets are prepared.
 
-strategy = tf.distribute.MirroredStrategy()  #1
-print(f"Number of devices: {strategy.num_replicas_in_sync}")
-with strategy.scope():  #2
-
+def create_and_fit_model():
     # Create the model.
     input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1)
     model = create_cnn(input_shape, dropout=CONFIG.USE_DROPOUT)
@@ -204,6 +201,14 @@ with strategy.scope():  #2
         callbacks=training_callbacks,
         verbose=2
     )
+
+if CONFIG.USE_MULTIGPU:
+    strategy = tf.distribute.MirroredStrategy()
+    logging.info("Number of devices: %s", strategy.num_replicas_in_sync)
+    with strategy.scope():
+        create_and_fit_model()
+else:
+    create_and_fit_model()
 
 # Done.
 run.complete()
