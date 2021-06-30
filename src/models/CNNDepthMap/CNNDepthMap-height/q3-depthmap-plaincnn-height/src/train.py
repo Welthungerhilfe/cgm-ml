@@ -39,9 +39,6 @@ from temp_common.model_utils.utils import (  # noqa: E402
 tf.random.set_seed(CONFIG.SPLIT_SEED)
 random.seed(CONFIG.SPLIT_SEED)
 
-# Mixed precision
-tf.keras.mixed_precision.set_global_policy("mixed_float16")
-
 DATA_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path(".")
 logging.info('DATA_DIR: %s', DATA_DIR)
 
