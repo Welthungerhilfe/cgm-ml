@@ -20,7 +20,7 @@ CWD = Path(__file__).parent
 
 sys.path.append(str(CWD / 'src'))
 
-from constants import REPO_DIR, DEFAULT_CONFIG
+from constants import REPO_DIR, DEFAULT_CONFIG  # noqa: E402
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
@@ -134,45 +134,28 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    # Specify pip packages here.
-    pip_packages = [
-        "azureml-dataprep[fuse,pandas]",
-        "glob2",
-        "opencv-python==4.1.2.30",
-        "matplotlib",
-        "tensorflow-addons==0.13.0",
-        "bunch==1.0.1",
-        "cgmzscore==2.0.3",
-        "scikit-learn==0.22.2.post1"
-    ]
-
-    curated_env_name = "cgm-v30"
-
+    curated_env_name = "cgm-v31"
     ENV_EXISTS = True
     if ENV_EXISTS:
         cgm_env = Environment.get(workspace=workspace, name=curated_env_name)
     else:
-        cgm_env = Environment.from_conda_specification(name=curated_env_name, file_path=REPO_DIR / "environment_train.yml")
+        cgm_env = Environment.from_conda_specification(name=curated_env_name,
+                                                       file_path=REPO_DIR / "environment_train.yml")
         cgm_env.docker.enabled = True
         cgm_env.docker.base_image = 'mcr.microsoft.com/azureml/openmpi4.1.0-cuda11.0.3-cudnn8-ubuntu18.04'
         # cgm_env.register(workspace)  # Please be careful not to overwrite existing environments
-
 
     # Create the ScriptRunConfig
     script_run_config = ScriptRunConfig(source_directory=temp_path,
                                         compute_target=compute_target,
                                         script='evaluate.py',
-                                        environment=cgm_env,
-    )
+                                        environment=cgm_env)
 
     # Set compute target.
     script_run_config.run_config.target = compute_target
 
     # Run the experiment.
     run = experiment.submit(config=script_run_config, tags=TAGS)
-
-    # Show run.
-    run
 
     # Show run.
     logging.info("Run: %s", run)
