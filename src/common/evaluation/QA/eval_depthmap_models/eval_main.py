@@ -6,21 +6,26 @@ import shutil
 import time
 from importlib import import_module
 from pathlib import Path
+import sys
 
 import azureml._restclient.snapshots_client
-from azureml.core import Experiment, Workspace
+from azureml.core import Experiment, Workspace, Environment
 from azureml.core.compute import AmlCompute, ComputeTarget
 from azureml.core.compute_target import ComputeTargetException
 from azureml.core.run import Run
+from azureml.core.script_run_config import ScriptRunConfig
 from azureml.train.dnn import TensorFlow
 
-from src.constants import REPO_DIR, DEFAULT_CONFIG
+CWD = Path(__file__).parent
+
+sys.path.append(str(CWD / 'src'))
+
+from constants import REPO_DIR, DEFAULT_CONFIG
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
-CWD = Path(__file__).parent
 TAGS = {}
 
 
@@ -46,7 +51,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     logging.info('Using the following config: %s', args.qa_config_module)
-    qa_config = import_module(f'src.{args.qa_config_module}')
+    qa_config = import_module(f'{args.qa_config_module}')
     MODEL_CONFIG = qa_config.MODEL_CONFIG
     EVAL_CONFIG = qa_config.EVAL_CONFIG
     DATA_CONFIG = qa_config.DATA_CONFIG
@@ -141,23 +146,33 @@ if __name__ == "__main__":
         "scikit-learn==0.22.2.post1"
     ]
 
-    # Create the estimator.
-    estimator = TensorFlow(
-        source_directory=temp_path,
-        compute_target=compute_target,
-        entry_script="evaluate.py",
-        use_gpu=True,
-        framework_version="2.3",
-        inputs=[dataset.as_named_input("dataset").as_mount()],
-        pip_packages=pip_packages,
-        script_params=script_params
+    curated_env_name = "cgm-v30"
+
+    ENV_EXISTS = True
+    if ENV_EXISTS:
+        cgm_env = Environment.get(workspace=workspace, name=curated_env_name)
+    else:
+        cgm_env = Environment.from_conda_specification(name=curated_env_name, file_path=REPO_DIR / "environment_train.yml")
+        cgm_env.docker.enabled = True
+        cgm_env.docker.base_image = 'mcr.microsoft.com/azureml/openmpi4.1.0-cuda11.0.3-cudnn8-ubuntu18.04'
+        # cgm_env.register(workspace)  # Please be careful not to overwrite existing environments
+
+
+    # Create the ScriptRunConfig
+    script_run_config = ScriptRunConfig(source_directory=temp_path,
+                                        compute_target=compute_target,
+                                        script='evaluate.py',
+                                        environment=cgm_env,
     )
 
     # Set compute target.
-    estimator.run_config.target = compute_target
+    script_run_config.run_config.target = compute_target
 
     # Run the experiment.
-    run = experiment.submit(estimator, tags=TAGS)
+    run = experiment.submit(config=script_run_config, tags=TAGS)
+
+    # Show run.
+    run
 
     # Show run.
     logging.info("Run: %s", run)
