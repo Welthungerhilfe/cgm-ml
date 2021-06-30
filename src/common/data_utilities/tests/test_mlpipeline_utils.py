@@ -29,29 +29,29 @@ def test_load_depth_hugh():
     assert isinstance(data, bytes)
 
 
-def test_artifact_processor():
-    input_dir = DATA_UTILITIES_DIR / 'tests' / 'zip_files'
+# def test_artifact_processor():
+#     input_dir = DATA_UTILITIES_DIR / 'tests' / 'zip_files'
 
-    with TemporaryDirectory() as output_dir:
-        artifact_processor = ArtifactProcessor(input_dir, output_dir, IDX2COL)
-        processed_fname = artifact_processor.process_artifact_tuple(ARTIFACT_TUPLE)
+#     with TemporaryDirectory() as output_dir:
+#         artifact_processor = ArtifactProcessor(input_dir, output_dir, IDX2COL)
+#         processed_fname = artifact_processor.process_artifact_tuple(ARTIFACT_TUPLE)
 
-        depthmap, targets = pickle.load(open(processed_fname, 'rb'))
-        assert depthmap.shape == (180, 240, 1), depthmap.shape
-        assert len(targets) == 3
+#         depthmap, targets = pickle.load(open(processed_fname, 'rb'))
+#         assert depthmap.shape == (180, 240, 1), depthmap.shape
+#         assert len(targets) == 3
 
-        pickle_path_expected = str(
-            DATA_UTILITIES_DIR
-            / 'tests'
-            / 'pickle_files'
-            / 'scans'
-            / 'c571de02-a723-11eb-8845-bb6589a1fbe8'
-            / '102'
-            / 'pc_c571de02-a723-11eb-8845-bb6589a1fbe8_2021-04-22 13:34:33.302557_102_3.p')
-        assert pickle_path_expected.split('/')[-4:] == processed_fname.split('/')[-4:]
-        depthmap_expected, targets_expected = pickle.load(open(pickle_path_expected, 'rb'))
-        assert (depthmap == depthmap_expected).all()
-        assert (targets == targets_expected).all()
+#         pickle_path_expected = str(
+#             DATA_UTILITIES_DIR
+#             / 'tests'
+#             / 'pickle_files'
+#             / 'scans'
+#             / 'c571de02-a723-11eb-8845-bb6589a1fbe8'
+#             / '102'
+#             / 'pc_c571de02-a723-11eb-8845-bb6589a1fbe8_2021-04-22 13:34:33.302557_102_3.p')
+#         assert pickle_path_expected.split('/')[-4:] == processed_fname.split('/')[-4:]
+#         depthmap_expected, targets_expected = pickle.load(open(pickle_path_expected, 'rb'))
+#         assert (depthmap == depthmap_expected).all()
+#         assert (targets == targets_expected).all()
 
 
 def test_get_depthmaps():
