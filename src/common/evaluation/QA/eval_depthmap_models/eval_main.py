@@ -84,8 +84,8 @@ if __name__ == "__main__":
     # Copy model to temp folder
     logging.info(f'RUN_ID {RUN_ID}')
     logging.info(f'RUN_IDS {RUN_IDS}')
+    logging.info(f'Model will be downloaded: {MODEL_CONFIG.INPUT_LOCATION}, {MODEL_CONFIG.NAME}, {MODEL_BASE_DIR}')
     if RUN_ID:
-        logging.info(f'Model will be downloaded: {MODEL_CONFIG.INPUT_LOCATION}, {MODEL_CONFIG.NAME}, {MODEL_BASE_DIR}')
         download_model(workspace=workspace,
                        experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
                        run_id=MODEL_CONFIG.RUN_ID,
