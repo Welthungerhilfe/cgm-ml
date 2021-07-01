@@ -254,6 +254,20 @@ if __name__ == "__main__":
         logging.info(f"Models paths ({len(model_paths)}):")
         logging.info("\t" + "\n\t".join(model_paths))
     else:
+        logging.info(f'evaluate.py: Model will be downloaded: {MODEL_CONFIG.INPUT_LOCATION}, {MODEL_CONFIG.NAME}, {MODEL_BASE_DIR}')
+
+        download_model(workspace=workspace,
+                    experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
+                    run_id=MODEL_CONFIG.RUN_ID,
+                    input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
+                    output_location=MODEL_BASE_DIR)
+        # Debug print
+        try:
+            print("MODEL_BASE_DIR")
+            print(list(MODEL_BASE_DIR.glob('**/*')))
+        except:
+            pass
+
         model_path = MODEL_BASE_DIR / get_model_path(MODEL_CONFIG)
 
     # Get the QR-code paths.
