@@ -1,13 +1,11 @@
 import argparse
 import logging
 import logging.config
-import os
 import shutil
 import time
 from importlib import import_module
 from pathlib import Path
 
-import azureml._restclient.snapshots_client
 from azureml.core import Experiment, Workspace, Environment
 from azureml.core.compute import AmlCompute, ComputeTarget
 from azureml.core.compute_target import ComputeTargetException
@@ -61,8 +59,6 @@ if __name__ == "__main__":
     temp_common_dir = temp_path / "temp_common"
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
-    from temp_eval.temp_common.evaluation.eval_utilities import download_model  # noqa: E402, F401
-
     workspace = Workspace.from_config()
     run = Run.get_context()
 
@@ -72,41 +68,6 @@ if __name__ == "__main__":
     RUN_ID = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else None
     RUN_IDS = MODEL_CONFIG.RUN_IDS if getattr(MODEL_CONFIG, 'RUN_IDS', False) else None
     assert bool(RUN_ID) != bool(RUN_IDS), 'RUN_ID xor RUN_IDS needs to be defined'
-
-    if RUN_ID:
-        MODEL_BASE_DIR = REPO_DIR / 'data' / RUN_ID if USE_LOCAL else temp_path
-    elif RUN_IDS:
-        MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.EXPERIMENT_NAME if USE_LOCAL else temp_path
-    logging.info('MODEL_BASE_DIR: %s', MODEL_BASE_DIR)
-    MODEL_BASE_DIR.mkdir(parents=True, exist_ok=True)
-
-    # Copy model to temp folder
-    logging.info(f'RUN_ID {RUN_ID}')
-    logging.info(f'RUN_IDS {RUN_IDS}')
-    logging.info(f'Model will be downloaded: {MODEL_CONFIG.INPUT_LOCATION}, {MODEL_CONFIG.NAME}, {MODEL_BASE_DIR}')
-    if RUN_ID:
-        download_model(workspace=workspace,
-                       experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
-                       run_id=MODEL_CONFIG.RUN_ID,
-                       input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
-                       output_location=MODEL_BASE_DIR)
-    elif USE_LOCAL and RUN_IDS:
-        for run_id in RUN_IDS:
-            download_model(workspace=workspace,
-                           experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
-                           run_id=run_id,
-                           input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
-                           output_location=MODEL_BASE_DIR / run_id)
-    logging.info(f'Download complete')
-
-    # Copy filter to temp folder
-    if FILTER_CONFIG is not None and FILTER_CONFIG.IS_ENABLED:
-        download_model(workspace,
-                       experiment_name=FILTER_CONFIG.EXPERIMENT_NAME,
-                       run_id=FILTER_CONFIG.RUN_ID,
-                       input_location=os.path.join(FILTER_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
-                       output_location=str(temp_path / FILTER_CONFIG.NAME))
-        azureml._restclient.snapshots_client.SNAPSHOT_MAX_SIZE_BYTES = 500000000
 
     experiment = Experiment(workspace=workspace, name=EVAL_CONFIG.EXPERIMENT_NAME)
 
