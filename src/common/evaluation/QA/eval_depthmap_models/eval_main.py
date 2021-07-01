@@ -13,7 +13,6 @@ from azureml.core.compute import AmlCompute, ComputeTarget
 from azureml.core.compute_target import ComputeTargetException
 from azureml.core.run import Run
 from azureml.core.script_run_config import ScriptRunConfig
-from azureml.train.dnn import TensorFlow
 
 from src.constants import REPO_DIR, DEFAULT_CONFIG
 
@@ -125,7 +124,6 @@ if __name__ == "__main__":
 
     dataset = workspace.datasets[DATA_CONFIG.NAME]
     logging.info("dataset: %s", dataset)
-    logging.info("TF supported versions: %s", TensorFlow.get_supported_versions())
 
     # parameters used in the evaluation
     script_params = {"--qa_config_module": args.qa_config_module}
