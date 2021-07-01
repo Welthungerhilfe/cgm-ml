@@ -82,6 +82,8 @@ if __name__ == "__main__":
     MODEL_BASE_DIR.mkdir(parents=True, exist_ok=True)
 
     # Copy model to temp folder
+    logging.info(f'RUN_ID {RUN_ID}')
+    logging.info(f'RUN_IDS {RUN_IDS}')
     if RUN_ID:
         logging.info(f'Model will be downloaded: {MODEL_CONFIG.INPUT_LOCATION}, {MODEL_CONFIG.NAME}, {MODEL_BASE_DIR}')
         download_model(workspace=workspace,
@@ -96,6 +98,7 @@ if __name__ == "__main__":
                            run_id=run_id,
                            input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
                            output_location=MODEL_BASE_DIR / run_id)
+    logging.info(f'Download complete')
 
     # Copy filter to temp folder
     if FILTER_CONFIG is not None and FILTER_CONFIG.IS_ENABLED:
