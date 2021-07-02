@@ -250,7 +250,7 @@ if __name__ == "__main__":
         model_paths = glob.glob(os.path.join(MODEL_BASE_DIR, "*"))
         model_paths = [path for path in model_paths if os.path.isdir(path)]
         model_paths = [path for path in model_paths if path.split("/")[-1].startswith(MODEL_CONFIG.EXPERIMENT_NAME)]
-        model_paths = [os.path.join(path, "outputs", "best_model.ckpt") for path in model_paths]
+        model_paths = [os.path.join(path, MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME) for path in model_paths]
         logging.info(f"Models paths ({len(model_paths)}):")
         logging.info("\t" + "\n\t".join(model_paths))
     else:
