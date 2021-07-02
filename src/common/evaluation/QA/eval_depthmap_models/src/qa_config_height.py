@@ -8,7 +8,7 @@ CONFIG_NAME = os.path.splitext(os.path.basename(__file__))[0]
 MODEL_CONFIG = Bunch(dict(
     EXPERIMENT_NAME='q3-depthmap-plaincnn-height-95k',
     RUN_ID='q3-depthmap-plaincnn-height-95k_1617983539_763a24b9',  # Run 9
-    INPUT_LOCATION='outputs',
+    INPUT_LOCATION='model_location',
     NAME='best_model.ckpt',
 ))
 
