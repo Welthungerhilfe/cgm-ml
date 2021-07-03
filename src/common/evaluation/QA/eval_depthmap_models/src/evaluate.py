@@ -97,11 +97,9 @@ RUN_ID = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else None
 RUN_IDS = MODEL_CONFIG.RUN_IDS if getattr(MODEL_CONFIG, 'RUN_IDS', False) else None
 assert bool(RUN_ID) != bool(RUN_IDS), 'RUN_ID xor RUN_IDS needs to be defined'
 
-# Function for loading and processing depthmaps.
-
 
 def tf_load_pickle(path, max_value):
-    """Utility to load the depthmap pickle file"""
+    """Utility to load the depthmap (may include RGB) pickle file"""
     def py_load_pickle(path, max_value):
         if FILTER_CONFIG is not None:
             depthmap, targets, _image = pickle.load(open(path.numpy(), "rb"))  # for filter (Contains RGBs)
