@@ -59,10 +59,10 @@ if __name__ == "__main__":
 
     # Copy common/ folder
     common_dir_path = REPO_DIR / "src/common"
-    temp_common_dir = CWD / "temp_common"
+    temp_common_dir = temp_path / "temp_common"
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
-    from temp_common.model_utils.environment import cgm_environment  # noqa: E402, F401
+    from temp_eval.temp_common.model_utils.environment import cgm_environment  # noqa: E402, F401
 
     workspace = Workspace.from_config()
     run = Run.get_context()
