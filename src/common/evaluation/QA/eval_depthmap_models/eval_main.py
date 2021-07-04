@@ -59,6 +59,8 @@ if __name__ == "__main__":
     temp_common_dir = temp_path / "temp_common"
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
+    from temp_common.model_utils.environment import cgm_environment  # noqa: E402, F401
+
     workspace = Workspace.from_config()
     run = Run.get_context()
 
@@ -92,21 +94,12 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    curated_env_name = "cgm-v31"
-    ENV_EXISTS = True
-    if ENV_EXISTS:
-        cgm_env = Environment.get(workspace=workspace, name=curated_env_name)
-    else:
-        cgm_env = Environment.from_conda_specification(name=curated_env_name,
-                                                       file_path=REPO_DIR / "environment_train.yml")
-        cgm_env.docker.enabled = True
-        cgm_env.docker.base_image = 'mcr.microsoft.com/azureml/openmpi4.1.0-cuda11.0.3-cudnn8-ubuntu18.04'
-        # cgm_env.register(workspace)  # Please be careful not to overwrite existing environments
+    cgm_env = cgm_environment(workspace, curated_env_name="cgm-v31", env_exist=True)
 
-    # Create the ScriptRunConfig
     script_run_config = ScriptRunConfig(source_directory=temp_path,
                                         compute_target=compute_target,
                                         script='evaluate.py',
+                                        arguments=[str(item) for sublist in script_params.items() for item in sublist],
                                         environment=cgm_env)
 
     # Set compute target.

@@ -15,5 +15,5 @@ def cgm_environment(workspace, curated_env_name, env_exist):
         cgm_env = Environment.from_conda_specification(
             name=curated_env_name, file_path=REPO_DIR / "environment_train.yml")
         cgm_env.docker.enabled = True
-        cgm_env.docker.base_image = 'mcr.microsoft.com/azureml/openmpi3.1.2-cuda10.1-cudnn7-ubuntu18.04'
+        cgm_env.docker.base_image = 'mcr.microsoft.com/azureml/openmpi4.1.0-cuda11.0.3-cudnn8-ubuntu18.04'
     return cgm_env

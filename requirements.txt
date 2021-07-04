@@ -24,7 +24,3 @@ bunch==1.0.1
 cgmzscore==2.0.4
 scikit-learn==0.22.2.post1
 wandb
-azureml-dataprep==2.8.2
-azure-mgmt-storage==18.0.0
-azureml-dataprep-native==28.0.0
-azureml-dataprep-rslex==1.6.0
