@@ -13,7 +13,9 @@ from azureml.core.compute_target import ComputeTargetException
 from azureml.core.run import Run
 from azureml.core.script_run_config import ScriptRunConfig
 
-from src.constants import REPO_DIR, DEFAULT_CONFIG
+sys.path.append(Path(__file__).parent)
+
+from src.constants import REPO_DIR, DEFAULT_CONFIG  # noqa: E402, F401
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
@@ -55,9 +57,12 @@ if __name__ == "__main__":
     temp_path = CWD / "temp_eval"
     copy_dir(src=CWD / "src", tgt=temp_path, glob_pattern='*.py')
 
-    sys.path.append(REPO_DIR / 'src')
+    # Copy common/ folder
+    common_dir_path = REPO_DIR / "src/common"
+    temp_common_dir = CWD / "temp_common"
+    copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
-    from common.model_utils.environment import cgm_environment  # noqa: E402, F401
+    from temp_common.model_utils.environment import cgm_environment  # noqa: E402, F401
 
     workspace = Workspace.from_config()
     run = Run.get_context()
