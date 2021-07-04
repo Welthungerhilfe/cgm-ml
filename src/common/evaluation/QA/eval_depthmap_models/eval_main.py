@@ -2,11 +2,12 @@ import argparse
 import logging
 import logging.config
 import shutil
+import sys
 import time
 from importlib import import_module
 from pathlib import Path
 
-from azureml.core import Experiment, Workspace, Environment
+from azureml.core import Experiment, Workspace
 from azureml.core.compute import AmlCompute, ComputeTarget
 from azureml.core.compute_target import ComputeTargetException
 from azureml.core.run import Run
@@ -50,16 +51,13 @@ if __name__ == "__main__":
     RESULT_CONFIG = qa_config.RESULT_CONFIG
     FILTER_CONFIG = qa_config.FILTER_CONFIG if getattr(qa_config, 'FILTER_CONFIG', False) else None
 
-    # Copy src/ dir
+    # Copy QA src/ dir
     temp_path = CWD / "temp_eval"
     copy_dir(src=CWD / "src", tgt=temp_path, glob_pattern='*.py')
 
-    # Copy common into the temp folder
-    common_dir_path = REPO_DIR / "src/common"
-    temp_common_dir = temp_path / "temp_common"
-    copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
+    sys.path.append(REPO_DIR / 'src')
 
-    from temp_common.model_utils.environment import cgm_environment  # noqa: E402, F401
+    from common.model_utils.environment import cgm_environment  # noqa: E402, F401
 
     workspace = Workspace.from_config()
     run = Run.get_context()
