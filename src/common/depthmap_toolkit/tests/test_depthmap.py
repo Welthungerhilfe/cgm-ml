@@ -37,6 +37,7 @@ def test_depthmap():
     angle_in_degrees = dmap.get_angle_between_camera_and_floor()
     assert -90 < angle_in_degrees < 90
 
+
 def test_get_highest_point():
     depthmap_dir = str(TOOLKIT_DIR / 'huawei_p40pro')
     depthmap_fname = 'depth_dog_1622182020448_100_234.depth'
@@ -51,6 +52,7 @@ def test_get_highest_point():
 
     object_height_in_m = highest[1] - floor
     assert 0.3 < object_height_in_m < 0.6
+
 
 if __name__ == '__main__':
     test_get_highest_point()
