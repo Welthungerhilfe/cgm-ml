@@ -2,7 +2,6 @@ import argparse
 import logging
 import logging.config
 import os
-import sys
 import pickle
 import random
 import shutil
