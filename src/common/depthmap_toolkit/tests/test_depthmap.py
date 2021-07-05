@@ -27,8 +27,9 @@ def test_depthmap():
     assert dmap.depth_scale == 0.001
 
     floor = dmap.get_floor_level()
-    mask, highest = dmap.detect_child(floor)
-    child_height_in_m = highest - floor
+    mask = dmap.detect_child(floor)
+    highest = dmap.get_highest_point(mask)
+    child_height_in_m = highest[1] - floor
     assert 0 < child_height_in_m < 1.2
     assert mask.shape[0] == dmap.rgb_array.shape[1]
     assert mask.shape[1] == dmap.rgb_array.shape[0]
@@ -37,5 +38,21 @@ def test_depthmap():
     assert -90 < angle_in_degrees < 90
 
 
+def test_get_highest_point():
+    depthmap_dir = str(TOOLKIT_DIR / 'huawei_p40pro')
+    depthmap_fname = 'depth_dog_1622182020448_100_282.depth'
+    rgb_fname = 'rgb_dog_1622182020448_100_282.jpg'
+    calibration_file = str(TOOLKIT_DIR / 'huawei_p40pro' / 'camera_calibration.txt')
+    dmap = Depthmap.create_from_file(depthmap_dir, depthmap_fname, rgb_fname, calibration_file)
+
+    # Find top of the object
+    floor = dmap.get_floor_level()
+    mask = dmap.detect_child(floor)
+    highest = dmap.get_highest_point(mask)  # 3D
+
+    object_height_in_m = highest[1] - floor
+    assert 0.3 < object_height_in_m < 0.6
+
+
 if __name__ == '__main__':
-    test_depthmap()
+    test_get_highest_point()

@@ -1,5 +1,6 @@
 import logging
 import logging.config
+from math import sqrt
 from typing import List
 
 
@@ -13,7 +14,7 @@ IDENTITY_MATRIX_4D = [1., 0., 0., 0.,
                       0., 0., 0., 1.]
 
 
-def cross(a: list, b: list) -> list:
+def cross(a: List[float], b: List[float]) -> List[float]:
     """Cross product of two vectors"""
     c = [a[1] * b[2] - a[2] * b[1],
          a[2] * b[0] - a[0] * b[2],
@@ -21,12 +22,17 @@ def cross(a: list, b: list) -> list:
     return c
 
 
-def diff(a: list, b: list) -> list:
+def diff(a: List[float], b: List[float]) -> List[float]:
     """Difference of two vectors"""
     return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
 
 
-def norm(v: list) -> list:
+def length(v: List[float]) -> float:
+    """Vector length"""
+    return sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
+
+
+def norm(v: List[float]) -> List[float]:
     """Vector normalize"""
     length = abs(v[0]) + abs(v[1]) + abs(v[2])
     if length == 0:
@@ -34,7 +40,7 @@ def norm(v: list) -> list:
     return [v[0] / length, v[1] / length, v[2] / length]
 
 
-def matrix_calculate(position: list, rotation: list) -> list:
+def matrix_calculate(position: List[float], rotation: List[float]) -> List[float]:
     """Calculate a matrix image->world from device position and rotation"""
 
     output = IDENTITY_MATRIX_4D
@@ -70,7 +76,7 @@ def matrix_calculate(position: list, rotation: list) -> list:
     return output
 
 
-def matrix_transform_point(point: list, matrix: list) -> list:
+def matrix_transform_point(point: List[float], matrix: List[float]) -> List[float]:
     """Transformation of point by matrix"""
     output = [0, 0, 0, 1]
     output[0] = point[0] * matrix[0] + point[1] * matrix[4] + point[2] * matrix[8] + matrix[12]

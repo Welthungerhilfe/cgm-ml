@@ -7,16 +7,21 @@ CONFIG_NAME = os.path.splitext(os.path.basename(__file__))[0]
 # Details of model used for evaluation
 MODEL_CONFIG = Bunch(dict(
     EXPERIMENT_NAME='q1-ensemble-warmup',
-    RUN_IDS=[
-        'q1-ensemble-warmup_1610544610_eb44bfe2', 'q1-ensemble-warmup_1610547587_7ca932c3',
-        # 'q1-ensemble-warmup_1610547669_5b789bd1', 'q1-ensemble-warmup_1610547705_f2141d0f',
-        # 'q1-ensemble-warmup_1610547744_d2b42ce5', 'q1-ensemble-warmup_1610547780_2f000a25',
-        # 'q1-ensemble-warmup_1610547816_c3f815df', 'q1-ensemble-warmup_1610547892_8ee6ff49',
-        # 'q1-ensemble-warmup_1610547928_b9519b6a', 'q1-ensemble-warmup_1610547986_ad0186b8',
-        # 'q1-ensemble-warmup_1610548023_99ac6060', 'q1-ensemble-warmup_1610548064_afefd4e4',
-        # 'q1-ensemble-warmup_1610548106_69993d24', 'q1-ensemble-warmup_1610548137_a8c52d63',
-        # 'q1-ensemble-warmup_1610548168_914ce1f6', 'q1-ensemble-warmup_1610548209_9692a253',
-    ],
+    RUN_IDS=['2021q1-depthmap-ensemble-height-95k_1622230917_290d733e',
+             '2021q1-depthmap-ensemble-height-95k_1622230877_02b7cc34',
+             '2021q1-depthmap-ensemble-height-95k_1622230838_187c2c8f',
+             '2021q1-depthmap-ensemble-height-95k_1622230815_3a6833d4',
+             '2021q1-depthmap-ensemble-height-95k_1622230796_d18037bb',
+             '2021q1-depthmap-ensemble-height-95k_1622230770_32a7a89c',
+             '2021q1-depthmap-ensemble-height-95k_1622230729_c239a326',
+             '2021q1-depthmap-ensemble-height-95k_1622230699_886a2a9d',
+             '2021q1-depthmap-ensemble-height-95k_1622230664_d9d108b4',
+             '2021q1-depthmap-ensemble-height-95k_1622230624_f791db0c',
+             '2021q1-depthmap-ensemble-height-95k_1622230551_76ff056b',
+             '2021q1-depthmap-ensemble-height-95k_1622230426_12111939',
+             '2021q1-depthmap-ensemble-height-95k_1622230397_a2f46051',
+             '2021q1-depthmap-ensemble-height-95k_1622230371_7b4cc0a2',
+             '2021q1-depthmap-ensemble-height-95k_1622230334_67c64a77'],
     INPUT_LOCATION='outputs',
     NAME='best_model.ckpt',
 ))
@@ -57,7 +62,7 @@ DATA_CONFIG = Bunch(dict(
 # Result configuration for result generation after evaluation is done
 RESULT_CONFIG = Bunch(dict(
     # Error margin on various ranges
-    #EVALUATION_ACCURACIES = [.2, .4, .8, 1.2, 2., 2.5, 3., 4., 5., 6.]
+    # EVALUATION_ACCURACIES = [.2, .4, .8, 1.2, 2., 2.5, 3., 4., 5., 6.]
     ACCURACIES=[.2, .4, .6, 1, 1.2, 2., 2.5, 3., 4., 5., 6.],  # 0.2cm, 0.4cm, 0.6cm, 1cm, ...
     ACCURACY_MAIN_THRESH=1.0,
     COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],

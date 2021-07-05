@@ -2,12 +2,13 @@ import zipfile
 import logging
 import logging.config
 import math
+import sys
 
 from pathlib import Path
 import statistics
 import numpy as np
 from PIL import Image
-from typing import List, Tuple
+from typing import List
 
 from depthmap_utils import (
     matrix_calculate, IDENTITY_MATRIX_4D, parse_numbers, diff, cross, norm, matrix_transform_point)
@@ -46,6 +47,7 @@ class Depthmap:
         rgb_fpath (str): Path to RGB file (e.g. to the jpg)
         rgb_array (np.array): RGB data
     """
+
     def __init__(
             self,
             intrinsics,
@@ -171,7 +173,7 @@ class Depthmap:
             pass
         return res
 
-    def detect_child(self, floor: float) -> Tuple[np.array, float]:
+    def detect_child(self, floor: float) -> np.array:
 
         # mask the floor
         mask = np.zeros((self.width, self.height))
@@ -187,7 +189,6 @@ class Depthmap:
                         mask[x][y] = MASK_FLOOR
 
         # highlight the focused child/object using seed algorithm
-        highest = floor
         dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]]
         pixel = [int(self.width / 2), int(self.height / 2)]
         stack = [pixel]
@@ -205,14 +206,10 @@ class Depthmap:
                     if depth_dir > 0 and (depth_dir - depth_center) < 0.1:
                         stack.append(pixel_dir)
 
-            # update the highest point
-            point = self.convert_2d_to_3d_oriented(1, pixel[0], pixel[1], depth_center)
-            highest = max(highest, point[1])
-
             # update the mask
             mask[pixel[0]][pixel[1]] = MASK_CHILD
 
-        return mask, highest
+        return mask
 
     def get_angle_between_camera_and_floor(self) -> float:
         """Calculate an angle between camera and floor based on device pose"""
@@ -233,6 +230,17 @@ class Depthmap:
                     point = self.convert_2d_to_3d_oriented(1, x, y, depth)
                     altitudes.append(point[1])
         return statistics.median(altitudes)
+
+    def get_highest_point(self, mask: np.array) -> list:
+        highest = [-sys.maxsize, -sys.maxsize, -sys.maxsize]
+        for x in range(self.width):
+            for y in range(self.height):
+                if mask[x][y] == MASK_CHILD:
+                    depth = self.parse_depth(x, y)
+                    point = self.convert_2d_to_3d_oriented(1, x, y, depth)
+                    if highest[1] < point[1]:
+                        highest = point
+        return highest
 
     def parse_confidence(self, tx: int, ty):
         """Get confidence of the point in scale 0-1"""
