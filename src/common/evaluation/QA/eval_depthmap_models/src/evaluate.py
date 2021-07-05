@@ -19,12 +19,7 @@ from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
 from tensorflow.keras.models import load_model
 
-
-CWD = Path(__file__).resolve()
-
-sys.path.append(str(CWD.parents[4]))
-
-from evaluation.QA.eval_depthmap_models.src.constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR  # noqa: E402
+from constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR
 
 
 def copy_dir(src: Path, tgt: Path, glob_pattern: str, should_touch_init: bool = False):
