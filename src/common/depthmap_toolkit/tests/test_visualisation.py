@@ -5,7 +5,7 @@ import numpy as np
 
 sys.path.append('./src/common/depthmap_toolkit')
 from depthmap import Depthmap  # noqa: E402
-from visualisation import blur_face, render_rgb # noqa: E402
+from visualisation import blur_face, render_rgb  # noqa: E402
 
 TOOLKIT_DIR = Path(__file__).parents[0].absolute()
 OFFSET_X_Y = (0.37, 0.53)
