@@ -9,6 +9,7 @@ import time
 from importlib import import_module
 from pathlib import Path
 from typing import List
+from bunch import Bunch
 
 import glob2 as glob
 import numpy as np
@@ -191,6 +192,58 @@ def get_predictions_from_multiple_models(model_paths: list, dataset_evaluation: 
     return prediction_list_one
 
 
+class RunInitializer:
+    """Run azure setup and prepare dataset"""
+    def __init__(self, data_config: Bunch) -> None:
+        self._data_config = data_config
+        self.run_azureml_setup()
+        self.get_dataset()
+
+    def run_azureml_setup(self):
+        raise NotImplementedError
+
+    def get_dataset(self):
+        raise NotImplementedError
+
+
+class OfflineRunInitializer(RunInitializer):
+    """Offline run. Download the sample dataset and run locally. Still push results to Azure"""
+    def __init__(self, data_config: Bunch) -> None:
+        super().__init__(data_config)
+
+    def run_azureml_setup(self):
+        logging.info("Running in offline mode...")
+
+        logging.info("Accessing workspace...")
+        self.workspace = Workspace.from_config()
+        self.experiment = Experiment(self.workspace, EVAL_CONFIG.EXPERIMENT_NAME)
+        self.run = self.experiment.start_logging(outputs=None, snapshot_directory=None)
+
+    def get_dataset(self):
+        logging.info("Accessing dataset...")
+        dataset_name = self._data_config.NAME
+        self.dataset_path = str(REPO_DIR / "data" / dataset_name)
+        if not os.path.exists(self.dataset_path):
+            dataset = self.workspace.datasets[dataset_name]
+            dataset.download(target_path=self.dataset_path, overwrite=False)
+
+
+class OnlineRunInitializer(RunInitializer):
+    def __init__(self, data_config: Bunch) -> None:
+        super().__init__(data_config)
+
+    def run_azureml_setup(self):
+        logging.info("Running in online mode...")
+        self.experiment = run.experiment
+        self.workspace = experiment.workspace
+
+    def get_dataset(self):
+        dataset_name = self._data_config.NAME
+        # Download
+        self.dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
+        download_dataset(workspace, dataset_name, dataset_path)
+
+
 if __name__ == "__main__":
 
     # Make experiment reproducible
@@ -205,34 +258,15 @@ if __name__ == "__main__":
         MODEL_BASE_DIR = REPO_DIR / 'data' / \
             MODEL_CONFIG.EXPERIMENT_NAME if run.id.startswith("OfflineRun") else Path('.')
 
-    # Offline run. Download the sample dataset and run locally. Still push results to Azure.
     if run.id.startswith("OfflineRun"):
-        logging.info("Running in offline mode...")
-
-        # Access workspace.
-        logging.info("Accessing workspace...")
-        workspace = Workspace.from_config()
-        experiment = Experiment(workspace, EVAL_CONFIG.EXPERIMENT_NAME)
-        run = experiment.start_logging(outputs=None, snapshot_directory=None)
-
-        # Get dataset.
-        logging.info("Accessing dataset...")
-        dataset_name = DATA_CONFIG.NAME
-        dataset_path = str(REPO_DIR / "data" / dataset_name)
-        if not os.path.exists(dataset_path):
-            dataset = workspace.datasets[dataset_name]
-            dataset.download(target_path=dataset_path, overwrite=False)
-
-    # Online run. Use dataset provided by training notebook.
+        initializer = OfflineRunInitializer(DATA_CONFIG)
     else:
-        logging.info("Running in online mode...")
-        experiment = run.experiment
-        workspace = experiment.workspace
-        dataset_name = DATA_CONFIG.NAME
+        initializer = OnlineRunInitializer(DATA_CONFIG)
 
-        # Download
-        dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
-        download_dataset(workspace, dataset_name, dataset_path)
+    workspace = initializer.workspace
+    experiment = initializer.experiment
+    run = initializer.run
+    dataset_path = initializer.dataset_path
 
     input_location = os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME)
     if RUN_IDS is not None:
