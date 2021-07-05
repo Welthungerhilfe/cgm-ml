@@ -57,13 +57,13 @@ from temp_common.evaluation.eval_utils import (  # noqa: E402, F401
 )
 from temp_common.evaluation.eval_utilities import (  # noqa: E402, F401
     calculate_and_save_results,
-    download_model,
+    Evaluation, EnsembleEvaluation,
     calculate_performance_age, calculate_performance_goodbad,
     calculate_performance_sex, download_dataset, draw_age_scatterplot,
     draw_stunting_diagnosis, draw_uncertainty_goodbad_plot,
     draw_uncertainty_scatterplot, draw_wasting_diagnosis, filter_dataset_according_to_standing_lying,
     get_column_list, get_dataset_path,
-    get_depthmap_files, get_model_path)
+    get_depthmap_files)
 from temp_common.evaluation.uncertainty_utils import \
     get_prediction_uncertainty_deepensemble  # noqa: E402, F401
 from temp_common.model_utils.preprocessing_multiartifact_python import \
@@ -270,35 +270,17 @@ if __name__ == "__main__":
 
     input_location = os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME)
     if RUN_IDS is not None:
-        for run_id in RUN_IDS:
-            logging.info(f"Downloading run {run_id}")
-            download_model(
-                workspace=workspace,
-                experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
-                run_id=run_id,
-                input_location=input_location,
-                output_location=MODEL_BASE_DIR / run_id
-            )
-        model_paths = glob.glob(os.path.join(MODEL_BASE_DIR, "*"))
-        model_paths = [path for path in model_paths if os.path.isdir(path)]
-        model_paths = [path for path in model_paths if path.split("/")[-1].startswith(MODEL_CONFIG.EXPERIMENT_NAME)]
-        model_paths = [os.path.join(path, MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME) for path in model_paths]
-        logging.info(f"Models paths ({len(model_paths)}):")
-        logging.info("\t" + "\n\t".join(model_paths))
+        eval = EnsembleEvaluation(MODEL_CONFIG, MODEL_BASE_DIR)
+        eval.get_the_model_path(workspace)
+        model_paths = eval.model_paths
     else:
-        logging.info(f"Model will download from '{input_location}' to '{MODEL_BASE_DIR}'")
-        download_model(workspace=workspace,
-                       experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
-                       run_id=MODEL_CONFIG.RUN_ID,
-                       input_location=input_location,
-                       output_location=MODEL_BASE_DIR)
-        logging.info("Model was downloaded")
-        model_path = MODEL_BASE_DIR / get_model_path(MODEL_CONFIG)
+        eval = Evaluation(MODEL_CONFIG, MODEL_BASE_DIR)
+        eval.get_the_model_path(workspace)
+        model_path = eval.model_path
 
-    # Get the QR-code paths.
+    # Get the QR-code paths
     dataset_path = os.path.join(dataset_path, "scans")
     logging.info('Dataset path: %s', dataset_path)
-    # logging.info(glob.glob(os.path.join(dataset_path, "*"))) # Debug
     logging.info('Getting QR-code paths...')
     qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
     logging.info('qrcode_paths: %d', len(qrcode_paths))
@@ -324,7 +306,7 @@ if __name__ == "__main__":
 
     else:  # Single-artifact
 
-        # Get the pointclouds.
+        # Get depthmaps
         logging.info("Getting Depthmap paths...")
         paths_evaluation = get_depthmap_files(qrcode_paths)
         del qrcode_paths

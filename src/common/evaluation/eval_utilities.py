@@ -451,3 +451,44 @@ def filter_dataset_according_to_standing_lying(paths_evaluation, standing):
         except ValueError:
             exc.append(image)
     return new_paths_evaluation
+
+
+class Evaluation:
+    def __init__(self, model_config: Bunch, model_base_dir: Path) -> None:
+        self.model_config = model_config
+        self.model_base_dir = model_base_dir
+        self._input_location = os.path.join(self.model_config.INPUT_LOCATION, self.model_config.NAME)
+
+    def get_the_model_path(self, workspace: Workspace):
+        logging.info(f"Model will download from '{self._input_location}' to '{self.model_base_dir}'")
+        download_model(workspace=workspace,
+                       experiment_name=self.model_config.EXPERIMENT_NAME,
+                       run_id=self.model_config.RUN_ID,
+                       input_location=self._input_location,
+                       output_location=self.model_base_dir)
+        logging.info("Model was downloaded")
+        self.model_path = self.model_base_dir / get_model_path(self.model_config)
+
+
+class EnsembleEvaluation(Evaluation):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+    def get_the_model_path(self, workspace: Workspace):
+        """Get multiple model paths"""
+        for run_id in self.model_config.RUN_IDS:
+            logging.info(f"Downloading run {run_id}")
+            download_model(
+                workspace=workspace,
+                experiment_name=self.model_config.EXPERIMENT_NAME,
+                run_id=run_id,
+                input_location=self._input_location,
+                output_location=self.model_base_dir / run_id
+            )
+        model_paths = glob.glob(os.path.join(self.model_base_dir, "*"))
+        model_paths = [p for p in model_paths if os.path.isdir(p)]
+        model_paths = [p for p in model_paths if p.split("/")[-1].startswith(self.model_config.EXPERIMENT_NAME)]
+        model_paths = [os.path.join(p, self.model_config.INPUT_LOCATION, self.model_config.NAME) for p in model_paths]
+        logging.info(f"Models paths ({len(model_paths)}):")
+        logging.info("\t" + "\n\t".join(model_paths))
+        self.model_paths = model_paths
