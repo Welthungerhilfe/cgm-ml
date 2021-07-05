@@ -39,21 +39,22 @@ def blur_face(data: np.array, highest: list, dmap: Depthmap) -> np.array:
                 continue
             point = dmap.convert_2d_to_3d_oriented(1, x, y, depth)
             distance = length(diff(point, highest))
-            if distance < CHILD_HEAD_HEIGHT_IN_METERS:
+            if distance >= CHILD_HEAD_HEIGHT_IN_METERS:
+                continue
 
-                # Gausian blur
-                pixel = [0, 0, 0]
-                count = 0
-                step = 5
-                for tx in range(x - step, x + step):
-                    for ty in range(y - step, y + step):
-                        if not (0 < tx < dmap.width and 0 < ty < dmap.height):
-                            continue
-                        index = SUBPLOT_RGB * dmap.height + dmap.height - ty - 1
-                        pixel = pixel + data[tx][index][0]
-                        count = count + 1
-                index = SUBPLOT_RGB * dmap.height + dmap.height - y - 1
-                output[x][index] = pixel / count
+            # Gausian blur
+            pixel = [0, 0, 0]
+            count = 0
+            step = 5
+            for tx in range(x - step, x + step):
+                for ty in range(y - step, y + step):
+                    if not (0 < tx < dmap.width and 0 < ty < dmap.height):
+                        continue
+                    index = SUBPLOT_RGB * dmap.height + dmap.height - ty - 1
+                    pixel = pixel + data[tx][index][0]
+                    count = count + 1
+            index = SUBPLOT_RGB * dmap.height + dmap.height - y - 1
+            output[x][index] = pixel / count
 
     return output
 
