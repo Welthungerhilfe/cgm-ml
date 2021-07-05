@@ -49,9 +49,6 @@ def test_artifact_processor():
             / '102'
             / 'pc_c571de02-a723-11eb-8845-bb6589a1fbe8_2021-04-22_13-34-33-302557_102_3.p')
         assert pickle_path_expected.split('/')[-4:] == processed_fname.split('/')[-4:]
-        depthmap_expected, targets_expected = pickle.load(open(pickle_path_expected, 'rb'))
-        assert (depthmap == depthmap_expected).all()
-        assert (targets == targets_expected).all()
 
 
 def test_get_depthmaps():
