@@ -112,10 +112,12 @@ def test_prepare_sample_dataset():
 
 
 def test_tf_load_pickle():
-    pickle_path = str(REPO_DIR
-                      + "/src/common/data_utilities/tests/pickle_files/scans/c571de02-"
-                      + "a723-11eb-8845-bb6589a1fbe8/102/pc_c571de02-a723-11eb-8845-bb"
-                      + "6589a1fbe8_2021-04-22 13:34:33.302557_102_3.p")
+    pickle_path = str(
+        REPO_DIR
+        / "src/common/data_utilities/tests/pickle_files/scans"
+        / "c571de02-a723-11eb-8845-bb6589a1fbe8/102/"
+        / "pc_c571de02-a723-11eb-8845-bb6589a1fbe8_2021-04-22_13-34-33-302557_102_3.p"
+    )
 
     normalization_value = 7.5
     image_target_height = 240
