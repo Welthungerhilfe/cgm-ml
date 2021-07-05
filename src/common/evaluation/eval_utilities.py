@@ -436,8 +436,6 @@ def download_model(workspace, experiment_name, run_id, input_location, output_lo
     else:
         raise NameError(f"{input_location}'s path extension not supported")
 
-    downloaded_files = list(Path(output_location).glob("**"))
-    logging.info(f"downloaded_files: {downloaded_files}")
     logging.info("Successfully downloaded model")
 
 
