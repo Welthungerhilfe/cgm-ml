@@ -75,7 +75,6 @@ def render_confidence(output: np.array,
 def render_depth(output: np.array,
                  subplot: int,
                  dmap: Depthmap):
-
     for x in range(dmap.width):
         for y in range(dmap.height):
             depth = dmap.parse_depth(x, y)
