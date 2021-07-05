@@ -87,7 +87,6 @@ def render_depth(output: np.array,
 def render_normal(output: np.array,
                   subplot: int,
                   dmap: Depthmap):
-
     for x in range(dmap.width):
         for y in range(dmap.height):
             normal = dmap.calculate_normal_vector(x, y)
