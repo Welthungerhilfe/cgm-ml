@@ -112,7 +112,6 @@ def render_segmentation(output: np.array,
                         floor: float,
                         mask: np.array,
                         dmap: Depthmap):
-
     for x in range(dmap.width):
         for y in range(dmap.height):
 
