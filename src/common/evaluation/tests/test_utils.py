@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-sys.path.append(str(Path(__file__).parents[2]))  # common
+sys.path.append(str(Path(__file__).parents[2]))  # common/ dir
 
 from evaluation.eval_utilities import (COLUMN_NAME_GOODBAD,  # noqa: E402
                                        calculate_percentage_confusion_matrix,
