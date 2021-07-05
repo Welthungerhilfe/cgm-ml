@@ -258,13 +258,7 @@ if __name__ == "__main__":
                        run_id=MODEL_CONFIG.RUN_ID,
                        input_location=input_location,
                        output_location=MODEL_BASE_DIR)
-        # Debug print
-        try:
-            print("MODEL_BASE_DIR")
-            print(list(MODEL_BASE_DIR.glob('**/*')))
-        except BaseException:
-            pass
-
+        logging.info("Model was downloaded")
         model_path = MODEL_BASE_DIR / get_model_path(MODEL_CONFIG)
 
     # Get the QR-code paths.
