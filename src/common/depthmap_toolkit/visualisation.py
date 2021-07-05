@@ -99,7 +99,6 @@ def render_normal(output: np.array,
 def render_rgb(output: np.array,
                subplot: int,
                dmap: Depthmap):
-
     for x in range(dmap.width):
         for y in range(dmap.height):
             index = subplot * dmap.height + dmap.height - y - 1
