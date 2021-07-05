@@ -234,6 +234,7 @@ if __name__ == "__main__":
         dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
         download_dataset(workspace, dataset_name, dataset_path)
 
+    input_location = os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME)
     if RUN_IDS is not None:
         for run_id in RUN_IDS:
             logging.info(f"Downloading run {run_id}")
@@ -241,10 +242,9 @@ if __name__ == "__main__":
                 workspace=workspace,
                 experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
                 run_id=run_id,
-                input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
+                input_location=input_location,
                 output_location=MODEL_BASE_DIR / run_id
             )
-
         model_paths = glob.glob(os.path.join(MODEL_BASE_DIR, "*"))
         model_paths = [path for path in model_paths if os.path.isdir(path)]
         model_paths = [path for path in model_paths if path.split("/")[-1].startswith(MODEL_CONFIG.EXPERIMENT_NAME)]
@@ -252,13 +252,11 @@ if __name__ == "__main__":
         logging.info(f"Models paths ({len(model_paths)}):")
         logging.info("\t" + "\n\t".join(model_paths))
     else:
-        logging.info(
-            f'evaluate.py: Model will download: {MODEL_CONFIG.INPUT_LOCATION}, {MODEL_CONFIG.NAME}, {MODEL_BASE_DIR}')
-
+        logging.info(f"Model will download from '{input_location}' to '{MODEL_BASE_DIR}'")
         download_model(workspace=workspace,
                        experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
                        run_id=MODEL_CONFIG.RUN_ID,
-                       input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
+                       input_location=input_location,
                        output_location=MODEL_BASE_DIR)
         # Debug print
         try:

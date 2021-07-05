@@ -411,8 +411,8 @@ def calculate_percentage_confusion_matrix(data):
 def get_model_path(MODEL_CONFIG: Bunch) -> str:
     if MODEL_CONFIG.NAME.endswith(".h5"):
         return MODEL_CONFIG.NAME
-    if MODEL_CONFIG.NAME.endswith(".ckpt"):
-        return f"{MODEL_CONFIG.INPUT_LOCATION}/{MODEL_CONFIG.NAME}"
+    elif MODEL_CONFIG.NAME.endswith(".ckpt"):
+        return os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME)
     raise NameError(f"{MODEL_CONFIG.NAME}'s path extension not supported")
 
 
@@ -435,6 +435,9 @@ def download_model(workspace, experiment_name, run_id, input_location, output_lo
         run.download_files(prefix=input_location, output_directory=output_location)
     else:
         raise NameError(f"{input_location}'s path extension not supported")
+
+    downloaded_files = list(Path(output_location).glob("**"))
+    logging.info(f"downloaded_files: {downloaded_files}")
     logging.info("Successfully downloaded model")
 
 
