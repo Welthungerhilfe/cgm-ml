@@ -11,14 +11,14 @@ dependencies:
   - scikit-image
   - pip:
     - numpy==1.19.5
-    - azure-cli==2.25.0
-    - azureml-sdk==1.31.0
-    - matplotlib==3.3.4
     - pandas==0.25.3
+    - matplotlib==3.3.4
+    - scikit-learn==0.22.2.post1
     - glob2==0.7
+    - bunch==1.0.1
+    - pyyaml
     - tensorflow==2.4.2
     - tensorflow-addons==0.13.0
-    - pyyaml
-    - bunch==1.0.1
     - cgmzscore==2.0.3
-    - scikit-learn==0.22.2.post1
+    - azure-cli==2.25.0
+    - azureml-sdk==1.31.0
