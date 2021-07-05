@@ -64,7 +64,6 @@ def blur_face(data: np.array, subplot: int, highest: list, dmap: Depthmap) -> np
 def render_confidence(output: np.array,
                       subplot: int,
                       dmap: Depthmap):
-
     for x in range(dmap.width):
         for y in range(dmap.height):
             index = subplot * dmap.height + dmap.height - y - 1
