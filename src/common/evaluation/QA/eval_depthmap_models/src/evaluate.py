@@ -235,6 +235,7 @@ if __name__ == "__main__":
         download_dataset(workspace, dataset_name, dataset_path)
 
     input_location = os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME)
+    logging.info(f"input_location: {input_location}")
     if RUN_IDS is not None:
         for run_id in RUN_IDS:
             logging.info(f"Downloading run {run_id}")
@@ -246,8 +247,14 @@ if __name__ == "__main__":
                 output_location=MODEL_BASE_DIR / run_id
             )
         model_paths = glob.glob(os.path.join(MODEL_BASE_DIR, "*"))
+        logging.info(f"Models paths ({len(model_paths)}):")
+        logging.info("\t" + "\n\t".join(model_paths))
         model_paths = [path for path in model_paths if os.path.isdir(path)]
+        logging.info(f"Models paths ({len(model_paths)}):")
+        logging.info("\t" + "\n\t".join(model_paths))
         model_paths = [path for path in model_paths if path.split("/")[-1].startswith(MODEL_CONFIG.EXPERIMENT_NAME)]
+        logging.info(f"Models paths ({len(model_paths)}):")
+        logging.info("\t" + "\n\t".join(model_paths))
         model_paths = [os.path.join(path, MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME) for path in model_paths]
         logging.info(f"Models paths ({len(model_paths)}):")
         logging.info("\t" + "\n\t".join(model_paths))
