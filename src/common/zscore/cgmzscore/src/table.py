@@ -1,4 +1,3 @@
-from constant import REPO_DIR, WHO_tables
 import json
 
 

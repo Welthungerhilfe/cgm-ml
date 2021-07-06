@@ -1,7 +1,6 @@
 from constant import REPO_DIR, WHO_tables
 from table import Table, ReformatTable
 from Observation import Value
-from decimal import Decimal as D
 from calculate import Zscore
 
 
