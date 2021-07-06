@@ -55,7 +55,7 @@ class Value:
             raise TypeError(
                 "SCORES NOT FOUND FOR HEIGHT :%s", (self.closest_height))
 
-        elif self.chart in ['wfa', 'lhfa']:
+        if self.chart in ['wfa', 'lhfa']:
             scores = table.get(str(self.age_in_days))
             if scores is not None:
                 return scores
