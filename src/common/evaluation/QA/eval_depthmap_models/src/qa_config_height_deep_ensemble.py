@@ -6,7 +6,7 @@ CONFIG_NAME = os.path.splitext(os.path.basename(__file__))[0]
 
 # Details of model used for evaluation
 MODEL_CONFIG = Bunch(dict(
-    EXPERIMENT_NAME='q1-ensemble-warmup',
+    EXPERIMENT_NAME='2021q1-depthmap-ensemble-height-95k',
     RUN_IDS=['2021q1-depthmap-ensemble-height-95k_1622230917_290d733e',
              '2021q1-depthmap-ensemble-height-95k_1622230877_02b7cc34',
              '2021q1-depthmap-ensemble-height-95k_1622230838_187c2c8f',
