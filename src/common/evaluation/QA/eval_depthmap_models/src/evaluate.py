@@ -192,7 +192,7 @@ if __name__ == "__main__":
         initializer = OfflineRunInitializer(DATA_CONFIG)
         run = initializer.run
     else:
-        initializer = OnlineRunInitializer(DATA_CONFIG)
+        initializer = OnlineRunInitializer(DATA_CONFIG, run)
 
     workspace = initializer.workspace
     experiment = initializer.experiment
