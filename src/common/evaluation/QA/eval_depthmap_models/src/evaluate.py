@@ -165,13 +165,13 @@ class OnlineRunInitializer(RunInitializer):
     def run_azureml_setup(self):
         logging.info("Running in online mode...")
         self.experiment = self.run.experiment
-        self.workspace = experiment.workspace
+        self.workspace = self.experiment.workspace
 
     def get_dataset(self):
         dataset_name = self._data_config.NAME
         # Download
         self.dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
-        download_dataset(workspace, dataset_name, dataset_path)
+        download_dataset(self.workspace, dataset_name, dataset_path)
 
 
 if __name__ == "__main__":
