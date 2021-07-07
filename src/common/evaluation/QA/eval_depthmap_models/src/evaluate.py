@@ -270,13 +270,13 @@ if __name__ == "__main__":
 
     input_location = os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME)
     if RUN_IDS is not None:
-        eval = EnsembleEvaluation(MODEL_CONFIG, MODEL_BASE_DIR)
-        eval.get_the_model_path(workspace)
-        model_paths = eval.model_paths
+        evaluation = EnsembleEvaluation(MODEL_CONFIG, MODEL_BASE_DIR)
+        evaluation.get_the_model_path(workspace)
+        model_paths = evaluation.model_paths
     else:
-        eval = Evaluation(MODEL_CONFIG, MODEL_BASE_DIR)
-        eval.get_the_model_path(workspace)
-        model_path = eval.model_path
+        evaluation = Evaluation(MODEL_CONFIG, MODEL_BASE_DIR)
+        evaluation.get_the_model_path(workspace)
+        model_path = evaluation.model_path
 
     # Get the QR-code paths
     dataset_path = os.path.join(dataset_path, "scans")
