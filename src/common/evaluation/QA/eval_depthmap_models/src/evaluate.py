@@ -158,12 +158,13 @@ class OfflineRunInitializer(RunInitializer):
 
 
 class OnlineRunInitializer(RunInitializer):
-    def __init__(self, data_config: Bunch) -> None:
+    def __init__(self, data_config: Bunch, run: Run) -> None:
+        self.run = run
         super().__init__(data_config)
 
     def run_azureml_setup(self):
         logging.info("Running in online mode...")
-        self.experiment = run.experiment
+        self.experiment = self.run.experiment
         self.workspace = experiment.workspace
 
     def get_dataset(self):
@@ -189,6 +190,7 @@ if __name__ == "__main__":
 
     if run.id.startswith("OfflineRun"):
         initializer = OfflineRunInitializer(DATA_CONFIG)
+        run = initializer.run
     else:
         initializer = OnlineRunInitializer(DATA_CONFIG)
 
