@@ -539,17 +539,13 @@ class Evaluation:
         logging.info("Model was downloaded")
         self.model_path = self.model_base_dir / get_model_path(self.model_config)
 
-    def get_the_qr_code_path(self, dataset_path: str, EVAL_CONFIG: Bunch):
+    def get_the_qr_code_path(self, dataset_path: str):
         dataset_path = os.path.join(dataset_path, "scans")
         logging.info('Dataset path: %s', dataset_path)
         logging.info('Getting QR-code paths...')
         qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
         logging.info('qrcode_paths: %d', len(qrcode_paths))
         assert len(qrcode_paths) != 0
-
-        if EVAL_CONFIG.DEBUG_RUN and len(qrcode_paths) > EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN:
-            qrcode_paths = qrcode_paths[:EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN]
-            logging.info("Executing on %d qrcodes for FAST RUN", EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN)
 
         logging.info('Paths for evaluation: \n\t' + '\n\t'.join(qrcode_paths))
         logging.info(len(qrcode_paths))

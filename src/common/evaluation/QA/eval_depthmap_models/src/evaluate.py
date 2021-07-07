@@ -210,7 +210,11 @@ if __name__ == "__main__":
         model_path = evaluation.model_path
 
     # Get the QR-code paths
-    qrcode_paths = evaluation.get_the_qr_code_path(dataset_path, EVAL_CONFIG)
+    qrcode_paths = evaluation.get_the_qr_code_path(dataset_path)
+    if getattr(EVAL_CONFIG, 'DEBUG_RUN', False) and len(qrcode_paths) > EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN:
+        qrcode_paths = qrcode_paths[:EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN]
+        logging.info("Executing on %d qrcodes for FAST RUN", EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN)
+
 
     # Is this a multiartifact model?
     if getattr(DATA_CONFIG, "N_ARTIFACTS", 1) > 1:
