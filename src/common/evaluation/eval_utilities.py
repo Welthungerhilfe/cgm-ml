@@ -529,6 +529,16 @@ class Evaluation:
         self.model_base_dir = model_base_dir
         self._input_location = os.path.join(self.model_config.INPUT_LOCATION, self.model_config.NAME)
 
+    def get_the_model_path(self, workspace: Workspace):
+        logging.info(f"Model will download from '{self._input_location}' to '{self.model_base_dir}'")
+        download_model(workspace=workspace,
+                       experiment_name=self.model_config.EXPERIMENT_NAME,
+                       run_id=self.model_config.RUN_ID,
+                       input_location=self._input_location,
+                       output_location=self.model_base_dir)
+        logging.info("Model was downloaded")
+        self.model_path = self.model_base_dir / get_model_path(self.model_config)
+
     def get_the_qr_code_path(self, dataset_path, EVAL_CONFIG):
         dataset_path = os.path.join(dataset_path, "scans")
         logging.info('Dataset path: %s', dataset_path)
@@ -544,16 +554,6 @@ class Evaluation:
         logging.info('Paths for evaluation: \n\t' + '\n\t'.join(qrcode_paths))
         logging.info(len(qrcode_paths))
         return qrcode_paths
-
-    def get_the_model_path(self, workspace: Workspace):
-        logging.info(f"Model will download from '{self._input_location}' to '{self.model_base_dir}'")
-        download_model(workspace=workspace,
-                       experiment_name=self.model_config.EXPERIMENT_NAME,
-                       run_id=self.model_config.RUN_ID,
-                       input_location=self._input_location,
-                       output_location=self.model_base_dir)
-        logging.info("Model was downloaded")
-        self.model_path = self.model_base_dir / get_model_path(self.model_config)
 
     def prepare_dataset(self, qrcode_paths, DATA_CONFIG, FILTER_CONFIG):
 
