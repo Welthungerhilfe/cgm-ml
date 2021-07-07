@@ -171,7 +171,7 @@ class OnlineRunInitializer(RunInitializer):
         dataset_name = self._data_config.NAME
         # Download
         self.dataset_path = get_dataset_path(DATA_DIR_ONLINE_RUN, dataset_name)
-        download_dataset(self.workspace, dataset_name, dataset_path)
+        download_dataset(self.workspace, dataset_name, self.dataset_path)
 
 
 if __name__ == "__main__":
