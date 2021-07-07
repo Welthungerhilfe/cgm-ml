@@ -539,7 +539,7 @@ class Evaluation:
         logging.info("Model was downloaded")
         self.model_path = self.model_base_dir / get_model_path(self.model_config)
 
-    def get_the_qr_code_path(self, dataset_path, EVAL_CONFIG):
+    def get_the_qr_code_path(self, dataset_path: str, EVAL_CONFIG: Bunch):
         dataset_path = os.path.join(dataset_path, "scans")
         logging.info('Dataset path: %s', dataset_path)
         logging.info('Getting QR-code paths...')
@@ -555,7 +555,7 @@ class Evaluation:
         logging.info(len(qrcode_paths))
         return qrcode_paths
 
-    def prepare_dataset(self, qrcode_paths, DATA_CONFIG, FILTER_CONFIG):
+    def prepare_dataset(self, qrcode_paths: List[str], DATA_CONFIG: Bunch, FILTER_CONFIG: Bunch):
 
         # Get depthmaps
         logging.info("Getting Depthmap paths...")
@@ -598,7 +598,7 @@ class Evaluation:
         del temp_dataset_evaluation
         return dataset_evaluation, new_paths_evaluation
 
-    def get_prediction_(self, model_path, dataset_evaluation, DATA_CONFIG):
+    def get_prediction_(self, model_path: Path, dataset_evaluation: tf.data.Dataset, DATA_CONFIG: Bunch):
         return get_prediction(model_path, dataset_evaluation, DATA_CONFIG)
 
 
@@ -625,5 +625,5 @@ class EnsembleEvaluation(Evaluation):
         logging.info("\t" + "\n\t".join(model_paths))
         self.model_paths = model_paths
 
-    def get_prediction_(self, model_paths, dataset_evaluation, DATA_CONFIG):
+    def get_prediction_(self, model_paths: List[Path], dataset_evaluation: tf.data.Dataset, DATA_CONFIG: Bunch):
         return get_predictions_from_multiple_models(model_paths, dataset_evaluation, DATA_CONFIG)
