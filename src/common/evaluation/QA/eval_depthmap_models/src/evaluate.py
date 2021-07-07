@@ -2,16 +2,14 @@ import argparse
 import logging
 import logging.config
 import os
-import pickle
 import random
 import shutil
 import time
 from importlib import import_module
 from pathlib import Path
 from typing import List
-from bunch import Bunch
 
-import glob2 as glob
+from bunch import Bunch
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -52,18 +50,15 @@ from temp_common.evaluation.constants_eval import (  # noqa: E402, F401
     AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, COLUMN_NAME_SEX,
     GOODBAD_DICT, GOODBAD_IDX, HEIGHT_IDX, SEX_IDX, WEIGHT_IDX)
 from temp_common.evaluation.eval_utils import (  # noqa: E402, F401
-    avgerror, calculate_performance, extract_qrcode,
-    extract_scantype, preprocess_depthmap, preprocess_targets
-)
+    avgerror, calculate_performance, extract_qrcode, extract_scantype)
 from temp_common.evaluation.eval_utilities import (  # noqa: E402, F401
     calculate_and_save_results,
     Evaluation, EnsembleEvaluation,
     calculate_performance_age, calculate_performance_goodbad,
     calculate_performance_sex, download_dataset, draw_age_scatterplot,
     draw_stunting_diagnosis, draw_uncertainty_goodbad_plot,
-    draw_uncertainty_scatterplot, draw_wasting_diagnosis, filter_dataset_according_to_standing_lying,
-    get_column_list, get_dataset_path,
-    get_depthmap_files)
+    draw_uncertainty_scatterplot, draw_wasting_diagnosis,
+    get_column_list, get_dataset_path, prepare_sample_dataset)
 from temp_common.evaluation.uncertainty_utils import \
     get_prediction_uncertainty_deepensemble  # noqa: E402, F401
 from temp_common.model_utils.preprocessing_multiartifact_python import \
@@ -99,37 +94,6 @@ RUN_IDS = MODEL_CONFIG.RUN_IDS if getattr(MODEL_CONFIG, 'RUN_IDS', False) else N
 assert bool(RUN_ID) != bool(RUN_IDS), 'RUN_ID xor RUN_IDS needs to be defined'
 
 
-def tf_load_pickle(path, max_value):
-    """Utility to load the depthmap (may include RGB) pickle file"""
-    def py_load_pickle(path, max_value):
-        if FILTER_CONFIG is not None:
-            depthmap, targets, _image = pickle.load(open(path.numpy(), "rb"))  # for filter (Contains RGBs)
-        else:
-            depthmap, targets = pickle.load(open(path.numpy(), "rb"))
-        depthmap = preprocess_depthmap(depthmap)
-        depthmap = depthmap / max_value
-        depthmap = tf.image.resize(depthmap, (DATA_CONFIG.IMAGE_TARGET_HEIGHT, DATA_CONFIG.IMAGE_TARGET_WIDTH))
-        targets = preprocess_targets(targets, DATA_CONFIG.TARGET_INDEXES)
-        return depthmap, targets
-
-    depthmap, targets = tf.py_function(py_load_pickle, [path, max_value], [tf.float32, tf.float32])
-    depthmap.set_shape((DATA_CONFIG.IMAGE_TARGET_HEIGHT, DATA_CONFIG.IMAGE_TARGET_WIDTH, 1))
-    targets.set_shape((len(DATA_CONFIG.TARGET_INDEXES,)))
-    return path, depthmap, targets
-
-
-def prepare_sample_dataset(df_sample, dataset_path):
-    df_sample['artifact_path'] = df_sample.apply(
-        lambda x: f"{dataset_path}/{x['qrcode']}/{x['scantype']}/{x['artifact']}", axis=1)
-    paths_evaluation = list(df_sample['artifact_path'])
-    dataset_sample = tf.data.Dataset.from_tensor_slices(paths_evaluation)
-    dataset_sample = dataset_sample.map(lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE))
-    dataset_sample = dataset_sample.map(lambda _path, depthmap, targets: (depthmap, targets))
-    dataset_sample = dataset_sample.cache()
-    dataset_sample = dataset_sample.prefetch(tf.data.experimental.AUTOTUNE)
-    return dataset_sample
-
-
 def get_prediction_multiartifact(model_path: str, samples_paths: List[List[str]]) -> List[List[str]]:
     """Make prediction on each multiartifact sample.
 
@@ -155,41 +119,6 @@ def get_prediction_multiartifact(model_path: str, samples_paths: List[List[str]]
         pred = model.predict(depthmaps)
         predictions.append([sample_paths[0], float(np.squeeze(pred)), targets[0]])
     return predictions
-
-
-def get_prediction(model_path: str, dataset_evaluation: tf.data.Dataset) -> np.array:
-    """Perform the prediction on the dataset with the given model.
-
-    Args:
-        model_path: Path of the trained model
-        dataset_evaluation: dataset in which the evaluation need to performed
-    Returns:
-        predictions, array shape (N_SAMPLES, )
-    """
-    logging.info("loading model from %s", model_path)
-    model = load_model(model_path, compile=False)
-
-    dataset = dataset_evaluation.batch(DATA_CONFIG.BATCH_SIZE)
-
-    logging.info("starting predicting")
-    start = time.time()
-    predictions = model.predict(dataset, batch_size=DATA_CONFIG.BATCH_SIZE)
-    end = time.time()
-    logging.info("Total time for uncertainty prediction experiment: %.2f sec", end - start)
-
-    prediction_list = np.squeeze(predictions)
-    return prediction_list
-
-
-def get_predictions_from_multiple_models(model_paths: list, dataset_evaluation: tf.data.Dataset) -> list:
-    prediction_list_one = []
-    for model_index, model_path in enumerate(model_paths):
-        logging.info(f"Model {model_index + 1}/{len(model_paths)}")
-        prediction_list_one += [get_prediction(model_path, dataset_evaluation)]
-        logging.info("Prediction made by model on the depthmaps...")
-    prediction_list_one = np.array(prediction_list_one)
-    prediction_list_one = np.mean(prediction_list_one, axis=0)
-    return prediction_list_one
 
 
 class RunInitializer:
@@ -279,19 +208,7 @@ if __name__ == "__main__":
         model_path = evaluation.model_path
 
     # Get the QR-code paths
-    dataset_path = os.path.join(dataset_path, "scans")
-    logging.info('Dataset path: %s', dataset_path)
-    logging.info('Getting QR-code paths...')
-    qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
-    logging.info('qrcode_paths: %d', len(qrcode_paths))
-    assert len(qrcode_paths) != 0
-
-    if EVAL_CONFIG.DEBUG_RUN and len(qrcode_paths) > EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN:
-        qrcode_paths = qrcode_paths[:EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN]
-        logging.info("Executing on %d qrcodes for FAST RUN", EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN)
-
-    logging.info('Paths for evaluation: \n\t' + '\n\t'.join(qrcode_paths))
-    logging.info(len(qrcode_paths))
+    qrcode_paths = evaluation.get_the_qr_code_path(dataset_path, EVAL_CONFIG)
 
     # Is this a multiartifact model?
     if getattr(DATA_CONFIG, "N_ARTIFACTS", 1) > 1:
@@ -305,49 +222,12 @@ if __name__ == "__main__":
         MAE['error'] = MAE.apply(avgerror, axis=1)
 
     else:  # Single-artifact
-
-        # Get depthmaps
-        logging.info("Getting Depthmap paths...")
-        paths_evaluation = get_depthmap_files(qrcode_paths)
-        del qrcode_paths
-
-        logging.info("Using %d artifact files for evaluation.", len(paths_evaluation))
-
-        new_paths_evaluation = paths_evaluation
-
-        if FILTER_CONFIG is not None and FILTER_CONFIG.IS_ENABLED:
-            standing = load_model(FILTER_CONFIG.NAME)
-            new_paths_evaluation = filter_dataset_according_to_standing_lying(paths_evaluation, standing)
-
-        logging.info("Creating dataset for training.")
-        paths = new_paths_evaluation
-        dataset = tf.data.Dataset.from_tensor_slices(paths)
-        dataset_norm = dataset.map(lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE))
-
-        # filter goodbad==delete
-        if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
-            goodbad_index = DATA_CONFIG.TARGET_INDEXES.index(GOODBAD_IDX)
-            dataset_norm = dataset_norm.filter(
-                lambda _path, _depthmap, targets: targets[goodbad_index] != GOODBAD_DICT['delete'])
-
-        dataset_norm = dataset_norm.cache()
-        dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
-        temp_dataset_evaluation = dataset_norm
-        del dataset_norm
-        logging.info("Created dataset for training.")
-
-        # Update new_paths_evaluation after filtering
-        dataset_paths = temp_dataset_evaluation.map(lambda path, _depthmap, _targets: path)
-        list_paths = list(dataset_paths.as_numpy_iterator())
-        new_paths_evaluation = [x.decode() for x in list_paths]
-
-        dataset_evaluation = temp_dataset_evaluation.map(lambda _path, depthmap, targets: (depthmap, targets))
-        del temp_dataset_evaluation
+        dataset_evaluation, new_paths_evaluation = evaluation.prepare_dataset(qrcode_paths, DATA_CONFIG, FILTER_CONFIG)
 
         if RUN_IDS is not None:
-            prediction_list_one = get_predictions_from_multiple_models(model_paths, dataset_evaluation)
+            prediction_list_one = evaluation.get_prediction_(model_paths, dataset_evaluation, DATA_CONFIG)
         if RUN_ID is not None:
-            prediction_list_one = get_prediction(model_path, dataset_evaluation)
+            prediction_list_one = evaluation.get_prediction_(model_path, dataset_evaluation, DATA_CONFIG)
         logging.info("Prediction made by model on the depthmaps...")
         logging.info(prediction_list_one)
 
@@ -441,7 +321,7 @@ if __name__ == "__main__":
         df_sample = df.groupby(['qrcode', 'scantype']).apply(lambda x: x.sample(1))
 
         # Prepare uncertainty prediction on these artifacts
-        dataset_sample = prepare_sample_dataset(df_sample, dataset_path)
+        dataset_sample = prepare_sample_dataset(df_sample, dataset_path, DATA_CONFIG, FILTER_CONFIG)
 
         # Predict uncertainty
         uncertainties = get_prediction_uncertainty_deepensemble(model_paths, dataset_sample)
