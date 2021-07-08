@@ -7,7 +7,7 @@ from bunch import Bunch
 sys.path.append(str(Path(__file__).parents[2]))  # common/ dir
 
 from model_utils.model_plaincnn import create_cnn  # noqa: E402
-from evaluation.eval_utilities import Evaluation  # noqa: E402
+from evaluation.eval_utilities import Evaluation, EnsembleEvaluation  # noqa: E402
 
 MODEL_CONFIG = Bunch(dict(
     EXPERIMENT_NAME='q3-depthmap-plaincnn-height-95k',
@@ -44,12 +44,10 @@ RESULT_CONFIG = Bunch(dict(
 
 CWD = Path(__file__).parent
 DATASET_PATH = CWD / "test_data/anontest-depthmap-mini"
-MODEL_BASE_DIR = '/tmp/models/'
-OUTPUT_CSV_PATH = '/tmp/output_test_eval_utilities'
 
 
 def test_evaluation_get_the_qr_code_path():
-    evaluation = Evaluation(MODEL_CONFIG, MODEL_BASE_DIR, DATASET_PATH)
+    evaluation = Evaluation(MODEL_CONFIG, model_base_dir=None, dataset_path=DATASET_PATH)
     qrcode_paths = evaluation.get_the_qr_code_path()
     assert len(qrcode_paths) == 2
     qrcode_paths = sorted(qrcode_paths)
@@ -59,7 +57,7 @@ def test_evaluation_get_the_qr_code_path():
 
 def test_evaluation_prepare_dataset():
     # Prep
-    evaluation = Evaluation(MODEL_CONFIG, MODEL_BASE_DIR, DATASET_PATH)
+    evaluation = Evaluation(MODEL_CONFIG, model_base_dir=None, dataset_path=DATASET_PATH)
     qrcode_paths = evaluation.get_the_qr_code_path()
     # Run
     dataset_evaluation, new_paths_evaluation = evaluation.prepare_dataset(qrcode_paths, DATA_CONFIG, FILTER_CONFIG=None)
@@ -79,7 +77,7 @@ def prep_model(model_path):
 
 def test_evaluation_evaluate():
     # Prep
-    evaluation = Evaluation(MODEL_CONFIG, MODEL_BASE_DIR, DATASET_PATH)
+    evaluation = Evaluation(MODEL_CONFIG, model_base_dir=None, dataset_path=DATASET_PATH)
 
     with TemporaryDirectory() as model_path:
         evaluation.model_path = model_path
@@ -92,10 +90,32 @@ def test_evaluation_evaluate():
         descriptor = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else MODEL_CONFIG.EXPERIMENT_NAME
 
     # Run
-    evaluation.evaluate(df, DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG, OUTPUT_CSV_PATH, descriptor)
+    with TemporaryDirectory() as output_csv_path:
+        evaluation.evaluate(df, DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG, output_csv_path, descriptor)
+
+
+def test_ensembleevaluation_evaluate():
+    # Prep
+    evaluation = EnsembleEvaluation(MODEL_CONFIG, model_base_dir=None, dataset_path=DATASET_PATH)
+
+    with TemporaryDirectory() as models_path:
+        evaluation.model_paths = [Path(models_path) / 'model1', Path(models_path) / 'model2']
+        for model_path in evaluation.model_paths:
+            prep_model(model_path)
+
+        qrcode_paths = evaluation.get_the_qr_code_path()
+        dataset_evaluation, new_paths_evaluation = evaluation.prepare_dataset(qrcode_paths, DATA_CONFIG, FILTER_CONFIG=None)
+        prediction_list_one = evaluation.get_prediction_(evaluation.model_paths, dataset_evaluation, DATA_CONFIG)
+        df = evaluation.prepare_dataframe(new_paths_evaluation, prediction_list_one, DATA_CONFIG, RESULT_CONFIG)
+        descriptor = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else MODEL_CONFIG.EXPERIMENT_NAME
+
+    # Run
+    with TemporaryDirectory() as output_csv_path:
+        evaluation.evaluate(df, DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG, output_csv_path, descriptor)
 
 
 # if __name__ == "__main__":
     # test_evaluation_get_the_qr_code_path()
     # test_evaluation_prepare_dataset()
     # test_evaluation_evaluate()
+    # test_ensembleevaluation_evaluate()
