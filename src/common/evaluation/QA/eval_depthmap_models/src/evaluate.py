@@ -183,8 +183,8 @@ if __name__ == "__main__":
         initializer = OnlineRunInitializer(DATA_CONFIG, RUN)
 
     if is_ensemble_evaluation(MODEL_CONFIG):
-        MODEL_BASE_DIR = (REPO_DIR / 'data' /
-            MODEL_CONFIG.EXPERIMENT_NAME) if is_offline_run(RUN) else Path('.')
+        MODEL_BASE_DIR = (REPO_DIR / 'data'
+                          / MODEL_CONFIG.EXPERIMENT_NAME) if is_offline_run(RUN) else Path('.')
         evaluation = EnsembleEvaluation(MODEL_CONFIG, MODEL_BASE_DIR, initializer.dataset_path)
         evaluation.get_the_model_path(initializer.workspace)
         model_paths = evaluation.model_paths
@@ -221,7 +221,8 @@ if __name__ == "__main__":
         logging.info("Prediction made by model on the depthmaps...")
         logging.info(prediction_list_one)
 
-        df, target_list = evaluation.prepare_dataframe(new_paths_evaluation, prediction_list_one, DATA_CONFIG, RESULT_CONFIG)
+        df, target_list = evaluation.prepare_dataframe(
+            new_paths_evaluation, prediction_list_one, DATA_CONFIG, RESULT_CONFIG)
 
     descriptor = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else MODEL_CONFIG.EXPERIMENT_NAME
     evaluation.evaluate(df, target_list, DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG, OUTPUT_CSV_PATH, descriptor)

@@ -641,7 +641,7 @@ class Evaluation:
         csv_fpath = f"{OUTPUT_CSV_PATH}/{descriptor}.csv"
         logging.info("Calculate and save the results to %s", csv_fpath)
         calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
-                                DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
+                                   DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 
         sample_csv_fpath = f"{OUTPUT_CSV_PATH}/inaccurate_scans_{descriptor}.csv"
         df_grouped.to_csv(sample_csv_fpath, index=True)
@@ -650,7 +650,7 @@ class Evaluation:
             csv_fpath = f"{OUTPUT_CSV_PATH}/age_evaluation_{descriptor}.csv"
             logging.info("Calculate and save age results to %s", csv_fpath)
             calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
-                                    DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
+                                       DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
             png_fpath = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{descriptor}.png"
             logging.info("Calculate and save scatterplot results to %s", png_fpath)
             draw_age_scatterplot(df, png_fpath)
@@ -679,12 +679,12 @@ class Evaluation:
             csv_fpath = f"{OUTPUT_CSV_PATH}/sex_evaluation_{descriptor}.csv"
             logging.info("Calculate and save sex results to %s", csv_fpath)
             calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
-                                    DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_sex)
+                                       DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_sex)
         if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
             csv_fpath = f"{OUTPUT_CSV_PATH}/goodbad_evaluation_{descriptor}.csv"
             logging.info("Calculate performance on bad/good scans and save results to %s", csv_fpath)
             calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
-                                    DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_goodbad)
+                                       DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_goodbad)
 
 
 class EnsembleEvaluation(Evaluation):
