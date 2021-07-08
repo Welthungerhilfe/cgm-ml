@@ -184,12 +184,12 @@ if __name__ == "__main__":
 
     if is_ensemble_evaluation(MODEL_CONFIG):
         MODEL_BASE_DIR = (REPO_DIR / 'data' /
-            MODEL_CONFIG.EXPERIMENT_NAME) if is_offline_run(initializer.run) else Path('.')
+            MODEL_CONFIG.EXPERIMENT_NAME) if is_offline_run(RUN) else Path('.')
         evaluation = EnsembleEvaluation(MODEL_CONFIG, MODEL_BASE_DIR, initializer.dataset_path)
         evaluation.get_the_model_path(initializer.workspace)
         model_paths = evaluation.model_paths
     else:
-        MODEL_BASE_DIR = REPO_DIR / 'data' / RUN_ID if is_offline_run(initializer.run) else Path('.')
+        MODEL_BASE_DIR = REPO_DIR / 'data' / RUN_ID if is_offline_run(RUN) else Path('.')
         evaluation = Evaluation(MODEL_CONFIG, MODEL_BASE_DIR, initializer.dataset_path)
         evaluation.get_the_model_path(initializer.workspace)
         model_path = evaluation.model_path
