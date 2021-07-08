@@ -37,9 +37,8 @@ RESULT_CONFIG = Bunch(dict(
     ACCURACY_MAIN_THRESH=1.0,
     COLUMNS=['qrcode', 'artifact', 'scantype', 'GT', 'predicted'],
     USE_UNCERTAINTY=False,
-    SAVE_PATH=f'/tmp/config_test_eval_utilities',
+    SAVE_PATH='/tmp/config_test_eval_utilities',
 ))
-
 
 
 CWD = Path(__file__).parent
@@ -84,7 +83,8 @@ def test_evaluation_evaluate():
         prep_model(evaluation.model_path)
 
         qrcode_paths = evaluation.get_the_qr_code_path()
-        dataset_evaluation, new_paths_evaluation = evaluation.prepare_dataset(qrcode_paths, DATA_CONFIG, FILTER_CONFIG=None)
+        dataset_evaluation, new_paths_evaluation = evaluation.prepare_dataset(
+            qrcode_paths, DATA_CONFIG, FILTER_CONFIG=None)
         prediction_list_one = evaluation.get_prediction_(evaluation.model_path, dataset_evaluation, DATA_CONFIG)
         df = evaluation.prepare_dataframe(new_paths_evaluation, prediction_list_one, DATA_CONFIG, RESULT_CONFIG)
         descriptor = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else MODEL_CONFIG.EXPERIMENT_NAME
@@ -104,7 +104,8 @@ def test_ensembleevaluation_evaluate():
             prep_model(model_path)
 
         qrcode_paths = evaluation.get_the_qr_code_path()
-        dataset_evaluation, new_paths_evaluation = evaluation.prepare_dataset(qrcode_paths, DATA_CONFIG, FILTER_CONFIG=None)
+        dataset_evaluation, new_paths_evaluation = evaluation.prepare_dataset(
+            qrcode_paths, DATA_CONFIG, FILTER_CONFIG=None)
         prediction_list_one = evaluation.get_prediction_(evaluation.model_paths, dataset_evaluation, DATA_CONFIG)
         df = evaluation.prepare_dataframe(new_paths_evaluation, prediction_list_one, DATA_CONFIG, RESULT_CONFIG)
         descriptor = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else MODEL_CONFIG.EXPERIMENT_NAME
