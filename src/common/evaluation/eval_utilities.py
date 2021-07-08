@@ -508,7 +508,7 @@ def tf_load_pickle(path, max_value, DATA_CONFIG):
 
 def prepare_sample_dataset(df_sample, dataset_path, DATA_CONFIG):
     df_sample['artifact_path'] = df_sample.apply(
-        lambda x: f"{dataset_path}/{x['qrcode']}/{x['scantype']}/{x['artifact']}", axis=1)
+        lambda x: f"{dataset_path}/scans/{x['qrcode']}/{x['scantype']}/{x['artifact']}", axis=1)
     paths_evaluation = list(df_sample['artifact_path'])
     dataset_sample = tf.data.Dataset.from_tensor_slices(paths_evaluation)
     dataset_sample = dataset_sample.map(
@@ -762,3 +762,7 @@ class EnsembleEvaluation(Evaluation):
                      RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM, csv_fpath)
         calculate_and_save_results(df_sample_better_threshold, EVAL_CONFIG.NAME, csv_fpath,
                                    DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
+
+# class MultiartifactEvaluation(Evaluation):
+#     def __init__(self, *args, **kwargs) -> None:
+#         super().__init__(*args, **kwargs)
