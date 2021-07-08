@@ -608,18 +608,6 @@ class Evaluation:
             'GT': target_list if target_list[0].shape == tuple() else [el[0] for el in target_list],
             'predicted': prediction_list
         }, columns=RESULT_CONFIG.COLUMNS)
-        logging.info("df.shape: %s", df.shape)
-        return df, target_list
-
-    def evaluate(self,
-                 df: pd.DataFrame,
-                 target_list,
-                 DATA_CONFIG: Bunch,
-                 RESULT_CONFIG: Bunch,
-                 EVAL_CONFIG: Bunch,
-                 OUTPUT_CSV_PATH: str,
-                 descriptor: str):
-
         df['GT'] = df['GT'].astype('float64')
         df['predicted'] = df['predicted'].astype('float64')
 
@@ -633,6 +621,16 @@ class Evaluation:
             idx = DATA_CONFIG.TARGET_INDEXES.index(GOODBAD_IDX)
             df[COLUMN_NAME_GOODBAD] = [el[idx] for el in target_list]
 
+        logging.info("df.shape: %s", df.shape)
+        return df
+
+    def evaluate(self,
+                 df: pd.DataFrame,
+                 DATA_CONFIG: Bunch,
+                 RESULT_CONFIG: Bunch,
+                 EVAL_CONFIG: Bunch,
+                 OUTPUT_CSV_PATH: str,
+                 descriptor: str):
         df_grouped = df.groupby(['qrcode', 'scantype']).mean()
         logging.info("Mean Avg Error: %s", df_grouped)
 
@@ -718,13 +716,12 @@ class EnsembleEvaluation(Evaluation):
 
     def evaluate(self,
                  df: pd.DataFrame,
-                 target_list,
                  DATA_CONFIG: Bunch,
                  RESULT_CONFIG: Bunch,
                  EVAL_CONFIG: Bunch,
                  OUTPUT_CSV_PATH: str,
                  descriptor: str):
-        super().evaluate(df, target_list, DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG, OUTPUT_CSV_PATH, descriptor)
+        super().evaluate(df, DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG, OUTPUT_CSV_PATH, descriptor)
 
         if not RESULT_CONFIG.USE_UNCERTAINTY:
             return
