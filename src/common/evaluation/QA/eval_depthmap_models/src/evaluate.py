@@ -35,11 +35,14 @@ def copy_dir(src: Path, tgt: Path, glob_pattern: str, should_touch_init: bool = 
         shutil.copy(p, destpath)
 
 
+def is_offline_run(run: Run) -> bool:
+    return run.id.startswith("OfflineRun")
+
+
 # Get the current run.
-run = Run.get_context()
+RUN = Run.get_context()
 
-if run.id.startswith("OfflineRun"):
-
+if is_offline_run(RUN):
     # Copy common into the temp folder
     common_dir_path = REPO_DIR / "src/common"
     temp_common_dir = Path(__file__).parent / "temp_common"
@@ -163,39 +166,32 @@ class OnlineRunInitializer(RunInitializer):
         download_dataset(self.workspace, dataset_name, self.dataset_path)
 
 
+def is_ensemble_evaluation(model_config: Bunch) -> bool:
+    return model_config.RUN_IDS is not None
+
 if __name__ == "__main__":
 
     # Make experiment reproducible
     tf.random.set_seed(EVAL_CONFIG.SPLIT_SEED)
     random.seed(EVAL_CONFIG.SPLIT_SEED)
 
-    OUTPUT_CSV_PATH = str(REPO_DIR / 'data'
-                          / RESULT_CONFIG.SAVE_PATH) if run.id.startswith("OfflineRun") else RESULT_CONFIG.SAVE_PATH
-    if RUN_ID is not None:
-        MODEL_BASE_DIR = REPO_DIR / 'data' / RUN_ID if run.id.startswith("OfflineRun") else Path('.')
-    if RUN_IDS is not None:
-        MODEL_BASE_DIR = REPO_DIR / 'data' / \
-            MODEL_CONFIG.EXPERIMENT_NAME if run.id.startswith("OfflineRun") else Path('.')
-
-    if run.id.startswith("OfflineRun"):
+    if is_offline_run(RUN):
+        OUTPUT_CSV_PATH = str(REPO_DIR / 'data' / RESULT_CONFIG.SAVE_PATH)
         initializer = OfflineRunInitializer(DATA_CONFIG)
-        run = initializer.run
     else:
-        initializer = OnlineRunInitializer(DATA_CONFIG, run)
+        OUTPUT_CSV_PATH = RESULT_CONFIG.SAVE_PATH
+        initializer = OnlineRunInitializer(DATA_CONFIG, RUN)
 
-    workspace = initializer.workspace
-    experiment = initializer.experiment
-    run = initializer.run
-    dataset_path = initializer.dataset_path
-
-    input_location = os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME)
-    if RUN_IDS is not None:
-        evaluation = EnsembleEvaluation(MODEL_CONFIG, MODEL_BASE_DIR, dataset_path)
-        evaluation.get_the_model_path(workspace)
+    if is_ensemble_evaluation(MODEL_CONFIG):
+        MODEL_BASE_DIR = (REPO_DIR / 'data' /
+            MODEL_CONFIG.EXPERIMENT_NAME) if is_offline_run(initializer.run) else Path('.')
+        evaluation = EnsembleEvaluation(MODEL_CONFIG, MODEL_BASE_DIR, initializer.dataset_path)
+        evaluation.get_the_model_path(initializer.workspace)
         model_paths = evaluation.model_paths
     else:
-        evaluation = Evaluation(MODEL_CONFIG, MODEL_BASE_DIR, dataset_path)
-        evaluation.get_the_model_path(workspace)
+        MODEL_BASE_DIR = REPO_DIR / 'data' / RUN_ID if is_offline_run(initializer.run) else Path('.')
+        evaluation = Evaluation(MODEL_CONFIG, MODEL_BASE_DIR, initializer.dataset_path)
+        evaluation.get_the_model_path(initializer.workspace)
         model_path = evaluation.model_path
 
     # Get the QR-code paths
@@ -218,9 +214,9 @@ if __name__ == "__main__":
     else:  # Single-artifact
         dataset_evaluation, new_paths_evaluation = evaluation.prepare_dataset(qrcode_paths, DATA_CONFIG, FILTER_CONFIG)
 
-        if RUN_IDS is not None:
+        if is_ensemble_evaluation(MODEL_CONFIG):
             prediction_list_one = evaluation.get_prediction_(model_paths, dataset_evaluation, DATA_CONFIG)
-        if RUN_ID is not None:
+        else:
             prediction_list_one = evaluation.get_prediction_(model_path, dataset_evaluation, DATA_CONFIG)
         logging.info("Prediction made by model on the depthmaps...")
         logging.info(prediction_list_one)
@@ -229,8 +225,9 @@ if __name__ == "__main__":
 
     evaluation.evaluate(df, target_list, DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG, OUTPUT_CSV_PATH)
 
-    if RESULT_CONFIG.USE_UNCERTAINTY:
+    if is_ensemble_evaluation(MODEL_CONFIG):
+        assert RESULT_CONFIG.USE_UNCERTAINTY
         evaluation.evaluate(df, DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG, FILTER_CONFIG, OUTPUT_CSV_PATH)
 
     # Done.
-    run.complete()
+    initializer.run.complete()
