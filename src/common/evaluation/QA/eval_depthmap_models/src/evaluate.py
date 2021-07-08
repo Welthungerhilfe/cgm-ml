@@ -223,7 +223,8 @@ if __name__ == "__main__":
 
         df, target_list = evaluation.prepare_dataframe(new_paths_evaluation, prediction_list_one, DATA_CONFIG, RESULT_CONFIG)
 
-    evaluation.evaluate(df, target_list, DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG, OUTPUT_CSV_PATH)
+    descriptor = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else MODEL_CONFIG.EXPERIMENT_NAME
+    evaluation.evaluate(df, target_list, DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG, OUTPUT_CSV_PATH, descriptor)
 
     # Done.
     initializer.run.complete()

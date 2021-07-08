@@ -617,7 +617,8 @@ class Evaluation:
                  DATA_CONFIG: Bunch,
                  RESULT_CONFIG: Bunch,
                  EVAL_CONFIG: Bunch,
-                 OUTPUT_CSV_PATH: str):
+                 OUTPUT_CSV_PATH: str,
+                 descriptor: str):
 
         df['GT'] = df['GT'].astype('float64')
         df['predicted'] = df['predicted'].astype('float64')
@@ -636,8 +637,6 @@ class Evaluation:
         logging.info("Mean Avg Error: %s", df_grouped)
 
         df_grouped['error'] = df_grouped.apply(avgerror, axis=1)
-
-        descriptor = self.model_config.RUN_ID if self.model_config.RUN_ID else self.model_config.EXPERIMENT_NAME
 
         csv_fpath = f"{OUTPUT_CSV_PATH}/{descriptor}.csv"
         logging.info("Calculate and save the results to %s", csv_fpath)
@@ -723,8 +722,9 @@ class EnsembleEvaluation(Evaluation):
                  DATA_CONFIG: Bunch,
                  RESULT_CONFIG: Bunch,
                  EVAL_CONFIG: Bunch,
-                 OUTPUT_CSV_PATH: str):
-        super().evaluate(df, target_list, DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG, OUTPUT_CSV_PATH)
+                 OUTPUT_CSV_PATH: str,
+                 descriptor: str):
+        super().evaluate(df, target_list, DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG, OUTPUT_CSV_PATH, descriptor)
 
         if not RESULT_CONFIG.USE_UNCERTAINTY:
             return
