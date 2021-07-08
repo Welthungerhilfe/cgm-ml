@@ -9,12 +9,9 @@ from pathlib import Path
 from typing import List
 
 from bunch import Bunch
-import numpy as np
-import pandas as pd
 import tensorflow as tf
 from azureml.core import Experiment, Workspace
 from azureml.core.run import Run
-from tensorflow.keras.models import load_model
 
 from constants import DATA_DIR_ONLINE_RUN, DEFAULT_CONFIG, REPO_DIR
 
@@ -48,15 +45,9 @@ if is_offline_run(RUN):
     temp_common_dir = Path(__file__).parent / "temp_common"
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
-from temp_common.evaluation.eval_utils import (  # noqa: E402, F401
-    avgerror, extract_qrcode, extract_scantype)
 from temp_common.evaluation.eval_utilities import (  # noqa: E402, F401
     Evaluation, EnsembleEvaluation,
     download_dataset, get_dataset_path)
-from temp_common.model_utils.preprocessing_multiartifact_python import \
-    create_multiartifact_paths_for_qrcodes  # noqa: E402, F401
-from temp_common.model_utils.preprocessing_multiartifact_tensorflow import \
-    create_multiartifact_sample  # noqa: E402, F401
 
 
 logging.basicConfig(level=logging.INFO,
@@ -83,33 +74,6 @@ FILTER_CONFIG = qa_config.FILTER_CONFIG if getattr(qa_config, 'FILTER_CONFIG', F
 RUN_ID = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else None
 RUN_IDS = MODEL_CONFIG.RUN_IDS if getattr(MODEL_CONFIG, 'RUN_IDS', False) else None
 assert bool(RUN_ID) != bool(RUN_IDS), 'RUN_ID xor RUN_IDS needs to be defined'
-
-
-def get_prediction_multiartifact(model_path: str, samples_paths: List[List[str]]) -> List[List[str]]:
-    """Make prediction on each multiartifact sample.
-
-    Args:
-        model_path: File path to the model
-        samples_paths: A list of samples where each sample contains N_ARTIFACTS.
-
-    Returns:
-        List with tuples: ('artifacts', 'predicted', 'GT')
-    """
-    logging.info("loading model from %s", model_path)
-    model = load_model(model_path, compile=False)
-
-    predictions = []
-    for sample_paths in samples_paths:
-        depthmap, targets = create_multiartifact_sample(sample_paths,
-                                                        DATA_CONFIG.NORMALIZATION_VALUE,
-                                                        DATA_CONFIG.IMAGE_TARGET_HEIGHT,
-                                                        DATA_CONFIG.IMAGE_TARGET_WIDTH,
-                                                        tf.constant(DATA_CONFIG.TARGET_INDEXES),
-                                                        DATA_CONFIG.N_ARTIFACTS)
-        depthmaps = tf.stack([depthmap])
-        pred = model.predict(depthmaps)
-        predictions.append([sample_paths[0], float(np.squeeze(pred)), targets[0]])
-    return predictions
 
 
 class RunInitializer:
@@ -202,14 +166,8 @@ if __name__ == "__main__":
 
     # Is this a multiartifact model?
     if getattr(DATA_CONFIG, "N_ARTIFACTS", 1) > 1:
-        samples_paths = create_multiartifact_paths_for_qrcodes(qrcode_paths, DATA_CONFIG)
-        predictions = get_prediction_multiartifact(model_path, samples_paths)
-
-        df = pd.DataFrame(predictions, columns=['artifacts', 'predicted', 'GT'])
-        df['scantype'] = df.apply(extract_scantype, axis=1)
-        df['qrcode'] = df.apply(extract_qrcode, axis=1)
-        MAE = df.groupby(['qrcode', 'scantype']).mean()
-        MAE['error'] = MAE.apply(avgerror, axis=1)
+        predictions: List[List[str]] = evaluation.get_prediction_(model_path, qrcode_paths, DATA_CONFIG)
+        df = evaluation.prepare_dataframe(predictions)
 
     else:  # Single-artifact
         dataset_evaluation, new_paths_evaluation = evaluation.prepare_dataset(qrcode_paths, DATA_CONFIG, FILTER_CONFIG)
@@ -223,6 +181,7 @@ if __name__ == "__main__":
 
         df = evaluation.prepare_dataframe(
             new_paths_evaluation, prediction_list_one, DATA_CONFIG, RESULT_CONFIG)
+        # df has columns: ['qrcode', 'artifact', 'scantype', 'GT', 'predicted']
 
     descriptor = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else MODEL_CONFIG.EXPERIMENT_NAME
     evaluation.evaluate(df, DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG, OUTPUT_CSV_PATH, descriptor)

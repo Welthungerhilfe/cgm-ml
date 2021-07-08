@@ -24,8 +24,12 @@ from cgmzscore import Calculator  # noqa: E402
 from .constants_eval import (  # noqa: E402
     CODE_TO_SCANTYPE, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, COLUMN_NAME_SEX, DAYS_IN_YEAR,
     GOODBAD_IDX, GOODBAD_DICT, SEX_IDX, SEX_DICT, AGE_IDX, HEIGHT_IDX, WEIGHT_IDX)
-from .eval_utils import avgerror, preprocess_depthmap, preprocess_targets, calculate_performance  # noqa: E402
+from .eval_utils import (  # noqa: E402
+    avgerror, preprocess_depthmap, preprocess_targets, calculate_performance,
+    extract_qrcode, extract_scantype)
 from .uncertainty_utils import get_prediction_uncertainty_deepensemble  # noqa: E402
+from ..model_utils.preprocessing_multiartifact_python import create_multiartifact_paths_for_qrcodes  # noqa: E402
+from ..model_utils.preprocessing_multiartifact_tensorflow import create_multiartifact_sample  # noqa: E402
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
@@ -488,6 +492,35 @@ def get_predictions_from_multiple_models(model_paths: list, dataset_evaluation: 
     return prediction_list_one
 
 
+def get_prediction_multiartifact(model_path: str,
+                                 samples_paths: List[List[str]],
+                                 DATA_CONFIG: Bunch) -> List[List[str]]:
+    """Make prediction on each multiartifact sample.
+
+    Args:
+        model_path: File path to the model
+        samples_paths: A list of samples where each sample contains N_ARTIFACTS.
+
+    Returns:
+        List with tuples: ('artifacts', 'predicted', 'GT')
+    """
+    logging.info("loading model from %s", model_path)
+    model = load_model(model_path, compile=False)
+
+    predictions = []
+    for sample_paths in samples_paths:
+        depthmap, targets = create_multiartifact_sample(sample_paths,
+                                                        DATA_CONFIG.NORMALIZATION_VALUE,
+                                                        DATA_CONFIG.IMAGE_TARGET_HEIGHT,
+                                                        DATA_CONFIG.IMAGE_TARGET_WIDTH,
+                                                        tf.constant(DATA_CONFIG.TARGET_INDEXES),
+                                                        DATA_CONFIG.N_ARTIFACTS)
+        depthmaps = tf.stack([depthmap])
+        pred = model.predict(depthmaps)
+        predictions.append([sample_paths[0], float(np.squeeze(pred)), targets[0]])
+    return predictions
+
+
 def tf_load_pickle(path, max_value, DATA_CONFIG):
     """Utility to load the depthmap (may include RGB) pickle file"""
     def py_load_pickle(path, max_value):
@@ -760,6 +793,24 @@ class EnsembleEvaluation(Evaluation):
         calculate_and_save_results(df_sample_better_threshold, EVAL_CONFIG.NAME, csv_fpath,
                                    DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
 
-# class MultiartifactEvaluation(Evaluation):
-#     def __init__(self, *args, **kwargs) -> None:
-#         super().__init__(*args, **kwargs)
+
+class MultiartifactEvaluation(Evaluation):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+    def get_prediction_(self,
+                        model_path: Path,
+                        qrcode_paths: List[str],
+                        DATA_CONFIG: Bunch) -> np.array:
+
+        samples_paths = create_multiartifact_paths_for_qrcodes(qrcode_paths, DATA_CONFIG)
+        predictions = get_prediction_multiartifact(model_path, samples_paths, DATA_CONFIG)
+        return predictions
+
+    def prepare_dataframe(self, predictions):
+        df = pd.DataFrame(predictions, columns=['artifacts', 'predicted', 'GT'])
+        df['scantype'] = df.apply(extract_scantype, axis=1)
+        df['qrcode'] = df.apply(extract_qrcode, axis=1)
+        return df
+        # MAE = df.groupby(['qrcode', 'scantype']).mean()
+        # MAE['error'] = MAE.apply(avgerror, axis=1)
