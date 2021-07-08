@@ -69,15 +69,13 @@ def get_depthmap_files(paths: List[str]) -> List[str]:
     return pickle_paths
 
 
-def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CONFIG: Bunch, FILTER_CONFIG: Bunch):
+def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CONFIG: Bunch):
     """Prepare the list of all artifact with its corresponding scantype, qrcode, target and prediction"""
     qrcode_list, scan_type_list, artifact_list, prediction_list, target_list = [], [], [], [], []
 
     for idx, path in enumerate(depthmap_path_list):
-        if FILTER_CONFIG is not None:
-            _, targets, _ = pickle.load(open(path, "rb"))  # For filter(contains RGBs) dataset
-        else:
-            _, targets = pickle.load(open(path, "rb"))
+        loaded_tuple = pickle.load(open(path, "rb"))  # tuple can have 2 or 3 elements
+        targets = loaded_tuple[1]
         targets = preprocess_targets(targets, DATA_CONFIG.TARGET_INDEXES)
         target = np.squeeze(targets)
 
@@ -490,13 +488,12 @@ def get_predictions_from_multiple_models(model_paths: list, dataset_evaluation: 
     return prediction_list_one
 
 
-def tf_load_pickle(path, max_value, DATA_CONFIG, FILTER_CONFIG):
+def tf_load_pickle(path, max_value, DATA_CONFIG):
     """Utility to load the depthmap (may include RGB) pickle file"""
     def py_load_pickle(path, max_value):
-        if FILTER_CONFIG is not None:
-            depthmap, targets, _image = pickle.load(open(path.numpy(), "rb"))  # for filter (Contains RGBs)
-        else:
-            depthmap, targets = pickle.load(open(path.numpy(), "rb"))
+        loaded_tuple = pickle.load(open(path.numpy(), "rb"))  # tuple can have 2 or 3 elements
+        depthmap = loaded_tuple[0]
+        targets = loaded_tuple[1]
         depthmap = preprocess_depthmap(depthmap)
         depthmap = depthmap / max_value
         depthmap = tf.image.resize(depthmap, (DATA_CONFIG.IMAGE_TARGET_HEIGHT, DATA_CONFIG.IMAGE_TARGET_WIDTH))
@@ -509,13 +506,13 @@ def tf_load_pickle(path, max_value, DATA_CONFIG, FILTER_CONFIG):
     return path, depthmap, targets
 
 
-def prepare_sample_dataset(df_sample, dataset_path, DATA_CONFIG, FILTER_CONFIG):
+def prepare_sample_dataset(df_sample, dataset_path, DATA_CONFIG):
     df_sample['artifact_path'] = df_sample.apply(
         lambda x: f"{dataset_path}/{x['qrcode']}/{x['scantype']}/{x['artifact']}", axis=1)
     paths_evaluation = list(df_sample['artifact_path'])
     dataset_sample = tf.data.Dataset.from_tensor_slices(paths_evaluation)
     dataset_sample = dataset_sample.map(
-        lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE, DATA_CONFIG, FILTER_CONFIG)
+        lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE, DATA_CONFIG)
     )
     dataset_sample = dataset_sample.map(lambda _path, depthmap, targets: (depthmap, targets))
     dataset_sample = dataset_sample.cache()
@@ -573,7 +570,7 @@ class Evaluation:
         paths = new_paths_evaluation
         dataset = tf.data.Dataset.from_tensor_slices(paths)
         dataset_norm = dataset.map(
-            lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE, DATA_CONFIG, FILTER_CONFIG)
+            lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE, DATA_CONFIG)
         )
 
         # filter goodbad==delete
@@ -600,9 +597,9 @@ class Evaluation:
     def get_prediction_(self, model_path: Path, dataset_evaluation: tf.data.Dataset, DATA_CONFIG: Bunch) -> np.array:
         return get_prediction(model_path, dataset_evaluation, DATA_CONFIG)
 
-    def prepare_dataframe(self, new_paths_evaluation, prediction_list_one, DATA_CONFIG, FILTER_CONFIG, RESULT_CONFIG):
+    def prepare_dataframe(self, new_paths_evaluation, prediction_list_one, DATA_CONFIG, RESULT_CONFIG):
         qrcode_list, scantype_list, artifact_list, prediction_list, target_list = get_column_list(
-            new_paths_evaluation, prediction_list_one, DATA_CONFIG, FILTER_CONFIG)
+            new_paths_evaluation, prediction_list_one, DATA_CONFIG)
 
         df = pd.DataFrame({
             'qrcode': qrcode_list,
@@ -722,12 +719,15 @@ class EnsembleEvaluation(Evaluation):
 
     def evaluate(self,
                  df: pd.DataFrame,
+                 target_list,
                  DATA_CONFIG: Bunch,
                  RESULT_CONFIG: Bunch,
                  EVAL_CONFIG: Bunch,
-                 FILTER_CONFIG: Bunch,
                  OUTPUT_CSV_PATH: str):
-        super().evaluate()
+        super().evaluate(df, target_list, DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG, OUTPUT_CSV_PATH)
+
+        if not RESULT_CONFIG.USE_UNCERTAINTY:
+            return
 
         assert GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES
         assert COLUMN_NAME_GOODBAD in df
@@ -736,7 +736,7 @@ class EnsembleEvaluation(Evaluation):
         df_sample = df.groupby(['qrcode', 'scantype']).apply(lambda x: x.sample(1))
 
         # Prepare uncertainty prediction on these artifacts
-        dataset_sample = prepare_sample_dataset(df_sample, self.dataset_path, DATA_CONFIG, FILTER_CONFIG)
+        dataset_sample = prepare_sample_dataset(df_sample, self.dataset_path, DATA_CONFIG)
 
         # Predict uncertainty
         uncertainties = get_prediction_uncertainty_deepensemble(self.model_paths, dataset_sample)
