@@ -23,9 +23,9 @@ from cgmzscore import Calculator  # noqa: E402
 
 from .constants_eval import (  # noqa: E402
     CODE_TO_SCANTYPE, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, COLUMN_NAME_SEX, DAYS_IN_YEAR,
-    GOODBAD_IDX, GOODBAD_DICT, SEX_DICT)
-from .eval_utils import avgerror, preprocess_depthmap, preprocess_targets  # noqa: E402
-
+    GOODBAD_IDX, GOODBAD_DICT, SEX_IDX, SEX_DICT, AGE_IDX, HEIGHT_IDX, WEIGHT_IDX)
+from .eval_utils import avgerror, preprocess_depthmap, preprocess_targets, calculate_performance  # noqa: E402
+from .uncertainty_utils import get_prediction_uncertainty_deepensemble  # noqa: E402
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
@@ -524,9 +524,10 @@ def prepare_sample_dataset(df_sample, dataset_path, DATA_CONFIG, FILTER_CONFIG):
 
 
 class Evaluation:
-    def __init__(self, model_config: Bunch, model_base_dir: Path) -> None:
+    def __init__(self, model_config: Bunch, model_base_dir: Path, dataset_path: str) -> None:
         self.model_config = model_config
         self.model_base_dir = model_base_dir
+        self.dataset_path = dataset_path
         self._input_location = os.path.join(self.model_config.INPUT_LOCATION, self.model_config.NAME)
 
     def get_the_model_path(self, workspace: Workspace):
@@ -539,8 +540,8 @@ class Evaluation:
         logging.info("Model was downloaded")
         self.model_path = self.model_base_dir / get_model_path(self.model_config)
 
-    def get_the_qr_code_path(self, dataset_path: str) -> List[str]:
-        dataset_path = os.path.join(dataset_path, "scans")
+    def get_the_qr_code_path(self) -> List[str]:
+        dataset_path = os.path.join(self.dataset_path, "scans")
         logging.info('Dataset path: %s', dataset_path)
         logging.info('Getting QR-code paths...')
         qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
@@ -599,6 +600,96 @@ class Evaluation:
     def get_prediction_(self, model_path: Path, dataset_evaluation: tf.data.Dataset, DATA_CONFIG: Bunch) -> np.array:
         return get_prediction(model_path, dataset_evaluation, DATA_CONFIG)
 
+    def prepare_dataframe(self, new_paths_evaluation, prediction_list_one, DATA_CONFIG, FILTER_CONFIG, RESULT_CONFIG):
+        qrcode_list, scantype_list, artifact_list, prediction_list, target_list = get_column_list(
+            new_paths_evaluation, prediction_list_one, DATA_CONFIG, FILTER_CONFIG)
+
+        df = pd.DataFrame({
+            'qrcode': qrcode_list,
+            'artifact': artifact_list,
+            'scantype': scantype_list,
+            'GT': target_list if target_list[0].shape == tuple() else [el[0] for el in target_list],
+            'predicted': prediction_list
+        }, columns=RESULT_CONFIG.COLUMNS)
+        logging.info("df.shape: %s", df.shape)
+        return df, target_list
+
+    def evaluate(self,
+                 df: pd.DataFrame,
+                 target_list,
+                 DATA_CONFIG: Bunch,
+                 RESULT_CONFIG: Bunch,
+                 EVAL_CONFIG: Bunch,
+                 OUTPUT_CSV_PATH: str):
+
+        df['GT'] = df['GT'].astype('float64')
+        df['predicted'] = df['predicted'].astype('float64')
+
+        if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
+            idx = DATA_CONFIG.TARGET_INDEXES.index(AGE_IDX)
+            df[COLUMN_NAME_AGE] = [el[idx] for el in target_list]
+        if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
+            idx = DATA_CONFIG.TARGET_INDEXES.index(SEX_IDX)
+            df[COLUMN_NAME_SEX] = [el[idx] for el in target_list]
+        if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
+            idx = DATA_CONFIG.TARGET_INDEXES.index(GOODBAD_IDX)
+            df[COLUMN_NAME_GOODBAD] = [el[idx] for el in target_list]
+
+        df_grouped = df.groupby(['qrcode', 'scantype']).mean()
+        logging.info("Mean Avg Error: %s", df_grouped)
+
+        df_grouped['error'] = df_grouped.apply(avgerror, axis=1)
+
+        descriptor = self.model_config.RUN_ID if self.model_config.RUN_ID else self.model_config.EXPERIMENT_NAME
+
+        csv_fpath = f"{OUTPUT_CSV_PATH}/{descriptor}.csv"
+        logging.info("Calculate and save the results to %s", csv_fpath)
+        calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
+                                DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
+
+        sample_csv_fpath = f"{OUTPUT_CSV_PATH}/inaccurate_scans_{descriptor}.csv"
+        df_grouped.to_csv(sample_csv_fpath, index=True)
+
+        if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
+            csv_fpath = f"{OUTPUT_CSV_PATH}/age_evaluation_{descriptor}.csv"
+            logging.info("Calculate and save age results to %s", csv_fpath)
+            calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
+                                    DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_age)
+            png_fpath = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{descriptor}.png"
+            logging.info("Calculate and save scatterplot results to %s", png_fpath)
+            draw_age_scatterplot(df, png_fpath)
+
+        if (HEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES
+                and AGE_IDX in DATA_CONFIG.TARGET_INDEXES
+                and descriptor != self.model_config.EXPERIMENT_NAME):
+            png_fpath = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{descriptor}.png"
+            logging.info("Calculate zscores and save confusion matrix results to %s", png_fpath)
+            start = time.time()
+            draw_stunting_diagnosis(df, png_fpath)
+            end = time.time()
+            logging.info("Total time for Calculate zscores and save confusion matrix: %.2f", end - start)
+
+        if (WEIGHT_IDX in DATA_CONFIG.TARGET_INDEXES
+                and AGE_IDX in DATA_CONFIG.TARGET_INDEXES
+                and descriptor != self.model_config.EXPERIMENT_NAME):
+            png_fpath = f"{OUTPUT_CSV_PATH}/wasting_diagnosis_{descriptor}.png"
+            logging.info("Calculate and save wasting confusion matrix results to %s", png_fpath)
+            start = time.time()
+            draw_wasting_diagnosis(df, png_fpath)
+            end = time.time()
+            logging.info("Total time for Calculate zscores and save wasting confusion matrix: %.2f", end - start)
+
+        if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
+            csv_fpath = f"{OUTPUT_CSV_PATH}/sex_evaluation_{descriptor}.csv"
+            logging.info("Calculate and save sex results to %s", csv_fpath)
+            calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
+                                    DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_sex)
+        if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
+            csv_fpath = f"{OUTPUT_CSV_PATH}/goodbad_evaluation_{descriptor}.csv"
+            logging.info("Calculate performance on bad/good scans and save results to %s", csv_fpath)
+            calculate_and_save_results(df_grouped, EVAL_CONFIG.NAME, csv_fpath,
+                                    DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance_goodbad)
+
 
 class EnsembleEvaluation(Evaluation):
     def __init__(self, *args, **kwargs) -> None:
@@ -628,3 +719,46 @@ class EnsembleEvaluation(Evaluation):
                         dataset_evaluation: tf.data.Dataset,
                         DATA_CONFIG: Bunch) -> np.array:
         return get_predictions_from_multiple_models(model_paths, dataset_evaluation, DATA_CONFIG)
+
+    def evaluate(self,
+                 df: pd.DataFrame,
+                 DATA_CONFIG: Bunch,
+                 RESULT_CONFIG: Bunch,
+                 EVAL_CONFIG: Bunch,
+                 FILTER_CONFIG: Bunch,
+                 OUTPUT_CSV_PATH: str):
+        super().evaluate()
+
+        assert GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES
+        assert COLUMN_NAME_GOODBAD in df
+
+        # Sample one artifact per scan (qrcode, scantype combination)
+        df_sample = df.groupby(['qrcode', 'scantype']).apply(lambda x: x.sample(1))
+
+        # Prepare uncertainty prediction on these artifacts
+        dataset_sample = prepare_sample_dataset(df_sample, self.dataset_path, DATA_CONFIG, FILTER_CONFIG)
+
+        # Predict uncertainty
+        uncertainties = get_prediction_uncertainty_deepensemble(self.model_paths, dataset_sample)
+
+        assert len(df_sample) == len(uncertainties)
+        df_sample['uncertainties'] = uncertainties
+
+        png_fpath = f"{OUTPUT_CSV_PATH}/uncertainty_distribution.png"
+        draw_uncertainty_goodbad_plot(df_sample, png_fpath)
+
+        df_sample_100 = df_sample.iloc[df_sample.index.get_level_values('scantype') == '100']
+        png_fpath = f"{OUTPUT_CSV_PATH}/uncertainty_code100_distribution.png"
+        draw_uncertainty_goodbad_plot(df_sample_100, png_fpath)
+
+        png_fpath = f"{OUTPUT_CSV_PATH}/uncertainty_scatter_distribution.png"
+        draw_uncertainty_scatterplot(df_sample, png_fpath)
+
+        # Filter for scans with high certainty and calculate their accuracy/results
+        df_sample['error'] = df_sample.apply(avgerror, axis=1).abs()
+        df_sample_better_threshold = df_sample[df_sample['uncertainties'] < RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM]
+        csv_fpath = f"{OUTPUT_CSV_PATH}/uncertainty_smaller_than_{RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM}cm.csv"
+        logging.info("Uncertainty: For more certain than %.2f cm, calculate and save the results to %s",
+                     RESULT_CONFIG.UNCERTAINTY_THRESHOLD_IN_CM, csv_fpath)
+        calculate_and_save_results(df_sample_better_threshold, EVAL_CONFIG.NAME, csv_fpath,
+                                   DATA_CONFIG, RESULT_CONFIG, fct=calculate_performance)
