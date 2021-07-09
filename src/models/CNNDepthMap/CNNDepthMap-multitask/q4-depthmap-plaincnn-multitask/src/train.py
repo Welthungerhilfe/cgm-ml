@@ -198,8 +198,8 @@ def create_and_fit_model():
     ]
 
     optimizer = get_optimizer(CONFIG.USE_ONE_CYCLE,
-                            lr=CONFIG.LEARNING_RATE,
-                            n_steps=len(paths_training) / CONFIG.BATCH_SIZE)
+                              lr=CONFIG.LEARNING_RATE,
+                              n_steps=len(paths_training) / CONFIG.BATCH_SIZE)
 
     # Compile the model.
     model.compile(

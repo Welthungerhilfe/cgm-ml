@@ -153,6 +153,7 @@ del dataset_norm
 
 # Note: Now the datasets are prepared.
 
+
 def create_and_fit_model():
     # Create the model.
     input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1)
@@ -182,8 +183,8 @@ def create_and_fit_model():
         training_callbacks.append(WandbCallback(log_weights=True, log_gradients=True, training_data=dataset_batches))
 
     optimizer = get_optimizer(CONFIG.USE_ONE_CYCLE,
-                            lr=CONFIG.LEARNING_RATE,
-                            n_steps=len(paths_training) / CONFIG.BATCH_SIZE)
+                              lr=CONFIG.LEARNING_RATE,
+                              n_steps=len(paths_training) / CONFIG.BATCH_SIZE)
 
     # Compile the model.
     model.compile(
