@@ -153,52 +153,62 @@ del dataset_norm
 
 # Note: Now the datasets are prepared.
 
-# Create the model.
-input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1)
-model = create_res_net(input_shape, CONFIG.RES_BLOCKS, CONFIG.DROPOUTS_LIST)
-model.summary()
+def create_and_fit_model():
+    # Create the model.
+    input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1)
+    model = create_res_net(input_shape, CONFIG.RES_BLOCKS, CONFIG.DROPOUTS_LIST)
+    model.summary()
 
-best_model_path = str(DATA_DIR / f'outputs/{MODEL_CKPT_FILENAME}')
-checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-    filepath=best_model_path,
-    monitor="val_loss",
-    save_best_only=True,
-    verbose=1
-)
+    best_model_path = str(DATA_DIR / f'outputs/{MODEL_CKPT_FILENAME}')
+    checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=best_model_path,
+        monitor="val_loss",
+        save_best_only=True,
+        verbose=1
+    )
 
-dataset_batches = dataset_training.batch(CONFIG.BATCH_SIZE)
+    dataset_batches = dataset_training.batch(CONFIG.BATCH_SIZE)
 
-training_callbacks = [
-    AzureLogCallback(run),
-    create_tensorboard_callback(),
-    checkpoint_callback,
-]
+    training_callbacks = [
+        AzureLogCallback(run),
+        create_tensorboard_callback(),
+        checkpoint_callback,
+    ]
 
-if getattr(CONFIG, 'USE_WANDB', False):
-    setup_wandb()
-    wandb.init(project="ml-project", entity="cgm-team")
-    wandb.config.update(CONFIG)
-    training_callbacks.append(WandbCallback(log_weights=True, log_gradients=True, training_data=dataset_batches))
+    if getattr(CONFIG, 'USE_WANDB', False):
+        setup_wandb()
+        wandb.init(project="ml-project", entity="cgm-team")
+        wandb.config.update(CONFIG)
+        training_callbacks.append(WandbCallback(log_weights=True, log_gradients=True, training_data=dataset_batches))
 
-optimizer = get_optimizer(CONFIG.USE_ONE_CYCLE,
-                          lr=CONFIG.LEARNING_RATE,
-                          n_steps=len(paths_training) / CONFIG.BATCH_SIZE)
+    optimizer = get_optimizer(CONFIG.USE_ONE_CYCLE,
+                            lr=CONFIG.LEARNING_RATE,
+                            n_steps=len(paths_training) / CONFIG.BATCH_SIZE)
 
-# Compile the model.
-model.compile(
-    optimizer=optimizer,
-    loss="mse",
-    metrics=["mae"]
-)
+    # Compile the model.
+    model.compile(
+        optimizer=optimizer,
+        loss="mse",
+        metrics=["mae"]
+    )
 
-# Train the model.
-model.fit(
-    dataset_training.batch(CONFIG.BATCH_SIZE),
-    validation_data=dataset_batches,
-    epochs=CONFIG.EPOCHS,
-    callbacks=training_callbacks,
-    verbose=2
-)
+    # Train the model.
+    model.fit(
+        dataset_training.batch(CONFIG.BATCH_SIZE),
+        validation_data=dataset_batches,
+        epochs=CONFIG.EPOCHS,
+        callbacks=training_callbacks,
+        verbose=2
+    )
+
+
+if CONFIG.USE_MULTIGPU:
+    strategy = tf.distribute.MirroredStrategy()
+    logging.info("Number of devices: %s", strategy.num_replicas_in_sync)
+    with strategy.scope():
+        create_and_fit_model()
+else:
+    create_and_fit_model()
 
 # Done.
 run.complete()

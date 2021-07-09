@@ -19,6 +19,7 @@ CONFIG = Bunch(dict(
     RES_BLOCKS=[2, 5, 5, 2],
     DROPOUTS_LIST=[0.0, 0.0, 0.0, 0.0],
     USE_WANDB=False,
+    USE_MULTIGPU=False,
 
     # Parameters for dataset generation.
     TARGET_INDEXES=[0],  # 0 is height, 1 is weight.

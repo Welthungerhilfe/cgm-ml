@@ -121,61 +121,71 @@ dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
 dataset_validation = dataset_norm
 del dataset_norm
 
-input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 3)
-model = create_cnn(input_shape, dropout=True)
-model.summary()
-logging.info(len(model.trainable_weights))
 
-# Add checkpoint callback.
-#best_model_path = os.path.join('validation','best_model.h5')
-best_model_path = str(DATA_DIR / f'outputs/{MODEL_CKPT_FILENAME}')
-checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-    filepath=best_model_path,
-    monitor="val_loss",
-    save_best_only=True,
-    verbose=1
-)
-dataset_batches = dataset_training.batch(CONFIG.BATCH_SIZE)
+def create_and_fit_model():
+    input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 3)
+    model = create_cnn(input_shape, dropout=True)
+    model.summary()
+    logging.info(len(model.trainable_weights))
 
-training_callbacks = [
-    AzureLogCallback(run),
-    create_tensorboard_callback(),
-    checkpoint_callback,
-]
-if getattr(CONFIG, 'USE_WANDB', False):
-    setup_wandb()
-    wandb.init(project="ml-project", entity="cgm-team")
-    wandb.config.update(CONFIG)
-    training_callbacks.append(WandbCallback(log_weights=True, log_gradients=True, training_data=dataset_batches))
+    # Add checkpoint callback.
+    #best_model_path = os.path.join('validation','best_model.h5')
+    best_model_path = str(DATA_DIR / f'outputs/{MODEL_CKPT_FILENAME}')
+    checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=best_model_path,
+        monitor="val_loss",
+        save_best_only=True,
+        verbose=1
+    )
+    dataset_batches = dataset_training.batch(CONFIG.BATCH_SIZE)
 
-optimizer = tf.keras.optimizers.RMSprop(learning_rate=CONFIG.LEARNING_RATE)
+    training_callbacks = [
+        AzureLogCallback(run),
+        create_tensorboard_callback(),
+        checkpoint_callback,
+    ]
+    if getattr(CONFIG, 'USE_WANDB', False):
+        setup_wandb()
+        wandb.init(project="ml-project", entity="cgm-team")
+        wandb.config.update(CONFIG)
+        training_callbacks.append(WandbCallback(log_weights=True, log_gradients=True, training_data=dataset_batches))
 
-# Compile the model.
-model.compile(
-    optimizer=optimizer,
-    loss="binary_crossentropy",
-    metrics=["accuracy"]
-)
-# Train the model.
-model.fit(
-    dataset_training.batch(CONFIG.BATCH_SIZE),
-    validation_data=dataset_validation.batch(CONFIG.BATCH_SIZE),
-    epochs=CONFIG.EPOCHS,
-    callbacks=training_callbacks,
-    verbose=2
-)
+    optimizer = tf.keras.optimizers.RMSprop(learning_rate=CONFIG.LEARNING_RATE)
 
-#  function use to tune the top convolution layer
-set_trainable_below_layers('block14_sepconv1', model)
+    # Compile the model.
+    model.compile(
+        optimizer=optimizer,
+        loss="binary_crossentropy",
+        metrics=["accuracy"]
+    )
+    # Train the model.
+    model.fit(
+        dataset_training.batch(CONFIG.BATCH_SIZE),
+        validation_data=dataset_validation.batch(CONFIG.BATCH_SIZE),
+        epochs=CONFIG.EPOCHS,
+        callbacks=training_callbacks,
+        verbose=2
+    )
 
-model.fit(
-    dataset_training.batch(CONFIG.BATCH_SIZE),
-    validation_data=dataset_validation.batch(CONFIG.BATCH_SIZE),
-    epochs=CONFIG.TUNE_EPOCHS,
-    callbacks=training_callbacks,
-    verbose=2
-)
+    #  function use to tune the top convolution layer
+    set_trainable_below_layers('block14_sepconv1', model)
 
+    model.fit(
+        dataset_training.batch(CONFIG.BATCH_SIZE),
+        validation_data=dataset_validation.batch(CONFIG.BATCH_SIZE),
+        epochs=CONFIG.TUNE_EPOCHS,
+        callbacks=training_callbacks,
+        verbose=2
+    )
+
+
+if CONFIG.USE_MULTIGPU:
+    strategy = tf.distribute.MirroredStrategy()
+    logging.info("Number of devices: %s", strategy.num_replicas_in_sync)
+    with strategy.scope():
+        create_and_fit_model()
+else:
+    create_and_fit_model()
 
 # Done.
 run.complete()
