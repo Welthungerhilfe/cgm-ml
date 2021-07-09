@@ -175,6 +175,46 @@ class Depthmap:
 
     def detect_child(self, floor: float) -> np.array:
 
+        mask, segments = self.detect_objects(floor)
+
+        # Select the most focused segment
+        closest = 9999999
+        focus = -1
+        for segment in segments:
+            a = segment[1][0] - int(self.width / 2)
+            b = segment[1][1] - int(self.height / 2)
+            c = segment[1][2] - int(self.width / 2)
+            d = segment[1][3] - int(self.height / 2)
+            distance = a * a + b * b + c * c + d * d
+            if closest > distance:
+                closest = distance
+                focus = segment[0]
+
+        # Highlight the focused segment
+        for x in range(self.width):
+            for y in range(self.height):
+                if (mask[x][y] == focus):
+                    mask[x][y] = MASK_CHILD
+
+        return mask
+
+    def detect_floor(self, floor: float) -> np.array:
+        mask = np.zeros((self.width, self.height))
+        for x in range(self.width):
+            for y in range(self.height):
+                depth = self.parse_depth_smoothed(x, y)
+                if not depth:
+                    mask[x][y] = MASK_INVALID
+                    continue
+                normal = self.calculate_normal_vector(x, y)
+                point = self.convert_2d_to_3d_oriented(1, x, y, depth)
+                if abs(normal[1]) > 0.5 and abs(point[1] - floor) < 0.1:
+                    mask[x][y] = MASK_FLOOR
+
+        return mask
+
+    def detect_objects(self, floor: float) -> [np.array, list]:
+
         # Detect objects/children using seed algorithm
         current = -1
         segments = []
@@ -220,41 +260,7 @@ class Depthmap:
                     segments.append([current, aabb])
                 current = current - 1
 
-        # Select the most focused segment
-        closest = 9999999
-        focus = -1
-        for segment in segments:
-            a = segment[1][0] - int(self.width / 2)
-            b = segment[1][1] - int(self.height / 2)
-            c = segment[1][2] - int(self.width / 2)
-            d = segment[1][3] - int(self.height / 2)
-            distance = a * a + b * b + c * c + d * d
-            if closest > distance:
-                closest = distance
-                focus = segment[0]
-
-        # Highlight the focused segment
-        for x in range(self.width):
-            for y in range(self.height):
-                if (mask[x][y] == focus):
-                    mask[x][y] = MASK_CHILD
-
-        return mask
-
-    def detect_floor(self, floor: float) -> np.array:
-        mask = np.zeros((self.width, self.height))
-        for x in range(self.width):
-            for y in range(self.height):
-                depth = self.parse_depth_smoothed(x, y)
-                if not depth:
-                    mask[x][y] = MASK_INVALID
-                    continue
-                normal = self.calculate_normal_vector(x, y)
-                point = self.convert_2d_to_3d_oriented(1, x, y, depth)
-                if abs(normal[1]) > 0.5 and abs(point[1] - floor) < 0.1:
-                    mask[x][y] = MASK_FLOOR
-
-        return mask;
+        return mask, segments
 
     def get_angle_between_camera_and_floor(self) -> float:
         """Calculate an angle between camera and floor based on device pose"""
