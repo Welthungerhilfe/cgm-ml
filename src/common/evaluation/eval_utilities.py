@@ -4,6 +4,7 @@ import os
 import pickle
 from multiprocessing import Pool
 from pathlib import Path
+import sys
 import time
 from typing import Callable, List, Tuple
 
@@ -28,8 +29,11 @@ from .eval_utils import (  # noqa: E402
     avgerror, preprocess_depthmap, preprocess_targets, calculate_performance,
     extract_qrcode, extract_scantype)
 from .uncertainty_utils import get_prediction_uncertainty_deepensemble  # noqa: E402
-from ..model_utils.preprocessing_multiartifact_python import create_multiartifact_paths_for_qrcodes  # noqa: E402
-from ..model_utils.preprocessing_multiartifact_tensorflow import create_multiartifact_sample  # noqa: E402
+
+sys.path.append("..")
+
+from model_utils.preprocessing_multiartifact_python import create_multiartifact_paths_for_qrcodes  # noqa: E402
+from model_utils.preprocessing_multiartifact_tensorflow import create_multiartifact_sample  # noqa: E402
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')

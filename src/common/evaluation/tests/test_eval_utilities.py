@@ -1,13 +1,16 @@
+from copy import copy
 import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from bunch import Bunch
+from tensorflow.keras import layers, models
+import tensorflow as tf
 
 sys.path.append(str(Path(__file__).parents[2]))  # common/ dir
 
-from model_utils.model_plaincnn import create_cnn  # noqa: E402
-from evaluation.eval_utilities import Evaluation, EnsembleEvaluation  # noqa: E402
+from model_utils.model_plaincnn import create_cnn, create_base_cnn, create_head  # noqa: E402
+from evaluation.eval_utilities import Evaluation, EnsembleEvaluation, MultiartifactEvaluation  # noqa: E402
 
 MODEL_CONFIG = Bunch(dict(
     EXPERIMENT_NAME='q3-depthmap-plaincnn-height-95k',
@@ -115,8 +118,63 @@ def test_ensembleevaluation_evaluate():
         evaluation.evaluate(df, DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG, output_csv_path, descriptor)
 
 
-# if __name__ == "__main__":
+N_ARTIFACTS = 2
+IMAGE_TARGET_HEIGHT = 240
+IMAGE_TARGET_WIDTH = 180
+SAMPLING_STRATEGY_SYSTEMATIC = "systematic"
+
+
+def prep_multiartifactlatefusion_model(model_path):
+    # Create the base model
+    input_shape = (240, 180, 1)
+    base_model = create_base_cnn(input_shape, dropout=False)
+    base_model.summary()
+    assert base_model.output_shape == (None, 128)
+
+    # Create the head
+    head_input_shape = (128 * N_ARTIFACTS, )
+    head_model = create_head(head_input_shape, dropout=False)
+
+    # Implement artifact flow through the same model
+    model_input = layers.Input(shape=(IMAGE_TARGET_HEIGHT, IMAGE_TARGET_WIDTH, N_ARTIFACTS))
+    features_list = []
+    for i in range(N_ARTIFACTS):
+        features_part = model_input[:, :, :, i:i + 1]
+        features_part = base_model(features_part)
+        features_list.append(features_part)
+    concatenation = layers.concatenate(features_list, axis=-1)
+    assert concatenation.shape.as_list() == tf.TensorShape((None, 128 * N_ARTIFACTS)).as_list()
+    model_output = head_model(concatenation)
+
+    model = models.Model(model_input, model_output)
+    model.save(model_path)
+
+
+def test_multiartifactevaluation_evaluate():
+    data_config = copy(DATA_CONFIG)
+    data_config.SAMPLING_STRATEGY = SAMPLING_STRATEGY_SYSTEMATIC
+    data_config.N_ARTIFACTS = N_ARTIFACTS
+
+    # Prep
+    evaluation = MultiartifactEvaluation(MODEL_CONFIG, model_base_dir=None, dataset_path=DATASET_PATH)
+
+    with TemporaryDirectory() as model_path:
+        evaluation.model_path = model_path
+        prep_multiartifactlatefusion_model(model_path)
+        qrcode_paths = evaluation.get_the_qr_code_path()
+        # _, _ = evaluation.prepare_dataset(qrcode_paths, data_config, FILTER_CONFIG=None)
+        predictions = evaluation.get_prediction_(evaluation.model_path, qrcode_paths, data_config)
+        df = evaluation.prepare_dataframe(predictions)
+        descriptor = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else MODEL_CONFIG.EXPERIMENT_NAME
+
+    # Run
+    with TemporaryDirectory() as output_csv_path:
+        evaluation.evaluate(df, data_config, RESULT_CONFIG, EVAL_CONFIG, output_csv_path, descriptor)
+
+
+if __name__ == "__main__":
     # test_evaluation_get_the_qr_code_path()
     # test_evaluation_prepare_dataset()
     # test_evaluation_evaluate()
     # test_ensembleevaluation_evaluate()
+    test_multiartifactevaluation_evaluate()
