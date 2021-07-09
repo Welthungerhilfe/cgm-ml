@@ -214,10 +214,14 @@ class Depthmap:
                                 stack.append(pixel_dir)
 
                     # Update AABB
-                    if aabb[0] > pixel[0]: aabb[0] = pixel[0]
-                    if aabb[1] > pixel[1]: aabb[1] = pixel[1]
-                    if aabb[2] < pixel[0]: aabb[2] = pixel[0]
-                    if aabb[3] < pixel[1]: aabb[3] = pixel[1]
+                    if aabb[0] > pixel[0]:
+                        aabb[0] = pixel[0]
+                    if aabb[1] > pixel[1]:
+                        aabb[1] = pixel[1]
+                    if aabb[2] < pixel[0]:
+                        aabb[2] = pixel[0]
+                    if aabb[3] < pixel[1]:
+                        aabb[3] = pixel[1]
 
                     # Update the mask
                     mask[pixel[0]][pixel[1]] = current
@@ -245,7 +249,7 @@ class Depthmap:
         for x in range(self.width):
             for y in range(self.height):
                 if (mask[x][y] == focus):
-                   mask[x][y] = MASK_CHILD
+                    mask[x][y] = MASK_CHILD
 
         return mask
 
@@ -304,11 +308,16 @@ class Depthmap:
         depth_y_plus = self.parse_depth(tx, ty + 1)
 
         # Ensure the depth is defined
-        if depth_center == 0: return 0
-        if depth_x_minus == 0: return 0
-        if depth_x_plus == 0: return 0
-        if depth_y_minus == 0: return 0
-        if depth_y_plus == 0: return 0
+        if depth_center == 0:
+            return 0
+        if depth_x_minus == 0:
+            return 0
+        if depth_x_plus == 0:
+            return 0
+        if depth_y_minus == 0:
+            return 0
+        if depth_y_plus == 0:
+            return 0
 
         # Average the depth value
         depths = [depth_x_minus, depth_x_plus, depth_y_minus, depth_y_plus, depth_center]
