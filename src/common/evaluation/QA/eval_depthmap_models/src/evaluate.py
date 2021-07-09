@@ -46,7 +46,7 @@ if is_offline_run(RUN):
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
 from temp_common.evaluation.eval_utilities import (  # noqa: E402, F401
-    Evaluation, EnsembleEvaluation,
+    Evaluation, EnsembleEvaluation, MultiartifactEvaluation,
     download_dataset, get_dataset_path)
 
 
@@ -133,6 +133,10 @@ def is_ensemble_evaluation(model_config: Bunch) -> bool:
     return getattr(model_config, 'RUN_IDS', False)
 
 
+def is_multiartifact_evaluation(data_config: Bunch) -> bool:
+    return getattr(data_config, "N_ARTIFACTS", 1) > 1
+
+
 if __name__ == "__main__":
 
     # Make experiment reproducible
@@ -147,11 +151,15 @@ if __name__ == "__main__":
         initializer = OnlineRunInitializer(DATA_CONFIG, RUN)
 
     if is_ensemble_evaluation(MODEL_CONFIG):
-        MODEL_BASE_DIR = (REPO_DIR / 'data'
-                          / MODEL_CONFIG.EXPERIMENT_NAME) if is_offline_run(RUN) else Path('.')
+        MODEL_BASE_DIR = (REPO_DIR / 'data' / MODEL_CONFIG.EXPERIMENT_NAME) if is_offline_run(RUN) else Path('.')
         evaluation = EnsembleEvaluation(MODEL_CONFIG, MODEL_BASE_DIR, initializer.dataset_path)
         evaluation.get_the_model_path(initializer.workspace)
         model_paths = evaluation.model_paths
+    elif is_multiartifact_evaluation(DATA_CONFIG):
+        MODEL_BASE_DIR = REPO_DIR / 'data' / RUN_ID if is_offline_run(RUN) else Path('.')
+        evaluation = MultiartifactEvaluation(MODEL_CONFIG, MODEL_BASE_DIR, initializer.dataset_path)
+        evaluation.get_the_model_path(initializer.workspace)
+        model_path = evaluation.model_path
     else:
         MODEL_BASE_DIR = REPO_DIR / 'data' / RUN_ID if is_offline_run(RUN) else Path('.')
         evaluation = Evaluation(MODEL_CONFIG, MODEL_BASE_DIR, initializer.dataset_path)
@@ -165,7 +173,7 @@ if __name__ == "__main__":
         logging.info("Executing on %d qrcodes for FAST RUN", EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN)
 
     # Is this a multiartifact model?
-    if getattr(DATA_CONFIG, "N_ARTIFACTS", 1) > 1:
+    if is_multiartifact_evaluation(DATA_CONFIG):
         predictions: List[List[str]] = evaluation.get_prediction_(model_path, qrcode_paths, DATA_CONFIG)
         df = evaluation.prepare_dataframe(predictions)
 
