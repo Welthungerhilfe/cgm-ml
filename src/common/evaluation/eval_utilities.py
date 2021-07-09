@@ -802,6 +802,12 @@ class MultiartifactEvaluation(Evaluation):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
+    def prepare_dataset(self,
+                        qrcode_paths: List[str],
+                        DATA_CONFIG: Bunch,
+                        FILTER_CONFIG: Bunch) -> Tuple[tf.data.Dataset, List[str]]:
+        return tf.data.Dataset([]), []
+
     def get_prediction_(self,
                         model_path: Path,
                         qrcode_paths: List[str],
