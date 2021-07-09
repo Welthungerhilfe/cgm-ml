@@ -12,7 +12,7 @@ from typing import List
 
 from depthmap_utils import (
     matrix_calculate, IDENTITY_MATRIX_4D, parse_numbers, diff, cross, norm, matrix_transform_point)
-from constants import EXTRACTED_DEPTH_FILE_NAME, MASK_FLOOR, MASK_CHILD
+from constants import EXTRACTED_DEPTH_FILE_NAME, MASK_FLOOR, MASK_CHILD, MASK_INVALID
 
 logging.basicConfig(
     level=logging.INFO,
@@ -175,39 +175,77 @@ class Depthmap:
 
     def detect_child(self, floor: float) -> np.array:
 
-        # mask the floor
+        # Mask the floor
         mask = np.zeros((self.width, self.height))
         for x in range(self.width):
             for y in range(self.height):
-                depth = self.parse_depth(x, y)
+                depth = self.parse_depth_smoothed(x, y)
                 if not depth:
+                    mask[x][y] = MASK_INVALID
                     continue
                 normal = self.calculate_normal_vector(x, y)
                 point = self.convert_2d_to_3d_oriented(1, x, y, depth)
-                if abs(normal[1]) > 0.5:
-                    if abs(point[1] - floor) < 0.1:
-                        mask[x][y] = MASK_FLOOR
+                if abs(normal[1]) > 0.5 and abs(point[1] - floor) < 0.1:
+                    mask[x][y] = MASK_FLOOR
 
-        # highlight the focused child/object using seed algorithm
+        # Detect objects/children using seed algorithm
+        current = -1
+        segments = []
         dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]]
-        pixel = [int(self.width / 2), int(self.height / 2)]
-        stack = [pixel]
-        while len(stack) > 0:
+        for x in range(self.width):
+            for y in range(self.height):
+                if mask[x][y] != 0:
+                    continue
+                pixel = [x, y]
+                aabb = [pixel[0], pixel[1], pixel[0], pixel[1]]
+                stack = [pixel]
+                while len(stack) > 0:
 
-            # get a next pixel from the stack
-            pixel = stack.pop()
-            depth_center = self.parse_depth(pixel[0], pixel[1])
+                    # Get a next pixel from the stack
+                    pixel = stack.pop()
+                    depth_center = self.parse_depth(pixel[0], pixel[1])
 
-            # add neighbor points (if there is no floor and they are connected)
-            if mask[pixel[0]][pixel[1]] == 0:
-                for direction in dirs:
-                    pixel_dir = [pixel[0] + direction[0], pixel[1] + direction[1]]
-                    depth_dir = self.parse_depth(pixel_dir[0], pixel_dir[1])
-                    if depth_dir > 0 and (depth_dir - depth_center) < 0.1:
-                        stack.append(pixel_dir)
+                    # Add neighbor points (if there is no floor and they are connected)
+                    if mask[pixel[0]][pixel[1]] == 0:
+                        for direction in dirs:
+                            pixel_dir = [pixel[0] + direction[0], pixel[1] + direction[1]]
+                            depth_dir = self.parse_depth(pixel_dir[0], pixel_dir[1])
+                            if depth_dir > 0 and abs(depth_dir - depth_center) < 0.1:
+                                stack.append(pixel_dir)
 
-            # update the mask
-            mask[pixel[0]][pixel[1]] = MASK_CHILD
+                    # Update AABB
+                    if aabb[0] > pixel[0]: aabb[0] = pixel[0]
+                    if aabb[1] > pixel[1]: aabb[1] = pixel[1]
+                    if aabb[2] < pixel[0]: aabb[2] = pixel[0]
+                    if aabb[3] < pixel[1]: aabb[3] = pixel[1]
+
+                    # Update the mask
+                    mask[pixel[0]][pixel[1]] = current
+
+                # Check if the object size is valid
+                object_size_pixels = max(aabb[2] - aabb[0], aabb[3] - aabb[1])
+                if (object_size_pixels > self.width / 4):
+                    segments.append([current, aabb])
+                current = current - 1
+
+        # Select the most focused segment
+        closest = 9999999
+        focus = -1
+        for segment in segments:
+            a = segment[1][0] - int(self.width / 2)
+            b = segment[1][1] - int(self.height / 2)
+            c = segment[1][2] - int(self.width / 2)
+            d = segment[1][3] - int(self.height / 2)
+            distance = a * a + b * b + c * c + d * d
+            if closest > distance:
+                closest = distance
+                focus = segment[0]
+
+        # Highlight the focused segment
+        for x in range(self.width):
+            for y in range(self.height):
+                if (mask[x][y] == focus):
+                   mask[x][y] = MASK_CHILD
 
         return mask
 
@@ -257,11 +295,22 @@ class Depthmap:
 
     def parse_depth_smoothed(self, tx: int, ty) -> float:
         """Get average depth value from neighboring pixels"""
+
+        # Get all neightbor depths
         depth_center = self.parse_depth(tx, ty)
         depth_x_minus = self.parse_depth(tx - 1, ty)
         depth_x_plus = self.parse_depth(tx + 1, ty)
         depth_y_minus = self.parse_depth(tx, ty - 1)
         depth_y_plus = self.parse_depth(tx, ty + 1)
+
+        # Ensure the depth is defined
+        if depth_center == 0: return 0
+        if depth_x_minus == 0: return 0
+        if depth_x_plus == 0: return 0
+        if depth_y_minus == 0: return 0
+        if depth_y_plus == 0: return 0
+
+        # Average the depth value
         depths = [depth_x_minus, depth_x_plus, depth_y_minus, depth_y_plus, depth_center]
         return sum(depths) / len(depths)
 
