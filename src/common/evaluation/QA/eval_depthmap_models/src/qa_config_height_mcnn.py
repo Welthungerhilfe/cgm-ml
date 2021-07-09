@@ -56,7 +56,6 @@ DATA_CONFIG = Bunch(dict(
     TARGET_INDEXES=[0, ],
 
     CODES=['100', '101', '102', '200', '201', '202'],
-    CODES_FOR_POSE_AND_SCANSTEP=['100', '101', '102', '200', '201', '202']
 ))
 
 # Result configuration for result generation after evaluation is done
