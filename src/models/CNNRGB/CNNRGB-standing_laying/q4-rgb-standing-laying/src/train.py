@@ -18,8 +18,8 @@ from model import create_cnn, set_trainable_below_layers
 from train_util import copy_dir
 from sl_preprocessing import process_path
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 run = Run.get_context()
 
@@ -37,20 +37,20 @@ tf.random.set_seed(CONFIG.SPLIT_SEED)
 random.seed(CONFIG.SPLIT_SEED)
 
 DATA_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path(".")
-logging.info('DATA_DIR: %s', DATA_DIR)
+logger.info('DATA_DIR: %s', DATA_DIR)
 
 # Offline run. Download the sample dataset and run locally. Still push results to Azure.
 if(run.id.startswith("OfflineRun")):
-    logging.info('Running in offline mode...')
+    logger.info('Running in offline mode...')
 
     # Access workspace.
-    logging.info('Accessing workspace...')
+    logger.info('Accessing workspace...')
     workspace = Workspace.from_config()
     experiment = Experiment(workspace, "training-junkyard")
     run = experiment.start_logging(outputs=None, snapshot_directory=None)
 
     # Get dataset.
-    logging.info('Accessing dataset...')
+    logger.info('Accessing dataset...')
     dataset_name = "anon-rgb-classification"
     dataset_path = str(REPO_DIR / "data" / dataset_name)
     if not os.path.exists(dataset_path):
@@ -63,7 +63,7 @@ if(run.id.startswith("OfflineRun")):
 
 # Online run. Use dataset provided by training notebook.
 else:
-    logging.info('Running in online mode...')
+    logger.info('Running in online mode...')
     experiment = run.experiment
     workspace = experiment.workspace
 
@@ -73,10 +73,10 @@ else:
 
 # Get the Image paths.
 dataset_path = os.path.join(dataset_path, "train")
-logging.info('Dataset path: %s', dataset_path)
-logging.info('Getting image...')
+logger.info('Dataset path: %s', dataset_path)
+logger.info('Getting image...')
 image_paths = glob.glob(os.path.join(dataset_path, "*/*.jpg"))
-logging.info('Image Path: % d', len(image_paths))
+logger.info('Image Path: % d', len(image_paths))
 assert len(image_paths) != 0
 
 # Shuffle and split into train and validate.
@@ -89,11 +89,11 @@ del image_paths
 
 # Show split.
 
-logging.info('Paths for training: \n\t' + '\n\t'.join(image_paths_training))
-logging.info('Paths for validation: \n\t' + '\n\t'.join(image_paths_validate))
+logger.info('Paths for training: \n\t' + '\n\t'.join(image_paths_training))
+logger.info('Paths for validation: \n\t' + '\n\t'.join(image_paths_validate))
 
-logging.info('Nbr of image_paths for training: %d', len(image_paths_training))
-logging.info('Nbr of image_paths for validation: %d', len(image_paths_validate))
+logger.info('Nbr of image_paths for training: %d', len(image_paths_training))
+logger.info('Nbr of image_paths for validation: %d', len(image_paths_validate))
 
 assert len(image_paths_training) > 0 and len(image_paths_validate) > 0
 
@@ -124,7 +124,7 @@ del dataset_norm
 input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 3)
 model = create_cnn(input_shape, dropout=True)
 model.summary()
-logging.info(len(model.trainable_weights))
+logger.info(len(model.trainable_weights))
 
 # Add checkpoint callback.
 #best_model_path = os.path.join('validation','best_model.h5')

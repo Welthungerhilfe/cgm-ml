@@ -1,8 +1,12 @@
 import pandas as pd
 import logging
+import logging.config
 
 from glob2 import glob
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 ACCURACY_THRESHOLD = 2
 CSV_PATH = "./outputs/**/inaccurate_scans_*.csv"
@@ -78,7 +82,7 @@ def calculate_inaccurate_scans(csv_filepath: str) -> set:
 if __name__ == "__main__":
     csv_files = glob(CSV_PATH)
     if len(csv_files) != 2:
-        logging.warning("path contains 0 or more than 2 csv files")
+        logger.warning("path contains 0 or more than 2 csv files")
 
     scan_sets = [calculate_inaccurate_scans(filepath) for filepath in csv_files]
     union_set = calculate_union(scan_sets[0], scan_sets[1])

@@ -16,8 +16,8 @@ from pyntcloud import PyntCloud
 import pickle
 from . import utils
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logger.INFO)
 
 
 class ETLDataGenerator(object):
@@ -119,7 +119,7 @@ class ETLDataGenerator(object):
         self.qrcodes_dictionary = {}
         for qrcode in self.qrcodes:
             self.qrcodes_dictionary[qrcode] = []
-            #logging.info("QR-code:", qrcode)
+            #logger.info("QR-code:", qrcode)
             measurement_paths = glob.glob(os.path.join(self.dataset_path, qrcode, "*"))
             for measurement_path in measurement_paths:
                 # Getting PCDs.
@@ -142,23 +142,23 @@ class ETLDataGenerator(object):
     def analyze_files(self):
 
         for qrcode in self.qrcodes:
-            logging.info("QR-code: %s", qrcode)
+            logger.info("QR-code: %s", qrcode)
             for pcd_paths, jpg_paths, targets in self.qrcodes_dictionary[qrcode]:
-                logging.info(" %d PCD-files for targets %s", len(pcd_paths), targets)
-                logging.info(" %d JPG-files for targets %s", len(jpg_paths), targets)
+                logger.info(" %d PCD-files for targets %s", len(pcd_paths), targets)
+                logger.info(" %d JPG-files for targets %s", len(jpg_paths), targets)
 
-        logging.info("Total PCD-files: %d", len(self.all_pcd_paths))
-        logging.info("Total JPG-files: %d", len(self.all_jpg_paths))
+        logger.info("Total PCD-files: %d", len(self.all_pcd_paths))
+        logger.info("Total JPG-files: %d", len(self.all_jpg_paths))
 
         #measurement_paths = glob.glob(os.path.join(self.dataset_path, qrcode, "*"))
         #for measurement_path in measurement_paths:
-        #    logging.info("  %s", measurement_path.split("/")[-1])
+        #    logger.info("  %s", measurement_path.split("/")[-1])
         #    pcd_paths = glob.glob(os.path.join(measurement_path, "*.pcd"))
-        #    logging.info("    %d PCDs", len(pcd_paths))
-        #logging.info("Number of JPGs: %d", len(self.jpg_paths))
-        #logging.info("Number of PCDs: %d", len(self.pcd_paths))
-        #logging.info("Number of JSONs (personal): %d", len(self.json_paths_personal))
-        #logging.info("Number of JSONs (measures): %d", len(self.json_paths_measures))
+        #    logger.info("    %d PCDs", len(pcd_paths))
+        #logger.info("Number of JPGs: %d", len(self.jpg_paths))
+        #logger.info("Number of PCDs: %d", len(self.pcd_paths))
+        #logger.info("Number of JSONs (personal): %d", len(self.json_paths_personal))
+        #logger.info("Number of JSONs (measures): %d", len(self.json_paths_measures))
 
     def generate(self, size, qrcodes_to_use=None, verbose=False, yield_file_paths=False, multiprocessing_jobs=1):
 
@@ -318,7 +318,7 @@ class ETLDataGenerator(object):
 
 
 def create_datagenerator_from_parameters(dataset_path, dataset_parameters):
-    logging.info("Creating data-generator...")
+    logger.info("Creating data-generator...")
     datagenerator = ETLDataGenerator(
         dataset_path=dataset_path,
         input_type=dataset_parameters["input_type"],
@@ -350,7 +350,7 @@ def get_dataset_path(root_path="../data/etl"):
 
 def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, output_queue):
     if verbose is True:
-        logging.info("Generating QR-codes to be used: %s", qrcodes_to_use)
+        logger.info("Generating QR-codes to be used: %s", qrcodes_to_use)
 
     assert size != 0
 
@@ -442,7 +442,7 @@ def get_input(class_self, jpg_paths, pcd_paths):
     # Get a random image.
     if class_self.input_type == "image":
         if len(jpg_paths) == 0:
-            logging.info("777")
+            logger.info("777")
             return None, None
         jpg_path = random.choice(jpg_paths)
         image = class_self._load_image(jpg_path)

@@ -10,8 +10,8 @@ from azureml.core.run import Run
 from azureml.core.workspace import Workspace
 from tensorflow.keras import callbacks
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def get_optimizer(use_one_cycle: bool, lr: float,
@@ -28,13 +28,13 @@ def get_optimizer(use_one_cycle: bool, lr: float,
 
 
 def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
-    logging.info("Accessing dataset...")
+    logger.info("Accessing dataset...")
     if os.path.exists(dataset_path):
         return
     dataset = workspace.datasets[dataset_name]
-    logging.info("Downloading dataset %s", dataset_name)
+    logger.info("Downloading dataset %s", dataset_name)
     dataset.download(target_path=dataset_path, overwrite=False)
-    logging.info("Finished downloading %s", dataset_name)
+    logger.info("Finished downloading %s", dataset_name)
 
 
 def get_dataset_path(data_dir: Path, dataset_name: str) -> str:

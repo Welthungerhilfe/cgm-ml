@@ -14,8 +14,8 @@ sys.path.append(str(Path(__file__).parent))
 
 from model_utils_constants import SAMPLING_STRATEGY_SYSTEMATIC, SAMPLING_STRATEGY_WINDOW  # noqa: E402
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 REGEX_PICKLE = re.compile(
     r"pc_(?P<qrcode>[a-zA-Z0-9]+-[a-zA-Z0-9]+)_(?P<unixepoch>\d+)_(?P<code>\d{3})_(?P<idx>\d{3}).p$"
@@ -101,4 +101,4 @@ def _get_epoch(fname: str) -> str:
     if match_result:
         return match_result.group("unixepoch")
     else:
-        logging.info("%s doesn't match REGEX_PICKLE", fname)
+        logger.info("%s doesn't match REGEX_PICKLE", fname)

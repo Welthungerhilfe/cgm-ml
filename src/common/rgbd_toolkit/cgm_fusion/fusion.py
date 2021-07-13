@@ -29,8 +29,8 @@ from pyntcloud import PyntCloud
 from cgm_fusion.calibration import get_extrinsic_matrix, get_intrinsic_matrix, get_k
 from cgm_fusion.utility import fuse_point_cloud
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def project_points(pcd_points, calibration_file):
@@ -53,31 +53,31 @@ def project_points(pcd_points, calibration_file):
 
 def get_depth_image_from_point_cloud(calibration_file, pcd_file, output_file):
     if not os.path.exists(pcd_file):  # check all files exist
-        logging.info('Point cloud does not exist')
+        logger.info('Point cloud does not exist')
         return
 
     if not os.path.exists(calibration_file):  # check if the califile exists
-        logging.info('Calibration does not exist')
+        logger.info('Calibration does not exist')
         return
 
     try:
         cloud = PyntCloud.from_file(pcd_file)  # load the data from the files
     except ValueError:
-        logging.info(" Error reading point cloud ")
+        logger.info(" Error reading point cloud ")
         raise
 
     # points       = cloud.points.values[:, :3]
     z = cloud.points.values[:, 3]
 
-    logging.info(cloud.points.values.shape)
+    logger.info(cloud.points.values.shape)
 
     #height = 172  # todo: get this from calibration file
 
     z = (z - min(z)) / (max(z) - min(z))  # normalize the data to 0 to 1
 
-    # logging.info(z)
+    # logger.info(z)
 
-    # logging.info(z.size)
+    # logger.info(z.size)
 
     # iterat of the points and calculat the x y coordinates in the image
     # get the data for calibration
@@ -134,7 +134,7 @@ def fuse_rgbd(calibration_file,
     try:
         cloud = PyntCloud.from_file(pcd_file)  # load the data from the files
     except ValueError:
-        logging.error(" Error reading point cloud ")
+        logger.error(" Error reading point cloud ")
         raise
 
     points = cloud.points.values[:, :3]
@@ -201,25 +201,25 @@ def fuse_rgbd(calibration_file,
 def apply_fusion(calibration_file, pcd_file, jpg_file, seg_path):
     '''Check the path if everything is correct'''
     if not os.path.exists(pcd_file):  # check all files exist
-        logging.error('Point cloud does not exist')
+        logger.error('Point cloud does not exist')
         return
 
     if not os.path.exists(jpg_file):  # check if the jpg file exists
-        logging.error('Image does not exist')
+        logger.error('Image does not exist')
         return
 
     if not os.path.exists(seg_path):  # check if segmentation exists
-        logging.error('Segmentation not found')
+        logger.error('Segmentation not found')
         return
 
     if not os.path.exists(calibration_file):  # check if the califile exists
-        logging.error('Calibration does not exist')
+        logger.error('Calibration does not exist')
         return
 
     try:
         cloud = PyntCloud.from_file(pcd_file)  # load the data from the files
     except ValueError:
-        logging.error(" Error reading point cloud ")
+        logger.error(" Error reading point cloud ")
         raise
 
     jpg = cv2.imread(jpg_file, -1)

@@ -7,14 +7,14 @@ import logging.config
 import depthmap
 import exporter
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        logging.info('You did not enter depthmap_dir folder and calibration file path')
-        logging.info('E.g.: python convertdepth2pcd.py depthmap_dir calibration file')
+        logger.info('You did not enter depthmap_dir folder and calibration file path')
+        logger.info('E.g.: python convertdepth2pcd.py depthmap_dir calibration file')
         sys.exit(1)
 
     depthmap_dir = sys.argv[1]
@@ -36,4 +36,4 @@ if __name__ == "__main__":
         output_filename = f'export/output{filename}.pcd'
         exporter.export_pcd(output_filename, dmap)
 
-    logging.info('Data exported into folder export')
+    logger.info('Data exported into folder export')

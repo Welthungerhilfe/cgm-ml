@@ -19,8 +19,8 @@ import pickle
 from . import utils
 from bunch import Bunch
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class PreprocessedDataGenerator(object):
@@ -158,15 +158,15 @@ class PreprocessedDataGenerator(object):
     def analyze_files(self):
 
         for qrcode in self.qrcodes:
-            logging.info("QR-code: %s", qrcode)
-            logging.info("  Number of samples: %d", len(self.qrcodes_dictionary[qrcode]))
+            logger.info("QR-code: %s", qrcode)
+            logger.info("  Number of samples: %d", len(self.qrcodes_dictionary[qrcode]))
 
     def generate(self, size, qrcodes_to_use=None, verbose=False, workers=1):
 
         if qrcodes_to_use is None:
             qrcodes_to_use = self.qrcodes
 
-        logging.info("Using %d workers...", workers)
+        logger.info("Using %d workers...", workers)
 
         # Main loop for single processing.
         if workers == 1:
@@ -267,7 +267,7 @@ def generate_data(class_self, size, qrcodes_to_use, verbose, return_control="ret
         class_self = Bunch(dict(class_self))
 
     if verbose is True:
-        logging.info("Generating QR-codes to be used: %s", qrcodes_to_use)
+        logger.info("Generating QR-codes to be used: %s", qrcodes_to_use)
 
     assert size != 0
 
@@ -435,7 +435,7 @@ def get_input(class_self, pointcloud):
 
 
 def create_datagenerator_from_parameters(dataset_path, dataset_parameters):
-    logging.info("Creating data-generator...")
+    logger.info("Creating data-generator...")
     datagenerator = PreprocessedDataGenerator(
         dataset_path=dataset_path,
         input_type=dataset_parameters["input_type"],

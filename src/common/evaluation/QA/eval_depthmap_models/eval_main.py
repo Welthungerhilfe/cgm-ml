@@ -17,15 +17,15 @@ sys.path.append(Path(__file__).parent)
 
 from src.constants import REPO_DIR, DEFAULT_CONFIG  # noqa: E402, F401
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logger.INFO)
 
 CWD = Path(__file__).parent
 TAGS = {}
 
 
 def copy_dir(src: Path, tgt: Path, glob_pattern: str, should_touch_init: bool = False):
-    logging.info("Creating temp folder")
+    logger.info("Creating temp folder")
     if tgt.exists():
         shutil.rmtree(tgt)
     tgt.mkdir(parents=True, exist_ok=True)
@@ -33,7 +33,7 @@ def copy_dir(src: Path, tgt: Path, glob_pattern: str, should_touch_init: bool = 
         (tgt / '__init__.py').touch(exist_ok=False)
 
     paths_to_copy = list(src.glob(glob_pattern))
-    logging.info(f"Copying to {tgt} the following files: {str(paths_to_copy)}")
+    logger.info(f"Copying to {tgt} the following files: {str(paths_to_copy)}")
     for p in paths_to_copy:
         destpath = tgt / p.relative_to(src)
         destpath.parent.mkdir(parents=True, exist_ok=True)
@@ -45,7 +45,7 @@ if __name__ == "__main__":
     parser.add_argument("--qa_config_module", default=DEFAULT_CONFIG, help="Configuration file")
     args = parser.parse_args()
 
-    logging.info('Using the following config: %s', args.qa_config_module)
+    logger.info('Using the following config: %s', args.qa_config_module)
     qa_config = import_module(f'src.{args.qa_config_module}')
     MODEL_CONFIG = qa_config.MODEL_CONFIG
     EVAL_CONFIG = qa_config.EVAL_CONFIG
@@ -80,20 +80,20 @@ if __name__ == "__main__":
     try:
         # Compute cluster exists. Just connect to it.
         compute_target = ComputeTarget(workspace=workspace, name=EVAL_CONFIG.CLUSTER_NAME)
-        logging.info("Found existing compute target.")
+        logger.info("Found existing compute target.")
     except ComputeTargetException:
-        logging.info("Creating a new compute target...")
+        logger.info("Creating a new compute target...")
         compute_config = AmlCompute.provisioning_configuration(vm_size='Standard_NC6', max_nodes=4)
         compute_target = ComputeTarget.create(workspace, EVAL_CONFIG.CLUSTER_NAME, compute_config)
         compute_target.wait_for_completion(show_output=True, min_node_count=None, timeout_in_minutes=20)
-    logging.info("Compute target: %s", compute_target)
+    logger.info("Compute target: %s", compute_target)
 
     dataset = workspace.datasets[DATA_CONFIG.NAME]
-    logging.info("dataset: %s", dataset)
+    logger.info("dataset: %s", dataset)
 
     # parameters used in the evaluation
     script_params = {"--qa_config_module": args.qa_config_module}
-    logging.info("script_params: %s", script_params)
+    logger.info("script_params: %s", script_params)
 
     start = time.time()
 
@@ -112,21 +112,21 @@ if __name__ == "__main__":
     run = experiment.submit(config=script_run_config, tags=TAGS)
 
     # Show run.
-    logging.info("Run: %s", run)
+    logger.info("Run: %s", run)
 
     # Check the logs of the current run until is complete
     run.wait_for_completion(show_output=True)
 
     # Print Completed when run is completed
-    logging.info("Run status: %s", run.get_status())
+    logger.info("Run status: %s", run.get_status())
 
     end = time.time()
-    logging.info("Total time for evaluation experiment: %d sec", end - start)
+    logger.info("Total time for evaluation experiment: %d sec", end - start)
 
     # Download the evaluation results of the model
     GET_CSV_FROM_EXPERIMENT_PATH = '.'
     run.download_files(RESULT_CONFIG.SAVE_PATH, GET_CSV_FROM_EXPERIMENT_PATH)
-    logging.info("Downloaded the result.csv")
+    logger.info("Downloaded the result.csv")
 
     # Delete temp folder
     shutil.rmtree(temp_path)

@@ -9,8 +9,8 @@ import pandas as pd
 
 from cgmzscore import Calculator
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 module_dir = str(os.path.split(os.path.abspath(__file__))[0])
 
@@ -56,7 +56,7 @@ def test_zScore_lhfa():
         v = Calculator().zScore_lhfa(height=str(g), sex=sex,
                                      age_in_days=str((df['_agedays'][i])))
 
-        logging.info(g)
+        logger.info(g)
 
         ans = float("{0:.2f}". format(abs(v - df['_ZLEN'][i])))
         assert ans <= 0.01

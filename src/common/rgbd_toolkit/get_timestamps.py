@@ -1,7 +1,11 @@
 import logging
+import logging.config
 import re
 
 import numpy as np
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def get_timestamps_from_rgb(rgb_paths):
@@ -51,7 +55,7 @@ def get_timestamps_from_pcd(pcd_paths):
             timestamps = np.append(timestamps, stamp)
         except IndexError:
             error = np.array([])
-            logging.error("Error with timestamp in pcd")
+            logger.error("Error with timestamp in pcd")
             return [error, p]
 
     if len(timestamps) == 0:

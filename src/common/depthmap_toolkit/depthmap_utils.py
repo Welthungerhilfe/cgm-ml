@@ -1,12 +1,6 @@
-import logging
-import logging.config
 from math import sqrt
 from typing import List
 
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 IDENTITY_MATRIX_4D = [1., 0., 0., 0.,
                       0., 1., 0., 0.,

@@ -16,8 +16,8 @@ from config import CONFIG
 from constants import MODEL_CKPT_FILENAME, REPO_DIR
 from train_util import copy_dir
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 # Get the current run.
 run = Run.get_context()
@@ -39,14 +39,14 @@ tf.random.set_seed(CONFIG.SPLIT_SEED)
 random.seed(CONFIG.SPLIT_SEED)
 
 DATA_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path(".")
-logging.info('DATA_DIR: %s', DATA_DIR)
+logger.info('DATA_DIR: %s', DATA_DIR)
 
 # Offline run. Download the sample dataset and run locally. Still push results to Azure.
 if run.id.startswith("OfflineRun"):
-    logging.info('Running in offline mode...')
+    logger.info('Running in offline mode...')
 
     # Access workspace.
-    logging.info('Accessing workspace...')
+    logger.info('Accessing workspace...')
     workspace = Workspace.from_config()
     experiment = Experiment(workspace, "training-junkyard")
     run = experiment.start_logging(outputs=None, snapshot_directory=None)
@@ -57,7 +57,7 @@ if run.id.startswith("OfflineRun"):
 
 # Online run. Use dataset provided by training notebook.
 else:
-    logging.info('Running in online mode...')
+    logger.info('Running in online mode...')
     experiment = run.experiment
     workspace = experiment.workspace
 
@@ -68,11 +68,11 @@ else:
 
 # Get the QR-code paths.
 dataset_path = os.path.join(dataset_path, "scans")
-logging.info('Dataset path: %s', dataset_path)
-#logging.info(glob.glob(os.path.join(dataset_path, "*"))) # Debug
-logging.info('Getting QR-code paths...')
+logger.info('Dataset path: %s', dataset_path)
+#logger.info(glob.glob(os.path.join(dataset_path, "*"))) # Debug
+logger.info('Getting QR-code paths...')
 qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
-logging.info('qrcode_paths: %d', len(qrcode_paths))
+logger.info('qrcode_paths: %d', len(qrcode_paths))
 assert len(qrcode_paths) != 0
 
 qrcode_paths = filter_blacklisted_qrcodes(qrcode_paths)
@@ -88,12 +88,12 @@ qrcode_paths_activation = [qrcode_paths_activation]
 del qrcode_paths
 
 # Show split.
-logging.info('Paths for training: \n\t' + '\n\t'.join(qrcode_paths_training))
-logging.info('Paths for validation: \n\t' + '\n\t'.join(qrcode_paths_validate))
-logging.info('Paths for activation: \n\t' + '\n\t'.join(qrcode_paths_activation))
+logger.info('Paths for training: \n\t' + '\n\t'.join(qrcode_paths_training))
+logger.info('Paths for validation: \n\t' + '\n\t'.join(qrcode_paths_validate))
+logger.info('Paths for activation: \n\t' + '\n\t'.join(qrcode_paths_activation))
 
-logging.info('Nbr of qrcode_paths for training: %d', len(qrcode_paths_training))
-logging.info('Nbr of qrcode_paths for validation: %d', len(qrcode_paths_validate))
+logger.info('Nbr of qrcode_paths for training: %d', len(qrcode_paths_training))
+logger.info('Nbr of qrcode_paths for validation: %d', len(qrcode_paths_validate))
 
 assert len(qrcode_paths_training) > 0 and len(qrcode_paths_validate) > 0
 
@@ -106,7 +106,7 @@ def get_depthmap_files(paths):
 
 
 # Get the pointclouds.
-logging.info('Getting depthmap paths...')
+logger.info('Getting depthmap paths...')
 paths_training = get_depthmap_files(qrcode_paths_training)
 paths_validate = get_depthmap_files(qrcode_paths_validate)
 paths_activate = get_depthmap_files(qrcode_paths_activation)
@@ -115,9 +115,9 @@ del qrcode_paths_training
 del qrcode_paths_validate
 del qrcode_paths_activation
 
-logging.info('Using %d files for training.', len(paths_training))
-logging.info('Using %d files for validation.', len(paths_validate))
-logging.info('Using %d files for activation.', len(paths_activate))
+logger.info('Using %d files for training.', len(paths_training))
+logger.info('Using %d files for validation.', len(paths_validate))
+logger.info('Using %d files for activation.', len(paths_activate))
 
 
 # Function for loading and processing depthmaps.

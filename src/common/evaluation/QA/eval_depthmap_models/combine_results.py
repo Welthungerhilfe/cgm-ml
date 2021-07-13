@@ -7,6 +7,9 @@ from glob2 import glob
 
 OUTPUT_FILE_NAME = 'evaluated_models_result.csv'
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
 
 def combine_model_results(csv_file_list: List[str], output_path: str):
     """Function to combine the models resultant csv files into a single file
@@ -16,7 +19,7 @@ def combine_model_results(csv_file_list: List[str], output_path: str):
         output_path: target folder path where to save result csv file
     """
     if len(csv_file_list) <= 0:
-        logging.warning("No csv files found in output directory to combine")
+        logger.warning("No csv files found in output directory to combine")
         return
     result_list = [pd.read_csv(results, index_col=0) for results in csv_file_list]
     final_result = pd.concat(result_list, axis=0)

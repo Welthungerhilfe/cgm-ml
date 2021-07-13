@@ -3,6 +3,7 @@ import pickle
 import multiprocessing
 import json
 import logging
+import logging.config
 from typing import Tuple
 
 import numpy as np
@@ -15,6 +16,9 @@ TARGET_HEIGHT = 180
 TARGET_WIDTH = 240
 TARGET_PATH = '/mnt/huawei_dataset/anon-rgbd-5kscans'
 SOURCE_PATH = '/mnt/huawei_dataset/huawei_data'
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def load_depth(fpath: str) -> Tuple[bytes, int, int, float, float]:
@@ -107,7 +111,7 @@ def process_depthmap(depthmaps):
             depthmap_image_path, image_path = check_correspondence(unique_depthmaps, rgb_list)
         except Exception as e:
             message = f" Error '{e.message}' occurred. Depthmap file '{depthmap_files}' not found."
-            logging.info(message)
+            logger.info(message)
             continue
         scan_type = image_path.split('_')[3]
         artifact_name = image_path.split('rgb_')[1]

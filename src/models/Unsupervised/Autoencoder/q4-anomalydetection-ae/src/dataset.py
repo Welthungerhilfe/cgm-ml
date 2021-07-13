@@ -12,14 +12,14 @@ from tmp_model_util.utils import download_dataset, get_dataset_path
 from config import DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, REPO_DIR
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def create_datasets(workspace, experiment, run, offline_run, CONFIG):
 
     DATA_DIR = REPO_DIR / 'data' if offline_run else Path(".")
-    logging.info('DATA_DIR: %s', DATA_DIR)
+    logger.info('DATA_DIR: %s', DATA_DIR)
 
     # Offline run. Download the sample dataset and run locally. Still push results to Azure.
     if offline_run:
@@ -40,7 +40,7 @@ def create_datasets(workspace, experiment, run, offline_run, CONFIG):
         else:
             raise NameError(f"Unknown DATASET_MODE: {CONFIG.DATASET_MODE}")
 
-    logging.info('Using dataset path: %s', dataset_path)
+    logger.info('Using dataset path: %s', dataset_path)
 
     # Branch into specific datasets.
     if dataset_name == "anon_rgb_training":
@@ -55,17 +55,17 @@ def __create_anon_rgb_training(dataset_path, CONFIG):
 
     # Get the QR-code paths.
     dataset_path = os.path.join(dataset_path, "scans")
-    logging.info('Dataset path: %s', dataset_path)
-    #logging.info(glob.glob(os.path.join(dataset_path, "*"))) # Debug
-    logging.info('Getting QR-code paths...')
+    logger.info('Dataset path: %s', dataset_path)
+    #logger.info(glob.glob(os.path.join(dataset_path, "*"))) # Debug
+    logger.info('Getting QR-code paths...')
     qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
-    logging.info('qrcode_paths: %d', len(qrcode_paths))
+    logger.info('qrcode_paths: %d', len(qrcode_paths))
     assert len(qrcode_paths) != 0
 
     # Restricting to a fixed number of scans.
-    logging.info("Slicing scans...")
+    logger.info("Slicing scans...")
     qrcode_paths = qrcode_paths[:CONFIG.DATASET_MAX_SCANS]
-    logging.info('qrcode_paths: %d', len(qrcode_paths))
+    logger.info('qrcode_paths: %d', len(qrcode_paths))
     #assert len(qrcode_paths) == CONFIG.DATASET_MAX_SCANS
 
     # Shuffle and split into train and validate.
@@ -77,11 +77,11 @@ def __create_anon_rgb_training(dataset_path, CONFIG):
     del qrcode_paths
 
     # Show split.
-    logging.info('Paths for training: \n\t' + '\n\t'.join(qrcode_paths_training))
-    logging.info('Paths for validation: \n\t' + '\n\t'.join(qrcode_paths_validate))
+    logger.info('Paths for training: \n\t' + '\n\t'.join(qrcode_paths_training))
+    logger.info('Paths for validation: \n\t' + '\n\t'.join(qrcode_paths_validate))
 
-    logging.info('Nbr of qrcode_paths for training: %d', len(qrcode_paths_training))
-    logging.info('Nbr of qrcode_paths for validation: %d', len(qrcode_paths_validate))
+    logger.info('Nbr of qrcode_paths for training: %d', len(qrcode_paths_training))
+    logger.info('Nbr of qrcode_paths for validation: %d', len(qrcode_paths_validate))
 
     assert len(qrcode_paths_training) > 0 and len(qrcode_paths_validate) > 0
 
@@ -98,11 +98,11 @@ def __create_anon_rgb_training(dataset_path, CONFIG):
         return result_paths
 
     # Get the samples.
-    logging.info('Getting paths...')
+    logger.info('Getting paths...')
     paths_training = get_files(qrcode_paths_training)
     paths_validate = get_files(qrcode_paths_validate)
-    logging.info('Using %d files for training.', len(paths_training))
-    logging.info('Using %d files for validation.', len(paths_validate))
+    logger.info('Using %d files for training.', len(paths_training))
+    logger.info('Using %d files for validation.', len(paths_validate))
     assert paths_training != 0
     assert paths_validate != 0
 
@@ -162,7 +162,7 @@ def __create_anon_rgb_training(dataset_path, CONFIG):
 def __create_anomaly_detection_data(dataset_path, CONFIG):
 
     #dataset_path = os.path.join(dataset_path, "scans")
-    logging.info(glob.glob(os.path.join(dataset_path, "*")))
+    logger.info(glob.glob(os.path.join(dataset_path, "*")))
 
     good_paths = glob.glob(os.path.join(dataset_path, "not_bad", "*.jpg"))
     bad_paths = glob.glob(os.path.join(dataset_path, "bad", "*.jpg"))
@@ -173,9 +173,9 @@ def __create_anomaly_detection_data(dataset_path, CONFIG):
     paths_validate = good_paths[split_index:]
     paths_anomaly = bad_paths
 
-    logging.info('Training paths: %d', len(paths_training))
-    logging.info('Validate paths: %d', len(paths_validate))
-    logging.info('Anomaly paths: %d', len(paths_anomaly))
+    logger.info('Training paths: %d', len(paths_training))
+    logger.info('Validate paths: %d', len(paths_validate))
+    logger.info('Anomaly paths: %d', len(paths_anomaly))
     assert len(paths_training) * len(paths_validate) * len(paths_anomaly) != 0
 
     # Function for loading and processing images.

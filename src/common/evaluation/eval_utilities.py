@@ -25,8 +25,8 @@ from .constants_eval import (  # noqa: E402
 from .eval_utils import avgerror, preprocess_targets  # noqa: E402
 
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 MIN_HEIGHT = 45
 MAX_HEIGHT = 120
@@ -46,13 +46,13 @@ def process_image(data):
 
 
 def download_dataset(workspace: Workspace, dataset_name: str, dataset_path: str):
-    logging.info("Accessing dataset...")
+    logger.info("Accessing dataset...")
     if os.path.exists(dataset_path):
         return
     dataset = workspace.datasets[dataset_name]
-    logging.info("Downloading dataset %s", dataset_name)
+    logger.info("Downloading dataset %s", dataset_name)
     dataset.download(target_path=dataset_path, overwrite=False)
-    logging.info("Finished downloading %s", dataset_name)
+    logger.info("Finished downloading %s", dataset_name)
 
 
 def get_dataset_path(data_dir: Path, dataset_name: str):
@@ -290,7 +290,7 @@ def draw_uncertainty_scatterplot(df: pd.DataFrame, png_out_fpath: str):
     plt.grid()
 
     correlation, _ = pearsonr(df['error'], df['uncertainties'])
-    logging.info("correlation: %d", correlation)
+    logger.info("correlation: %d", correlation)
 
     plt.title(f"Per-scan sample artifact: Error over uncertainty (correlation={correlation:.3})")
     plt.xlabel("error")
@@ -436,7 +436,7 @@ def download_model(workspace, experiment_name, run_id, input_location, output_lo
     else:
         raise NameError(f"{input_location}'s path extension not supported")
 
-    logging.info("Successfully downloaded model")
+    logger.info("Successfully downloaded model")
 
 
 def filter_dataset_according_to_standing_lying(paths_evaluation, standing):

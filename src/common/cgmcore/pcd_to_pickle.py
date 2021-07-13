@@ -7,8 +7,8 @@ import os
 import logging
 import logging.config
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 source_path = '/mnt/depthmap/pcd_50k/'
@@ -48,9 +48,9 @@ def pcd_to_pickle(dataset):
 
 
 def main():
-    logging.info("Starting the data preparation.")
+    logger.info("Starting the data preparation.")
     pcd_to_pickle(dataset)
-    logging.info("dataset preparation finished.Check the %s path for outputs", target_path)
+    logger.info("dataset preparation finished.Check the %s path for outputs", target_path)
 
 
 if __name__ == "__main__":

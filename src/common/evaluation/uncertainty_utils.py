@@ -7,6 +7,9 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
 
 def get_prediction_uncertainty_deepensemble(model_paths: list,
                                             dataset_evaluation: tf.data.Dataset,
@@ -19,22 +22,22 @@ def get_prediction_uncertainty_deepensemble(model_paths: list,
         predictions, array shape (N_SAMPLES, )
     """
     dataset = dataset_evaluation.batch(batch_size)
-    logging.info("Start predicting uncertainty")
+    logger.info("Start predicting uncertainty")
 
     # Go through all models and compute standard deviation of predictions
     start = time.time()
     predictions_list = [_load_and_predict(model_path, dataset) for model_path in model_paths]
     end = time.time()
-    logging.info("Total time for uncertainty prediction experiment: %f:.3 sec", end - start)
+    logger.info("Total time for uncertainty prediction experiment: %f:.3 sec", end - start)
 
     std = _calculate_std(predictions_list)
     return std
 
 
 def _load_and_predict(model_path, dataset):
-    logging.info("Loading model from %s", model_path)
+    logger.info("Loading model from %s", model_path)
     model = load_model(model_path, compile=False)
-    logging.info("Predicting with model %s", model_path)
+    logger.info("Predicting with model %s", model_path)
     return _predict(model, dataset)
 
 

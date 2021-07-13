@@ -12,8 +12,8 @@ from .constants_eval import (  # noqa: E402, F401
     AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, COLUMN_NAME_SEX, CONFIG, EVALUATION_ACCURACIES,
     GOODBAD_DICT, GOODBAD_IDX, HEIGHT_IDX, SEX_DICT, SEX_IDX, WEIGHT_IDX)
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 REPO_DIR = Path(os.getcwd()).parents[2]
 
@@ -95,7 +95,7 @@ def preprocess_targets(targets, targets_indices):
         try:
             targets[GOODBAD_IDX] = GOODBAD_DICT[targets[GOODBAD_IDX]]
         except KeyError:
-            logging.info("Key %s not found in GOODBAD_DICT", targets[GOODBAD_IDX])
+            logger.info("Key %s not found in GOODBAD_DICT", targets[GOODBAD_IDX])
             targets[GOODBAD_IDX] = GOODBAD_DICT['delete']  # unknown target values will be categorized as 'delete'
 
     if targets_indices is not None:

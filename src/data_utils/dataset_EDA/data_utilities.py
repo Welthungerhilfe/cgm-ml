@@ -6,8 +6,8 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 
-logging.basicConfig(level=logging.WARNING,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def convert_age_from_days_to_years(age_in_days: pd.Series) -> int:
@@ -26,7 +26,7 @@ def draw_age_distribution(scans: pd.DataFrame):
     age_ax = value_counts.plot(kind='bar')
     age_ax.set_xlabel('age')
     age_ax.set_ylabel('no. of scans')
-    logging.info(value_counts)
+    logger.info(value_counts)
 
 
 def draw_sex_distribution(scans: pd.DataFrame):
@@ -34,7 +34,7 @@ def draw_sex_distribution(scans: pd.DataFrame):
     ax = value_counts.plot(kind='bar')
     ax.set_xlabel('gender')
     ax.set_ylabel('no. of scans')
-    logging.info(value_counts)
+    logger.info(value_counts)
 
 
 def _count_rows_per_age_bucket(artifacts):
@@ -60,12 +60,12 @@ def calculate_code_age_distribution(artifacts: pd.DataFrame):
 
 def find_outlier_qrcodes(df: pd.DataFrame, column: str, condition: str) -> list:
     combined_condition = '@df.' + column + condition
-    logging.info('Running the following query: %s', combined_condition)
+    logger.info('Running the following query: %s', combined_condition)
     outlier_artifacts = df.query(combined_condition)
     unique_outliers = outlier_artifacts.drop_duplicates(subset='qrcode', keep='first')
-    logging.info('Extracting qr_codes...')
+    logger.info('Extracting qr_codes...')
     qrs = unique_outliers.qrcode.tolist()
-    logging.info('No. of qrcodes: %d', len(qrs))
+    logger.info('No. of qrcodes: %d', len(qrs))
     return qrs
 
 
