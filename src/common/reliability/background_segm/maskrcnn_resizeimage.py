@@ -25,7 +25,7 @@ def predict_by_resize(image, factor=10):
     """Applied MaskRCNN on downscaled image, by default the factor is 10x."""
     logger.info("Resizing image by %d x", factor)
     newsize = (int(image.size[0] / factor), int(image.size[1] / factor))
-    logger.info("Resized Dimension %d", newsize)
+    logger.info("Resized Dimension %s", newsize)
     start_time = time.time()
     out = predict(image.resize(newsize), model)
     logger.info("Time: %s s", time.time() - start_time)
