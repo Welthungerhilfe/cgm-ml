@@ -238,10 +238,14 @@ class Depthmap:
                                 stack.append(pixel_dir)
 
                     # Update AABB
-                    aabb[0] = max(pixel[0], aabb[0])
-                    aabb[1] = max(pixel[1], aabb[1])
-                    aabb[2] = max(pixel[0], aabb[2])
-                    aabb[3] = max(pixel[1], aabb[3])
+                    if aabb[0] > pixel[0]:
+                        aabb[0] = pixel[0]
+                    if aabb[1] > pixel[1]:
+                        aabb[1] = pixel[1]
+                    if aabb[2] < pixel[0]:
+                        aabb[2] = pixel[0]
+                    if aabb[3] < pixel[1]:
+                        aabb[3] = pixel[1]
 
                     # Update the mask
                     mask[pixel[0]][pixel[1]] = current
