@@ -178,7 +178,7 @@ class Depthmap:
         mask, segments = self.detect_objects(floor)
 
         # Select the most focused segment
-        closest = 9999999
+        closest = sys.maxsize
         focus = -1
         for segment in segments:
             a = segment[1][0] - int(self.width / 2)
@@ -190,11 +190,7 @@ class Depthmap:
                 closest = distance
                 focus = segment[0]
 
-        # Highlight the focused segment
-        for x in range(self.width):
-            for y in range(self.height):
-                if (mask[x][y] == focus):
-                    mask[x][y] = MASK_CHILD
+        mask = np.where(mask == focus, MASK_CHILD, mask)
 
         return mask
 
@@ -242,21 +238,17 @@ class Depthmap:
                                 stack.append(pixel_dir)
 
                     # Update AABB
-                    if aabb[0] > pixel[0]:
-                        aabb[0] = pixel[0]
-                    if aabb[1] > pixel[1]:
-                        aabb[1] = pixel[1]
-                    if aabb[2] < pixel[0]:
-                        aabb[2] = pixel[0]
-                    if aabb[3] < pixel[1]:
-                        aabb[3] = pixel[1]
+                    aabb[0] = max(pixel[0], aabb[0])
+                    aabb[1] = max(pixel[1], aabb[1])
+                    aabb[2] = max(pixel[0], aabb[2])
+                    aabb[3] = max(pixel[1], aabb[3])
 
                     # Update the mask
                     mask[pixel[0]][pixel[1]] = current
 
                 # Check if the object size is valid
                 object_size_pixels = max(aabb[2] - aabb[0], aabb[3] - aabb[1])
-                if (object_size_pixels > self.width / 4):
+                if object_size_pixels > self.width / 4:
                     segments.append([current, aabb])
                 current = current - 1
 
@@ -317,15 +309,7 @@ class Depthmap:
         depth_y_plus = self.parse_depth(tx, ty + 1)
 
         # Ensure the depth is defined
-        if depth_center == 0:
-            return 0
-        if depth_x_minus == 0:
-            return 0
-        if depth_x_plus == 0:
-            return 0
-        if depth_y_minus == 0:
-            return 0
-        if depth_y_plus == 0:
+        if 0 in [depth_center, depth_x_plus, depth_y_minus, depth_y_plus]:
             return 0
 
         # Average the depth value
