@@ -18,6 +18,7 @@ from train_util import copy_dir
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 # Get the current run.
 run = Run.get_context()
