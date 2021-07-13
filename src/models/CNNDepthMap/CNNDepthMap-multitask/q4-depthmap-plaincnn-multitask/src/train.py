@@ -170,51 +170,62 @@ del dataset_norm
 
 # Note: Now the datasets are prepared.
 
-# Create the model.
-input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1)
-base_model = create_base_cnn(input_shape, dropout=True)
-head_input_shape = (128,)
-head_model1 = create_head(head_input_shape, dropout=True, name="height")
-head_model2 = create_head(head_input_shape, dropout=True, name="weight")
-model_input = layers.Input(shape=(CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1))
-features = base_model(model_input)
-model_output1 = head_model1(features)
-model_output2 = head_model2(features)
-model = Model(inputs=model_input, outputs=[model_output1, model_output2])
 
-best_model_path = str(DATA_DIR / f'outputs/{MODEL_CKPT_FILENAME}')
-checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-    filepath=best_model_path,
-    monitor="val_loss",
-    save_best_only=True,
-    verbose=1
-)
-training_callbacks = [
-    AzureLogCallback(run),
-    create_tensorboard_callback(),
-    checkpoint_callback,
-]
+def create_and_fit_model():
+    # Create the model.
+    input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1)
+    base_model = create_base_cnn(input_shape, dropout=True)
+    head_input_shape = (128,)
+    head_model1 = create_head(head_input_shape, dropout=True, name="height")
+    head_model2 = create_head(head_input_shape, dropout=True, name="weight")
+    model_input = layers.Input(shape=(CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1))
+    features = base_model(model_input)
+    model_output1 = head_model1(features)
+    model_output2 = head_model2(features)
+    model = Model(inputs=model_input, outputs=[model_output1, model_output2])
 
-optimizer = get_optimizer(CONFIG.USE_ONE_CYCLE,
-                          lr=CONFIG.LEARNING_RATE,
-                          n_steps=len(paths_training) / CONFIG.BATCH_SIZE)
+    best_model_path = str(DATA_DIR / f'outputs/{MODEL_CKPT_FILENAME}')
+    checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=best_model_path,
+        monitor="val_loss",
+        save_best_only=True,
+        verbose=1
+    )
+    training_callbacks = [
+        AzureLogCallback(run),
+        create_tensorboard_callback(),
+        checkpoint_callback,
+    ]
 
-# Compile the model.
-model.compile(
-    optimizer=optimizer,
-    loss={'height': 'mse', 'weight': 'mse'},
-    loss_weights={'height': CONFIG.HEIGHT_IMPORTANCE, 'weight': CONFIG.WEIGHT_IMPORTANCE},
-    metrics={'height': ["mae"], 'weight': ["mae"]}
-)
+    optimizer = get_optimizer(CONFIG.USE_ONE_CYCLE,
+                              lr=CONFIG.LEARNING_RATE,
+                              n_steps=len(paths_training) / CONFIG.BATCH_SIZE)
 
-# Train the model.
-model.fit(
-    dataset_training.batch(CONFIG.BATCH_SIZE),
-    validation_data=dataset_validation.batch(CONFIG.BATCH_SIZE),
-    epochs=CONFIG.EPOCHS,
-    callbacks=training_callbacks,
-    verbose=2
-)
+    # Compile the model.
+    model.compile(
+        optimizer=optimizer,
+        loss={'height': 'mse', 'weight': 'mse'},
+        loss_weights={'height': CONFIG.HEIGHT_IMPORTANCE, 'weight': CONFIG.WEIGHT_IMPORTANCE},
+        metrics={'height': ["mae"], 'weight': ["mae"]}
+    )
+
+    # Train the model.
+    model.fit(
+        dataset_training.batch(CONFIG.BATCH_SIZE),
+        validation_data=dataset_validation.batch(CONFIG.BATCH_SIZE),
+        epochs=CONFIG.EPOCHS,
+        callbacks=training_callbacks,
+        verbose=2
+    )
+
+
+if CONFIG.USE_MULTIGPU:
+    strategy = tf.distribute.MirroredStrategy()
+    logging.info("Number of devices: %s", strategy.num_replicas_in_sync)
+    with strategy.scope():
+        create_and_fit_model()
+else:
+    create_and_fit_model()
 
 # Done.
 run.complete()

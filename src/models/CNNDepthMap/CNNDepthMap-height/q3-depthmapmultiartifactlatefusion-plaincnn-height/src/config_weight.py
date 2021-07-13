@@ -34,6 +34,7 @@ CONFIG = Bunch(dict(
     SAMPLING_STRATEGY=SAMPLING_STRATEGY_SYSTEMATIC,
     USE_DROPOUT=False,
     USE_ONE_CYCLE=False,
+    USE_MULTIGPU=False,
 
     PRETRAINED_RUN='q4-depthmap-plaincnn-weight-95k_1616424204_63e3c1b8',  # Run 5
 
