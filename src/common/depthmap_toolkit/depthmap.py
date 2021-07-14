@@ -33,7 +33,7 @@ class Depthmap:
     """Depthmap and optional RGB
 
     Args:
-        intrinsics (np.array): Camera intrinsics
+        intrinsic (np.array): Camera intrinsic
         width (int): Width of the depthmap
         height (int): Height of the depthmap
         data (bytes): pixel_data
@@ -42,7 +42,7 @@ class Depthmap:
                                 (e.g. 0 to 255 in Lenovo, new standard is 0 to 7)
                                 This is actually an int.
         matrix (list): Header contains a pose (= position and rotation)
-                       - matrix is a list represenation of this pose
+                       - matrix is a list representation of this pose
                        - can be used to project into a different space
         rgb_fpath (str): Path to RGB file (e.g. to the jpg)
         rgb_array (np.array): RGB data
@@ -125,9 +125,9 @@ class Depthmap:
                    )
 
     def calculate_normal_vector(self, x: float, y: float) -> list:
-        """Calculate normal vector of depthmap point based on neightbors"""
+        """Calculate normal vector of depthmap point based on neighbors"""
 
-        # Get depth of the neightbor pixels
+        # Get depth of the neighbor pixels
         depth_center = self.parse_depth_smoothed(x, y)
         depth_x_minus = self.parse_depth_smoothed(x - 1, y)
         depth_y_minus = self.parse_depth_smoothed(x, y - 1)
@@ -238,14 +238,10 @@ class Depthmap:
                                 stack.append(pixel_dir)
 
                     # Update AABB
-                    if aabb[0] > pixel[0]:
-                        aabb[0] = pixel[0]
-                    if aabb[1] > pixel[1]:
-                        aabb[1] = pixel[1]
-                    if aabb[2] < pixel[0]:
-                        aabb[2] = pixel[0]
-                    if aabb[3] < pixel[1]:
-                        aabb[3] = pixel[1]
+                    aabb[0] = min(pixel[0], aabb[0])
+                    aabb[1] = min(pixel[1], aabb[1])
+                    aabb[2] = max(pixel[0], aabb[2])
+                    aabb[3] = max(pixel[1], aabb[3])
 
                     # Update the mask
                     mask[pixel[0]][pixel[1]] = current
@@ -305,7 +301,7 @@ class Depthmap:
     def parse_depth_smoothed(self, tx: int, ty) -> float:
         """Get average depth value from neighboring pixels"""
 
-        # Get all neightbor depths
+        # Get all neighbor depths
         depth_center = self.parse_depth(tx, ty)
         depth_x_minus = self.parse_depth(tx - 1, ty)
         depth_x_plus = self.parse_depth(tx + 1, ty)
