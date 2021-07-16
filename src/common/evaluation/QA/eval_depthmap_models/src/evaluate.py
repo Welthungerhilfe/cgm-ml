@@ -71,10 +71,6 @@ DATA_CONFIG = qa_config.DATA_CONFIG
 RESULT_CONFIG = qa_config.RESULT_CONFIG
 FILTER_CONFIG = qa_config.FILTER_CONFIG if getattr(qa_config, 'FILTER_CONFIG', False) else None
 
-RUN_ID = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else None
-RUN_IDS = MODEL_CONFIG.RUN_IDS if getattr(MODEL_CONFIG, 'RUN_IDS', False) else None
-assert bool(RUN_ID) != bool(RUN_IDS), 'RUN_ID xor RUN_IDS needs to be defined'
-
 
 class RunInitializer:
     """Run azure setup and prepare dataset"""
@@ -155,16 +151,17 @@ if __name__ == "__main__":
         evaluation = EnsembleEvaluation(MODEL_CONFIG, MODEL_BASE_DIR, initializer.dataset_path)
         evaluation.get_the_model_path(initializer.workspace)
         model_paths = evaluation.model_paths
-    elif is_multiartifact_evaluation(DATA_CONFIG):
-        MODEL_BASE_DIR = REPO_DIR / 'data' / RUN_ID if is_offline_run(RUN) else Path('.')
-        evaluation = MultiartifactEvaluation(MODEL_CONFIG, MODEL_BASE_DIR, initializer.dataset_path)
-        evaluation.get_the_model_path(initializer.workspace)
-        model_path = evaluation.model_path
     else:
+        RUN_ID = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else None
         MODEL_BASE_DIR = REPO_DIR / 'data' / RUN_ID if is_offline_run(RUN) else Path('.')
-        evaluation = Evaluation(MODEL_CONFIG, MODEL_BASE_DIR, initializer.dataset_path)
-        evaluation.get_the_model_path(initializer.workspace)
-        model_path = evaluation.model_path
+        if is_multiartifact_evaluation(DATA_CONFIG):
+            evaluation = MultiartifactEvaluation(MODEL_CONFIG, MODEL_BASE_DIR, initializer.dataset_path)
+            evaluation.get_the_model_path(initializer.workspace)
+            model_path = evaluation.model_path
+        else:
+            evaluation = Evaluation(MODEL_CONFIG, MODEL_BASE_DIR, initializer.dataset_path)
+            evaluation.get_the_model_path(initializer.workspace)
+            model_path = evaluation.model_path
 
     # Get the QR-code paths
     qrcode_paths = evaluation.get_the_qr_code_path()
