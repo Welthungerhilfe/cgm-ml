@@ -21,7 +21,6 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 CWD = Path(__file__).parent
-TAGS = {}
 
 
 def copy_dir(src: Path, tgt: Path, glob_pattern: str, should_touch_init: bool = False):
@@ -94,6 +93,7 @@ if __name__ == "__main__":
     # parameters used in the evaluation
     script_params = {"--qa_config_module": args.qa_config_module}
     logging.info("script_params: %s", script_params)
+    tags = script_params
 
     start = time.time()
 
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     script_run_config.run_config.target = compute_target
 
     # Run the experiment.
-    run = experiment.submit(config=script_run_config, tags=TAGS)
+    run = experiment.submit(config=script_run_config, tags=tags)
 
     # Show run.
     logging.info("Run: %s", run)
