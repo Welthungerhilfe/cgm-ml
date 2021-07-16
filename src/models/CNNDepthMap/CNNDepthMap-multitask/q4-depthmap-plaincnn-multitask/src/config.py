@@ -17,6 +17,7 @@ CONFIG = Bunch(dict(
     LEARNING_RATE=0.0007,
     USE_ONE_CYCLE=True,
     USE_MULTIGPU=False,
+    CLUSTER_NAME='gpu-cluster',
 
     # Parameters for dataset generation.
     TARGET_INDEXES=[0, 1],  # 0 is height, 1 is weight.

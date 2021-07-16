@@ -17,4 +17,5 @@ CONFIG = Bunch(dict(
     LEARNING_RATE=1e-5,
     TUNE_EPOCHS=10,
     USE_MULTIGPU=False,
+    CLUSTER_NAME='gpu-cluster',
 ))
