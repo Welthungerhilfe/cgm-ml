@@ -62,7 +62,8 @@ def test_evaluation_prepare_dataset():
     evaluation = Evaluation(MODEL_CONFIG, model_base_dir=None, dataset_path=DATASET_PATH)
     qrcode_paths = evaluation.get_the_qr_code_path()
     # Run
-    dataset_evaluation, paths_belonging_to_predictions = evaluation.prepare_dataset(qrcode_paths, DATA_CONFIG, FILTER_CONFIG=None)
+    dataset_evaluation, paths_belonging_to_predictions = evaluation.prepare_dataset(qrcode_paths, DATA_CONFIG,
+                                                                                    FILTER_CONFIG=None)
     # Test
     assert len(paths_belonging_to_predictions) == 5
     dataset_take = dataset_evaluation.take(5)
@@ -89,7 +90,8 @@ def test_evaluation_evaluate():
         dataset_evaluation, paths_belonging_to_predictions = evaluation.prepare_dataset(
             qrcode_paths, DATA_CONFIG, FILTER_CONFIG=None)
         prediction_list_one = evaluation.get_prediction_(evaluation.model_path, dataset_evaluation, DATA_CONFIG)
-        df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_list_one, DATA_CONFIG, RESULT_CONFIG)
+        df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_list_one, DATA_CONFIG,
+                                          RESULT_CONFIG)
         descriptor = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else MODEL_CONFIG.EXPERIMENT_NAME
 
     # Run
@@ -111,7 +113,8 @@ def test_ensembleevaluation_evaluate():
         dataset_evaluation, paths_belonging_to_predictions = evaluation.prepare_dataset(
             qrcode_paths, DATA_CONFIG, FILTER_CONFIG=None)
         prediction_list_one = evaluation.get_prediction_(evaluation.model_paths, dataset_evaluation, DATA_CONFIG)
-        df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_list_one, DATA_CONFIG, RESULT_CONFIG)
+        df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_list_one, DATA_CONFIG,
+                                          RESULT_CONFIG)
         descriptor = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else MODEL_CONFIG.EXPERIMENT_NAME
 
     # Run
@@ -164,9 +167,10 @@ def test_multiartifactevaluation_evaluate():
         prep_multiartifactlatefusion_model(model_path)
         qrcode_paths = evaluation.get_the_qr_code_path()
         dataset_evaluation, paths_belonging_to_predictions = evaluation.prepare_dataset(qrcode_paths, data_config,
-                                                                              FILTER_CONFIG=None)
+                                                                                        FILTER_CONFIG=None)
         prediction_list_one = evaluation.get_prediction_(model_path, dataset_evaluation, data_config)
-        df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_list_one, data_config, RESULT_CONFIG)
+        df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_list_one, data_config,
+                                          RESULT_CONFIG)
         descriptor = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else MODEL_CONFIG.EXPERIMENT_NAME
 
     # Run
