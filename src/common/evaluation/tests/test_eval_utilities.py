@@ -10,7 +10,7 @@ import tensorflow as tf
 sys.path.append(str(Path(__file__).parents[2]))  # common/ dir
 
 from model_utils.model_plaincnn import create_cnn, create_base_cnn, create_head  # noqa: E402
-from evaluation.eval_utilities import Evaluation, EnsembleEvaluation, MultiartifactEvaluation  # noqa: E402
+from evaluation.evaluation_classes import Evaluation, EnsembleEvaluation, MultiartifactEvaluation  # noqa: E402
 
 MODEL_CONFIG = Bunch(dict(
     EXPERIMENT_NAME='q3-depthmap-plaincnn-height-95k',

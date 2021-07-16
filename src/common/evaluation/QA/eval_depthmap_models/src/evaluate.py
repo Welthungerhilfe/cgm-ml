@@ -45,8 +45,9 @@ if is_offline_run(RUN):
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
 from temp_common.evaluation.eval_utilities import (  # noqa: E402, F401
-    Evaluation, EnsembleEvaluation, MultiartifactEvaluation,
     download_dataset, get_dataset_path)
+from temp_common.evaluation.evaluation_classes import (  # noqa: E402, F401
+    Evaluation, EnsembleEvaluation, MultiartifactEvaluation)
 
 
 logging.basicConfig(level=logging.INFO,
