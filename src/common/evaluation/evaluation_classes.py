@@ -236,7 +236,7 @@ class EnsembleEvaluation(Evaluation):
                  eval_config: Bunch,
                  OUTPUT_CSV_PATH: str,
                  descriptor: str):
-        super().evaluate(df, self.data_config, result_config, eval_config, OUTPUT_CSV_PATH, descriptor)
+        super().evaluate(df, result_config, eval_config, OUTPUT_CSV_PATH, descriptor)
 
         if not result_config.USE_UNCERTAINTY:
             return
