@@ -447,17 +447,17 @@ def download_model(workspace, experiment_name, run_id, input_location, output_lo
 
 
 def filter_dataset_according_to_standing_lying(paths_evaluation, standing) -> List[str]:
-    new_paths_evaluation = []
+    paths_belonging_to_predictions = []
     exc = []
     for p in paths_evaluation:
         _depthmap, _targets, image = pickle.load(open(p, "rb"))
         try:
             image = process_image(image)
             if standing.predict(image) > .9:
-                new_paths_evaluation.append(p)
+                paths_belonging_to_predictions.append(p)
         except ValueError:
             exc.append(image)
-    return new_paths_evaluation
+    return paths_belonging_to_predictions
 
 
 def get_prediction(model_path: str, dataset_evaluation: tf.data.Dataset, DATA_CONFIG) -> np.array:
@@ -587,14 +587,14 @@ class Evaluation:
 
         logging.info("Using %d artifact files for evaluation.", len(paths_evaluation))
 
-        new_paths_evaluation = paths_evaluation
+        paths_belonging_to_predictions = paths_evaluation
 
         if FILTER_CONFIG is not None and FILTER_CONFIG.IS_ENABLED:
             standing = load_model(FILTER_CONFIG.NAME)
-            new_paths_evaluation = filter_dataset_according_to_standing_lying(paths_evaluation, standing)
+            paths_belonging_to_predictions = filter_dataset_according_to_standing_lying(paths_evaluation, standing)
 
         logging.info("Creating dataset for training.")
-        paths = new_paths_evaluation
+        paths = paths_belonging_to_predictions
         dataset = tf.data.Dataset.from_tensor_slices(paths)
         dataset_norm = dataset.map(
             lambda path: tf_load_pickle(path, DATA_CONFIG.NORMALIZATION_VALUE, DATA_CONFIG)
@@ -612,25 +612,25 @@ class Evaluation:
         del dataset_norm
         logging.info("Created dataset for training.")
 
-        # Update new_paths_evaluation after filtering
+        # Update paths_belonging_to_predictions after filtering
         dataset_paths = temp_dataset_evaluation.map(lambda path, _depthmap, _targets: path)
         list_paths = list(dataset_paths.as_numpy_iterator())
-        new_paths_evaluation = [x.decode() for x in list_paths]
+        paths_belonging_to_predictions = [x.decode() for x in list_paths]
 
         dataset_evaluation = temp_dataset_evaluation.map(lambda _path, depthmap, targets: (depthmap, targets))
         del temp_dataset_evaluation
-        return dataset_evaluation, new_paths_evaluation
+        return dataset_evaluation, paths_belonging_to_predictions
 
     def get_prediction_(self, model_path: Path, dataset_evaluation: tf.data.Dataset, DATA_CONFIG: Bunch) -> np.array:
         return get_prediction(model_path, dataset_evaluation, DATA_CONFIG)
 
     def prepare_dataframe(self,
-                          new_paths_evaluation: List[str],
+                          paths_belonging_to_predictions: List[str],
                           prediction_list_one: np.array,
                           DATA_CONFIG: Bunch,
                           RESULT_CONFIG: Bunch) -> pd.DataFrame:
         qrcode_list, scantype_list, artifact_list, prediction_list, target_list = get_column_list(
-            new_paths_evaluation, prediction_list_one, DATA_CONFIG)
+            paths_belonging_to_predictions, prediction_list_one, DATA_CONFIG)
 
         df = pd.DataFrame({
             'qrcode': qrcode_list,
@@ -826,11 +826,11 @@ class MultiartifactEvaluation(Evaluation):
         return predictions
 
     def prepare_dataframe(self,
-                          new_paths_evaluation: List[List[str]],
+                          paths_belonging_to_predictions: List[List[str]],
                           prediction_list_one: np.array,
                           DATA_CONFIG: Bunch,
                           RESULT_CONFIG: Bunch):
-        first_paths = [paths_list[0] for paths_list in new_paths_evaluation]
+        first_paths = [paths_list[0] for paths_list in paths_belonging_to_predictions]
         qrcode_list, scantype_list, artifact_list, prediction_list, target_list = get_column_list(
             first_paths, prediction_list_one, DATA_CONFIG)
 
