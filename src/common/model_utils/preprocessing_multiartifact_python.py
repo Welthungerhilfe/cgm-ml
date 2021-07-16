@@ -8,6 +8,7 @@ from functools import partial
 from itertools import groupby, islice
 from typing import Iterator, List
 
+from bunch import Bunch
 import glob2 as glob
 
 sys.path.append(str(Path(__file__).parent))
@@ -22,17 +23,17 @@ REGEX_PICKLE = re.compile(
 )
 
 
-def create_multiartifact_paths_for_qrcodes(qrcode_paths: List[str], CONFIG) -> List[List[str]]:
+def create_multiartifact_paths_for_qrcodes(qrcode_paths: List[str], data_config: Bunch) -> List[List[str]]:
     samples = []
     for qrcode_path in sorted(qrcode_paths):
-        for code in CONFIG.CODES_FOR_POSE_AND_SCANSTEP:
+        for code in data_config.CODES:
             p = os.path.join(qrcode_path, code)
-            new_samples = _create_multiartifact_paths(p, CONFIG.N_ARTIFACTS, CONFIG)
+            new_samples = _create_multiartifact_paths(p, data_config.N_ARTIFACTS, data_config)
             samples.extend(new_samples)
     return samples
 
 
-def _create_multiartifact_paths(qrcode_path: str, n_artifacts: int, CONFIG) -> List[List[str]]:
+def _create_multiartifact_paths(qrcode_path: str, n_artifacts: int, data_config: Bunch) -> List[List[str]]:
     """Look at files for 1 qrcode and divide into samples.
 
     Args:
@@ -49,13 +50,13 @@ def _create_multiartifact_paths(qrcode_path: str, n_artifacts: int, CONFIG) -> L
     scans = [list(v) for _unixepoch, v in groupby(list_of_pickle_file_paths, _get_epoch) if _unixepoch]
 
     # Filter to keep scans with enough artifacts
-    scans = list(filter(lambda x: len(x) > n_artifacts, scans))
+    scans = list(filter(lambda x: len(x) >= n_artifacts, scans))
 
     # Sample artifacts
-    if CONFIG.SAMPLING_STRATEGY == SAMPLING_STRATEGY_SYSTEMATIC:
+    if data_config.SAMPLING_STRATEGY == SAMPLING_STRATEGY_SYSTEMATIC:
         samples = list(map(partial(sample_systematic_from_artifacts, n_artifacts=n_artifacts), scans))
 
-    if CONFIG.SAMPLING_STRATEGY == SAMPLING_STRATEGY_WINDOW:
+    if data_config.SAMPLING_STRATEGY == SAMPLING_STRATEGY_WINDOW:
         samples = []
         for scan in scans:
             some_samples = list(sample_windows_from_artifacts(scan, n_artifacts=n_artifacts))
@@ -100,5 +101,4 @@ def _get_epoch(fname: str) -> str:
     match_result = REGEX_PICKLE.search(fname)
     if match_result:
         return match_result.group("unixepoch")
-    else:
-        logging.info("%s doesn't match REGEX_PICKLE", fname)
+    logging.info("%s doesn't match REGEX_PICKLE", fname)

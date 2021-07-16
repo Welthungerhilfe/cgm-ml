@@ -48,7 +48,7 @@ DATA_CONFIG = Bunch(dict(
     SAMPLING_STRATEGY=SAMPLING_STRATEGY_SYSTEMATIC,
     N_ARTIFACTS=5,
 
-    BATCH_SIZE=512,  # Batch size for evaluation
+    BATCH_SIZE=64,  # Batch size for evaluation
     NORMALIZATION_VALUE=7.5,
 
     # 0 is height, 1 is weight, 2 is muac, 3 is age,
@@ -56,7 +56,6 @@ DATA_CONFIG = Bunch(dict(
     TARGET_INDEXES=[0, ],
 
     CODES=['100', '101', '102', '200', '201', '202'],
-    CODES_FOR_POSE_AND_SCANSTEP=['100', '101', '102', '200', '201', '202']
 ))
 
 # Result configuration for result generation after evaluation is done

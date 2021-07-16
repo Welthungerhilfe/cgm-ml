@@ -4,12 +4,14 @@ import os
 import pickle
 from multiprocessing import Pool
 from pathlib import Path
+import time
 from typing import Callable, List, Tuple
 
 import glob2 as glob
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from tensorflow.keras.models import load_model
 from azureml.core import Experiment, Run, Workspace
 from bunch import Bunch
 from scipy.stats.stats import pearsonr
@@ -22,8 +24,8 @@ from cgmzscore import Calculator  # noqa: E402
 from .constants_eval import (  # noqa: E402
     CODE_TO_SCANTYPE, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, COLUMN_NAME_SEX, DAYS_IN_YEAR,
     GOODBAD_DICT, SEX_DICT)
-from .eval_utils import avgerror, preprocess_targets  # noqa: E402
-
+from .eval_utils import (  # noqa: E402
+    avgerror, preprocess_depthmap, preprocess_targets)
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
@@ -67,16 +69,14 @@ def get_depthmap_files(paths: List[str]) -> List[str]:
     return pickle_paths
 
 
-def get_column_list(depthmap_path_list: List[str], prediction: np.array, DATA_CONFIG: Bunch, FILTER_CONFIG: Bunch):
+def get_column_list(depthmap_path_list: List[str], prediction: np.array, data_config: Bunch):
     """Prepare the list of all artifact with its corresponding scantype, qrcode, target and prediction"""
     qrcode_list, scan_type_list, artifact_list, prediction_list, target_list = [], [], [], [], []
 
     for idx, path in enumerate(depthmap_path_list):
-        if FILTER_CONFIG is not None:
-            _, targets, _ = pickle.load(open(path, "rb"))  # For filter(contains RGBs) dataset
-        else:
-            _, targets = pickle.load(open(path, "rb"))
-        targets = preprocess_targets(targets, DATA_CONFIG.TARGET_INDEXES)
+        loaded_tuple = pickle.load(open(path, "rb"))  # tuple can have 2 or 3 elements
+        targets = loaded_tuple[1]
+        targets = preprocess_targets(targets, data_config.TARGET_INDEXES)
         target = np.squeeze(targets)
 
         sub_folder_list = path.split('/')
@@ -156,9 +156,7 @@ def calculate_performance_age(code: str, df_mae: pd.DataFrame, result_config: Bu
                                                         result_config.ACCURACY_MAIN_THRESH)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
-
     df_out.columns = [f"{age_min} to {age_max}" for age_min, age_max in age_buckets]
-
     return df_out
 
 
@@ -372,7 +370,6 @@ def calculate_zscore_wfa(df):
         lambda row: utils(age_in_days=int(row[COLUMN_NAME_AGE]),
                           sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', weight=row['predicted']),
         axis=1)
-
     return df
 
 
@@ -408,12 +405,12 @@ def calculate_percentage_confusion_matrix(data):
     return T, FP, FN
 
 
-def get_model_path(MODEL_CONFIG: Bunch) -> str:
-    if MODEL_CONFIG.NAME.endswith(".h5"):
-        return MODEL_CONFIG.NAME
-    if MODEL_CONFIG.NAME.endswith(".ckpt"):
-        return os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME)
-    raise NameError(f"{MODEL_CONFIG.NAME}'s path extension not supported")
+def get_model_path(model_config: Bunch) -> str:
+    if model_config.NAME.endswith(".h5"):
+        return model_config.NAME
+    if model_config.NAME.endswith(".ckpt"):
+        return os.path.join(model_config.INPUT_LOCATION, model_config.NAME)
+    raise NameError(f"{model_config.NAME}'s path extension not supported")
 
 
 def download_model(workspace, experiment_name, run_id, input_location, output_location):
@@ -439,15 +436,101 @@ def download_model(workspace, experiment_name, run_id, input_location, output_lo
     logging.info("Successfully downloaded model")
 
 
-def filter_dataset_according_to_standing_lying(paths_evaluation, standing):
-    new_paths_evaluation = []
+def filter_dataset_according_to_standing_lying(paths_evaluation: List[str], standing) -> List[str]:
+    paths_belonging_to_predictions = []
     exc = []
     for p in paths_evaluation:
         _depthmap, _targets, image = pickle.load(open(p, "rb"))
         try:
             image = process_image(image)
             if standing.predict(image) > .9:
-                new_paths_evaluation.append(p)
+                paths_belonging_to_predictions.append(p)
         except ValueError:
             exc.append(image)
-    return new_paths_evaluation
+    return paths_belonging_to_predictions
+
+
+def get_prediction(model_path: str, dataset_evaluation: tf.data.Dataset, data_config) -> np.array:
+    """Perform the prediction on the dataset with the given model.
+
+    Args:
+        model_path: Path of the trained model
+        dataset_evaluation: dataset in which the evaluation need to performed
+    Returns:
+        predictions, array shape (N_SAMPLES, )
+    """
+    logging.info("loading model from %s", model_path)
+    model = load_model(model_path, compile=False)
+
+    dataset = dataset_evaluation.batch(data_config.BATCH_SIZE)
+
+    logging.info("starting predicting")
+    start = time.time()
+    predictions = model.predict(dataset, batch_size=data_config.BATCH_SIZE)
+    end = time.time()
+    logging.info("Total time for uncertainty prediction experiment: %.2f sec", end - start)
+
+    prediction_list = np.squeeze(predictions)
+    return prediction_list
+
+
+def get_predictions_from_multiple_models(model_paths: list, dataset_evaluation: tf.data.Dataset, data_config) -> list:
+    prediction_array = []
+    for model_index, model_path in enumerate(model_paths):
+        logging.info(f"Model {model_index + 1}/{len(model_paths)}")
+        prediction_array += [get_prediction(model_path, dataset_evaluation, data_config)]
+        logging.info("Prediction made by model on the depthmaps...")
+    prediction_array = np.array(prediction_array)
+    prediction_array = np.mean(prediction_array, axis=0)
+    return prediction_array
+
+
+def get_prediction_multiartifact(model_path: str,
+                                 dataset: tf.data.Dataset,
+                                 data_config: Bunch) -> np.array:
+    """Make prediction on each multiartifact sample.
+
+    Args:
+        model_path: File path to the model
+        samples_paths: A list of samples where each sample contains N_ARTIFACTS.
+        data_config
+
+    Returns:
+        predictions array
+    """
+    logging.info("loading model from %s", model_path)
+    model = load_model(model_path, compile=False)
+    predictions = model.predict(dataset, batch_size=data_config.BATCH_SIZE)
+    return predictions
+
+
+def tf_load_pickle(path, max_value, data_config):
+    """Utility to load the depthmap (may include RGB) pickle file"""
+    def py_load_pickle(path, max_value):
+        loaded_tuple = pickle.load(open(path.numpy(), "rb"))  # tuple can have 2 or 3 elements
+        depthmap = loaded_tuple[0]
+        targets = loaded_tuple[1]
+        depthmap = preprocess_depthmap(depthmap)
+        depthmap = depthmap / max_value
+        depthmap = tf.image.resize(depthmap, (data_config.IMAGE_TARGET_HEIGHT, data_config.IMAGE_TARGET_WIDTH))
+        targets = preprocess_targets(targets, data_config.TARGET_INDEXES)
+        return depthmap, targets
+
+    depthmap, targets = tf.py_function(py_load_pickle, [path, max_value], [tf.float32, tf.float32])
+    depthmap.set_shape((data_config.IMAGE_TARGET_HEIGHT, data_config.IMAGE_TARGET_WIDTH, 1))
+    targets.set_shape((len(data_config.TARGET_INDEXES,)))
+    return path, depthmap, targets
+
+
+def prepare_sample_dataset(df_sample: pd.DataFrame, dataset_path: str, data_config: Bunch) -> tf.data.Dataset:
+    df_sample['artifact_path'] = df_sample.apply(
+        lambda x: f"{dataset_path}/scans/{x['qrcode']}/{x['scantype']}/{x['artifact']}", axis=1)
+    paths_evaluation = list(df_sample['artifact_path'])
+    dataset_sample = tf.data.Dataset.from_tensor_slices(paths_evaluation)
+    dataset_sample = dataset_sample.map(
+        lambda path: tf_load_pickle(path, data_config.NORMALIZATION_VALUE, data_config)
+    )
+    dataset_sample = dataset_sample.map(lambda _path, depthmap, targets: (depthmap, targets))
+    dataset_sample = dataset_sample.cache()
+    dataset_sample = dataset_sample.prefetch(tf.data.experimental.AUTOTUNE)
+    return dataset_sample
