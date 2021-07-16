@@ -73,7 +73,7 @@ FILTER_CONFIG = qa_config.FILTER_CONFIG if getattr(qa_config, 'FILTER_CONFIG', F
 
 
 class RunInitializer:
-    """Run azure setup and prepare dataset"""
+    """Setup AzureML and prepare dataset"""
     def __init__(self, data_config: Bunch) -> None:
         self._data_config = data_config
         self.run_azureml_setup()
@@ -154,7 +154,7 @@ if __name__ == "__main__":
         MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if is_offline_run(RUN) else Path('.')
         eval_class = MultiartifactEvaluation if is_multiartifact_evaluation(DATA_CONFIG) else Evaluation
         descriptor = MODEL_CONFIG.RUN_ID
-    evaluation = eval_class(MODEL_CONFIG, MODEL_BASE_DIR, initializer.dataset_path)
+    evaluation = eval_class(MODEL_CONFIG, DATA_CONFIG, MODEL_BASE_DIR, initializer.dataset_path)
     evaluation.get_the_model_path(initializer.workspace)
 
     # Get the QR-code paths
@@ -163,14 +163,13 @@ if __name__ == "__main__":
         qrcode_paths = qrcode_paths[:EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN]
         logging.info("Executing on %d qrcodes for FAST RUN", EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN)
 
-    dataset_evaluation, paths_belonging_to_predictions = evaluation.prepare_dataset(qrcode_paths, DATA_CONFIG,
-                                                                                    FILTER_CONFIG)
-    prediction_list_one = evaluation.get_prediction_(evaluation.model_path_or_paths, dataset_evaluation, DATA_CONFIG)
+    dataset_evaluation, paths_belonging_to_predictions = evaluation.prepare_dataset(qrcode_paths, FILTER_CONFIG)
+    prediction_list_one = evaluation.get_prediction_(evaluation.model_path_or_paths, dataset_evaluation)
     logging.info("Prediction made by model on the depthmaps...")
     logging.info(prediction_list_one)
 
-    df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_list_one, DATA_CONFIG, RESULT_CONFIG)
-    evaluation.evaluate(df, DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG, OUTPUT_CSV_PATH, descriptor)
+    df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_list_one, RESULT_CONFIG)
+    evaluation.evaluate(df, RESULT_CONFIG, EVAL_CONFIG, OUTPUT_CSV_PATH, descriptor)
 
     # Done.
     initializer.run.complete()

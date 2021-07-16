@@ -35,8 +35,9 @@ from model_utils.preprocessing_multiartifact_tensorflow import create_multiartif
 
 
 class Evaluation:
-    def __init__(self, model_config: Bunch, model_base_dir: Path, dataset_path: str) -> None:
+    def __init__(self, model_config: Bunch, data_config: Bunch, model_base_dir: Path, dataset_path: str) -> None:
         self.model_config = model_config
+        self.data_config = data_config
         self.model_base_dir = model_base_dir
         self.dataset_path = dataset_path
         self._input_location = os.path.join(self.model_config.INPUT_LOCATION, self.model_config.NAME)
@@ -66,7 +67,6 @@ class Evaluation:
 
     def prepare_dataset(self,
                         qrcode_paths: List[str],
-                        data_config: Bunch,
                         filter_config: Bunch) -> Tuple[tf.data.Dataset, List[str]]:
         # Get depthmaps
         logging.info("Getting Depthmap paths...")
@@ -85,12 +85,12 @@ class Evaluation:
         paths = paths_belonging_to_predictions
         dataset = tf.data.Dataset.from_tensor_slices(paths)
         dataset_norm = dataset.map(
-            lambda path: tf_load_pickle(path, data_config.NORMALIZATION_VALUE, data_config)
+            lambda path: tf_load_pickle(path, self.data_config.NORMALIZATION_VALUE, self.data_config)
         )
 
         # filter goodbad==delete
-        if GOODBAD_IDX in data_config.TARGET_INDEXES:
-            goodbad_index = data_config.TARGET_INDEXES.index(GOODBAD_IDX)
+        if GOODBAD_IDX in self.data_config.TARGET_INDEXES:
+            goodbad_index = self.data_config.TARGET_INDEXES.index(GOODBAD_IDX)
             dataset_norm = dataset_norm.filter(
                 lambda _path, _depthmap, targets: targets[goodbad_index] != GOODBAD_DICT['delete'])
 
@@ -109,16 +109,15 @@ class Evaluation:
         del temp_dataset_evaluation
         return dataset_evaluation, paths_belonging_to_predictions
 
-    def get_prediction_(self, model_path: Path, dataset_evaluation: tf.data.Dataset, data_config: Bunch) -> np.array:
-        return get_prediction(model_path, dataset_evaluation, data_config)
+    def get_prediction_(self, model_path: Path, dataset_evaluation: tf.data.Dataset) -> np.array:
+        return get_prediction(model_path, dataset_evaluation, self.data_config)
 
     def prepare_dataframe(self,
                           paths_belonging_to_predictions: List[str],
                           prediction_list_one: np.array,
-                          data_config: Bunch,
                           result_config: Bunch) -> pd.DataFrame:
         qrcode_list, scantype_list, artifact_list, prediction_list, target_list = get_column_list(
-            paths_belonging_to_predictions, prediction_list_one, data_config)
+            paths_belonging_to_predictions, prediction_list_one, self.data_config)
 
         df = pd.DataFrame({
             'qrcode': qrcode_list,
@@ -131,13 +130,13 @@ class Evaluation:
         df['predicted'] = df['predicted'].astype('float64')
 
         if 'AGE_BUCKETS' in result_config.keys():
-            idx = data_config.TARGET_INDEXES.index(AGE_IDX)
+            idx = self.data_config.TARGET_INDEXES.index(AGE_IDX)
             df[COLUMN_NAME_AGE] = [el[idx] for el in target_list]
-        if SEX_IDX in data_config.TARGET_INDEXES:
-            idx = data_config.TARGET_INDEXES.index(SEX_IDX)
+        if SEX_IDX in self.data_config.TARGET_INDEXES:
+            idx = self.data_config.TARGET_INDEXES.index(SEX_IDX)
             df[COLUMN_NAME_SEX] = [el[idx] for el in target_list]
-        if GOODBAD_IDX in data_config.TARGET_INDEXES:
-            idx = data_config.TARGET_INDEXES.index(GOODBAD_IDX)
+        if GOODBAD_IDX in self.data_config.TARGET_INDEXES:
+            idx = self.data_config.TARGET_INDEXES.index(GOODBAD_IDX)
             df[COLUMN_NAME_GOODBAD] = [el[idx] for el in target_list]
 
         logging.info("df.shape: %s", df.shape)
@@ -145,7 +144,6 @@ class Evaluation:
 
     def evaluate(self,
                  df: pd.DataFrame,
-                 data_config: Bunch,
                  result_config: Bunch,
                  eval_config: Bunch,
                  OUTPUT_CSV_PATH: str,
@@ -158,7 +156,7 @@ class Evaluation:
         csv_fpath = f"{OUTPUT_CSV_PATH}/{descriptor}.csv"
         logging.info("Calculate and save the results to %s", csv_fpath)
         calculate_and_save_results(df_grouped, eval_config.NAME, csv_fpath,
-                                   data_config, result_config, fct=calculate_performance)
+                                   self.data_config, result_config, fct=calculate_performance)
 
         sample_csv_fpath = f"{OUTPUT_CSV_PATH}/inaccurate_scans_{descriptor}.csv"
         df_grouped.to_csv(sample_csv_fpath, index=True)
@@ -167,13 +165,13 @@ class Evaluation:
             csv_fpath = f"{OUTPUT_CSV_PATH}/age_evaluation_{descriptor}.csv"
             logging.info("Calculate and save age results to %s", csv_fpath)
             calculate_and_save_results(df_grouped, eval_config.NAME, csv_fpath,
-                                       data_config, result_config, fct=calculate_performance_age)
+                                       self.data_config, result_config, fct=calculate_performance_age)
             png_fpath = f"{OUTPUT_CSV_PATH}/age_evaluation_scatter_{descriptor}.png"
             logging.info("Calculate and save scatterplot results to %s", png_fpath)
             draw_age_scatterplot(df, png_fpath)
 
-        if (HEIGHT_IDX in data_config.TARGET_INDEXES
-                and AGE_IDX in data_config.TARGET_INDEXES
+        if (HEIGHT_IDX in self.data_config.TARGET_INDEXES
+                and AGE_IDX in self.data_config.TARGET_INDEXES
                 and descriptor != self.model_config.EXPERIMENT_NAME):
             png_fpath = f"{OUTPUT_CSV_PATH}/stunting_diagnosis_{descriptor}.png"
             logging.info("Calculate zscores and save confusion matrix results to %s", png_fpath)
@@ -182,8 +180,8 @@ class Evaluation:
             end = time.time()
             logging.info("Total time for Calculate zscores and save confusion matrix: %.2f", end - start)
 
-        if (WEIGHT_IDX in data_config.TARGET_INDEXES
-                and AGE_IDX in data_config.TARGET_INDEXES
+        if (WEIGHT_IDX in self.data_config.TARGET_INDEXES
+                and AGE_IDX in self.data_config.TARGET_INDEXES
                 and descriptor != self.model_config.EXPERIMENT_NAME):
             png_fpath = f"{OUTPUT_CSV_PATH}/wasting_diagnosis_{descriptor}.png"
             logging.info("Calculate and save wasting confusion matrix results to %s", png_fpath)
@@ -192,16 +190,16 @@ class Evaluation:
             end = time.time()
             logging.info("Total time for Calculate zscores and save wasting confusion matrix: %.2f", end - start)
 
-        if SEX_IDX in data_config.TARGET_INDEXES:
+        if SEX_IDX in self.data_config.TARGET_INDEXES:
             csv_fpath = f"{OUTPUT_CSV_PATH}/sex_evaluation_{descriptor}.csv"
             logging.info("Calculate and save sex results to %s", csv_fpath)
             calculate_and_save_results(df_grouped, eval_config.NAME, csv_fpath,
-                                       data_config, result_config, fct=calculate_performance_sex)
-        if GOODBAD_IDX in data_config.TARGET_INDEXES:
+                                       self.data_config, result_config, fct=calculate_performance_sex)
+        if GOODBAD_IDX in self.data_config.TARGET_INDEXES:
             csv_fpath = f"{OUTPUT_CSV_PATH}/goodbad_evaluation_{descriptor}.csv"
             logging.info("Calculate performance on bad/good scans and save results to %s", csv_fpath)
             calculate_and_save_results(df_grouped, eval_config.NAME, csv_fpath,
-                                       data_config, result_config, fct=calculate_performance_goodbad)
+                                       self.data_config, result_config, fct=calculate_performance_goodbad)
 
 
 class EnsembleEvaluation(Evaluation):
@@ -229,30 +227,28 @@ class EnsembleEvaluation(Evaluation):
 
     def get_prediction_(self,
                         model_paths: List[Path],
-                        dataset_evaluation: tf.data.Dataset,
-                        data_config: Bunch) -> np.array:
-        return get_predictions_from_multiple_models(model_paths, dataset_evaluation, data_config)
+                        dataset_evaluation: tf.data.Dataset) -> np.array:
+        return get_predictions_from_multiple_models(model_paths, dataset_evaluation, self.data_config)
 
     def evaluate(self,
                  df: pd.DataFrame,
-                 data_config: Bunch,
                  result_config: Bunch,
                  eval_config: Bunch,
                  OUTPUT_CSV_PATH: str,
                  descriptor: str):
-        super().evaluate(df, data_config, result_config, eval_config, OUTPUT_CSV_PATH, descriptor)
+        super().evaluate(df, self.data_config, result_config, eval_config, OUTPUT_CSV_PATH, descriptor)
 
         if not result_config.USE_UNCERTAINTY:
             return
 
-        assert GOODBAD_IDX in data_config.TARGET_INDEXES
+        assert GOODBAD_IDX in self.data_config.TARGET_INDEXES
         assert COLUMN_NAME_GOODBAD in df
 
         # Sample one artifact per scan (qrcode, scantype combination)
         df_sample = df.groupby(['qrcode', 'scantype']).apply(lambda x: x.sample(1))
 
         # Prepare uncertainty prediction on these artifacts
-        dataset_sample = prepare_sample_dataset(df_sample, self.dataset_path, data_config)
+        dataset_sample = prepare_sample_dataset(df_sample, self.dataset_path, self.data_config)
 
         # Predict uncertainty
         uncertainties = get_prediction_uncertainty_deepensemble(self.model_paths, dataset_sample)
@@ -277,7 +273,7 @@ class EnsembleEvaluation(Evaluation):
         logging.info("Uncertainty: For more certain than %.2f cm, calculate and save the results to %s",
                      result_config.UNCERTAINTY_THRESHOLD_IN_CM, csv_fpath)
         calculate_and_save_results(df_sample_better_threshold, eval_config.NAME, csv_fpath,
-                                   data_config, result_config, fct=calculate_performance)
+                                   self.data_config, result_config, fct=calculate_performance)
 
 
 class MultiartifactEvaluation(Evaluation):
@@ -286,41 +282,38 @@ class MultiartifactEvaluation(Evaluation):
 
     def prepare_dataset(self,
                         qrcode_paths: List[str],
-                        data_config: Bunch,
                         filter_config: Bunch) -> Tuple[tf.data.Dataset, List[List[str]]]:
-        samples_paths = create_multiartifact_paths_for_qrcodes(qrcode_paths, data_config)
+        samples_paths = create_multiartifact_paths_for_qrcodes(qrcode_paths, self.data_config)
 
         depthmaps, targets = [], []
         for sample_paths in samples_paths:
             depthmap, target = create_multiartifact_sample(sample_paths,
-                                                           data_config.NORMALIZATION_VALUE,
-                                                           data_config.IMAGE_TARGET_HEIGHT,
-                                                           data_config.IMAGE_TARGET_WIDTH,
-                                                           tf.constant(data_config.TARGET_INDEXES),
-                                                           data_config.N_ARTIFACTS)
+                                                           self.data_config.NORMALIZATION_VALUE,
+                                                           self.data_config.IMAGE_TARGET_HEIGHT,
+                                                           self.data_config.IMAGE_TARGET_WIDTH,
+                                                           tf.constant(self.data_config.TARGET_INDEXES),
+                                                           self.data_config.N_ARTIFACTS)
             depthmaps.append(depthmap)
             targets.append(target)
 
         dataset = tf.data.Dataset.from_tensor_slices((depthmaps, targets))
-        dataset = dataset.batch(data_config.BATCH_SIZE)
+        dataset = dataset.batch(self.data_config.BATCH_SIZE)
 
         return dataset, samples_paths
 
     def get_prediction_(self,
                         model_path: Path,
-                        dataset_evaluation: List[str],
-                        data_config: Bunch) -> np.array:
-        predictions = get_prediction_multiartifact(model_path, dataset_evaluation, data_config)
+                        dataset_evaluation: List[str]) -> np.array:
+        predictions = get_prediction_multiartifact(model_path, dataset_evaluation, self.data_config)
         return predictions
 
     def prepare_dataframe(self,
                           paths_belonging_to_predictions: List[List[str]],
                           prediction_list_one: np.array,
-                          data_config: Bunch,
                           result_config: Bunch):
         first_paths = [paths_list[0] for paths_list in paths_belonging_to_predictions]
         qrcode_list, scantype_list, artifact_list, prediction_list, target_list = get_column_list(
-            first_paths, prediction_list_one, data_config)
+            first_paths, prediction_list_one, self.data_config)
 
         df = pd.DataFrame({
             'qrcode': qrcode_list,
@@ -333,13 +326,13 @@ class MultiartifactEvaluation(Evaluation):
         df['predicted'] = df['predicted'].astype('float64')
 
         if 'AGE_BUCKETS' in result_config.keys():
-            idx = data_config.TARGET_INDEXES.index(AGE_IDX)
+            idx = self.data_config.TARGET_INDEXES.index(AGE_IDX)
             df[COLUMN_NAME_AGE] = [el[idx] for el in target_list]
-        if SEX_IDX in data_config.TARGET_INDEXES:
-            idx = data_config.TARGET_INDEXES.index(SEX_IDX)
+        if SEX_IDX in self.data_config.TARGET_INDEXES:
+            idx = self.data_config.TARGET_INDEXES.index(SEX_IDX)
             df[COLUMN_NAME_SEX] = [el[idx] for el in target_list]
-        if GOODBAD_IDX in data_config.TARGET_INDEXES:
-            idx = data_config.TARGET_INDEXES.index(GOODBAD_IDX)
+        if GOODBAD_IDX in self.data_config.TARGET_INDEXES:
+            idx = self.data_config.TARGET_INDEXES.index(GOODBAD_IDX)
             df[COLUMN_NAME_GOODBAD] = [el[idx] for el in target_list]
 
         logging.info("df.shape: %s", df.shape)

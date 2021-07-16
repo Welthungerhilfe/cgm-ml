@@ -59,11 +59,10 @@ def test_evaluation_get_the_qr_code_path():
 
 def test_evaluation_prepare_dataset():
     # Prep
-    evaluation = Evaluation(MODEL_CONFIG, model_base_dir=None, dataset_path=DATASET_PATH)
+    evaluation = Evaluation(MODEL_CONFIG, DATA_CONFIG, model_base_dir=None, dataset_path=DATASET_PATH)
     qrcode_paths = evaluation.get_the_qr_code_path()
     # Run
-    dataset_evaluation, paths_belonging_to_predictions = evaluation.prepare_dataset(qrcode_paths, DATA_CONFIG,
-                                                                                    FILTER_CONFIG=None)
+    dataset_evaluation, paths_belonging_to_predictions = evaluation.prepare_dataset(qrcode_paths, FILTER_CONFIG=None)
     # Test
     assert len(paths_belonging_to_predictions) == 5
     dataset_take = dataset_evaluation.take(5)
@@ -80,7 +79,7 @@ def prep_model(model_path):
 
 def test_evaluation_evaluate():
     # Prep
-    evaluation = Evaluation(MODEL_CONFIG, model_base_dir=None, dataset_path=DATASET_PATH)
+    evaluation = Evaluation(MODEL_CONFIG, DATA_CONFIG, model_base_dir=None, dataset_path=DATASET_PATH)
 
     with TemporaryDirectory() as model_path:
         evaluation.model_path = model_path
@@ -88,21 +87,20 @@ def test_evaluation_evaluate():
 
         qrcode_paths = evaluation.get_the_qr_code_path()
         dataset_evaluation, paths_belonging_to_predictions = evaluation.prepare_dataset(
-            qrcode_paths, DATA_CONFIG, FILTER_CONFIG=None)
-        prediction_list_one = evaluation.get_prediction_(evaluation.model_path, dataset_evaluation, DATA_CONFIG)
-        df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_list_one, DATA_CONFIG,
-                                          RESULT_CONFIG)
+            qrcode_paths, FILTER_CONFIG=None)
+        prediction_list_one = evaluation.get_prediction_(evaluation.model_path, dataset_evaluation)
+        df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_list_one, RESULT_CONFIG)
         descriptor = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else MODEL_CONFIG.EXPERIMENT_NAME
 
     # Run
     with TemporaryDirectory() as output_csv_path:
-        evaluation.evaluate(df, DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG, output_csv_path, descriptor)
+        evaluation.evaluate(df, RESULT_CONFIG, EVAL_CONFIG, output_csv_path, descriptor)
         assert len(list(Path(output_csv_path).glob('*'))) == 2
 
 
 def test_ensembleevaluation_evaluate():
     # Prep
-    evaluation = EnsembleEvaluation(MODEL_CONFIG, model_base_dir=None, dataset_path=DATASET_PATH)
+    evaluation = EnsembleEvaluation(MODEL_CONFIG, DATA_CONFIG, model_base_dir=None, dataset_path=DATASET_PATH)
 
     with TemporaryDirectory() as models_path:
         evaluation.model_paths = [Path(models_path) / 'model1', Path(models_path) / 'model2']
@@ -112,14 +110,14 @@ def test_ensembleevaluation_evaluate():
         qrcode_paths = evaluation.get_the_qr_code_path()
         dataset_evaluation, paths_belonging_to_predictions = evaluation.prepare_dataset(
             qrcode_paths, DATA_CONFIG, FILTER_CONFIG=None)
-        prediction_list_one = evaluation.get_prediction_(evaluation.model_paths, dataset_evaluation, DATA_CONFIG)
-        df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_list_one, DATA_CONFIG,
+        prediction_list_one = evaluation.get_prediction_(evaluation.model_paths, dataset_evaluation)
+        df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_list_one,
                                           RESULT_CONFIG)
         descriptor = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else MODEL_CONFIG.EXPERIMENT_NAME
 
     # Run
     with TemporaryDirectory() as output_csv_path:
-        evaluation.evaluate(df, DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG, output_csv_path, descriptor)
+        evaluation.evaluate(df, RESULT_CONFIG, EVAL_CONFIG, output_csv_path, descriptor)
         assert len(list(Path(output_csv_path).glob('*'))) == 2
 
 
@@ -160,22 +158,21 @@ def test_multiartifactevaluation_evaluate():
     data_config.N_ARTIFACTS = N_ARTIFACTS
 
     # Prep
-    evaluation = MultiartifactEvaluation(MODEL_CONFIG, model_base_dir=None, dataset_path=DATASET_PATH)
+    evaluation = MultiartifactEvaluation(MODEL_CONFIG, data_config, model_base_dir=None, dataset_path=DATASET_PATH)
 
     with TemporaryDirectory() as model_path:
         evaluation.model_path = model_path
         prep_multiartifactlatefusion_model(model_path)
         qrcode_paths = evaluation.get_the_qr_code_path()
-        dataset_evaluation, paths_belonging_to_predictions = evaluation.prepare_dataset(qrcode_paths, data_config,
+        dataset_evaluation, paths_belonging_to_predictions = evaluation.prepare_dataset(qrcode_paths,
                                                                                         FILTER_CONFIG=None)
-        prediction_list_one = evaluation.get_prediction_(model_path, dataset_evaluation, data_config)
-        df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_list_one, data_config,
-                                          RESULT_CONFIG)
+        prediction_list_one = evaluation.get_prediction_(model_path, dataset_evaluation)
+        df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_list_one, RESULT_CONFIG)
         descriptor = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else MODEL_CONFIG.EXPERIMENT_NAME
 
     # Run
     with TemporaryDirectory() as output_csv_path:
-        evaluation.evaluate(df, data_config, RESULT_CONFIG, EVAL_CONFIG, output_csv_path, descriptor)
+        evaluation.evaluate(df, RESULT_CONFIG, EVAL_CONFIG, output_csv_path, descriptor)
         assert len(list(Path(output_csv_path).glob('*'))) == 2
 
 
