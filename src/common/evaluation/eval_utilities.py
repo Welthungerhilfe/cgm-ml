@@ -498,30 +498,40 @@ def get_predictions_from_multiple_models(model_paths: list, dataset_evaluation: 
 
 def get_prediction_multiartifact(model_path: str,
                                  samples_paths: List[List[str]],
-                                 DATA_CONFIG: Bunch) -> List[List[str]]:
+                                 DATA_CONFIG: Bunch,
+                                 batch_size: int = 1) -> np.array:
     """Make prediction on each multiartifact sample.
 
     Args:
         model_path: File path to the model
         samples_paths: A list of samples where each sample contains N_ARTIFACTS.
+        DATA_CONFIG
+        batch_size
 
     Returns:
-        List with tuples: ('artifacts', 'predicted', 'GT')
+        predictions array
     """
     logging.info("loading model from %s", model_path)
     model = load_model(model_path, compile=False)
 
-    predictions = []
+    depthmaps, targets = [], []
     for sample_paths in samples_paths:
-        depthmap, targets = create_multiartifact_sample(sample_paths,
+        depthmap, target = create_multiartifact_sample(sample_paths,
                                                         DATA_CONFIG.NORMALIZATION_VALUE,
                                                         DATA_CONFIG.IMAGE_TARGET_HEIGHT,
                                                         DATA_CONFIG.IMAGE_TARGET_WIDTH,
                                                         tf.constant(DATA_CONFIG.TARGET_INDEXES),
                                                         DATA_CONFIG.N_ARTIFACTS)
-        depthmaps = tf.stack([depthmap])
-        pred = model.predict(depthmaps)
-        predictions.append([sample_paths[0], float(np.squeeze(pred)), targets[0]])
+        depthmaps.append(depthmap)
+        targets.append(target)
+
+    dataset = tf.data.Dataset.from_tensor_slices((depthmaps, targets))
+    dataset = dataset.batch(batch_size)
+    predictions = model.predict(dataset, batch_size=batch_size)
+
+    # depthmaps = tf.stack([depthmap])
+    #     pred = model.predict(depthmaps)
+    #     predictions.append([sample_paths[0], float(np.squeeze(pred)), targets[0]])
     return predictions
 
 

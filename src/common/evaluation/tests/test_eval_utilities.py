@@ -128,7 +128,6 @@ def prep_multiartifactlatefusion_model(model_path):
     # Create the base model
     input_shape = (240, 180, 1)
     base_model = create_base_cnn(input_shape, dropout=False)
-    base_model.summary()
     assert base_model.output_shape == (None, 128)
 
     # Create the head
