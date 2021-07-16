@@ -224,6 +224,7 @@ class EnsembleEvaluation(Evaluation):
         logging.info(f"Models paths ({len(model_paths)}):")
         logging.info("\t" + "\n\t".join(model_paths))
         self.model_paths = model_paths
+        self.model_path_or_paths = model_paths
 
     def get_prediction_(self,
                         model_paths: List[Path],
