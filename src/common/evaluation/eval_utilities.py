@@ -30,7 +30,7 @@ from .eval_utils import (  # noqa: E402
     extract_qrcode, extract_scantype)
 from .uncertainty_utils import get_prediction_uncertainty_deepensemble  # noqa: E402
 
-sys.path.append("..")
+sys.path.append(str(Path(__file__).parents[1]))
 
 from model_utils.preprocessing_multiartifact_python import create_multiartifact_paths_for_qrcodes  # noqa: E402
 from model_utils.preprocessing_multiartifact_tensorflow import create_multiartifact_sample  # noqa: E402
