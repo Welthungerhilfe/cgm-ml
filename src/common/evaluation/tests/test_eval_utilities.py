@@ -13,24 +13,20 @@ from model_utils.model_plaincnn import create_cnn, create_base_cnn, create_head 
 from evaluation.evaluation_classes import Evaluation, EnsembleEvaluation, MultiartifactEvaluation  # noqa: E402
 
 MODEL_CONFIG = Bunch(dict(
-    EXPERIMENT_NAME='q3-depthmap-plaincnn-height-95k',
-    RUN_ID='q3-depthmap-plaincnn-height-95k_1617983539_763a24b9',
+    EXPERIMENT_NAME='my-experiment',
+    RUN_ID='my-experiment_1617983539_763a24b9',
     INPUT_LOCATION='outputs',
     NAME='best_model.ckpt',
 ))
 EVAL_CONFIG = Bunch(dict(
-    NAME='q3-depthmap-plaincnn-height-95k-run_09',
+    NAME='my-experiment-run_09',
     EXPERIMENT_NAME="QA-pipeline",
-    CLUSTER_NAME="gpu-cluster",
-    DEBUG_RUN=True,
-    DEBUG_NUMBER_OF_SCAN=5,
-    SPLIT_SEED=0,
 ))
 DATA_CONFIG = Bunch(dict(
-    NAME='anon-depthmap-testset',
+    NAME='dataset-anontest',
     IMAGE_TARGET_HEIGHT=240,
     IMAGE_TARGET_WIDTH=180,
-    BATCH_SIZE=512,
+    BATCH_SIZE=16,
     NORMALIZATION_VALUE=7.5,
     TARGET_INDEXES=[0],
     CODES=['100', '101', '102', '200', '201', '202'],
@@ -80,7 +76,6 @@ def prep_multiartifactlatefusion_model(model_path: str):
     concatenation = layers.concatenate(features_list, axis=-1)
     assert concatenation.shape.as_list() == tf.TensorShape((None, 128 * N_ARTIFACTS)).as_list()
     model_output = head_model(concatenation)
-
     model = models.Model(model_input, model_output)
     model.save(model_path)
 
@@ -111,7 +106,6 @@ def test_evaluation_prepare_dataset():
 def test_evaluation_evaluate():
     # Prep
     evaluation = Evaluation(MODEL_CONFIG, DATA_CONFIG, model_base_dir=None, dataset_path=DATASET_PATH)
-
     with TemporaryDirectory() as model_path:
         prep_model(model_path)
         qrcode_paths = evaluation.get_the_qr_code_path()
@@ -128,15 +122,12 @@ def test_evaluation_evaluate():
 def test_ensembleevaluation_evaluate():
     # Prep
     evaluation = EnsembleEvaluation(MODEL_CONFIG, DATA_CONFIG, model_base_dir=None, dataset_path=DATASET_PATH)
-
     with TemporaryDirectory() as models_path:
         model_paths = [Path(models_path) / 'model1', Path(models_path) / 'model2']
         for model_path in model_paths:
             prep_model(model_path)
-
         qrcode_paths = evaluation.get_the_qr_code_path()
-        dataset, paths_belonging_to_predictions = evaluation.prepare_dataset(
-            qrcode_paths, filter_config=None)
+        dataset, paths_belonging_to_predictions = evaluation.prepare_dataset(qrcode_paths, filter_config=None)
         prediction_list_one = evaluation.get_prediction_(model_paths, dataset)
         df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_list_one,
                                           RESULT_CONFIG)
@@ -153,7 +144,6 @@ def test_multiartifactevaluation_evaluate():
 
     # Prep
     evaluation = MultiartifactEvaluation(MODEL_CONFIG, data_config, model_base_dir=None, dataset_path=DATASET_PATH)
-
     with TemporaryDirectory() as model_path:
         prep_multiartifactlatefusion_model(model_path)
         qrcode_paths = evaluation.get_the_qr_code_path()
