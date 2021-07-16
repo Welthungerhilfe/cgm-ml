@@ -101,5 +101,4 @@ def _get_epoch(fname: str) -> str:
     match_result = REGEX_PICKLE.search(fname)
     if match_result:
         return match_result.group("unixepoch")
-    else:
-        logging.info("%s doesn't match REGEX_PICKLE", fname)
+    logging.info("%s doesn't match REGEX_PICKLE", fname)
