@@ -6,7 +6,6 @@ import random
 import shutil
 from importlib import import_module
 from pathlib import Path
-from typing import List
 
 from bunch import Bunch
 import tensorflow as tf

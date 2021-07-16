@@ -26,8 +26,7 @@ from .constants_eval import (  # noqa: E402
     CODE_TO_SCANTYPE, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, COLUMN_NAME_SEX, DAYS_IN_YEAR,
     GOODBAD_IDX, GOODBAD_DICT, SEX_IDX, SEX_DICT, AGE_IDX, HEIGHT_IDX, WEIGHT_IDX)
 from .eval_utils import (  # noqa: E402
-    avgerror, preprocess_depthmap, preprocess_targets, calculate_performance,
-    extract_qrcode, extract_scantype)
+    avgerror, preprocess_depthmap, preprocess_targets, calculate_performance)
 from .uncertainty_utils import get_prediction_uncertainty_deepensemble  # noqa: E402
 
 sys.path.append(str(Path(__file__).parents[1]))
