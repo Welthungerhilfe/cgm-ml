@@ -161,9 +161,10 @@ def test_multiartifactevaluation_evaluate():
         evaluation.model_path = model_path
         prep_multiartifactlatefusion_model(model_path)
         qrcode_paths = evaluation.get_the_qr_code_path()
-        # _, _ = evaluation.prepare_dataset(qrcode_paths, data_config, FILTER_CONFIG=None)
-        predictions = evaluation.get_prediction_(evaluation.model_path, qrcode_paths, data_config)
-        df = evaluation.prepare_dataframe(predictions)
+        dataset_evaluation, new_paths_evaluation = evaluation.prepare_dataset(qrcode_paths, data_config,
+                                                                              FILTER_CONFIG=None)
+        prediction_list_one = evaluation.get_prediction_(model_path, dataset_evaluation, data_config)
+        df = evaluation.prepare_dataframe(new_paths_evaluation, prediction_list_one, data_config, RESULT_CONFIG)
         descriptor = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else MODEL_CONFIG.EXPERIMENT_NAME
 
     # Run

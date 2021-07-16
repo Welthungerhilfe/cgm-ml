@@ -447,7 +447,7 @@ def download_model(workspace, experiment_name, run_id, input_location, output_lo
     logging.info("Successfully downloaded model")
 
 
-def filter_dataset_according_to_standing_lying(paths_evaluation, standing):
+def filter_dataset_according_to_standing_lying(paths_evaluation, standing) -> List[str]:
     new_paths_evaluation = []
     exc = []
     for p in paths_evaluation:
@@ -497,41 +497,21 @@ def get_predictions_from_multiple_models(model_paths: list, dataset_evaluation: 
 
 
 def get_prediction_multiartifact(model_path: str,
-                                 samples_paths: List[List[str]],
-                                 DATA_CONFIG: Bunch,
-                                 batch_size: int = 1) -> np.array:
+                                 dataset: tf.data.Dataset,
+                                 DATA_CONFIG: Bunch) -> np.array:
     """Make prediction on each multiartifact sample.
 
     Args:
         model_path: File path to the model
         samples_paths: A list of samples where each sample contains N_ARTIFACTS.
         DATA_CONFIG
-        batch_size
 
     Returns:
         predictions array
     """
     logging.info("loading model from %s", model_path)
     model = load_model(model_path, compile=False)
-
-    depthmaps, targets = [], []
-    for sample_paths in samples_paths:
-        depthmap, target = create_multiartifact_sample(sample_paths,
-                                                        DATA_CONFIG.NORMALIZATION_VALUE,
-                                                        DATA_CONFIG.IMAGE_TARGET_HEIGHT,
-                                                        DATA_CONFIG.IMAGE_TARGET_WIDTH,
-                                                        tf.constant(DATA_CONFIG.TARGET_INDEXES),
-                                                        DATA_CONFIG.N_ARTIFACTS)
-        depthmaps.append(depthmap)
-        targets.append(target)
-
-    dataset = tf.data.Dataset.from_tensor_slices((depthmaps, targets))
-    dataset = dataset.batch(batch_size)
-    predictions = model.predict(dataset, batch_size=batch_size)
-
-    # depthmaps = tf.stack([depthmap])
-    #     pred = model.predict(depthmaps)
-    #     predictions.append([sample_paths[0], float(np.squeeze(pred)), targets[0]])
+    predictions = model.predict(dataset, batch_size=DATA_CONFIG.BATCH_SIZE)
     return predictions
 
 
@@ -583,6 +563,7 @@ class Evaluation:
                        output_location=self.model_base_dir)
         logging.info("Model was downloaded")
         self.model_path = self.model_base_dir / get_model_path(self.model_config)
+        self.model_path_or_paths = self.model_path
 
     def get_the_qr_code_path(self) -> List[str]:
         dataset_path = os.path.join(self.dataset_path, "scans")
@@ -644,7 +625,11 @@ class Evaluation:
     def get_prediction_(self, model_path: Path, dataset_evaluation: tf.data.Dataset, DATA_CONFIG: Bunch) -> np.array:
         return get_prediction(model_path, dataset_evaluation, DATA_CONFIG)
 
-    def prepare_dataframe(self, new_paths_evaluation, prediction_list_one, DATA_CONFIG, RESULT_CONFIG):
+    def prepare_dataframe(self,
+                          new_paths_evaluation: List[str],
+                          prediction_list_one: np.array,
+                          DATA_CONFIG: Bunch,
+                          RESULT_CONFIG: Bunch) -> pd.DataFrame:
         qrcode_list, scantype_list, artifact_list, prediction_list, target_list = get_column_list(
             new_paths_evaluation, prediction_list_one, DATA_CONFIG)
 
@@ -815,22 +800,60 @@ class MultiartifactEvaluation(Evaluation):
     def prepare_dataset(self,
                         qrcode_paths: List[str],
                         DATA_CONFIG: Bunch,
-                        FILTER_CONFIG: Bunch) -> Tuple[tf.data.Dataset, List[str]]:
-        return tf.data.Dataset([]), []
+                        FILTER_CONFIG: Bunch) -> Tuple[tf.data.Dataset, List[List[str]]]:
+        samples_paths = create_multiartifact_paths_for_qrcodes(qrcode_paths, DATA_CONFIG)
+
+        depthmaps, targets = [], []
+        for sample_paths in samples_paths:
+            depthmap, target = create_multiartifact_sample(sample_paths,
+                                                           DATA_CONFIG.NORMALIZATION_VALUE,
+                                                           DATA_CONFIG.IMAGE_TARGET_HEIGHT,
+                                                           DATA_CONFIG.IMAGE_TARGET_WIDTH,
+                                                           tf.constant(DATA_CONFIG.TARGET_INDEXES),
+                                                           DATA_CONFIG.N_ARTIFACTS)
+            depthmaps.append(depthmap)
+            targets.append(target)
+
+        dataset = tf.data.Dataset.from_tensor_slices((depthmaps, targets))
+        dataset = dataset.batch(DATA_CONFIG.BATCH_SIZE)
+
+        return dataset, samples_paths
 
     def get_prediction_(self,
                         model_path: Path,
-                        qrcode_paths: List[str],
+                        dataset_evaluation: List[str],
                         DATA_CONFIG: Bunch) -> np.array:
-
-        samples_paths = create_multiartifact_paths_for_qrcodes(qrcode_paths, DATA_CONFIG)
-        predictions = get_prediction_multiartifact(model_path, samples_paths, DATA_CONFIG)
+        predictions = get_prediction_multiartifact(model_path, dataset_evaluation, DATA_CONFIG)
         return predictions
 
-    def prepare_dataframe(self, predictions):
-        df = pd.DataFrame(predictions, columns=['artifacts', 'predicted', 'GT'])
-        df['scantype'] = df.apply(extract_scantype, axis=1)
-        df['qrcode'] = df.apply(extract_qrcode, axis=1)
+    def prepare_dataframe(self,
+                          new_paths_evaluation: List[List[str]],
+                          prediction_list_one: np.array,
+                          DATA_CONFIG: Bunch,
+                          RESULT_CONFIG: Bunch):
+        first_paths = [paths_list[0] for paths_list in new_paths_evaluation]
+        qrcode_list, scantype_list, artifact_list, prediction_list, target_list = get_column_list(
+            first_paths, prediction_list_one, DATA_CONFIG)
+
+        df = pd.DataFrame({
+            'qrcode': qrcode_list,
+            'artifact': artifact_list,
+            'scantype': scantype_list,
+            'GT': target_list if target_list[0].shape == tuple() else [el[0] for el in target_list],
+            'predicted': prediction_list
+        }, columns=RESULT_CONFIG.COLUMNS)
+        df['GT'] = df['GT'].astype('float64')
+        df['predicted'] = df['predicted'].astype('float64')
+
+        if 'AGE_BUCKETS' in RESULT_CONFIG.keys():
+            idx = DATA_CONFIG.TARGET_INDEXES.index(AGE_IDX)
+            df[COLUMN_NAME_AGE] = [el[idx] for el in target_list]
+        if SEX_IDX in DATA_CONFIG.TARGET_INDEXES:
+            idx = DATA_CONFIG.TARGET_INDEXES.index(SEX_IDX)
+            df[COLUMN_NAME_SEX] = [el[idx] for el in target_list]
+        if GOODBAD_IDX in DATA_CONFIG.TARGET_INDEXES:
+            idx = DATA_CONFIG.TARGET_INDEXES.index(GOODBAD_IDX)
+            df[COLUMN_NAME_GOODBAD] = [el[idx] for el in target_list]
+
+        logging.info("df.shape: %s", df.shape)
         return df
-        # MAE = df.groupby(['qrcode', 'scantype']).mean()
-        # MAE['error'] = MAE.apply(avgerror, axis=1)

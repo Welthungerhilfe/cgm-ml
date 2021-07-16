@@ -148,20 +148,14 @@ if __name__ == "__main__":
 
     if is_ensemble_evaluation(MODEL_CONFIG):
         MODEL_BASE_DIR = (REPO_DIR / 'data' / MODEL_CONFIG.EXPERIMENT_NAME) if is_offline_run(RUN) else Path('.')
-        evaluation = EnsembleEvaluation(MODEL_CONFIG, MODEL_BASE_DIR, initializer.dataset_path)
-        evaluation.get_the_model_path(initializer.workspace)
-        model_paths = evaluation.model_paths
+        eval_class = EnsembleEvaluation
+        descriptor = MODEL_CONFIG.EXPERIMENT_NAME
     else:
-        RUN_ID = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else None
-        MODEL_BASE_DIR = REPO_DIR / 'data' / RUN_ID if is_offline_run(RUN) else Path('.')
-        if is_multiartifact_evaluation(DATA_CONFIG):
-            evaluation = MultiartifactEvaluation(MODEL_CONFIG, MODEL_BASE_DIR, initializer.dataset_path)
-            evaluation.get_the_model_path(initializer.workspace)
-            model_path = evaluation.model_path
-        else:
-            evaluation = Evaluation(MODEL_CONFIG, MODEL_BASE_DIR, initializer.dataset_path)
-            evaluation.get_the_model_path(initializer.workspace)
-            model_path = evaluation.model_path
+        MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if is_offline_run(RUN) else Path('.')
+        eval_class = MultiartifactEvaluation if is_multiartifact_evaluation(DATA_CONFIG) else Evaluation
+        descriptor = MODEL_CONFIG.RUN_ID
+    evaluation = eval_class(MODEL_CONFIG, MODEL_BASE_DIR, initializer.dataset_path)
+    evaluation.get_the_model_path(initializer.workspace)
 
     # Get the QR-code paths
     qrcode_paths = evaluation.get_the_qr_code_path()
@@ -169,26 +163,12 @@ if __name__ == "__main__":
         qrcode_paths = qrcode_paths[:EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN]
         logging.info("Executing on %d qrcodes for FAST RUN", EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN)
 
-    # Is this a multiartifact model?
-    if is_multiartifact_evaluation(DATA_CONFIG):
-        predictions: List[List[str]] = evaluation.get_prediction_(model_path, qrcode_paths, DATA_CONFIG)
-        df = evaluation.prepare_dataframe(predictions)
+    dataset_evaluation, new_paths_evaluation = evaluation.prepare_dataset(qrcode_paths, DATA_CONFIG, FILTER_CONFIG)
+    prediction_list_one = evaluation.get_prediction_(evaluation.model_path_or_paths, dataset_evaluation, DATA_CONFIG)
+    logging.info("Prediction made by model on the depthmaps...")
+    logging.info(prediction_list_one)
 
-    else:  # Single-artifact
-        dataset_evaluation, new_paths_evaluation = evaluation.prepare_dataset(qrcode_paths, DATA_CONFIG, FILTER_CONFIG)
-
-        if is_ensemble_evaluation(MODEL_CONFIG):
-            prediction_list_one = evaluation.get_prediction_(model_paths, dataset_evaluation, DATA_CONFIG)
-        else:
-            prediction_list_one = evaluation.get_prediction_(model_path, dataset_evaluation, DATA_CONFIG)
-        logging.info("Prediction made by model on the depthmaps...")
-        logging.info(prediction_list_one)
-
-        df = evaluation.prepare_dataframe(
-            new_paths_evaluation, prediction_list_one, DATA_CONFIG, RESULT_CONFIG)
-        # df has columns: ['qrcode', 'artifact', 'scantype', 'GT', 'predicted']
-
-    descriptor = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else MODEL_CONFIG.EXPERIMENT_NAME
+    df = evaluation.prepare_dataframe(new_paths_evaluation, prediction_list_one, DATA_CONFIG, RESULT_CONFIG)
     evaluation.evaluate(df, DATA_CONFIG, RESULT_CONFIG, EVAL_CONFIG, OUTPUT_CSV_PATH, descriptor)
 
     # Done.
