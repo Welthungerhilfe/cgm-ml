@@ -164,11 +164,11 @@ if __name__ == "__main__":
         logging.info("Executing on %d qrcodes for FAST RUN", EVAL_CONFIG.DEBUG_NUMBER_OF_SCAN)
 
     dataset_evaluation, paths_belonging_to_predictions = evaluation.prepare_dataset(qrcode_paths, FILTER_CONFIG)
-    prediction_list_one = evaluation.get_prediction_(evaluation.model_path_or_paths, dataset_evaluation)
+    prediction_array = evaluation.get_prediction_(evaluation.model_path_or_paths, dataset_evaluation)
     logging.info("Prediction made by model on the depthmaps...")
-    logging.info(prediction_list_one)
+    logging.info(prediction_array)
 
-    df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_list_one, RESULT_CONFIG)
+    df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_array, RESULT_CONFIG)
     evaluation.evaluate(df, RESULT_CONFIG, EVAL_CONFIG, OUTPUT_CSV_PATH, descriptor)
 
     # Done.

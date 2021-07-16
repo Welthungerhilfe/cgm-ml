@@ -23,6 +23,7 @@ tmp_*/
 temp_*/
 best_model.ckpt/
 best_model.h5
+.local_gitignore
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

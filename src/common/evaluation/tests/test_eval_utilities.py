@@ -110,8 +110,8 @@ def test_evaluation_evaluate():
         prep_model(model_path)
         qrcode_paths = evaluation.get_the_qr_code_path()
         dataset, paths_belonging_to_predictions = evaluation.prepare_dataset(qrcode_paths, filter_config=None)
-        prediction_list_one = evaluation.get_prediction_(model_path, dataset)
-        df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_list_one, RESULT_CONFIG)
+        prediction_array = evaluation.get_prediction_(model_path, dataset)
+        df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_array, RESULT_CONFIG)
 
     # Run
     with TemporaryDirectory() as output_csv_path:
@@ -128,8 +128,8 @@ def test_ensembleevaluation_evaluate():
             prep_model(model_path)
         qrcode_paths = evaluation.get_the_qr_code_path()
         dataset, paths_belonging_to_predictions = evaluation.prepare_dataset(qrcode_paths, filter_config=None)
-        prediction_list_one = evaluation.get_prediction_(model_paths, dataset)
-        df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_list_one,
+        prediction_array = evaluation.get_prediction_(model_paths, dataset)
+        df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_array,
                                           RESULT_CONFIG)
     # Run
     with TemporaryDirectory() as output_csv_path:
@@ -148,8 +148,8 @@ def test_multiartifactevaluation_evaluate():
         prep_multiartifactlatefusion_model(model_path)
         qrcode_paths = evaluation.get_the_qr_code_path()
         dataset, paths_belonging_to_predictions = evaluation.prepare_dataset(qrcode_paths, filter_config=None)
-        prediction_list_one = evaluation.get_prediction_(model_path, dataset)
-        df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_list_one, RESULT_CONFIG)
+        prediction_array = evaluation.get_prediction_(model_path, dataset)
+        df = evaluation.prepare_dataframe(paths_belonging_to_predictions, prediction_array, RESULT_CONFIG)
 
     # Run
     with TemporaryDirectory() as output_csv_path:

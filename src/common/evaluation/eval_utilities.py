@@ -475,14 +475,14 @@ def get_prediction(model_path: str, dataset_evaluation: tf.data.Dataset, data_co
 
 
 def get_predictions_from_multiple_models(model_paths: list, dataset_evaluation: tf.data.Dataset, data_config) -> list:
-    prediction_list_one = []
+    prediction_array = []
     for model_index, model_path in enumerate(model_paths):
         logging.info(f"Model {model_index + 1}/{len(model_paths)}")
-        prediction_list_one += [get_prediction(model_path, dataset_evaluation, data_config)]
+        prediction_array += [get_prediction(model_path, dataset_evaluation, data_config)]
         logging.info("Prediction made by model on the depthmaps...")
-    prediction_list_one = np.array(prediction_list_one)
-    prediction_list_one = np.mean(prediction_list_one, axis=0)
-    return prediction_list_one
+    prediction_array = np.array(prediction_array)
+    prediction_array = np.mean(prediction_array, axis=0)
+    return prediction_array
 
 
 def get_prediction_multiartifact(model_path: str,

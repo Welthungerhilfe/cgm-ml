@@ -114,10 +114,10 @@ class Evaluation:
 
     def prepare_dataframe(self,
                           paths_belonging_to_predictions: List[str],
-                          prediction_list_one: np.array,
+                          prediction_array: np.array,
                           result_config: Bunch) -> pd.DataFrame:
         qrcode_list, scantype_list, artifact_list, prediction_list, target_list = get_column_list(
-            paths_belonging_to_predictions, prediction_list_one, self.data_config)
+            paths_belonging_to_predictions, prediction_array, self.data_config)
 
         df = pd.DataFrame({
             'qrcode': qrcode_list,
@@ -310,11 +310,11 @@ class MultiartifactEvaluation(Evaluation):
 
     def prepare_dataframe(self,
                           paths_belonging_to_predictions: List[List[str]],
-                          prediction_list_one: np.array,
+                          prediction_array: np.array,
                           result_config: Bunch):
         first_paths = [paths_list[0] for paths_list in paths_belonging_to_predictions]
         qrcode_list, scantype_list, artifact_list, prediction_list, target_list = get_column_list(
-            first_paths, prediction_list_one, self.data_config)
+            first_paths, prediction_array, self.data_config)
 
         df = pd.DataFrame({
             'qrcode': qrcode_list,
