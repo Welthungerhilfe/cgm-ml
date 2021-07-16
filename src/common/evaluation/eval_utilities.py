@@ -156,9 +156,7 @@ def calculate_performance_age(code: str, df_mae: pd.DataFrame, result_config: Bu
                                                         result_config.ACCURACY_MAIN_THRESH)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
-
     df_out.columns = [f"{age_min} to {age_max}" for age_min, age_max in age_buckets]
-
     return df_out
 
 
@@ -372,7 +370,6 @@ def calculate_zscore_wfa(df):
         lambda row: utils(age_in_days=int(row[COLUMN_NAME_AGE]),
                           sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', weight=row['predicted']),
         axis=1)
-
     return df
 
 
@@ -439,7 +436,7 @@ def download_model(workspace, experiment_name, run_id, input_location, output_lo
     logging.info("Successfully downloaded model")
 
 
-def filter_dataset_according_to_standing_lying(paths_evaluation, standing) -> List[str]:
+def filter_dataset_according_to_standing_lying(paths_evaluation: List[str], standing) -> List[str]:
     paths_belonging_to_predictions = []
     exc = []
     for p in paths_evaluation:
@@ -525,7 +522,7 @@ def tf_load_pickle(path, max_value, data_config):
     return path, depthmap, targets
 
 
-def prepare_sample_dataset(df_sample, dataset_path, data_config):
+def prepare_sample_dataset(df_sample: pd.DataFrame, dataset_path: str, data_config: Bunch) -> tf.data.Dataset:
     df_sample['artifact_path'] = df_sample.apply(
         lambda x: f"{dataset_path}/scans/{x['qrcode']}/{x['scantype']}/{x['artifact']}", axis=1)
     paths_evaluation = list(df_sample['artifact_path'])
