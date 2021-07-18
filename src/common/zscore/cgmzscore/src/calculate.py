@@ -34,7 +34,6 @@ class Zscore:
                 |        y - SD3neg
                 | -3 + ( ----------- )  if Zind < -3
                 |          SD23neg
-                |
         '''
 
         def calc_stdev(sd):
