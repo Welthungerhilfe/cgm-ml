@@ -14,14 +14,7 @@ class Zscore:
                   [y/M(t)]^L(t) - 1
            Zind =  -----------------
                       S(t)L(t)
-        '''
 
-        numerator = (self.measurement / self.median)**self.skew - D(1.0)
-        denominator = self.skew * self.coff
-        z_score = numerator / denominator
-
-        '''
-                |
                 |       Zind            if |Zind| <= 3
                 |
                 |
@@ -35,6 +28,10 @@ class Zscore:
                 | -3 + ( ----------- )  if Zind < -3
                 |          SD23neg
         '''
+
+        numerator = (self.measurement / self.median)**self.skew - D(1.0)
+        denominator = self.skew * self.coff
+        z_score = numerator / denominator
 
         def calc_stdev(sd):
             value = (1 + (self.skew * self.coff * sd))**(1 / self.skew)
