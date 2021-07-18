@@ -88,6 +88,7 @@ def zScore_withclass(weight=None, muac=None, age_in_days=None, sex=None, height=
 
 def SAM_MAM(weight=None, muac=None, age_in_days=None, sex=None, height=None):
     assert muac is not None
+    diagnosis = ''
 
     if D(age_in_days) > 731:
         wfl = zScore_wfh(
@@ -96,8 +97,9 @@ def SAM_MAM(weight=None, muac=None, age_in_days=None, sex=None, height=None):
         wfl = zScore_wfl(
             weight=weight, age_in_days=age_in_days, sex=sex, height=height)
     if wfl < -3 or D(muac) < 11.5:
-        return "SAM"
+        diagnosis = "SAM"
     elif (wfl >= -3 and wfl < -2) or D(muac) < 12.5:
-        return "MAM"
+        diagnosis = "MAM"
     else:
-        return "Healthy"
+        diagnosis = "Healthy"
+    return diagnosis
