@@ -6,8 +6,14 @@ import logging
 import logging.config
 
 import pandas as pd
+from pathlib import Path
 
-from cgmzscore import Calculator
+import sys
+print(str(Path(__file__).parents[1]))
+sys.path.append(str(Path(__file__).parents[1] / 'src'))
+
+from main import zScore_wfa, zScore_lhfa, zScore_wfh, zScore_wfl  # noqa
+
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
@@ -38,10 +44,13 @@ def test_zScore_wfa():
         sex = 'M' if df['GENDER'][i] == 1 else 'F'
 
         g = float("{0:.9f}". format(df['WEIGHT'][i]))
-        v = Calculator().zScore_wfa(weight=str(g), height=str(
+        v = zScore_wfa(weight=str(g), height=str(
             df['HEIGHT'][i]), sex=sex, age_in_days=str((df['_agedays'][i])))
         ans = float("{0:.2f}". format(abs(v - df['_ZWEI'][i])))
         assert ans <= 0.01
+
+
+test_zScore_wfa()
 
 
 def test_zScore_lhfa():
@@ -53,8 +62,8 @@ def test_zScore_lhfa():
 
         g = float("{0:.9f}". format(df['HEIGHT'][i]))
 
-        v = Calculator().zScore_lhfa(height=str(g), sex=sex,
-                                     age_in_days=str((df['_agedays'][i])))
+        v = zScore_lhfa(height=str(g), sex=sex,
+                        age_in_days=str((df['_agedays'][i])))
 
         logging.info(g)
 
@@ -72,7 +81,7 @@ def test_zScore_wfh():
         g = float("{0:.5f}". format(df['HEIGHT'][i]))
         t = float("{0:.9f}". format(df['WEIGHT'][i]))
 
-        v = Calculator().zScore_wfh(height=str(g), weight=str(
+        v = zScore_wfh(height=str(g), weight=str(
             t), sex=sex, age_in_days=str((df['_agedays'][i])))
 
         ans = float("{0:.2f}". format(abs(v - df['_ZWFL'][i])))
@@ -89,7 +98,7 @@ def test_zScore_wfl():
         g = float("{0:.5f}". format(df['HEIGHT'][i]))
         t = float("{0:.9f}". format(df['WEIGHT'][i]))
 
-        v = Calculator().zScore_wfl(height=str(g), weight=str(
+        v = zScore_wfl(height=str(g), weight=str(
             t), sex=sex, age_in_days=str((df['_agedays'][i])))
 
         ans = float("{0:.2f}". format(abs(v - df['_ZWFL'][i])))
