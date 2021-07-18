@@ -9,35 +9,59 @@ class Zscore:
         self.measurement = measurement
 
     def z_score_measurement(self):
+
+        ###
+        #  Z score
+        #          [y/M(t)]^L(t) - 1
+        #   Zind =  -----------------
+        #               S(t)L(t)
+        ###
         numerator = (self.measurement / self.median)**self.skew - D(1.0)
         denominator = self.skew * self.coff
-        zScore = numerator / denominator
+        z_score = numerator / denominator
+
+        ###
+        #           |
+        #           |       Zind            if |Zind| <= 3
+        #           |
+        #           |
+        #           |       y - SD3pos
+        #   Zind* = | 3 + ( ----------- )   if Zind > 3
+        #           |         SD23pos
+        #           |
+        #           |
+        #           |
+        #           |        y - SD3neg
+        #           | -3 + ( ----------- )  if Zind < -3
+        #           |          SD23neg
+        #           |
+        ###
 
         def calc_stdev(sd):
             value = (1 + (self.skew * self.coff * sd))**(1 / self.skew)
             stdev = self.median * value
             return stdev
 
-        if D(zScore) > D(3):
+        if D(z_score) > D(3):
             SD2pos = calc_stdev(2)
             SD3pos = calc_stdev(3)
 
             SD23pos = SD3pos - SD2pos
 
-            zScore = 3 + ((self.measurement - SD3pos) / SD23pos)
+            z_score = 3 + ((self.measurement - SD3pos) / SD23pos)
 
-            zScore = float(zScore.quantize(D('0.01')))
+            z_score = float(z_score.quantize(D('0.01')))
 
-        elif D(zScore) < -3:
+        elif D(z_score) < -3:
             SD2neg = calc_stdev(-2)
             SD3neg = calc_stdev(-3)
 
             SD23neg = SD2neg - SD3neg
 
-            zScore = -3 + ((self.measurement - SD3neg) / SD23neg)
-            zScore = float(zScore.quantize(D('0.01')))
+            z_score = -3 + ((self.measurement - SD3neg) / SD23neg)
+            z_score = float(z_score.quantize(D('0.01')))
 
         else:
-            zScore = float(zScore.quantize(D('0.01')))
+            z_score = float(z_score.quantize(D('0.01')))
 
-        return zScore
+        return z_score
