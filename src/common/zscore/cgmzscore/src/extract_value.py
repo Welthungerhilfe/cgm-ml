@@ -67,7 +67,7 @@ class Value:
         median = D(value.get("M"))
         coff = D(value.get("S"))
         if self.chart == 'wfa' or self.chart == 'wfl' or self.chart == 'wfh':
-            y = D(self.weight)
+            measurement = D(self.weight)
         elif self.chart == 'lhfa':
-            y = D(self.height)
-        return skew, median, coff, y
+            measurement = D(self.height)
+        return skew, median, coff, measurement

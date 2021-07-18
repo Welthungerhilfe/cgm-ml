@@ -2,6 +2,10 @@ import json
 
 
 class Table:
+    '''
+    Class to load table
+    '''
+
     def __init__(self, table_file: str):
         self.table_file = table_file
 
@@ -12,6 +16,10 @@ class Table:
 
 
 class ReformatTable:
+    '''
+    Reformat table by adding value
+    '''
+
     def __init__(self, table_value: json):
         self.table_value = table_value
 

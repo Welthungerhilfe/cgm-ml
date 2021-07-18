@@ -9,33 +9,33 @@ class Zscore:
         self.measurement = measurement
 
     def z_score_measurement(self):
+        '''
+         Z score
+                  [y/M(t)]^L(t) - 1
+           Zind =  -----------------
+                      S(t)L(t)
+        '''
 
-        ###
-        #  Z score
-        #          [y/M(t)]^L(t) - 1
-        #   Zind =  -----------------
-        #               S(t)L(t)
-        ###
         numerator = (self.measurement / self.median)**self.skew - D(1.0)
         denominator = self.skew * self.coff
         z_score = numerator / denominator
 
-        ###
-        #           |
-        #           |       Zind            if |Zind| <= 3
-        #           |
-        #           |
-        #           |       y - SD3pos
-        #   Zind* = | 3 + ( ----------- )   if Zind > 3
-        #           |         SD23pos
-        #           |
-        #           |
-        #           |
-        #           |        y - SD3neg
-        #           | -3 + ( ----------- )  if Zind < -3
-        #           |          SD23neg
-        #           |
-        ###
+        '''
+                |
+                |       Zind            if |Zind| <= 3
+                |
+                |
+                |       y - SD3pos
+        Zind* = | 3 + ( ----------- )   if Zind > 3
+                |         SD23pos
+                |
+                |
+                |
+                |        y - SD3neg
+                | -3 + ( ----------- )  if Zind < -3
+                |          SD23neg
+                |
+        '''
 
         def calc_stdev(sd):
             value = (1 + (self.skew * self.coff * sd))**(1 / self.skew)

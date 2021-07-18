@@ -21,8 +21,8 @@ for table in WHO_tables:
 def z_score_calculation(table):
     table_name = table.resolve_table()
     value = table.get_values(table_name, all_json_value)
-    skew, median, coff, y = table.resolve_value(value)
-    return Zscore(skew, median, coff, y).z_score_measurement()
+    skew, median, coff, measurement = table.resolve_value(value)
+    return Zscore(skew, median, coff, measurement).z_score_measurement()
 
 
 def zScore_wfa(weight=None, muac=None, age_in_days=None, sex=None, height=None):
