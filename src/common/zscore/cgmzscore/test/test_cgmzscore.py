@@ -1,19 +1,17 @@
 '''
-# Test case from data provide in survey of https://www.who.int/childgrowth/software/
+Test case from data provide in survey of https://www.who.int/childgrowth/software/
 '''
-import os
 import logging
 import logging.config
-
-import pandas as pd
+import os
+import sys
 from pathlib import Path
 
-import sys
-print(str(Path(__file__).parents[1]))
+import pandas as pd
+
 sys.path.append(str(Path(__file__).parents[1] / 'src'))
 
-from main import zScore_wfa, zScore_lhfa, zScore_wfh, zScore_wfl  # noqa
-
+from main import zScore_lhfa, zScore_wfa, zScore_wfh, zScore_wfl  # noqa
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
@@ -48,9 +46,6 @@ def test_zScore_wfa():
             df['HEIGHT'][i]), sex=sex, age_in_days=str((df['_agedays'][i])))
         ans = float("{0:.2f}". format(abs(v - df['_ZWEI'][i])))
         assert ans <= 0.01
-
-
-test_zScore_wfa()
 
 
 def test_zScore_lhfa():
