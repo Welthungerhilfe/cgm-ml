@@ -45,7 +45,7 @@ conda install tensorflow-gpu
 conda install ipykernel
 conda install keras
 conda install vtk progressbar2 glob2 pandas
-pip install --upgrade pip
+pip install --upgrade pip==20.2
 pip install git+https://github.com/daavoo/pyntcloud
 ```
 
@@ -66,7 +66,7 @@ conda install tensorflow
 conda install ipykernel
 conda install keras
 conda install vtk progressbar2 glob2 pandas
-pip install --upgrade pip
+pip install --upgrade pip==20.2
 pip install git+https://github.com/daavoo/pyntcloud
 ```
 

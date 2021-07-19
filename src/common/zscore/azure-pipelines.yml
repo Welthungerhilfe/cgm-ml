@@ -23,7 +23,7 @@ steps:
   displayName: 'Use Python $(python.version)'
 
 - script: |
-    python -m pip install --upgrade pip
+    python -m pip install --upgrade pip==20.2
     pip install numpy==1.19.1 glob2==0.7 wheel
   displayName: 'Install dependencies'
 

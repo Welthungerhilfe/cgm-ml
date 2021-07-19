@@ -12,7 +12,8 @@ from .constants_eval import (  # noqa: E402, F401
     AGE_IDX, COLUMN_NAME_AGE, COLUMN_NAME_GOODBAD, COLUMN_NAME_SEX, CONFIG, EVALUATION_ACCURACIES,
     GOODBAD_DICT, GOODBAD_IDX, HEIGHT_IDX, SEX_DICT, SEX_IDX, WEIGHT_IDX)
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 REPO_DIR = Path(os.getcwd()).parents[2]
 
@@ -67,7 +68,7 @@ def extract_qrcode(row):
 
 
 def extract_scantype(row):
-    """https://dev.azure.com/cgmorg/ChildGrowthMonitor/_wiki/wikis/ChildGrowthMonitor.wiki/15/Codes-for-Pose-and-Scan-step"""
+    """https://dev.azure.com/cgmorg/ChildGrowthMonitor/_wiki/wikis/ChildGrowthMonitor.wiki/15/Codes-for-Pose-and-Scan-step"""  # noqa: E501
     scans = row['artifacts'].split('/')[-2]
     return scans
 

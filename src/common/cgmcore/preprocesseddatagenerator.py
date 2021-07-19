@@ -19,7 +19,8 @@ import pickle
 from . import utils
 from bunch import Bunch
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 class PreprocessedDataGenerator(object):
@@ -51,8 +52,10 @@ class PreprocessedDataGenerator(object):
 
         Args:
             dataset_path (string): Where the raw data is.
-            input_type (string): Specifies how the input-data for the Neural Network looks like. Either 'image', 'pointcloud', 'voxgrid'.
-            output_targets (list of strings): A list of targets for the Neural Network. For example *['height', 'weight']*.
+            input_type (string): Specifies how the input-data for the Neural Network looks like.
+                                 Either 'image', 'pointcloud', 'voxgrid'.
+            output_targets (list of strings): A list of targets for the Neural Network.
+                                              For example *['height', 'weight']*.
             sequence_length (int): Specifies the lenght of the sequences. 0 would yield no sequence at all.
             image_target_shape (2D tuple of ints): Target shape of the images.
             voxelgrid_target_shape (3D tuple of ints): Target shape of the voxelgrids.

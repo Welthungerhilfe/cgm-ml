@@ -14,7 +14,8 @@ import tensorflow as tf
 
 from common.model_utils.preprocessing import preprocess_depthmap, preprocess_targets
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 REPO_DIR = Path(os.getcwd()).parent
 

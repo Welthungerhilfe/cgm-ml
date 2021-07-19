@@ -7,7 +7,7 @@ CONFIG_NAME = os.path.splitext(os.path.basename(__file__))[0]
 # Details of model used for evaluation
 MODEL_CONFIG = Bunch(dict(
     EXPERIMENT_NAME='q4-depthmap-plaincnn-weight-95k',
-    RUN_ID='q4-depthmap-plaincnn-weight-95k_1611336518_642a9c58',
+    RUN_ID='q4-depthmap-plaincnn-weight-95k_1611336518_642a9c58',  # Run 2
     INPUT_LOCATION='outputs',
     NAME='best_model.ckpt',
 ))
@@ -40,7 +40,10 @@ DATA_CONFIG = Bunch(dict(
     BATCH_SIZE=512,  # Batch size for evaluation
     NORMALIZATION_VALUE=7.5,
 
-    TARGET_INDEXES=[1, 3, 4, 5],  # 0 is height, 1 is weight, 2 is muac, 3 is age, 4 is sex('male' or 'female'), 5 is quality ('good' or 'bad'), 6 is test
+    # 0 is height, 1 is weight, 2 is muac, 3 is age,
+    # 4 is sex('male' or 'female'), 5 is quality ('good' or 'bad'), 6 is test
+    TARGET_INDEXES=[1, 3, 4, 5],
+
     CODES=['100', '101', '102', '200', '201', '202']
 ))
 

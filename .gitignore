@@ -1,9 +1,14 @@
+src/common/depthmap_toolkit/testdata/lenovo_phab2pro_180x135/
+src/common/depthmap_toolkit/tests/huawei_p40pro_full/
+
 # Custom
+src/common/depthmap_toolkit/testdata/lenovo_phab2pro_180x135
+src/common/depthmap_toolkit/tests/huawei_p40pro_full
 wandb/
 old/cgm_database/dbconnection.json
 *.ply
 *.png
-*.ipynb.amltemp
+*.amltemp
 .ipynb_aml_checkpoints/
 test-output.xml
 data/
@@ -125,7 +130,6 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-*.p
 *.h5
 
 #VS Code

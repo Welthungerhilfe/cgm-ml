@@ -2,7 +2,9 @@ import imgaug.augmenters as iaa
 import numpy as np
 import tensorflow as tf
 
-from config import CONFIG, DATA_AUGMENTATION_SAME_PER_CHANNEL, DATA_AUGMENTATION_DIFFERENT_EACH_CHANNEL, DATA_AUGMENTATION_NO
+from config import (
+    CONFIG, DATA_AUGMENTATION_SAME_PER_CHANNEL,
+    DATA_AUGMENTATION_DIFFERENT_EACH_CHANNEL, DATA_AUGMENTATION_NO)
 
 
 @tf.function(input_signature=[tf.TensorSpec(None, tf.float32),  # (240,180,5)

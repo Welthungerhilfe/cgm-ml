@@ -4,7 +4,7 @@ import os
 import pickle
 from multiprocessing import Pool
 from pathlib import Path
-from typing import Callable, List
+from typing import Callable, List, Tuple
 
 import glob2 as glob
 import numpy as np
@@ -25,7 +25,8 @@ from .constants_eval import (  # noqa: E402
 from .eval_utils import avgerror, preprocess_targets  # noqa: E402
 
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 MIN_HEIGHT = 45
 MAX_HEIGHT = 120
@@ -121,19 +122,10 @@ def calculate_and_save_results(df_grouped: pd.DataFrame,
 
 def calculate_performance_sex(code: str, df_mae: pd.DataFrame, result_config: Bunch) -> pd.DataFrame:
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
-    accuracy_list = []
-    accuracy_thresh = result_config.ACCURACY_MAIN_THRESH
-    for _, sex_id in SEX_DICT.items():
-        selection = (df_mae_filtered[COLUMN_NAME_SEX] == sex_id)
-        df = df_mae_filtered[selection]
-
-        selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
-        good_predictions = df[selection]
-        if len(df) > 0:
-            accuracy = len(good_predictions) / len(df) * 100
-        else:
-            accuracy = 0.
-        accuracy_list.append(accuracy)
+    accuracy_list = calculate_accuracies(SEX_DICT.values(),
+                                         df_mae_filtered,
+                                         COLUMN_NAME_SEX,
+                                         result_config.ACCURACY_MAIN_THRESH)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
     df_out.columns = SEX_DICT.keys()
@@ -142,19 +134,10 @@ def calculate_performance_sex(code: str, df_mae: pd.DataFrame, result_config: Bu
 
 def calculate_performance_goodbad(code: str, df_mae: pd.DataFrame, result_config: Bunch) -> pd.DataFrame:
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
-    accuracy_list = []
-    accuracy_thresh = result_config.ACCURACY_MAIN_THRESH
-    for _, goodbad_id in GOODBAD_DICT.items():
-        selection = (df_mae_filtered[COLUMN_NAME_GOODBAD] == goodbad_id)
-        df = df_mae_filtered[selection]
-
-        selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
-        good_predictions = df[selection]
-        if len(df) > 0:
-            accuracy = len(good_predictions) / len(df) * 100
-        else:
-            accuracy = 0.
-        accuracy_list.append(accuracy)
+    accuracy_list = calculate_accuracies(GOODBAD_DICT.values(),
+                                         df_mae_filtered,
+                                         COLUMN_NAME_GOODBAD,
+                                         result_config.ACCURACY_MAIN_THRESH)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
     df_out.columns = GOODBAD_DICT.keys()
@@ -163,30 +146,82 @@ def calculate_performance_goodbad(code: str, df_mae: pd.DataFrame, result_config
 
 def calculate_performance_age(code: str, df_mae: pd.DataFrame, result_config: Bunch) -> pd.DataFrame:
     df_mae_filtered = df_mae.iloc[df_mae.index.get_level_values('scantype') == code]
-    accuracy_list = []
-    accuracy_thresh = result_config.ACCURACY_MAIN_THRESH
+
     age_thresholds = result_config.AGE_BUCKETS
     age_buckets = list(zip(age_thresholds[:-1], age_thresholds[1:]))
-    for age_min_years, age_max_years in age_buckets:
-        age_min = age_min_years * DAYS_IN_YEAR
-        age_max = age_max_years * DAYS_IN_YEAR
 
-        selection = (df_mae_filtered[COLUMN_NAME_AGE] >= age_min) & (df_mae_filtered[COLUMN_NAME_AGE] <= age_max)
-        df = df_mae_filtered[selection]
-
-        selection = (df['error'] <= accuracy_thresh) & (df['error'] >= -accuracy_thresh)
-        good_predictions = df[selection]
-        if len(df) > 0:
-            accuracy = len(good_predictions) / len(df) * 100
-        else:
-            accuracy = 0.
-        accuracy_list.append(accuracy)
+    accuracy_list = calculate_accuracies_on_age_buckets(age_buckets,
+                                                        df_mae_filtered,
+                                                        COLUMN_NAME_AGE,
+                                                        result_config.ACCURACY_MAIN_THRESH)
     df_out = pd.DataFrame(accuracy_list)
     df_out = df_out.T
 
     df_out.columns = [f"{age_min} to {age_max}" for age_min, age_max in age_buckets]
 
     return df_out
+
+
+def calculate_accuracies(values_to_select: List[float],
+                         df: pd.DataFrame,
+                         column_name: str,
+                         accuracy_thresh: float) -> List[float]:
+    """Take a dataframe with evaluation results and calculate cases above a threshold
+
+    Args:
+        values_to_select: Values that a certain column can have
+        df: Needs to at least have to columns: 'error' and column_name
+        column_name: Name of the column to select on
+        accuracy_thresh: Error threshold
+
+    Returns:
+        A list of accuracies which has as many items as values_to_select
+    """
+    accuracy_list = []
+    for idx in values_to_select:
+        selection = (df[column_name] == idx)
+        df_selected = df[selection]
+
+        selection = (df_selected['error'] <= accuracy_thresh) & (df_selected['error'] >= -accuracy_thresh)
+        accuracy = calc_accuracy_in_percent(num_all=len(df_selected), num_good=len(df_selected[selection]))
+        accuracy_list.append(accuracy)
+    return accuracy_list
+
+
+def calculate_accuracies_on_age_buckets(age_buckets: List[Tuple[int]],
+                                        df: pd.DataFrame,
+                                        column_name: str,
+                                        accuracy_thresh: float) -> List[float]:
+    """Take a dataframe with evaluation results and calculate cases above a threshold
+
+    Args:
+        age_buckets: List of tuples where each tuple specifies a range: [age_min, age_max)
+        df: Needs to at least have to columns: 'error' and column_name
+        column_name: Name of the column to select on
+        accuracy_thresh: Error threshold
+
+    Returns:
+        A list of accuracies which has as many items as values_to_select
+    """
+    accuracy_list = []
+    for age_min_years, age_max_years in age_buckets:
+        age_min = age_min_years * DAYS_IN_YEAR
+        age_max = age_max_years * DAYS_IN_YEAR
+
+        selection = (df[column_name] >= age_min) & (df[column_name] < age_max)
+        df_selected = df[selection]
+
+        selection = (df_selected['error'] <= accuracy_thresh) & (df_selected['error'] >= -accuracy_thresh)
+        accuracy = calc_accuracy_in_percent(num_all=len(df_selected), num_good=len(df_selected[selection]))
+        accuracy_list.append(accuracy)
+    return accuracy_list
+
+
+def calc_accuracy_in_percent(num_all: int, num_good: int) -> float:
+    assert num_all >= num_good, f"num_all smaller than num_good: {num_good} < {num_all}"
+    if num_all > 0:
+        return num_good / num_all * 100
+    return 0.
 
 
 def draw_uncertainty_goodbad_plot(df_: pd.DataFrame, png_out_fpath: str):
@@ -285,20 +320,23 @@ def draw_stunting_diagnosis(df: pd.DataFrame, png_out_fpath: str):
 
 
 def calculate_zscore_lhfa(df):
-    """
-    lhfa : length/height for age
-    """
+    """lhfa: length/height for age"""
     cal = Calculator()
 
-    def utils(age_in_days, height, sex):
+    def _calc_score(age_in_days, height, sex):
         if MIN_HEIGHT < height <= MAX_HEIGHT and age_in_days <= MAX_AGE:
             return cal.zScore_lhfa(age_in_days=age_in_days, sex=sex, height=height)
 
-    df['Z_actual'] = df.apply(lambda row: utils(age_in_days=int(row[COLUMN_NAME_AGE]),
-                                                sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['GT']), axis=1)
-    df['Z_predicted'] = df.apply(lambda row: utils(age_in_days=int(
-        row[COLUMN_NAME_AGE]), sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['predicted']), axis=1)
+    def _fct(row):
+        return _calc_score(age_in_days=int(row[COLUMN_NAME_AGE]),
+                           sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['GT'])
 
+    def _fct2(row):
+        return _calc_score(age_in_days=int(row[COLUMN_NAME_AGE]),
+                           sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', height=row['predicted'])
+
+    df['Z_actual'] = df.apply(_fct, axis=1)
+    df['Z_predicted'] = df.apply(_fct2, axis=1)
     return df
 
 
@@ -326,10 +364,14 @@ def calculate_zscore_wfa(df):
         if age_in_days <= MAX_AGE:
             return cal.zScore_wfa(age_in_days=age_in_days, sex=sex, weight=weight)
 
-    df['Z_actual'] = df.apply(lambda row: utils(age_in_days=int(row[COLUMN_NAME_AGE]),
-                                                sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', weight=row['GT']), axis=1)
-    df['Z_predicted'] = df.apply(lambda row: utils(age_in_days=int(
-        row[COLUMN_NAME_AGE]), sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', weight=row['predicted']), axis=1)
+    df['Z_actual'] = df.apply(
+        lambda row: utils(age_in_days=int(row[COLUMN_NAME_AGE]),
+                          sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', weight=row['GT']),
+        axis=1)
+    df['Z_predicted'] = df.apply(
+        lambda row: utils(age_in_days=int(row[COLUMN_NAME_AGE]),
+                          sex='M' if row[COLUMN_NAME_SEX] == SEX_DICT['male'] else 'F', weight=row['predicted']),
+        axis=1)
 
     return df
 
@@ -370,7 +412,7 @@ def get_model_path(MODEL_CONFIG: Bunch) -> str:
     if MODEL_CONFIG.NAME.endswith(".h5"):
         return MODEL_CONFIG.NAME
     if MODEL_CONFIG.NAME.endswith(".ckpt"):
-        return f"{MODEL_CONFIG.INPUT_LOCATION}/{MODEL_CONFIG.NAME}"
+        return os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME)
     raise NameError(f"{MODEL_CONFIG.NAME}'s path extension not supported")
 
 
@@ -393,6 +435,7 @@ def download_model(workspace, experiment_name, run_id, input_location, output_lo
         run.download_files(prefix=input_location, output_directory=output_location)
     else:
         raise NameError(f"{input_location}'s path extension not supported")
+
     logging.info("Successfully downloaded model")
 
 

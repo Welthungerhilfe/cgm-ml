@@ -1,23 +1,24 @@
 import argparse
 import logging
 import logging.config
-import os
 import shutil
+import sys
 import time
 from importlib import import_module
 from pathlib import Path
 
-import azureml._restclient.snapshots_client
 from azureml.core import Experiment, Workspace
 from azureml.core.compute import AmlCompute, ComputeTarget
 from azureml.core.compute_target import ComputeTargetException
 from azureml.core.run import Run
-from azureml.train.dnn import TensorFlow
+from azureml.core.script_run_config import ScriptRunConfig
 
-from src.constants import REPO_DIR, DEFAULT_CONFIG
+sys.path.append(Path(__file__).parent)
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+from src.constants import REPO_DIR, DEFAULT_CONFIG  # noqa: E402, F401
 
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 CWD = Path(__file__).parent
 TAGS = {}
@@ -44,6 +45,7 @@ if __name__ == "__main__":
     parser.add_argument("--qa_config_module", default=DEFAULT_CONFIG, help="Configuration file")
     args = parser.parse_args()
 
+    logging.info('Using the following config: %s', args.qa_config_module)
     qa_config = import_module(f'src.{args.qa_config_module}')
     MODEL_CONFIG = qa_config.MODEL_CONFIG
     EVAL_CONFIG = qa_config.EVAL_CONFIG
@@ -51,43 +53,26 @@ if __name__ == "__main__":
     RESULT_CONFIG = qa_config.RESULT_CONFIG
     FILTER_CONFIG = qa_config.FILTER_CONFIG if getattr(qa_config, 'FILTER_CONFIG', False) else None
 
-    # Copy src/ dir
+    # Copy QA src/ dir
     temp_path = CWD / "temp_eval"
     copy_dir(src=CWD / "src", tgt=temp_path, glob_pattern='*.py')
 
-    # Copy common into the temp folder
+    # Copy common/ folder
     common_dir_path = REPO_DIR / "src/common"
     temp_common_dir = temp_path / "temp_common"
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
-    from temp_eval.temp_common.evaluation.eval_utilities import download_model  # noqa: E402, F401
+    from temp_eval.temp_common.model_utils.environment import cgm_environment  # noqa: E402, F401
 
     workspace = Workspace.from_config()
-
     run = Run.get_context()
 
     # When we run scripts locally(e.g. for debugging), we want to use another directory
     USE_LOCAL = False
 
-    MODEL_BASE_DIR = REPO_DIR / 'data' / MODEL_CONFIG.RUN_ID if USE_LOCAL else temp_path
-    logging.info('MODEL_BASE_DIR: %s', MODEL_BASE_DIR)
-    MODEL_BASE_DIR.mkdir(parents=True, exist_ok=True)
-
-    # Copy model to temp folder
-    download_model(workspace,
-                   experiment_name=MODEL_CONFIG.EXPERIMENT_NAME,
-                   run_id=MODEL_CONFIG.RUN_ID,
-                   input_location=os.path.join(MODEL_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
-                   output_location=MODEL_BASE_DIR)
-
-    # Copy filter to temp folder
-    if FILTER_CONFIG is not None and FILTER_CONFIG.IS_ENABLED:
-        download_model(workspace,
-                       experiment_name=FILTER_CONFIG.EXPERIMENT_NAME,
-                       run_id=FILTER_CONFIG.RUN_ID,
-                       input_location=os.path.join(FILTER_CONFIG.INPUT_LOCATION, MODEL_CONFIG.NAME),
-                       output_location=str(temp_path / FILTER_CONFIG.NAME))
-        azureml._restclient.snapshots_client.SNAPSHOT_MAX_SIZE_BYTES = 500000000
+    RUN_ID = MODEL_CONFIG.RUN_ID if getattr(MODEL_CONFIG, 'RUN_ID', False) else None
+    RUN_IDS = MODEL_CONFIG.RUN_IDS if getattr(MODEL_CONFIG, 'RUN_IDS', False) else None
+    assert bool(RUN_ID) != bool(RUN_IDS), 'RUN_ID xor RUN_IDS needs to be defined'
 
     experiment = Experiment(workspace=workspace, name=EVAL_CONFIG.EXPERIMENT_NAME)
 
@@ -105,7 +90,6 @@ if __name__ == "__main__":
 
     dataset = workspace.datasets[DATA_CONFIG.NAME]
     logging.info("dataset: %s", dataset)
-    logging.info("TF supported versions: %s", TensorFlow.get_supported_versions())
 
     # parameters used in the evaluation
     script_params = {"--qa_config_module": args.qa_config_module}
@@ -113,35 +97,19 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    # Specify pip packages here.
-    pip_packages = [
-        "azureml-dataprep[fuse,pandas]",
-        "glob2",
-        "opencv-python==4.1.2.30",
-        "matplotlib",
-        "tensorflow-addons==0.11.2",
-        "bunch==1.0.1",
-        "cgmzscore==2.0.3",
-        "scikit-learn==0.22.2.post1"
-    ]
+    cgm_env = cgm_environment(workspace, curated_env_name="cgm-v31", env_exist=True)
 
-    # Create the estimator.
-    estimator = TensorFlow(
-        source_directory=temp_path,
-        compute_target=compute_target,
-        entry_script="evaluate.py",
-        use_gpu=True,
-        framework_version="2.3",
-        inputs=[dataset.as_named_input("dataset").as_mount()],
-        pip_packages=pip_packages,
-        script_params=script_params
-    )
+    script_run_config = ScriptRunConfig(source_directory=temp_path,
+                                        compute_target=compute_target,
+                                        script='evaluate.py',
+                                        arguments=[str(item) for sublist in script_params.items() for item in sublist],
+                                        environment=cgm_env)
 
     # Set compute target.
-    estimator.run_config.target = compute_target
+    script_run_config.run_config.target = compute_target
 
     # Run the experiment.
-    run = experiment.submit(estimator, tags=TAGS)
+    run = experiment.submit(config=script_run_config, tags=TAGS)
 
     # Show run.
     logging.info("Run: %s", run)

@@ -11,7 +11,7 @@ Then run:
 
 ```bash
 cd cgm-ml
-cd src/common/evaluation/QA/eval_depthmap_models/
+cd src/common/evaluation/QA/
 conda env update --file environment.yml
 conda activate CGM_QA_Pipeline
 cd ../../../..
@@ -23,7 +23,7 @@ In order to mount all datasets at the same time run:
 
 ```bash
 cd /root/
-vim connection.cfg  # get this from a collegue (e.g. Shanshank or Gracjan)
+vim connection.cfg  # get this from a collegue (e.g. Shashank or Gracjan)
 cd /mnt
 mkdir datasets
 blobfuse /mnt/datasets/ --tmp-path=/mnt/tmp -o attr_timeout=240 -o  entry_timeout=240 -o negative_timeout=120 -o allow_other --config-file=/root/connection.cfg

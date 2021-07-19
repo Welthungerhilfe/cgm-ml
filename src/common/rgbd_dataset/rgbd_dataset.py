@@ -3,6 +3,7 @@ import pickle
 import multiprocessing
 import json
 import logging
+from typing import Tuple
 
 import numpy as np
 import cv2 as cv
@@ -16,47 +17,54 @@ TARGET_PATH = '/mnt/huawei_dataset/anon-rgbd-5kscans'
 SOURCE_PATH = '/mnt/huawei_dataset/huawei_data'
 
 
-def load_depth(filename):
-    with zipfile.ZipFile(filename) as z:
+def load_depth(fpath: str) -> Tuple[bytes, int, int, float, float]:
+    """Take ZIP file and extract depth and metadata
+    Args:
+        fpath (str): File path to the ZIP
+    Returns:
+        depth_data (bytes): depthmap data
+        width(int): depthmap width in pixel
+        height(int): depthmap height in pixel
+        depth_scale(float)
+        max_confidence(float)
+    """
+    with zipfile.ZipFile(fpath) as z:
         with z.open('data') as f:
-            line = str(f.readline())[2:-3]
-            header = line.split("_")
-            res = header[0].split("x")
-            # print(res)
-            width = int(res[0])
-            height = int(res[1])
-            depthScale = float(header[1])
-            max_confidence = float(header[2])
-            data = f.read()
-            f.close()
-        z.close()
-    return data, width, height, depthScale, max_confidence
+            # Example for a first_line:
+            # '180x135_0.001_7_0.57045287_-0.0057296_0.0022602521_0.82130724_-0.059177425_0.0024800065_0.030834956'
+            first_line = f.readline().decode().strip()
+
+            file_header = first_line.split("_")
+
+            # header[0] example: 180x135
+            width, height = file_header[0].split("x")
+            width, height = int(width), int(height)
+            depth_scale = float(file_header[1])
+            max_confidence = float(file_header[2])
+
+            depth_data = f.read()
+    return depth_data, width, height, depth_scale, max_confidence
 
 
-def prepare_depthmap(data, width, height, depthScale):
-    # prepare array for output
+def prepare_depthmap(data: bytes, width: int, height: int, depth_scale: float) -> np.array:
+    """Convert bytes array into np.array"""
     output = np.zeros((width, height, 1))
     for cx in range(width):
         for cy in range(height):
-            #             output[cx][height - cy - 1][0] = parse_confidence(cx, cy)
-            #             output[cx][height - cy - 1][1] = im_array[cy][cx][1] / 255.0 #test matching on RGB data
-            #             output[cx][height - cy - 1][2] = 1.0 - min(parse_depth(cx, cy) / 2.0, 1.0) #depth data scaled to be visible
             # depth data scaled to be visible
-            output[cx][height - cy - 1] = parse_depth(cx, cy, data, depthScale)
-    return (
-        np.array(
-            output,
-            dtype='float32').reshape(
-            width,
-            height),
-        height,
-        width)
+            output[cx][height - cy - 1] = parse_depth(cx, cy, data, depth_scale, width)
+    arr = np.array(output, dtype='float32')
+    return arr.reshape(width, height)
 
 
-def parse_depth(tx, ty, data, depthScale):
-    depth = data[(int(ty) * TARGET_WIDTH + int(tx)) * 3 + 0] << 8
-    depth += data[(int(ty) * TARGET_WIDTH + int(tx)) * 3 + 1]
-    depth *= depthScale
+def parse_depth(tx: int, ty: int, data: bytes, depth_scale: float, width: int) -> float:
+    assert isinstance(tx, int)
+    assert isinstance(ty, int)
+
+    depth = data[(ty * width + tx) * 3 + 0] << 8
+    depth += data[(ty * width + tx) * 3 + 1]
+
+    depth *= depth_scale
     return depth
 
 
@@ -107,11 +115,11 @@ def process_depthmap(depthmaps):
         pickle_file = artifact_name.replace('.jpg', '.p')
         full_fpath = f'{scan_type_dirpath}/{pickle_file}'
         Path(scan_type_dirpath).mkdir(parents=True, exist_ok=True)
-        data, width, height, depthScale, max_confidence = load_depth(depthmap_image_path)
-        depthmap_huawei = prepare_depthmap(data, width, height, depthScale)
+        data, width, height, depth_scale, _ = load_depth(depthmap_image_path)
+        depthmap_huawei = prepare_depthmap(data, width, height, depth_scale)
         image_full_fpath = f'{rgb_dirpath}/{image_path}'
         resized_image = image_resize(image_full_fpath)
-        pickled_data = (resized_image, depthmap_huawei[0], labels)
+        pickled_data = (resized_image, depthmap_huawei, labels)
         pickle.dump(pickled_data, open(full_fpath, "wb"))
 
 

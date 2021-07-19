@@ -5,7 +5,8 @@ import logging.config
 
 import glob2 as glob
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 def copy_dir(src: Path, tgt: Path, glob_pattern: str, should_touch_init: bool = False):

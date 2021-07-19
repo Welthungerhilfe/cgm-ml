@@ -2,7 +2,6 @@ from pathlib import Path
 import os
 import pickle
 import random
-import shutil
 
 import logging
 import logging.config
@@ -15,27 +14,25 @@ from azureml.core.run import Run
 
 from config import CONFIG
 from constants import MODEL_CKPT_FILENAME, REPO_DIR
+from train_util import copy_dir
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 # Get the current run.
 run = Run.get_context()
 
 if run.id.startswith("OfflineRun"):
-    utils_dir_path = REPO_DIR / "src/common/model_utils"
-    utils_paths = glob.glob(os.path.join(utils_dir_path, "*.py"))
-    temp_model_util_dir = Path(__file__).parent / "tmp_model_util"
-    # Remove old temp_path
-    if os.path.exists(temp_model_util_dir):
-        shutil.rmtree(temp_model_util_dir)
-    # Copy
-    os.mkdir(temp_model_util_dir)
-    os.system(f'touch {temp_model_util_dir}/__init__.py')
-    for p in utils_paths:
-        shutil.copy(p, temp_model_util_dir)
+    # Copy common into the temp folder
+    common_dir_path = REPO_DIR / "src/common"
+    temp_common_dir = Path(__file__).parent / "temp_common"
+    copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
-from tmp_model_util.preprocessing import preprocess_depthmap, preprocess_targets  # noqa: E402
-from tmp_model_util.utils import download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, create_base_cnn, create_head  # noqa: E402
+from temp_common.model_utils.model_plaincnn import create_base_cnn, create_head  # noqa: E402
+from temp_common.model_utils.preprocessing import (  # noqa: E402
+    filter_blacklisted_qrcodes, preprocess_depthmap, preprocess_targets)
+from temp_common.model_utils.utils import (  # noqa: E402
+    download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer)
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
@@ -77,6 +74,8 @@ logging.info('Getting QR-code paths...')
 qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
 logging.info('qrcode_paths: %d', len(qrcode_paths))
 assert len(qrcode_paths) != 0
+
+qrcode_paths = filter_blacklisted_qrcodes(qrcode_paths)
 
 # Shuffle and split into train and validate.
 random.shuffle(qrcode_paths)
@@ -140,11 +139,6 @@ def tf_load_pickle(path, max_value):
     return depthmap, targets
 
 
-def tf_flip(image):
-    image = tf.image.random_flip_left_right(image)
-    return image
-
-
 # Create dataset for training.
 paths = paths_training
 dataset = tf.data.Dataset.from_tensor_slices(paths)
@@ -176,51 +170,62 @@ del dataset_norm
 
 # Note: Now the datasets are prepared.
 
-# Create the model.
-input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1)
-base_model = create_base_cnn(input_shape, dropout=True)
-head_input_shape = (128,)
-head_model1 = create_head(head_input_shape, dropout=True, name="height")
-head_model2 = create_head(head_input_shape, dropout=True, name="weight")
-model_input = layers.Input(shape=(CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1))
-features = base_model(model_input)
-model_output1 = head_model1(features)
-model_output2 = head_model2(features)
-model = Model(inputs=model_input, outputs=[model_output1, model_output2])
 
-best_model_path = str(DATA_DIR / f'outputs/{MODEL_CKPT_FILENAME}')
-checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-    filepath=best_model_path,
-    monitor="val_loss",
-    save_best_only=True,
-    verbose=1
-)
-training_callbacks = [
-    AzureLogCallback(run),
-    create_tensorboard_callback(),
-    checkpoint_callback,
-]
+def create_and_fit_model():
+    # Create the model.
+    input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1)
+    base_model = create_base_cnn(input_shape, dropout=True)
+    head_input_shape = (128,)
+    head_model1 = create_head(head_input_shape, dropout=True, name="height")
+    head_model2 = create_head(head_input_shape, dropout=True, name="weight")
+    model_input = layers.Input(shape=(CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 1))
+    features = base_model(model_input)
+    model_output1 = head_model1(features)
+    model_output2 = head_model2(features)
+    model = Model(inputs=model_input, outputs=[model_output1, model_output2])
 
-optimizer = get_optimizer(CONFIG.USE_ONE_CYCLE,
-                          lr=CONFIG.LEARNING_RATE,
-                          n_steps=len(paths_training) / CONFIG.BATCH_SIZE)
+    best_model_path = str(DATA_DIR / f'outputs/{MODEL_CKPT_FILENAME}')
+    checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=best_model_path,
+        monitor="val_loss",
+        save_best_only=True,
+        verbose=1
+    )
+    training_callbacks = [
+        AzureLogCallback(run),
+        create_tensorboard_callback(),
+        checkpoint_callback,
+    ]
 
-# Compile the model.
-model.compile(
-    optimizer=optimizer,
-    loss={'height': 'mse', 'weight': 'mse'},
-    loss_weights={'height': CONFIG.HEIGHT_IMPORTANCE, 'weight': CONFIG.WEIGHT_IMPORTANCE},
-    metrics={'height': ["mae"], 'weight': ["mae"]}
-)
+    optimizer = get_optimizer(CONFIG.USE_ONE_CYCLE,
+                              lr=CONFIG.LEARNING_RATE,
+                              n_steps=len(paths_training) / CONFIG.BATCH_SIZE)
 
-# Train the model.
-model.fit(
-    dataset_training.batch(CONFIG.BATCH_SIZE),
-    validation_data=dataset_validation.batch(CONFIG.BATCH_SIZE),
-    epochs=CONFIG.EPOCHS,
-    callbacks=training_callbacks,
-    verbose=2
-)
+    # Compile the model.
+    model.compile(
+        optimizer=optimizer,
+        loss={'height': 'mse', 'weight': 'mse'},
+        loss_weights={'height': CONFIG.HEIGHT_IMPORTANCE, 'weight': CONFIG.WEIGHT_IMPORTANCE},
+        metrics={'height': ["mae"], 'weight': ["mae"]}
+    )
+
+    # Train the model.
+    model.fit(
+        dataset_training.batch(CONFIG.BATCH_SIZE),
+        validation_data=dataset_validation.batch(CONFIG.BATCH_SIZE),
+        epochs=CONFIG.EPOCHS,
+        callbacks=training_callbacks,
+        verbose=2
+    )
+
+
+if CONFIG.USE_MULTIGPU:
+    strategy = tf.distribute.MirroredStrategy()
+    logging.info("Number of devices: %s", strategy.num_replicas_in_sync)
+    with strategy.scope():
+        create_and_fit_model()
+else:
+    create_and_fit_model()
 
 # Done.
 run.complete()

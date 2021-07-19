@@ -84,8 +84,11 @@ if __name__ == "__main__":
     union_set = calculate_union(scan_sets[0], scan_sets[1])
     inaccurate_scans_intersection = calculate_intersection(scan_sets[0], scan_sets[1])
     inaccurate_scans_intersection_ratio = (len(inaccurate_scans_intersection) / len(union_set)) * 100
-    inaccurate_scan_data = [[extract_model_name(csv_files[0]), extract_model_name(
-        csv_files[1]), inaccurate_scans_intersection_ratio, len(union_set), len(inaccurate_scans_intersection)]]
+    inaccurate_scan_data = [[extract_model_name(csv_files[0]),
+                             extract_model_name(csv_files[1]),
+                             inaccurate_scans_intersection_ratio,
+                             len(union_set),
+                             len(inaccurate_scans_intersection)]]
     columns = ['model_1', 'model_2', 'ratio_intersection_over_union',
                'number_of_union_of_inaccurate_scans', 'number_of_common_inaccurate_scans']
     frame = pd.DataFrame(inaccurate_scan_data, columns=columns)

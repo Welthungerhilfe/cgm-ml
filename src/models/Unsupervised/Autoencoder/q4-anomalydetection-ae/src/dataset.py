@@ -12,7 +12,8 @@ from tmp_model_util.utils import download_dataset, get_dataset_path
 from config import DATASET_MODE_DOWNLOAD, DATASET_MODE_MOUNT
 from constants import DATA_DIR_ONLINE_RUN, REPO_DIR
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 def create_datasets(workspace, experiment, run, offline_run, CONFIG):

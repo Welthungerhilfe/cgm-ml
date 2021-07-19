@@ -7,7 +7,8 @@ import sys
 REPO_DIR = Path(__file__).parents[1].absolute()
 
 # To run the toolkit
-# python3 ConvertableData/data_convestion_toolkit.py wfh_girls_p_exp.txt wfh_girls_z_exp.txt wfh_girls_2_5_zscores.json Height
+# python3 ConvertableData/data_convestion_toolkit.py wfh_girls_p_exp.txt
+# wfh_girls_z_exp.txt wfh_girls_2_5_zscores.json Height
 
 # Percentile data file name
 percentile_data_path = sys.argv[1]

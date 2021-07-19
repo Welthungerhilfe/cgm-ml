@@ -10,8 +10,11 @@ from sl_constants import REPO_DIR  # noqa: E402
 from sl_preprocessing import process_path  # noqa: E402
 
 
+DIR = '/src/models/CNNRGB/CNNRGB-standing_laying/q4-rgb-standing-laying/src/test/anon-rgb-classification/test'
+
+
 def test_get_label_0():
-    paths = [str(REPO_DIR) + '/src/models/CNNRGB/CNNRGB-standing_laying/q4-rgb-standing-laying/src/test/anon-rgb-classification/test/laying/rgb_1597886481-znzw5yzhjh_1597886481929_200_13520.886623759001.jpg']
+    paths = [str(REPO_DIR) + f'{DIR}/laying/rgb_1597886481-znzw5yzhjh_1597886481929_200_13520.886623759001.jpg']
     dataset = tf.data.Dataset.from_tensor_slices(paths)
     dataset = dataset.map(lambda path: process_path(path))
 
@@ -20,7 +23,7 @@ def test_get_label_0():
 
 
 def test_get_label_1():
-    paths = [str(REPO_DIR) + '/src/models/CNNRGB/CNNRGB-standing_laying/q4-rgb-standing-laying/src/test/anon-rgb-classification/test/standing/rgb_1585352016-s51bhrzmtt_1592712865086_100_520010.772824759.jpg']
+    paths = [str(REPO_DIR) + f'{DIR}/standing/rgb_1585352016-s51bhrzmtt_1592712865086_100_520010.772824759.jpg']
     dataset = tf.data.Dataset.from_tensor_slices(paths)
     dataset = dataset.map(lambda path: process_path(path))
 
@@ -29,7 +32,7 @@ def test_get_label_1():
 
 
 def test_data():
-    paths = [str(REPO_DIR) + '/src/models/CNNRGB/CNNRGB-standing_laying/q4-rgb-standing-laying/src/test/anon-rgb-classification/test/laying/rgb_1597886481-znzw5yzhjh_1597886481929_200_13520.886623759001.jpg']
+    paths = [str(REPO_DIR) + f'{DIR}/laying/rgb_1597886481-znzw5yzhjh_1597886481929_200_13520.886623759001.jpg']
     dataset = tf.data.Dataset.from_tensor_slices(paths)
     dataset = dataset.map(lambda path: process_path(path))
 

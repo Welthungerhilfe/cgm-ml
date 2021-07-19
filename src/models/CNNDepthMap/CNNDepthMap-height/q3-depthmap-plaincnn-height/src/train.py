@@ -2,7 +2,6 @@ from pathlib import Path
 import os
 import pickle
 import random
-import shutil
 import logging
 import logging.config
 
@@ -14,25 +13,27 @@ import wandb
 from wandb.keras import WandbCallback
 
 from config import CONFIG
-from constants import BLACKLIST_QRCODES, MODEL_CKPT_FILENAME, REPO_DIR
-from model import create_cnn
+from constants import MODEL_CKPT_FILENAME, REPO_DIR
 from train_util import copy_dir
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 # Get the current run.
 run = Run.get_context()
 
 if run.id.startswith("OfflineRun"):
-
     # Copy common into the temp folder
     common_dir_path = REPO_DIR / "src/common"
     temp_common_dir = Path(__file__).parent / "temp_common"
     copy_dir(src=common_dir_path, tgt=temp_common_dir, glob_pattern='*/*.py', should_touch_init=True)
 
-from temp_common.model_utils.preprocessing import preprocess_depthmap, preprocess_targets  # noqa: E402
+from temp_common.model_utils.model_plaincnn import create_cnn  # noqa: E402
+from temp_common.model_utils.preprocessing import (  # noqa: E402
+    filter_blacklisted_qrcodes, preprocess_depthmap, preprocess_targets)
 from temp_common.model_utils.utils import (  # noqa: E402
-    download_dataset, get_dataset_path, AzureLogCallback, create_tensorboard_callback, get_optimizer, setup_wandb)
+    download_dataset, get_dataset_path, AzureLogCallback,
+    create_tensorboard_callback, get_optimizer, setup_wandb)
 
 # Make experiment reproducible
 tf.random.set_seed(CONFIG.SPLIT_SEED)
@@ -75,18 +76,6 @@ qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
 logging.info('qrcode_paths: %d', len(qrcode_paths))
 assert len(qrcode_paths) != 0
 
-
-def filter_blacklisted_qrcodes(qrcode_paths):
-    qrcode_paths_filtered = []
-    for qrcode_path in qrcode_paths:
-        qrcode_str = qrcode_path.split('/')[-1]
-        assert '-' in qrcode_str and len(qrcode_str) == 21, qrcode_str
-        if qrcode_str in BLACKLIST_QRCODES:
-            continue
-        qrcode_paths_filtered.append(qrcode_path)
-    return qrcode_paths_filtered
-
-
 qrcode_paths = filter_blacklisted_qrcodes(qrcode_paths)
 
 # Shuffle and split into train and validate.
@@ -110,7 +99,8 @@ assert len(qrcode_paths_training) > 0 and len(qrcode_paths_validate) > 0
 def get_depthmap_files(paths):
     pickle_paths = []
     for path in paths:
-        pickle_paths.extend(glob.glob(os.path.join(path, "**", "*.p")))
+        for code in CONFIG.CODES:
+            pickle_paths.extend(glob.glob(os.path.join(path, code, "*.p")))
     return pickle_paths
 
 
@@ -138,8 +128,7 @@ def tf_load_pickle(path, max_value):
 
         depthmap = preprocess_depthmap(depthmap)
         depthmap = depthmap / max_value
-        depthmap = tf.expand_dims(depthmap, -1)    # shape: (240, 180, 1)
-
+        depthmap = tf.expand_dims(depthmap, -1) # shape: (240, 180, 1)
         rgbd = tf.concat([rgb, depthmap], axis=2)
         rgbd = tf.image.resize(rgbd, (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH))
         targets = preprocess_targets(targets, CONFIG.TARGET_INDEXES)
@@ -149,11 +138,6 @@ def tf_load_pickle(path, max_value):
     rgbd.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 4))
     targets.set_shape((len(CONFIG.TARGET_INDEXES,)))
     return rgbd, targets
-
-
-def tf_flip(image):
-    image = tf.image.random_flip_left_right(image)
-    return image
 
 
 # Create dataset for training.
@@ -178,52 +162,63 @@ del dataset_norm
 
 # Note: Now the datasets are prepared.
 
-# Create the model.
-input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 4)
-model = create_cnn(input_shape, dropout=CONFIG.USE_DROPOUT)
-model.summary()
 
-best_model_path = str(DATA_DIR / f'outputs/{MODEL_CKPT_FILENAME}')
-checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-    filepath=best_model_path,
-    monitor="val_loss",
-    save_best_only=True,
-    verbose=1
-)
+def create_and_fit_model():
+    # Create the model.
+    input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 4)
+    model = create_cnn(input_shape, dropout=CONFIG.USE_DROPOUT)
+    model.summary()
 
-dataset_batches = dataset_training.batch(CONFIG.BATCH_SIZE)
+    best_model_path = str(DATA_DIR / f'outputs/{MODEL_CKPT_FILENAME}')
+    checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=best_model_path,
+        monitor="val_loss",
+        save_best_only=True,
+        verbose=1
+    )
 
-training_callbacks = [
-    AzureLogCallback(run),
-    create_tensorboard_callback(),
-    checkpoint_callback,
-]
+    dataset_batches = dataset_training.batch(CONFIG.BATCH_SIZE)
 
-if getattr(CONFIG, 'USE_WANDB', False):
-    setup_wandb()
-    wandb.init(project="ml-project", entity="cgm-team")
-    wandb.config.update(CONFIG)
-    training_callbacks.append(WandbCallback(log_weights=True, log_gradients=True, training_data=dataset_batches))
+    training_callbacks = [
+        AzureLogCallback(run),
+        create_tensorboard_callback(),
+        checkpoint_callback,
+    ]
 
-optimizer = get_optimizer(CONFIG.USE_ONE_CYCLE,
-                          lr=CONFIG.LEARNING_RATE,
-                          n_steps=len(paths_training) / CONFIG.BATCH_SIZE)
+    if getattr(CONFIG, 'USE_WANDB', False):
+        setup_wandb()
+        wandb.init(project="ml-project", entity="cgm-team")
+        wandb.config.update(CONFIG)
+        training_callbacks.append(WandbCallback(log_weights=True, log_gradients=True, training_data=dataset_batches))
 
-# Compile the model.
-model.compile(
-    optimizer=optimizer,
-    loss="mse",
-    metrics=["mae"]
-)
+    optimizer = get_optimizer(CONFIG.USE_ONE_CYCLE,
+                              lr=CONFIG.LEARNING_RATE,
+                              n_steps=len(paths_training) / CONFIG.BATCH_SIZE)
 
-# Train the model.
-model.fit(
-    dataset_training.batch(CONFIG.BATCH_SIZE),
-    validation_data=dataset_batches,
-    epochs=CONFIG.EPOCHS,
-    callbacks=training_callbacks,
-    verbose=2
-)
+    # Compile the model.
+    model.compile(
+        optimizer=optimizer,
+        loss="mse",
+        metrics=["mae"]
+    )
+
+    # Train the model.
+    model.fit(
+        dataset_training.batch(CONFIG.BATCH_SIZE),
+        validation_data=dataset_batches,
+        epochs=CONFIG.EPOCHS,
+        callbacks=training_callbacks,
+        verbose=2
+    )
+
+
+if CONFIG.USE_MULTIGPU:
+    strategy = tf.distribute.MirroredStrategy()
+    logging.info("Number of devices: %s", strategy.num_replicas_in_sync)
+    with strategy.scope():
+        create_and_fit_model()
+else:
+    create_and_fit_model()
 
 # Done.
 run.complete()

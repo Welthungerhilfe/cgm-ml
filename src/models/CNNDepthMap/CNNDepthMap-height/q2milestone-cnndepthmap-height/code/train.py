@@ -18,7 +18,8 @@ from utils import GradCAM, make_grid
 import cv2
 from matplotlib import pyplot as plt
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 # Parse command line arguments.
 parser = argparse.ArgumentParser(description="Training script.")
@@ -161,11 +162,6 @@ def tf_load_pickle(path, max_value):
     depthmap.set_shape((image_target_height, image_target_width, 1))
     targets.set_shape((len(targets_indices,)))
     return depthmap, targets
-
-
-def tf_flip(image):
-    image = tf.image.random_flip_left_right(image)
-    return image
 
 
 # Parameters for dataset generation.

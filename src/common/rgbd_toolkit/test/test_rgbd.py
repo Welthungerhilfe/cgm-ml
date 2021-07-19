@@ -35,12 +35,31 @@ def test_find_closest_102():
 
 def test_get_files():
     norm_rgb_time = np.asarray([668549.91427676, 668601.94653876, 668578.70910376, 668549.98114676, 668602.31434576])
-    rgb_path = [REPO_DIR + '/qr_code/qr_code_test/rgb/rgb_1584994919-58mqazoorz_1591550095148_100_668549.914276759.jpg', REPO_DIR + '/qr_code/qr_code_test/rgb/rgb_1584994919-58mqazoorz_1591550095148_101_668601.946538759.jpg',
-                REPO_DIR + '/qr_code/qr_code_test/rgb/rgb_1584994919-58mqazoorz_1591550095148_102_668578.709103759.jpg', REPO_DIR + '/qr_code/qr_code_test/rgb/rgb_1584994919-58mqazoorz_1591550095148_100_668549.981146759.jpg', REPO_DIR + '/qr_code/qr_code_test/rgb/rgb_1584994919-58mqazoorz_1591550095148_101_668602.314345759.jpg']
+    rgb_path = [
+        REPO_DIR + '/qr_code/qr_code_test/rgb/rgb_1584994919-58mqazoorz_1591550095148_100_668549.914276759.jpg',
+        REPO_DIR + '/qr_code/qr_code_test/rgb/rgb_1584994919-58mqazoorz_1591550095148_101_668601.946538759.jpg',
+        REPO_DIR + '/qr_code/qr_code_test/rgb/rgb_1584994919-58mqazoorz_1591550095148_102_668578.709103759.jpg',
+        REPO_DIR + '/qr_code/qr_code_test/rgb/rgb_1584994919-58mqazoorz_1591550095148_100_668549.981146759.jpg',
+        REPO_DIR + '/qr_code/qr_code_test/rgb/rgb_1584994919-58mqazoorz_1591550095148_101_668602.314345759.jpg'
+    ]
     norm_pcd_time = np.asarray([668578.83466482, 668550.01378682, 668601.96653282])
-    pcd_path = [REPO_DIR + '/qr_code/qr_code_test/pc/pc_1584994919-58mqazoorz_1591550095148_102_000.pcd',
-                REPO_DIR + '/qr_code/qr_code_test/pc/pc_1584994919-58mqazoorz_1591550095148_100_000.pcd', REPO_DIR + '/qr_code/qr_code_test/pc/pc_1584994919-58mqazoorz_1591550095148_101_000.pcd']
+    pcd_path = [
+        REPO_DIR + '/qr_code/qr_code_test/pc/pc_1584994919-58mqazoorz_1591550095148_102_000.pcd',
+        REPO_DIR + '/qr_code/qr_code_test/pc/pc_1584994919-58mqazoorz_1591550095148_100_000.pcd',
+        REPO_DIR + '/qr_code/qr_code_test/pc/pc_1584994919-58mqazoorz_1591550095148_101_000.pcd'
+    ]
     files = get_files(norm_rgb_time, rgb_path, norm_pcd_time, pcd_path)
 
-    assert files == [[REPO_DIR + '/qr_code/qr_code_test/pc/pc_1584994919-58mqazoorz_1591550095148_102_000.pcd', REPO_DIR + '/qr_code/qr_code_test/rgb/rgb_1584994919-58mqazoorz_1591550095148_102_668578.709103759.jpg'], [REPO_DIR + '/qr_code/qr_code_test/pc/pc_1584994919-58mqazoorz_1591550095148_100_000.pcd',
-                                                                                                                                                                                                                           REPO_DIR + '/qr_code/qr_code_test/rgb/rgb_1584994919-58mqazoorz_1591550095148_100_668549.981146759.jpg'], [REPO_DIR + '/qr_code/qr_code_test/pc/pc_1584994919-58mqazoorz_1591550095148_101_000.pcd', REPO_DIR + '/qr_code/qr_code_test/rgb/rgb_1584994919-58mqazoorz_1591550095148_101_668601.946538759.jpg']]
+    expected_list1 = [
+        REPO_DIR + '/qr_code/qr_code_test/pc/pc_1584994919-58mqazoorz_1591550095148_102_000.pcd',
+        REPO_DIR + '/qr_code/qr_code_test/rgb/rgb_1584994919-58mqazoorz_1591550095148_102_668578.709103759.jpg',
+    ]
+    expected_list2 = [
+        REPO_DIR + '/qr_code/qr_code_test/pc/pc_1584994919-58mqazoorz_1591550095148_100_000.pcd',
+        REPO_DIR + '/qr_code/qr_code_test/rgb/rgb_1584994919-58mqazoorz_1591550095148_100_668549.981146759.jpg'
+    ]
+    expected_list3 = [
+        REPO_DIR + '/qr_code/qr_code_test/pc/pc_1584994919-58mqazoorz_1591550095148_101_000.pcd',
+        REPO_DIR + '/qr_code/qr_code_test/rgb/rgb_1584994919-58mqazoorz_1591550095148_101_668601.946538759.jpg'
+    ]
+    assert files == [expected_list1, expected_list2, expected_list3]
