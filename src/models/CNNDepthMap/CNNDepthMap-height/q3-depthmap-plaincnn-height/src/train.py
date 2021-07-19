@@ -16,9 +16,14 @@ from config import CONFIG
 from constants import MODEL_CKPT_FILENAME, REPO_DIR
 from train_util import copy_dir
 
+logging.config.fileConfig(REPO_DIR/"logging.conf")
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+
+logger.debug('debug')  # does not show up
+logger.info('info')
+logger.warning('warning')
+logger.error('error')
+logger.critical('critical')
 
 # Get the current run.
 run = Run.get_context()
