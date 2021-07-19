@@ -30,9 +30,7 @@ if __name__ == "__main__":
         print('no previous data to delete')
     os.mkdir('export')
     for filename in depth_filenames:
-
         dmap = depthmap.Depthmap.create_from_file(depthmap_dir, filename, 0, calibration_file)
-
         output_filename = f'export/output{filename}.pcd'
         exporter.export_pcd(output_filename, dmap)
 

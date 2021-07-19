@@ -3,12 +3,12 @@ import logging
 import logging.config
 import math
 import sys
-
+from typing import List, Optional, Tuple
 from pathlib import Path
 import statistics
+
 import numpy as np
 from PIL import Image
-from typing import List
 
 from depthmap_utils import (
     matrix_calculate, IDENTITY_MATRIX_4D, parse_numbers, diff, cross, norm, matrix_transform_point)
@@ -41,33 +41,41 @@ class Depthmap:
         max_confidence (float): Confidence is amount of IR light reflected
                                 (e.g. 0 to 255 in Lenovo, new standard is 0 to 7)
                                 This is actually an int.
-        matrix (list): Header contains a pose (= position and rotation)
-                       - matrix is a list representation of this pose
-                       - can be used to project into a different space
+        matrix (List[float]): The device pose (= position and rotation)
+                              The ZIP-file header contains this pose
+                              - `matrix` is a list representation of this pose
+                              - can be used to project into a different space
         rgb_fpath (str): Path to RGB file (e.g. to the jpg)
         rgb_array (np.array): RGB data
     """
 
     def __init__(
             self,
-            intrinsics,
-            width,
-            height,
-            data,
-            depth_scale,
-            max_confidence,
-            matrix,
-            rgb_fpath,
-            rgb_array):
+            intrinsics: np.array,
+            width: int,
+            height: int,
+            data: Optional[bytes],
+            depthmap_arr: Optional[np.array],
+            depth_scale: float,
+            max_confidence: float,
+            matrix: List[float],
+            rgb_fpath: Path,
+            rgb_array: np.array):
+        """Constructor
+
+        Either `data` or `depthmap_arr` has to be defined
+        """
         self.intrinsics = intrinsics
         self.width = width
         self.height = height
-        self.data = data
         self.depth_scale = depth_scale
         self.max_confidence = max_confidence
         self.matrix = matrix
         self.rgb_fpath = rgb_fpath
         self.rgb_array = rgb_array
+        assert depthmap_arr is None or data is None
+        self.depthmap_arr = self._parse_depth_data(data) if data else depthmap_arr
+        self.confidence_arr = self._parse_confidence_data(data) if data else None
 
     @property
     def has_rgb(self) -> bool:
@@ -79,7 +87,7 @@ class Depthmap:
                          depthmap_dir: str,
                          depthmap_fname: str,
                          rgb_fname: str,
-                         calibration_file: str):
+                         calibration_file: str) -> 'Depthmap':
 
         # read depthmap data
         path = extract_depthmap(depthmap_dir, depthmap_fname)
@@ -102,7 +110,7 @@ class Depthmap:
 
         # read rgb data
         if rgb_fname:
-            rgb_fpath = depthmap_dir + '/rgb/' + rgb_fname
+            rgb_fpath = Path(depthmap_dir) / 'rgb' / rgb_fname
             pil_im = Image.open(rgb_fpath)
             pil_im = pil_im.resize((width, height), Image.ANTIALIAS)
             rgb_array = np.asarray(pil_im)
@@ -112,16 +120,44 @@ class Depthmap:
 
         # read calibration file
         intrinsics = parse_calibration(calibration_file)
+        depthmap_arr = None
 
         return cls(intrinsics,
                    width,
                    height,
                    data,
+                   depthmap_arr,
                    depth_scale,
                    max_confidence,
                    matrix,
                    rgb_fpath,
                    rgb_array
+                   )
+
+    @classmethod
+    def create_from_array(cls,
+                          depthmap_arr: np.array,
+                          rgb_arr: np.array,
+                          calibration_file: str) -> 'Depthmap':
+        intrinsics = parse_calibration(calibration_file)
+        height, width = depthmap_arr.shape
+        data = None  # bytes
+        depth_scale = 0.001
+        max_confidence = 7.0
+        matrix = None
+        rgb_fpath = None
+        rgb_array = rgb_arr
+
+        return cls(intrinsics,
+                   width,
+                   height,
+                   data,
+                   depthmap_arr,
+                   depth_scale,
+                   max_confidence,
+                   matrix,
+                   rgb_fpath,
+                   rgb_array,
                    )
 
     def calculate_normal_vector(self, x: float, y: float) -> list:
@@ -161,11 +197,13 @@ class Depthmap:
         if not res:
             return res
 
-        # special case for Google Tango devices with different rotation
-        if self.width == 180 and self.height == 135:
-            res = [res[0], -res[1], res[2]]
-        else:
-            res = [-res[0], res[1], res[2]]
+        res = [-res[0], res[1], res[2]]
+        if is_google_tango_resolution(self.width, self.height):
+            res = [-res[0], -res[1], -res[2]]
+
+        if not self.matrix:
+            logging.warn("Device pose (`matrix`) was not provided.")
+            return res
         try:
             res = matrix_transform_point(res, self.matrix)
             res = [res[0], -res[1], res[2]]
@@ -174,7 +212,6 @@ class Depthmap:
         return res
 
     def detect_child(self, floor: float) -> np.array:
-
         mask, segments = self.detect_objects(floor)
 
         # Select the most focused segment
@@ -209,8 +246,7 @@ class Depthmap:
 
         return mask
 
-    def detect_objects(self, floor: float) -> [np.array, list]:
-
+    def detect_objects(self, floor: float) -> Tuple[np.array, list]:
         # Detect objects/children using seed algorithm
         current = -1
         segments = []
@@ -227,13 +263,13 @@ class Depthmap:
 
                     # Get a next pixel from the stack
                     pixel = stack.pop()
-                    depth_center = self.parse_depth(pixel[0], pixel[1])
+                    depth_center = self.depthmap_arr[pixel[0], pixel[1]]
 
                     # Add neighbor points (if there is no floor and they are connected)
                     if mask[pixel[0]][pixel[1]] == 0:
                         for direction in dirs:
                             pixel_dir = [pixel[0] + direction[0], pixel[1] + direction[1]]
-                            depth_dir = self.parse_depth(pixel_dir[0], pixel_dir[1])
+                            depth_dir = self.depthmap_arr[pixel_dir[0], pixel_dir[1]]
                             if depth_dir > 0 and abs(depth_dir - depth_center) < 0.1:
                                 stack.append(pixel_dir)
 
@@ -269,7 +305,7 @@ class Depthmap:
             for y in range(self.height):
                 normal = self.calculate_normal_vector(x, y)
                 if abs(normal[1]) > 0.5:
-                    depth = self.parse_depth(x, y)
+                    depth = self.depthmap_arr[x, y]
                     point = self.convert_2d_to_3d_oriented(1, x, y, depth)
                     altitudes.append(point[1])
         return statistics.median(altitudes)
@@ -279,59 +315,79 @@ class Depthmap:
         for x in range(self.width):
             for y in range(self.height):
                 if mask[x][y] == MASK_CHILD:
-                    depth = self.parse_depth(x, y)
+                    depth = self.depthmap_arr[x, y]
                     point = self.convert_2d_to_3d_oriented(1, x, y, depth)
                     if highest[1] < point[1]:
                         highest = point
         return highest
 
-    def parse_confidence(self, tx: int, ty):
-        """Get confidence of the point in scale 0-1"""
-        return self.data[(int(ty) * self.width + int(tx)) * 3 + 2] / self.max_confidence
+    def _parse_confidence_data(self, data) -> np.array:
+        output = np.zeros((self.width, self.height))
+        for x in range(self.width):
+            for y in range(self.height):
+                output[x, y] = self._parse_confidence(data, x, y)
+        return output
 
-    def parse_depth(self, tx: int, ty: int) -> float:
+    def _parse_confidence(self, data: bytes, tx: int, ty) -> float:
+        """Get confidence of the point in scale 0-1"""
+        return data[(int(ty) * self.width + int(tx)) * 3 + 2] / self.max_confidence
+
+    def _parse_depth_data(self, data) -> np.array:
+        output = np.zeros((self.width, self.height))
+        for x in range(self.width):
+            for y in range(self.height):
+                output[x, y] = self._parse_depth(data, x, y)
+        return output
+
+    def _parse_depth(self, data: bytes, tx: int, ty: int) -> float:
         """Get depth of the point in meters"""
         if tx < 1 or ty < 1 or tx >= self.width or ty >= self.height:
             return 0.
-        depth = self.data[(int(ty) * self.width + int(tx)) * 3 + 0] << 8
-        depth += self.data[(int(ty) * self.width + int(tx)) * 3 + 1]
+        depth = data[(int(ty) * self.width + int(tx)) * 3 + 0] << 8
+        depth += data[(int(ty) * self.width + int(tx)) * 3 + 1]
         depth *= self.depth_scale
         return depth
 
     def parse_depth_smoothed(self, tx: int, ty) -> float:
         """Get average depth value from neighboring pixels"""
+        if tx - 1 < 0 or ty - 1 < 0:
+            return 0.
+        if tx + 1 >= self.width or ty + 1 >= self.height:
+            return 0.
 
         # Get all neighbor depths
-        depth_center = self.parse_depth(tx, ty)
-        depth_x_minus = self.parse_depth(tx - 1, ty)
-        depth_x_plus = self.parse_depth(tx + 1, ty)
-        depth_y_minus = self.parse_depth(tx, ty - 1)
-        depth_y_plus = self.parse_depth(tx, ty + 1)
+        try:
+            depth_center = self.depthmap_arr[tx, ty]
+            depth_x_minus = self.depthmap_arr[tx - 1, ty]
+            depth_x_plus = self.depthmap_arr[tx + 1, ty]
+            depth_y_minus = self.depthmap_arr[tx, ty - 1]
+            depth_y_plus = self.depthmap_arr[tx, ty + 1]
+        except IndexError:
+            return 0.
 
         # Ensure the depth is defined
         if 0 in [depth_center, depth_x_plus, depth_y_minus, depth_y_plus]:
-            return 0
+            return 0.
 
         # Average the depth value
         depths = [depth_x_minus, depth_x_plus, depth_y_minus, depth_y_plus, depth_center]
         return sum(depths) / len(depths)
 
-    def convert_3d_to_2d(self, sensor: int, x: float, y: float, depth: float) -> list:
-        """Convert point in meters into point in pixels
+
+def convert_3d_to_2d(intrinsics: list, x: float, y: float, depth: float, width: int, height: int) -> list:
+    """Convert point in meters into point in pixels
 
         Args:
-            sensor: Tells if this is ToF sensor or RGB sensor
+            intrinsics of sensor: Tells if this is ToF sensor or RGB sensor
             x: X-pos in m
             y: Y-pos in m
             depth: distance from sensor to object at (x, y)
+            width
+            height
 
         Returns:
             tx, ty, depth
         """
-        return convert_3d_to_2d(self.intrinsics[sensor], x, y, depth, self.width, self.height)
-
-
-def convert_3d_to_2d(intrinsics: list, x: float, y: float, depth: float, width: int, height: int):
     fx = intrinsics[0] * float(width)
     fy = intrinsics[1] * float(height)
     cx = intrinsics[2] * float(width)
@@ -357,3 +413,8 @@ def parse_calibration(filepath: str) -> List[List[float]]:
             intrinsic = parse_numbers(line_with_numbers)
             calibration.append(intrinsic)
     return calibration
+
+
+def is_google_tango_resolution(width, height):
+    """Check for special case for Google Tango devices with different rotation"""
+    return width == 180 and height == 135

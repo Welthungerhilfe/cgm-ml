@@ -6,6 +6,7 @@ import logging
 import logging.config
 from pathlib import Path
 import functools
+from typing import Union
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -34,7 +35,7 @@ def onclick(event):
         x = int(event.ydata)
         y = DMAP.height - int(event.xdata) - 1
         if x > 1 and y > 1 and x < DMAP.width - 2 and y < DMAP.height - 2:
-            depth = DMAP.parse_depth(x, y)
+            depth = DMAP.depthmap_arr[x, y]
             if depth:
                 res = DMAP.convert_2d_to_3d(1, x, y, depth)
                 if res:
@@ -91,6 +92,23 @@ def show(depthmap_dir: str, calibration_file: str):
     plt.show()
 
 
+def is_legit_file(fpath: Union[str, Path]) -> bool:
+    """Find non-hidden files"""
+    if Path(fpath).name.startswith('.'):
+        return False
+    return True
+
+
+def assemble_filenames(input_dir: Path):
+    """Inspect input dir for files and return a sorted list of those files"""
+    all_filenames = []
+    for (_dirpath, _dirnames, filenames) in walk(input_dir):
+        fns = list(filter(is_legit_file, filenames))
+        all_filenames.extend(fns)
+    all_filenames.sort()
+    return all_filenames
+
+
 if __name__ == "__main__":
     # Prepare
     if len(sys.argv) != 3:
@@ -101,15 +119,14 @@ if __name__ == "__main__":
     depthmap_dir = sys.argv[1]
     calibration_file = sys.argv[2]
 
-    depth_filenames = []
-    for (dirpath, dirnames, filenames) in walk(Path(depthmap_dir) / 'depth'):
-        depth_filenames.extend(filenames)
-    depth_filenames.sort()
+    depth_dir = Path(depthmap_dir) / 'depth'
+    rgb_dir = Path(depthmap_dir) / 'rgb'
+    assert depth_dir.exists(), depthmap_dir
+    if not rgb_dir.exists():
+        logging.warn("RGB directory doesn't exist. Working with depth data only")
 
-    rgb_filenames = []
-    for (dirpath, dirnames, filenames) in walk(Path(depthmap_dir) / 'rgb'):
-        rgb_filenames.extend(filenames)
-    rgb_filenames.sort()
+    depth_filenames = assemble_filenames(depth_dir)
+    rgb_filenames = assemble_filenames(rgb_dir)
 
     # Clear export folder
     try:

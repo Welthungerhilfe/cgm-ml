@@ -27,7 +27,7 @@ def export_obj(filename: str,
     if dmap.has_rgb:
         with open(material, 'w') as f:
             f.write('newmtl default\n')
-            f.write('map_Kd ../' + dmap.rgb_fpath + '\n')
+            f.write(f'map_Kd ../{str(dmap.rgb_fpath)}\n')
 
     with open(filename, 'w') as f:
         if dmap.has_rgb:
@@ -35,7 +35,7 @@ def export_obj(filename: str,
             f.write('usemtl default\n')
         for x in range(2, dmap.width - 2):
             for y in range(2, dmap.height - 2):
-                depth = dmap.parse_depth(x, y)
+                depth = dmap.depthmap_arr[x, y]
                 if not depth:
                     continue
                 res = dmap.convert_2d_to_3d_oriented(1, x, y, depth)
@@ -57,10 +57,10 @@ def _do_triangulation(dmap: Depthmap, indices, filehandle):
     for x in range(2, dmap.width - 2):
         for y in range(2, dmap.height - 2):
             # get depth of all points of 2 potential triangles
-            d00 = dmap.parse_depth(x, y)
-            d10 = dmap.parse_depth(x + 1, y)
-            d01 = dmap.parse_depth(x, y + 1)
-            d11 = dmap.parse_depth(x + 1, y + 1)
+            d00 = dmap.depthmap_arr[x, y]
+            d10 = dmap.depthmap_arr[x + 1, y]
+            d01 = dmap.depthmap_arr[x, y + 1]
+            d11 = dmap.depthmap_arr[x + 1, y + 1]
 
             # check if first triangle points have existing indices
             if indices[x][y] > 0 and indices[x + 1][y] > 0 and indices[x][y + 1] > 0:
@@ -107,13 +107,13 @@ def export_pcd(filename: str, dmap: Depthmap):
 
         for x in range(2, dmap.width - 2):
             for y in range(2, dmap.height - 2):
-                depth = dmap.parse_depth(x, y)
+                depth = dmap.depthmap_arr[x, y]
                 if not depth:
                     continue
                 res = dmap.convert_2d_to_3d(1, x, y, depth)
                 if not res:
                     continue
-                confidence = dmap.parse_confidence(x, y)
+                confidence = dmap.confidence_arr[x, y]
                 f.write(str(-res[0]) + ' ' + str(res[1]) + ' ' + str(res[2]) + ' ' + str(confidence) + '\n')
         logging.info('Pointcloud exported into %s', filename)
 
@@ -122,7 +122,7 @@ def _get_count(dmap: Depthmap) -> int:
     count = 0
     for x in range(2, dmap.width - 2):
         for y in range(2, dmap.height - 2):
-            depth = dmap.parse_depth(x, y)
+            depth = dmap.depthmap_arr[x, y]
             if not depth:
                 continue
             res = dmap.convert_2d_to_3d(1, x, y, depth)

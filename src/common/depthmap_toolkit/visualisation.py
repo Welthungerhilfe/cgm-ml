@@ -36,7 +36,7 @@ def blur_face(data: np.array, subplot: int, highest: list, dmap: Depthmap) -> np
         for y in range(dmap.height):
 
             # count distance from the highest child point
-            depth = dmap.parse_depth(x, y)
+            depth = dmap.depthmap_arr[x, y]
             if not depth:
                 continue
             point = dmap.convert_2d_to_3d_oriented(1, x, y, depth)
@@ -67,7 +67,7 @@ def render_confidence(output: np.array,
     for x in range(dmap.width):
         for y in range(dmap.height):
             index = subplot * dmap.height + dmap.height - y - 1
-            output[x][index][:] = dmap.parse_confidence(x, y)
+            output[x][index][:] = dmap.confidence_arr[x, y]
             if output[x][index][0] == 0:
                 output[x][index][:] = 1
 
@@ -77,7 +77,7 @@ def render_depth(output: np.array,
                  dmap: Depthmap):
     for x in range(dmap.width):
         for y in range(dmap.height):
-            depth = dmap.parse_depth(x, y)
+            depth = dmap.depthmap_arr[x, y]
             if not depth:
                 continue
             index = subplot * dmap.height + dmap.height - y - 1
@@ -116,7 +116,7 @@ def render_segmentation(output: np.array,
         for y in range(dmap.height):
 
             # get depth value
-            depth = dmap.parse_depth(x, y)
+            depth = dmap.depthmap_arr[x, y]
             if not depth:
                 continue
 
