@@ -79,9 +79,9 @@ assert len(qrcode_paths) != 0
 qrcode_paths = filter_blacklisted_qrcodes(qrcode_paths)
 
 # Shuffle and split into train and validate.
-# random.shuffle(qrcode_paths)
+random.shuffle(qrcode_paths)
 split_index = int(len(qrcode_paths) * 0.8)
-qrcode_paths_training = qrcode_paths[:split_index][-2000:]
+qrcode_paths_training = qrcode_paths[:split_index]
 qrcode_paths_validate = qrcode_paths[split_index:]
 
 del qrcode_paths
@@ -142,9 +142,9 @@ def tf_load_pickle(path, max_value):
 # Create dataset for training.
 paths = paths_training
 dataset = tf.data.Dataset.from_tensor_slices(paths)
+dataset = dataset.cache()
 dataset_norm = dataset.map(lambda path: tf_load_pickle(path, CONFIG.NORMALIZATION_VALUE))
-# dataset_norm = dataset_norm.cache()
-# dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
+dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
 dataset_norm = dataset_norm.shuffle(CONFIG.SHUFFLE_BUFFER_SIZE)
 dataset_training = dataset_norm
 del dataset_norm
@@ -153,9 +153,9 @@ del dataset_norm
 # Note: No shuffle necessary.
 paths = paths_validate
 dataset = tf.data.Dataset.from_tensor_slices(paths)
+dataset = dataset.cache()
 dataset_norm = dataset.map(lambda path: tf_load_pickle(path, CONFIG.NORMALIZATION_VALUE))
-# dataset_norm = dataset_norm.cache()
-# dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
+dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
 dataset_validation = dataset_norm
 del dataset_norm
 
