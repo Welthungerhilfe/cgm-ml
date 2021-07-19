@@ -128,7 +128,7 @@ def tf_load_pickle(path, max_value):
 
         depthmap = preprocess_depthmap(depthmap)
         depthmap = depthmap / max_value
-        depthmap = tf.expand_dims(depthmap, -1) # shape: (240, 180, 1)
+        depthmap = tf.expand_dims(depthmap, -1)  # shape: (240, 180, 1)
         rgbd = tf.concat([rgb, depthmap], axis=2)
         rgbd = tf.image.resize(rgbd, (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH))
         targets = preprocess_targets(targets, CONFIG.TARGET_INDEXES)

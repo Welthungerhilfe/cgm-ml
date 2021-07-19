@@ -3,8 +3,6 @@ import shutil
 import logging
 import logging.config
 
-import glob2 as glob
-
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
