@@ -13,7 +13,7 @@ import wandb
 from wandb.keras import WandbCallback
 
 from config import CONFIG
-from constants import MODEL_CKPT_FILENAME, REPO_DIR
+from constants import MODEL_CKPT_FILENAME, REPO_DIR, NUM_INPUT_CHANNELS
 from train_util import copy_dir
 
 logging.basicConfig(level=logging.INFO,
@@ -134,7 +134,7 @@ def tf_load_pickle(path, max_value):
         return rgbd, targets
 
     rgbd, targets = tf.py_function(py_load_pickle, [path, max_value], [tf.float32, tf.float32])
-    rgbd.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 4))
+    rgbd.set_shape((CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, NUM_INPUT_CHANNELS))
     targets.set_shape((len(CONFIG.TARGET_INDEXES,)))
     return rgbd, targets
 
@@ -164,7 +164,7 @@ del dataset_norm
 
 def create_and_fit_model():
     # Create the model.
-    input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, 4)
+    input_shape = (CONFIG.IMAGE_TARGET_HEIGHT, CONFIG.IMAGE_TARGET_WIDTH, NUM_INPUT_CHANNELS)
     model = create_cnn(input_shape, dropout=CONFIG.USE_DROPOUT)
     model.summary()
 
