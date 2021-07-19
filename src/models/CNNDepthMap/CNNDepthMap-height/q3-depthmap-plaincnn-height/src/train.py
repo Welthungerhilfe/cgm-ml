@@ -116,7 +116,6 @@ logging.info('Using %d files for training.', len(paths_training))
 logging.info('Using %d files for validation.', len(paths_validate))
 
 
-# Function for loading and processing depthmaps.
 def tf_load_pickle(path, max_value):
     def py_load_pickle(path, max_value):
         rgbd, targets = pickle.load(open(path.numpy(), "rb"))
@@ -144,8 +143,8 @@ def tf_load_pickle(path, max_value):
 paths = paths_training
 dataset = tf.data.Dataset.from_tensor_slices(paths)
 dataset_norm = dataset.map(lambda path: tf_load_pickle(path, CONFIG.NORMALIZATION_VALUE))
-dataset_norm = dataset_norm.cache()
-dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
+# dataset_norm = dataset_norm.cache()
+# dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
 dataset_norm = dataset_norm.shuffle(CONFIG.SHUFFLE_BUFFER_SIZE)
 dataset_training = dataset_norm
 del dataset_norm
@@ -155,8 +154,8 @@ del dataset_norm
 paths = paths_validate
 dataset = tf.data.Dataset.from_tensor_slices(paths)
 dataset_norm = dataset.map(lambda path: tf_load_pickle(path, CONFIG.NORMALIZATION_VALUE))
-dataset_norm = dataset_norm.cache()
-dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
+# dataset_norm = dataset_norm.cache()
+# dataset_norm = dataset_norm.prefetch(tf.data.experimental.AUTOTUNE)
 dataset_validation = dataset_norm
 del dataset_norm
 
