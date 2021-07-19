@@ -15,8 +15,14 @@ from constants import MODEL_CKPT_FILENAME, REPO_DIR
 from augmentation import tf_augment_sample
 from train_util import copy_dir
 
+logging.config.fileConfig(REPO_DIR/"logging.conf")
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+
+logger.debug('debug')  # does not show up
+logger.info('info')
+logger.warning('warning')
+logger.error('error')
+logger.critical('critical')
 
 # Get the current run.
 run = Run.get_context()
