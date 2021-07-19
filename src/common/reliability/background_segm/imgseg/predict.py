@@ -1,12 +1,8 @@
-import logging
-
 import numpy as np
 from PIL import Image
 from torchvision import transforms
 
 from .coco import NAMES
-
-log = logging.getLogger()
 
 # each class has different color bbox
 COLORS = [tuple(c) for c in np.random.randint(0, 255, size=(len(NAMES), 3))]

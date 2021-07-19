@@ -15,8 +15,14 @@ from constants import MODEL_CKPT_FILENAME, REPO_DIR
 from augmentation import tf_augment_sample
 from train_util import copy_dir
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logging.config.fileConfig(REPO_DIR/"logging.conf")
+logger = logging.getLogger(__name__)
+
+logger.debug('debug')  # does not show up
+logger.info('info')
+logger.warning('warning')
+logger.error('error')
+logger.critical('critical')
 
 # Get the current run.
 run = Run.get_context()
@@ -42,27 +48,27 @@ tf.random.set_seed(CONFIG.SPLIT_SEED)
 random.seed(CONFIG.SPLIT_SEED)
 
 DATA_DIR = REPO_DIR / 'data' if run.id.startswith("OfflineRun") else Path(".")
-logging.info('DATA_DIR: %s', DATA_DIR)
+logger.info('DATA_DIR: %s', DATA_DIR)
 
 
 # Offline run. Download the sample dataset and run locally. Still push results to Azure.
 if run.id.startswith("OfflineRun"):
-    logging.info('Running in offline mode...')
+    logger.info('Running in offline mode...')
 
     # Access workspace.
-    logging.info('Accessing workspace...')
+    logger.info('Accessing workspace...')
     workspace = Workspace.from_config()
     experiment = Experiment(workspace, "training-junkyard")
     run = experiment.start_logging(outputs=None, snapshot_directory=None)
 
-    logging.info('Accessing dataset...')
+    logger.info('Accessing dataset...')
     dataset_name = CONFIG.DATASET_NAME_LOCAL
     dataset_path = get_dataset_path(DATA_DIR, dataset_name)
     download_dataset(workspace, dataset_name, dataset_path)
 
 # Online run. Use dataset provided by training notebook.
 else:
-    logging.info('Running in online mode...')
+    logger.info('Running in online mode...')
     experiment = run.experiment
     workspace = experiment.workspace
 
@@ -73,11 +79,11 @@ else:
 
 # Get the QR-code paths.
 dataset_scans_path = os.path.join(dataset_path, "scans")
-logging.info('Dataset path: %s', dataset_scans_path)
-#logging.info(glob.glob(os.path.join(dataset_scans_path, "*"))) # Debug
-logging.info('Getting QR-code paths...')
+logger.info('Dataset path: %s', dataset_scans_path)
+#logger.info(glob.glob(os.path.join(dataset_scans_path, "*"))) # Debug
+logger.info('Getting QR-code paths...')
 qrcode_paths = glob.glob(os.path.join(dataset_scans_path, "*"))
-logging.info('qrcode_paths: %d', len(qrcode_paths))
+logger.info('qrcode_paths: %d', len(qrcode_paths))
 assert len(qrcode_paths) != 0
 
 qrcode_paths = filter_blacklisted_qrcodes(qrcode_paths)
@@ -92,19 +98,19 @@ qrcode_paths_validate = qrcode_paths[split_index:]
 del qrcode_paths
 
 # Show split.
-logging.info('Paths for training: \n\t' + '\n\t'.join(qrcode_paths_training))
-logging.info('Paths for validation: \n\t' + '\n\t'.join(qrcode_paths_validate))
+logger.info('Paths for training: \n\t' + '\n\t'.join(qrcode_paths_training))
+logger.info('Paths for validation: \n\t' + '\n\t'.join(qrcode_paths_validate))
 
-logging.info('Nbr of qrcode_paths for training: %d', len(qrcode_paths_training))
-logging.info('Nbr of qrcode_paths for validation: %d', len(qrcode_paths_validate))
+logger.info('Nbr of qrcode_paths for training: %d', len(qrcode_paths_training))
+logger.info('Nbr of qrcode_paths for validation: %d', len(qrcode_paths_validate))
 
 assert len(qrcode_paths_training) > 0 and len(qrcode_paths_validate) > 0
 
 paths_training = create_multiartifact_paths_for_qrcodes(qrcode_paths_training, CONFIG)
-logging.info('Using %d files for training.', len(paths_training))
+logger.info('Using %d files for training.', len(paths_training))
 
 paths_validate = create_multiartifact_paths_for_qrcodes(qrcode_paths_validate, CONFIG)
-logging.info('Using %d files for validation.', len(paths_validate))
+logger.info('Using %d files for validation.', len(paths_validate))
 
 
 @tf.function(input_signature=[tf.TensorSpec(None, tf.string)])
@@ -198,6 +204,7 @@ def create_and_fit_model():
     model.compile(optimizer=optimizer, loss="mse", metrics=["mae"])
 
     # Train the model.
+
     model.fit(
         dataset_training.batch(CONFIG.BATCH_SIZE),
         validation_data=dataset_validation.batch(CONFIG.BATCH_SIZE),

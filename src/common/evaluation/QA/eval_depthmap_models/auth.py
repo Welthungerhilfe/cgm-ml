@@ -4,8 +4,8 @@ import logging.config
 from azureml.core import Workspace
 from azureml.core.authentication import AuthenticationException, AzureCliAuthentication
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def get_auth():
@@ -16,7 +16,7 @@ def get_auth():
         auth = AzureCliAuthentication()
         auth.get_authentication_header()
     except AuthenticationException:
-        logging.info("Authentication Error Occured")
+        logger.info("Authentication Error Occured")
 
     return auth
 
@@ -34,10 +34,10 @@ if __name__ == "__main__":
                           workspace_name=args.workspace_name,
                           auth=get_auth())
 
-    logging.info("Workspace Details")
-    logging.info(workspace.get_details())
+    logger.info("Workspace Details")
+    logger.info(workspace.get_details())
 
-    logging.info("Success of Authentication and Workspace Setup")
+    logger.info("Success of Authentication and Workspace Setup")
 
     workspace.write_config()
-    logging.info("Saved config file")
+    logger.info("Saved config file")

@@ -1,5 +1,6 @@
 import yaml
 import logging
+import logging.config
 import pickle
 import os
 import multiprocessing
@@ -15,6 +16,8 @@ sys.path.append(str(Path(__file__).parents[1]))
 from data_utils import QRCodeCollector  # noqa: E402
 from src.common.depthmap_toolkit import pcd2depth  # noqa: E402
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 if __name__ == "__main__":
 
@@ -47,7 +50,7 @@ if __name__ == "__main__":
         os.makedirs(rgb_path)
 
     dataset = QRCodeCollector(DB_FILE)
-    logging.info("Starting the dataset Preparation:")
+    logger.info("Starting the dataset Preparation:")
     data = dataset.get_all_data()
     scangroup_data = dataset.get_scangroup_data(data=data, scangroup=SCANGROUP)
     scangroup_qrcodes = dataset.get_unique_qrcode(scangroup_data)
@@ -55,7 +58,7 @@ if __name__ == "__main__":
         dataframe=scangroup_qrcodes, amount=NUMBER_OF_SCANS, scan_group=SCANGROUP)
 
     full_dataset = dataset.merge_qrcode_dataset(new_scangroup_data, scangroup_data)
-    logging.info("Saving the csv file for EDA notebook.")
+    logger.info("Saving the csv file for EDA notebook.")
     full_dataset.to_csv(DEPTHMAP_CSV, index=False)
 
     # Create the RGB csv file for posenet.
@@ -83,7 +86,7 @@ if __name__ == "__main__":
         depthmaps = np.expand_dims(depthmaps, axis=2)
         max_value = depthmaps.max()
         if max_value > 10:
-            logging.warning(pcdfile)
+            logger.warning(pcdfile)
             return
         scantype = pcdfile.split('_')[3]
         pickle_file = pcdfile.replace('.pcd', '.p')

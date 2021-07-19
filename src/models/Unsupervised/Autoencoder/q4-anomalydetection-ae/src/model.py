@@ -15,8 +15,8 @@ from matplotlib.pyplot import cm
 from PIL import Image
 from sklearn.manifold import TSNE
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class Autoencoder(tf.keras.Model):
@@ -406,7 +406,7 @@ class Autoencoder(tf.keras.Model):
         del keys
 
         # Pick some samples from each set.
-        logging.info("Picking some samples...")
+        logger.info("Picking some samples...")
 
         def pick_samples(dataset, number):
             for batch in dataset.batch(number).take(1):
@@ -417,7 +417,7 @@ class Autoencoder(tf.keras.Model):
 
         # Prepare datasets for training.
         # TODO Do we need prefetch?
-        logging.info("Preparing datasets...")
+        logger.info("Preparing datasets...")
         dataset_train = dataset_train.cache()
         #dataset_train = dataset_train.prefetch(tf.data.experimental.AUTOTUNE)
         dataset_train = dataset_train.shuffle(shuffle_buffer_size)
@@ -449,7 +449,7 @@ class Autoencoder(tf.keras.Model):
                 filename="embeddings-0000.png")
 
         # Train.
-        logging.info("Train...")
+        logger.info("Train...")
         for epoch in range(1, epochs + 1):
 
             start_time = time.time()
@@ -458,7 +458,7 @@ class Autoencoder(tf.keras.Model):
             mean_losses_train = [tf.keras.metrics.Mean() for _ in range(self.number_of_losses)]
             batch_index = 1
             for train_x in dataset_train:
-                logging.info("Batch %d", batch_index)
+                logger.info("Batch %d", batch_index)
                 batch_index += 1
                 losses = train_step(self, train_x, optimizer)
                 assert len(losses) == self.number_of_losses
@@ -477,7 +477,7 @@ class Autoencoder(tf.keras.Model):
 
             # Save the best model.
             if mean_losses_validate[0] < best_validation_loss:
-                logging.info('Found new best model with validation loss %d.', mean_losses_validate[0])
+                logger.info('Found new best model with validation loss %d.', mean_losses_validate[0])
                 self.save_weights(outputs_path=outputs_path, filename="model_best")
                 best_validation_loss = mean_losses_validate[0]
 
@@ -499,8 +499,8 @@ class Autoencoder(tf.keras.Model):
                 callback.on_epoch_end(epoch, logs=logs)
 
             # Print status.
-            logging.info('Epoch: %d, validate set loss: %d, time elapse for current epoch: %d',
-                         epoch, mean_losses_validate[0], end_time - start_time)
+            logger.info('Epoch: %d, validate set loss: %d, time elapse for current epoch: %d',
+                        epoch, mean_losses_validate[0], end_time - start_time)
             # Render reconstructions after every xth epoch.
             if render and (epoch % render_every) == 0:
                 render_reconstructions(
@@ -707,7 +707,7 @@ def render_reconstructions(model, samples_train, samples_validate, samples_anoma
         steps (int, optional): How many samples to reconstruct. Defaults to 10.
     """
 
-    logging.info("Rendering reconstructions...")
+    logger.info("Rendering reconstructions...")
 
     # Reconstruct all samples.
     reconstructions_train = model.predict(samples_train[:steps], steps=steps)
@@ -751,7 +751,7 @@ def render_individual_losses(model, samples_train, samples_validate, samples_ano
         filename (str): Filename of the image.
     """
 
-    logging.info("Rendering individual losses...")
+    logger.info("Rendering individual losses...")
 
     losses_train = compute_individual_losses(model, samples_train)
     losses_validate = compute_individual_losses(model, samples_validate)
@@ -797,7 +797,7 @@ def render_history(history, loss_names, outputs_path, filename):
         filename (str): Filename of the image.
     """
 
-    logging.info("Rendering history...")
+    logger.info("Rendering history...")
 
     _, axes = plt.subplots(len(loss_names), figsize=(8, 12))
     if not isinstance(axes, np.ndarray):
@@ -824,7 +824,7 @@ def render_embeddings(model, dataset_train_samples, dataset_validate_samples,
         filename (string): Filename of the rendering.
     """
 
-    logging.info("Rendering embeddings...")
+    logger.info("Rendering embeddings...")
 
     # Embed the samples.
     embeddings_train_samples = model.embed(dataset_train_samples)

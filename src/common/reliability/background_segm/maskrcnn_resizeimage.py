@@ -15,20 +15,20 @@ from torchvision.models.detection import maskrcnn_resnet50_fpn
 
 from imgseg.predict import predict
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 model = maskrcnn_resnet50_fpn(pretrained=True)
 
 
 def predict_by_resize(image, factor=10):
     """Applied MaskRCNN on downscaled image, by default the factor is 10x."""
-    logging.info("Resizing image by %d x", factor)
+    logger.info("Resizing image by %d x", factor)
     newsize = (int(image.size[0] / factor), int(image.size[1] / factor))
-    logging.info("Resized Dimension %d", newsize)
+    logger.info("Resized Dimension %s", newsize)
     start_time = time.time()
     out = predict(image.resize(newsize), model)
-    logging.info("Time: %s s", time.time() - start_time)
+    logger.info("Time: %s s", time.time() - start_time)
 
     # Binary Image Segmentation
     threshold = 0.5
@@ -52,6 +52,6 @@ def get_mask_information(segmented_image):
     # Get mask stats like percentage of body coverage of total area & mask area
     perc_body_covered = (mask_area * 100) / (width * height)
     perc_body_covered = round(perc_body_covered, 2)
-    logging.info("Mask Area: %.2f px", mask_area)
-    logging.info("Percentage of body pixels to total img pixels: %.2f %", perc_body_covered)
+    logger.info("Mask Area: %.2f px", mask_area)
+    logger.info("Percentage of body pixels to total img pixels: %.2f %", perc_body_covered)
     return mask_area, perc_body_covered

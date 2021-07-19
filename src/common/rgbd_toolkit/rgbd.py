@@ -18,15 +18,15 @@ from tqdm import tqdm
 from cgm_fusion.fusion import fuse_rgbd
 from get_timestamps import get_timestamps_from_pcd, get_timestamps_from_rgb
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 sys.path.append('../cgm-ml')
 sys.path.append(os.path.dirname(os.getcwd()))
 
 # check core SDK version number
-logging.info("Azure ML SDK Version: ", azureml.core.VERSION)
+logger.info("Azure ML SDK Version: ", azureml.core.VERSION)
 
 warnings.filterwarnings("ignore")
 
@@ -72,9 +72,9 @@ def get_filename(pcd_file, rgbd_folder, qr_folder):
     # check if output rgbd folder exists
     rgbd_folder_ = os.path.dirname(rgbd_filename)
     if not os.path.isfile(rgbd_folder_):
-        logging.info("Folder does not exist for " + str(rgbd_filename))
+        logger.info("Folder does not exist for " + str(rgbd_filename))
         os.makedirs(rgbd_folder_, exist_ok=True)
-        logging.info("Created folder " + str(rgbd_folder_))
+        logger.info("Created folder " + str(rgbd_folder_))
     return rgbd_filename
 
 
@@ -100,7 +100,7 @@ def process_pcd(paths, process_index=0):
 
     rgbd_filename = get_filename(pcd_file, rgbd_folder, qr_folder)
 
-    logging.info("Going to writing new fused data to: " + rgbd_filename)
+    logger.info("Going to writing new fused data to: " + rgbd_filename)
 
     #saving the rgbd file with labels as pickled data
     try:
@@ -108,7 +108,7 @@ def process_pcd(paths, process_index=0):
         if args.pickled:
             labels = np.array([height, weight])
             if not labels:
-                logging.info("labels dont exist in artifacts.csv..exiting")
+                logger.info("labels dont exist in artifacts.csv..exiting")
                 sys.exit()
             data = (rgbdseg_arr, labels)
             pickle.dump(data, open(rgbd_filename, "wb"))
@@ -117,10 +117,10 @@ def process_pcd(paths, process_index=0):
             rgbd_filename = rgbd_filename.replace(".pkl", ".npy")
             np.save(rgbd_filename, rgbdseg_arr)
 
-        logging.info("successfully wrote new data to" + rgbd_filename)
+        logger.info("successfully wrote new data to" + rgbd_filename)
     except Exception as e:
-        logging.error("Something went wrong.Skipping this file")
-        logging.error(str(e))
+        logger.error("Something went wrong.Skipping this file")
+        logger.error(str(e))
 
 
 def get_files(norm_rgb_time, rgb_path, norm_pcd_time, pcd_path):
@@ -134,11 +134,11 @@ def get_files(norm_rgb_time, rgb_path, norm_pcd_time, pcd_path):
     norm_rgb_time = np.asarray(norm_rgb_time)
     files = []
     if len(norm_rgb_time) == 0:
-        logging.info("no rgb images found")
+        logger.info("no rgb images found")
         return []
 
     if len(norm_pcd_time) == 0:
-        logging.info("no pcd images found")
+        logger.info("no pcd images found")
         return []
 
     for i, pcd in enumerate(norm_pcd_time):
@@ -200,7 +200,7 @@ if __name__ == "__main__":
 
     ##validation of input directory
     if not os.path.exists(unique_qr_codes[0]):
-        logging.info("Error:invalid input paths..exiting")
+        logger.info("Error:invalid input paths..exiting")
         sys.exit()
 
     #making output dir for storing rgbd files
@@ -213,10 +213,10 @@ if __name__ == "__main__":
     pcd_paths = []
 
     #read jpg and pcd files of each qr code in the input directory.
-    logging.info("Processing..")
+    logger.info("Processing..")
     start = datetime.datetime.now()
     for qr in set(unique_qr_codes):
-        logging.info("reading qr code" + str(qr))
+        logger.info("reading qr code" + str(qr))
         for dirname, dirs, qr_paths in os.walk(Path(qr)):
             for file in qr_paths:
                 dir_path = os.path.join(dirname, file)
@@ -233,11 +233,11 @@ if __name__ == "__main__":
 
         #processing every pcd file with its nearest rgb using multiprocessing workers
         if args.debug:
-            logging.info("Debug")
+            logger.info("Debug")
             for path in paths:
                 process_pcd(path)
         else:
-            logging.info("Multiprocessing")
+            logger.info("Multiprocessing")
             with concurrent.futures.ProcessPoolExecutor(
                     max_workers=args.num_workers) as executor:
                 res = list(tqdm(executor.map(process_pcd, paths),
@@ -245,5 +245,5 @@ if __name__ == "__main__":
 
     end = datetime.datetime.now()
     diff = end - start
-    logging.info("***Done***")
-    logging.info("total time took is %.2f", diff)
+    logger.info("***Done***")
+    logger.info("total time took is %.2f", diff)

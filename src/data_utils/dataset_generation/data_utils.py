@@ -1,8 +1,12 @@
 import logging
+import logging.config
 
 import pandas as pd
 
 import dbutils
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def extract_qrcode(row):
@@ -84,7 +88,7 @@ class QRCodeCollector:
         used_data = df[df['scan_group'] == scangroup]
         required_amount = int(amount) - len(used_data)
         if required_amount <= 0:
-            logging.warning("Amount scans given is less than already used scans")
+            logger.warning("Amount scans given is less than already used scans")
             return
         remain_data = available_data.sample(n=amount - len(used_data))
         dataList = [used_data, remain_data]
@@ -180,5 +184,5 @@ class QRCodeCollector:
             try:
                 self.ml_connector.execute(update_statement)
             except Exception as error:
-                logging.warning(error)
+                logger.warning(error)
         return

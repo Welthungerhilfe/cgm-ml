@@ -8,8 +8,8 @@ import tensorflow as tf
 from azureml.core import Experiment, Run
 from tqdm import tqdm
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 REPO_DIR = Path(__file__).parents[4].absolute()
 
@@ -29,8 +29,8 @@ def get_timestamp_from_pcd(pcd_path):
     try:
         firstLine = infile.readline()
     except Exception as error:
-        logging.info(error)
-        logging.info(pcd_path)
+        logger.info(error)
+        logger.info(pcd_path)
         return -1
     # get the time from the header of the pcd file
     timestamp = re.findall(r'\d+\.\d+', firstLine)
@@ -96,4 +96,4 @@ def download_model(workspace, experiment_name, run_id, input_location, output_lo
     run = Run(experiment, run_id=run_id)
     #run.get_details()
     run.download_file(input_location, output_location)
-    logging.info("Successfully downloaded model")
+    logger.info("Successfully downloaded model")

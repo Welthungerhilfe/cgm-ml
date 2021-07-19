@@ -15,9 +15,8 @@ from depthmap import Depthmap
 from exporter import export_obj, export_pcd
 from visualisation import render_plot
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 # click on data
 LAST = [0, 0, 0]
@@ -41,12 +40,12 @@ def onclick(event):
                     diff = [LAST[0] - res[0], LAST[1] - res[1], LAST[2] - res[2]]
                     dst = np.sqrt(diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2])
                     res.append(dst)
-                    logging.info('x=%s, y=%s, depth=%s, diff=%s', str(res[0]), str(res[1]), str(res[2]), str(res[3]))
+                    logger.info('x=%s, y=%s, depth=%s, diff=%s', str(res[0]), str(res[1]), str(res[2]), str(res[3]))
                     LAST[0] = res[0]
                     LAST[1] = res[1]
                     LAST[2] = res[2]
                     return
-            logging.info('no valid data')
+            logger.info('no valid data')
 
 
 def export_object(event):
@@ -85,7 +84,7 @@ def show(depthmap_dir: str, calibration_file: str):
     DMAP = Depthmap.create_from_file(depthmap_dir, depth_filenames[INDEX], rgb_filename, calibration_file)
 
     angle = DMAP.get_angle_between_camera_and_floor()
-    logging.info('angle between camera and floor is %f', angle)
+    logger.info('angle between camera and floor is %f', angle)
 
     plt.imshow(render_plot(DMAP))
     plt.show()
@@ -94,8 +93,8 @@ def show(depthmap_dir: str, calibration_file: str):
 if __name__ == "__main__":
     # Prepare
     if len(sys.argv) != 3:
-        logging.info('You did not enter depthmap_dir folder and calibration file path')
-        logging.info('E.g.: python toolkit.py depthmap_dir calibration_file')
+        logger.info('You did not enter depthmap_dir folder and calibration file path')
+        logger.info('E.g.: python toolkit.py depthmap_dir calibration_file')
         sys.exit(1)
 
     depthmap_dir = sys.argv[1]

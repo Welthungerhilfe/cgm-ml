@@ -21,8 +21,8 @@ import uuid
 import pickle
 from . import utils
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class DataGenerator(object):
@@ -118,7 +118,7 @@ class DataGenerator(object):
         That is: Paths of JPGs, PCDs, and JSONs.
         """
 
-        logging.info(self.dataset_path)
+        logger.info(self.dataset_path)
 
         # Getting the paths for images.
         glob_search_path = os.path.join(self.dataset_path, "storage/person", "**/*.jpg")
@@ -371,9 +371,9 @@ class DataGenerator(object):
     def print_statistics(self):
 
         for qr_code, array in self.qrcodes_dictionary.items():
-            logging.info("QR-Code %s has %d different manual measurements", qr_code, len(array))
+            logger.info("QR-Code %s has %d different manual measurements", qr_code, len(array))
             for (targets, jpg_paths, pcd_paths) in array:
-                logging.info(" Target %s with %d JPGs and %d PCDs.", targets, len(jpg_paths), len(pcd_paths))
+                logger.info(" Target %s with %d JPGs and %d PCDs.", targets, len(jpg_paths), len(pcd_paths))
 
         #qrcodes_dictionary[qrcode].append((targets, jpg_paths, pcd_paths))
 
@@ -493,14 +493,14 @@ class DataGenerator(object):
         y_outputs = []
         for index, qrcode in enumerate(qrcodes_to_use):
 
-            logging.info("Processing: %s", qrcode)
+            logger.info("Processing: %s", qrcode)
 
             # Get targets and paths.
             if qrcode not in self.qrcodes_dictionary.keys():
-                logging.info("No data for: %s", qrcode)
+                logger.info("No data for: %s", qrcode)
                 continue
             targets, jpg_paths, pcd_paths = self.qrcodes_dictionary[qrcode]
-            logging.info(targets)
+            logger.info(targets)
 
             # Process image.
             if self.input_type == "image":
@@ -551,10 +551,10 @@ class DataGenerator(object):
 
     def analyze_files(self):
 
-        logging.info("Number of JPGs: %d", len(self.jpg_paths))
-        logging.info("Number of PCDs: %d", len(self.pcd_paths))
-        logging.info("Number of JSONs (personal): %d", len(self.json_paths_personal))
-        logging.info("Number of JSONs (measures): %d", len(self.json_paths_measures))
+        logger.info("Number of JPGs: %d", len(self.jpg_paths))
+        logger.info("Number of PCDs: %d", len(self.pcd_paths))
+        logger.info("Number of JSONs (personal): %d", len(self.json_paths_personal))
+        logger.info("Number of JSONs (measures): %d", len(self.json_paths_measures))
 
     def analyze_targets(self):
         """
@@ -577,7 +577,7 @@ class DataGenerator(object):
 
     def analyze_pointclouds(self):
 
-        logging.info("Analyzing pointclouds...")
+        logger.info("Analyzing pointclouds...")
         pointcloud_sizes = []
         bar = progressbar.ProgressBar(max_value=len(self.pcd_paths))
         for index, pcd_path in enumerate(self.pcd_paths):
@@ -589,7 +589,7 @@ class DataGenerator(object):
             bar.update(index)
         bar.finish()
 
-        logging.info("Rendering histogram...")
+        logger.info("Rendering histogram...")
         plt.hist(pointcloud_sizes)
         #plt.xlabel(self.output_targets[0])
         #plt.ylabel(self.output_targets[1])
@@ -599,7 +599,7 @@ class DataGenerator(object):
 
     def analyze_voxelgrids(self):
 
-        logging.info("Analyzing voxelgrids...")
+        logger.info("Analyzing voxelgrids...")
         voxelgrid_sizes = [0] * len(self.pcd_paths)
         numbers_of_voxels = [0] * len(self.pcd_paths)
         voxel_densities = [0] * len(self.pcd_paths)
@@ -618,12 +618,12 @@ class DataGenerator(object):
             bar.update(index)
         bar.finish()
 
-        logging.info("Getting the PCDs with the lowest voxel densities...")
+        logger.info("Getting the PCDs with the lowest voxel densities...")
         argsort = np.argsort(numbers_of_voxels)
         for index in argsort[0:20]:
-            logging.info("%.2f : %.2f", numbers_of_voxels[index], self.pcd_paths[index])
+            logger.info("%.2f : %.2f", numbers_of_voxels[index], self.pcd_paths[index])
 
-        logging.info("Rendering histograms...")
+        logger.info("Rendering histograms...")
         plt.hist(voxelgrid_sizes)
         plt.title("Distribution of voxelgrid-sizes.")
         plt.show()
@@ -650,12 +650,12 @@ def test_generator():
     data_generator = DataGenerator(dataset_path=dataset_path,
                                    input_type="pointcloud", output_targets=["height", "weight"])
 
-    logging.info("jpg_paths %d", len(data_generator.jpg_paths))
-    logging.info("pcd_paths %d", len(data_generator.jpg_paths))
-    logging.info("json_paths_personal %d", len(data_generator.jpg_paths))
-    logging.info("json_paths_measures %d", len(data_generator.jpg_paths))
-    logging.info("QR-Codes: \n" + "\n".join(data_generator.qrcodes))
-    #logging.info(data_generator.qrcodes_dictionary)
+    logger.info("jpg_paths %d", len(data_generator.jpg_paths))
+    logger.info("pcd_paths %d", len(data_generator.jpg_paths))
+    logger.info("json_paths_personal %d", len(data_generator.jpg_paths))
+    logger.info("json_paths_measures %d", len(data_generator.jpg_paths))
+    logger.info("QR-Codes: \n" + "\n".join(data_generator.qrcodes))
+    #logger.info(data_generator.qrcodes_dictionary)
     data_generator.print_statistics()
 
     qrcodes_shuffle = list(data_generator.qrcodes)
@@ -664,19 +664,19 @@ def test_generator():
     qrcodes_train = qrcodes_shuffle[:split_index]
     qrcodes_validate = qrcodes_shuffle[split_index:]
 
-    logging.info("Training data:")
+    logger.info("Training data:")
     x_train, y_train = next(data_generator.generate(
         size=200, qrcodes_to_use=qrcodes_train, verbose=True))
-    logging.info(x_train.shape)
-    logging.info(y_train.shape)
-    logging.info("")
+    logger.info(x_train.shape)
+    logger.info(y_train.shape)
+    logger.info("")
 
-    logging.info("Validation data:")
+    logger.info("Validation data:")
     x_validate, y_validate = next(data_generator.generate(
         size=20, qrcodes_to_use=qrcodes_validate, verbose=True))
-    logging.info(x_validate.shape)
-    logging.info(y_validate.shape)
-    logging.info("")
+    logger.info(x_validate.shape)
+    logger.info(y_validate.shape)
+    logger.info("")
 
 
 def test_dataset():
@@ -690,7 +690,7 @@ def test_dataset():
                                    input_type="image", output_targets=["height", "weight"])
 
     x_qrcodes, x_inputs, y_outputs = data_generator.generate_dataset(data_generator.qrcodes[0:4])
-    logging.info(len(x_qrcodes))
+    logger.info(len(x_qrcodes))
 
 
 def test_parameters():
@@ -700,30 +700,30 @@ def test_parameters():
     else:
         dataset_path = "../data"
 
-    logging.info("Testing image...")
+    logger.info("Testing image...")
     data_generator = DataGenerator(dataset_path=dataset_path, input_type="image", output_targets=[
                                    "height", "weight"], image_target_shape=(20, 20))
     x_input, y_output = next(data_generator.generate(size=1))
     assert x_input.shape[1:3] == (20, 20)
 
-    logging.info("Testing voxelgrid...")
+    logger.info("Testing voxelgrid...")
     data_generator = DataGenerator(dataset_path=dataset_path, input_type="voxelgrid", output_targets=[
                                    "height", "weight"], voxelgrid_target_shape=(20, 20, 20))
     x_input, y_output = next(data_generator.generate(size=1))
     assert x_input.shape[1:] == (20, 20, 20)
 
-    logging.info("Testing pointcloud...")
+    logger.info("Testing pointcloud...")
     data_generator = DataGenerator(dataset_path=dataset_path, input_type="pointcloud", output_targets=[
                                    "height", "weight"], pointcloud_target_size=16000)
     x_input, y_output = next(data_generator.generate(size=1))
     assert x_input.shape[1:] == (20, 4)
 
-    logging.info("Done.")
+    logger.info("Done.")
 
 
 def generate_data(class_self, size, qrcodes_to_use, verbose, yield_file_paths, output_queue):
     if verbose is True:
-        logging.info("Generating QR-codes to be used: %s", qrcodes_to_use)
+        logger.info("Generating QR-codes to be used: %s", qrcodes_to_use)
 
     assert size != 0
 
@@ -815,7 +815,7 @@ def get_input(class_self, jpg_paths, pcd_paths):
     # Get a random image.
     if class_self.input_type == "image":
         if len(jpg_paths) == 0:
-            logging.info("777")
+            logger.info("777")
             return None, None
         jpg_path = random.choice(jpg_paths)
         image = class_self._load_image(jpg_path)
@@ -856,7 +856,7 @@ def get_input(class_self, jpg_paths, pcd_paths):
 
 
 def create_datagenerator_from_parameters(dataset_path, dataset_parameters):
-    logging.info("Creating data-generator...")
+    logger.info("Creating data-generator...")
     datagenerator = DataGenerator(
         dataset_path=dataset_path,
         input_type=dataset_parameters["input_type"],

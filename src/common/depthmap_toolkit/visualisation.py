@@ -7,9 +7,8 @@ from constants import MASK_CHILD
 from depthmap import Depthmap
 from depthmap_utils import diff, length
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 CHILD_HEAD_HEIGHT_IN_METERS = 0.25
 PATTERN_LENGTH_IN_METERS = 0.1
@@ -161,5 +160,5 @@ def render_plot(dmap: Depthmap) -> np.array:
         render_rgb(output, SUBPLOT_RGB, dmap)
         output = blur_face(output, SUBPLOT_RGB, highest, dmap)
 
-    logging.info('height=%fm', highest[1] - floor)
+    logger.info('height=%fm', highest[1] - floor)
     return output

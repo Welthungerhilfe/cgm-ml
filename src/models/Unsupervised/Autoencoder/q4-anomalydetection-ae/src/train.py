@@ -14,8 +14,8 @@ from config import CONFIG
 #from config import CONFIG_DEV as CONFIG #  Only for development.
 from constants import REPO_DIR
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 # Get the current run.
 run = Run.get_context()
@@ -36,7 +36,7 @@ if offline_run:
     for p in utils_paths:
         shutil.copy(p, temp_model_util_dir)
 
-logging.info('Config: %s', CONFIG.NAME)
+logger.info('Config: %s', CONFIG.NAME)
 
 
 from model import Autoencoder   # noqa: E402
@@ -48,17 +48,17 @@ tf.random.set_seed(CONFIG.SPLIT_SEED)
 random.seed(CONFIG.SPLIT_SEED)
 
 if offline_run:
-    logging.info('Running in offline mode...')
+    logger.info('Running in offline mode...')
 
     # Access workspace.
-    logging.info('Accessing workspace...')
+    logger.info('Accessing workspace...')
     workspace = Workspace.from_config()
     experiment = Experiment(workspace, "training-junkyard")
     run = experiment.start_logging(outputs=None, snapshot_directory=None)
 
 # Online run. Use dataset provided by training notebook.
 else:
-    logging.info('Running in online mode...')
+    logger.info('Running in online mode...')
     experiment = run.experiment
     workspace = experiment.workspace
 

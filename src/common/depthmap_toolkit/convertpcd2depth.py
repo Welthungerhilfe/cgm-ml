@@ -8,14 +8,14 @@ import logging.config
 import pcd2depth
 from depthmap import parse_calibration
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        logging.info('You did not enter pcd_dir folder and calibration file path')
-        logging.info('E.g.: python convertpcd2depth.py pcd_dir calibration_file')
+        logger.info('You did not enter pcd_dir folder and calibration file path')
+        logger.info('E.g.: python convertpcd2depth.py pcd_dir calibration_file')
         sys.exit(1)
 
     pcd_dir = sys.argv[1]
@@ -42,4 +42,4 @@ if __name__ == "__main__":
         depthmap = pcd2depth.process(calibration, input_filename, width, height)
         output_filename = f'output/depth/{filename}.depth'
         pcd2depth.write_depthmap(output_filename, depthmap, width, height)
-    logging.info('Data exported into folder output')
+    logger.info('Data exported into folder output')

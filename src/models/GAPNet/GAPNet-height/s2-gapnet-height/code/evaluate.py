@@ -15,8 +15,8 @@ import pickle
 from preprocessing import preprocess_pointcloud, preprocess_targets
 import json
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 # Parse the arguments.
 parser = argparse.ArgumentParser(description="Training Script")
@@ -39,16 +39,16 @@ run = Run.get_context()
 
 # Offline run. Download the sample dataset and run locally. Still push results to Azure.
 if(run.id.startswith("OfflineRun")):
-    logging.info('Running in offline mode...')
+    logger.info('Running in offline mode...')
 
     # Access workspace.
-    logging.info('Accessing workspace...')
+    logger.info('Accessing workspace...')
     workspace = Workspace.from_config()
     experiment = Experiment(workspace, "gapnet-offline")
     run = experiment.start_logging(outputs=None, snapshot_directory=".")
 
     # Get dataset.
-    logging.info('Accessing dataset...')
+    logger.info('Accessing dataset...')
     if os.path.exists("premiumfileshare") == False:
         dataset_name = "cgmmldevpremium-SampleDataset-Example"
         dataset = workspace.datasets[dataset_name]
@@ -57,14 +57,14 @@ if(run.id.startswith("OfflineRun")):
 
 # Online run. Use dataset provided by training notebook.
 else:
-    logging.info('Running in online mode...')
+    logger.info('Running in online mode...')
     experiment = run.experiment
     workspace = experiment.workspace
     dataset_path = run.input_datasets["dataset"]
 
 
 # Download the model from the provided run.
-logging.info('Downloading model from run with id %d', args.run_id)
+logger.info('Downloading model from run with id %d', args.run_id)
 
 # Locate the run that contains the model.
 experiment_that_contains_model = Experiment(workspace=workspace, name=args.experiment_name)
@@ -74,28 +74,28 @@ for experiment_run in experiment_that_contains_model.get_runs():
         run_that_contains_model = experiment_run
         break
 if run_that_contains_model is None:
-    logging.info('ERROR! Run not found!')
+    logger.info('ERROR! Run not found!')
     exit(0)
 
 # Download the model.
-logging.info('Downloading the model...')
+logger.info('Downloading the model...')
 output_directory = "model-" + args.run_id
 run_that_contains_model.download_files(output_directory=output_directory)
 
 # Instantiate the model with its weights.
-logging.info('Creating the model...')
+logger.info('Creating the model...')
 model = GAPNet()
-logging.info('Loading model weights...')
+logger.info('Loading model weights...')
 model.load_weights(os.path.join(output_directory, "gapnet_weights.h5"))
 model.summary()
 
 # Get all files from the dataset.
-logging.info('Find all files for evaluation...')
+logger.info('Find all files for evaluation...')
 pickle_files = glob.glob(os.path.join(dataset_path, "**", "*.p"))
 
 # Evaluate all files.
 # TODO parallelize this.
-logging.info('Evaluate all files...')
+logger.info('Evaluate all files...')
 data = {"results": []}
 for index, pickle_file in enumerate(pickle_files):
     name = os.path.basename(pickle_file).split(".")[0]
@@ -119,15 +119,15 @@ for index, pickle_file in enumerate(pickle_files):
         print("{} per cent".format(int(100 * (index / len(pickle_files)))))
 
 # Save results.
-logging.info('Saving results...')
+logger.info('Saving results...')
 json_path = "results.json"
 with open(json_path, 'w') as outfile:
     json.dump(data, outfile)
 
 # Upload to azure.
-logging.info('Uploading results to Azure...')
+logger.info('Uploading results to Azure...')
 run.upload_file(name=json_path, path_or_stream=json_path)
 
 # Done.
-logging.info('Done.')
+logger.info('Done.')
 run.complete()

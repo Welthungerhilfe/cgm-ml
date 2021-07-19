@@ -1,6 +1,4 @@
 import zipfile
-import logging
-import logging.config
 import math
 import sys
 
@@ -13,10 +11,6 @@ from typing import List
 from depthmap_utils import (
     matrix_calculate, IDENTITY_MATRIX_4D, parse_numbers, diff, cross, norm, matrix_transform_point)
 from constants import EXTRACTED_DEPTH_FILE_NAME, MASK_FLOOR, MASK_CHILD, MASK_INVALID
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
 
 
 TOOLKIT_DIR = Path(__file__).parents[0].absolute()

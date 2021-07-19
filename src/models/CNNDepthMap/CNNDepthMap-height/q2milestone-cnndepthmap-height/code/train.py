@@ -18,8 +18,8 @@ from utils import GradCAM, make_grid
 import cv2
 from matplotlib import pyplot as plt
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s - %(pathname)s: line %(lineno)d')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 # Parse command line arguments.
 parser = argparse.ArgumentParser(description="Training script.")
@@ -51,16 +51,16 @@ run = Run.get_context()
 
 # Offline run. Download the sample dataset and run locally. Still push results to Azure.
 if(run.id.startswith("OfflineRun")):
-    logging.info('Running in offline mode...')
+    logger.info('Running in offline mode...')
 
     # Access workspace.
-    logging.info('Accessing workspace...')
+    logger.info('Accessing workspace...')
     workspace = Workspace.from_config()
     experiment = Experiment(workspace, "training-junkyard")
     run = experiment.start_logging(outputs=None, snapshot_directory=".")
 
     # Get dataset.
-    logging.info('Accessing dataset...')
+    logger.info('Accessing dataset...')
     if os.path.exists("dataset") == False:
         dataset_name = "anon-depthmaps-56k"
         dataset = workspace.datasets[dataset_name]
@@ -69,18 +69,18 @@ if(run.id.startswith("OfflineRun")):
 
 # Online run. Use dataset provided by training notebook.
 else:
-    logging.info('Running in online mode...')
+    logger.info('Running in online mode...')
     experiment = run.experiment
     workspace = experiment.workspace
     dataset_path = run.input_datasets["dataset"]
 
 # Get the QR-code paths.
-logging.info('Dataset path: %s', dataset_path)
+logger.info('Dataset path: %s', dataset_path)
 dataset_path = os.path.join(dataset_path, "qrcode")
-logging.info(glob.glob(os.path.join(dataset_path, "*")))  # Debug
-logging.info('Getting QR-code paths...')
+logger.info(glob.glob(os.path.join(dataset_path, "*")))  # Debug
+logger.info('Getting QR-code paths...')
 qrcode_paths = glob.glob(os.path.join(dataset_path, "*"))
-logging.info('qrcode_paths: %d', len(qrcode_paths))
+logger.info('qrcode_paths: %d', len(qrcode_paths))
 
 # Shuffle and split into train and validate.
 random.seed(split_seed)
@@ -94,12 +94,12 @@ qrcode_paths_activation = [qrcode_paths_activation]
 del qrcode_paths
 
 # Show split.
-logging.info('Paths for training: \n\t' + '\n\t'.join(qrcode_paths_training))
-logging.info('Paths for validation: \n\t' + '\n\t'.join(qrcode_paths_validate))
-logging.info('Paths for activation: \n\t' + '\n\t'.join(qrcode_paths_activation))
+logger.info('Paths for training: \n\t' + '\n\t'.join(qrcode_paths_training))
+logger.info('Paths for validation: \n\t' + '\n\t'.join(qrcode_paths_validate))
+logger.info('Paths for activation: \n\t' + '\n\t'.join(qrcode_paths_activation))
 
-logging.info('Nbr of qrcode_paths for training: %d', len(qrcode_paths_training))
-logging.info('Nbr of qrcode_paths for validation: %d', len(qrcode_paths_validate))
+logger.info('Nbr of qrcode_paths for training: %d', len(qrcode_paths_training))
+logger.info('Nbr of qrcode_paths for validation: %d', len(qrcode_paths_validate))
 
 assert len(qrcode_paths_training) > 0 and len(qrcode_paths_validate) > 0
 
@@ -112,7 +112,7 @@ def get_depthmap_files(paths):
 
 
 # Get the pointclouds.
-logging.info('Getting depthmap paths...')
+logger.info('Getting depthmap paths...')
 paths_training = get_depthmap_files(qrcode_paths_training)
 paths_validate = get_depthmap_files(qrcode_paths_validate)
 paths_activate = get_depthmap_files(qrcode_paths_activation)
@@ -121,9 +121,9 @@ del qrcode_paths_training
 del qrcode_paths_validate
 del qrcode_paths_activation
 
-logging.info('Using %d files for training.', len(paths_training))
-logging.info('Using %d files for validation.', len(paths_validate))
-logging.info('Using %d files for activation.', len(paths_activate))
+logger.info('Using %d files for training.', len(paths_training))
+logger.info('Using %d files for validation.', len(paths_validate))
+logger.info('Using %d files for activation.', len(paths_activate))
 
 def calculate_pickle(path):
     def find_max(path):
@@ -175,7 +175,7 @@ paths = paths_training
 dataset_current = tf.data.Dataset.from_tensor_slices(paths)
 dataset_current = dataset_current.map(lambda path: calculate_pickle(path))
 dataset_max = get_max(dataset_current)
-logging.info('Maximum value of training dataset: %.2f', dataset_max)
+logger.info('Maximum value of training dataset: %.2f', dataset_max)
 dataset = tf.data.Dataset.from_tensor_slices(paths)
 dataset_norm = dataset.map(lambda path: tf_load_pickle(path, dataset_max))
 dataset_norm = dataset_norm.cache()
@@ -189,7 +189,7 @@ paths = paths_validate
 dataset_current = tf.data.Dataset.from_tensor_slices(paths)
 dataset_current = dataset_current.map(lambda path: calculate_pickle(path))
 dataset_max = get_max(dataset_current)
-logging.info('Maximum value of validation dataset: %.2f', dataset_max)
+logger.info('Maximum value of validation dataset: %.2f', dataset_max)
 dataset = tf.data.Dataset.from_tensor_slices(paths)
 dataset_norm = dataset.map(lambda path: tf_load_pickle(path, dataset_max))
 dataset_norm = dataset_norm.cache()
@@ -202,7 +202,7 @@ paths = paths_activate
 dataset_current = tf.data.Dataset.from_tensor_slices(paths)
 dataset_current = dataset_current.map(lambda path: calculate_pickle(path))
 dataset_max = get_max(dataset_current)
-logging.info('Maximum value of activation dataset: %.2f', dataset_max)
+logger.info('Maximum value of activation dataset: %.2f', dataset_max)
 dataset = tf.data.Dataset.from_tensor_slices(paths)
 dataset_norm = dataset.map(lambda path: tf_load_pickle(path, dataset_max))
 dataset_norm = dataset_norm.cache()
@@ -357,7 +357,7 @@ save_dir = './outputs/out'
 CHECK_FOLDER = os.path.isdir(save_dir)
 #if not CHECK_FOLDER:
 #    os.makedirs(save_dir)
-#    logging.info('created folder : %s', save_dir)
+#    logger.info('created folder : %s', save_dir)
 #cam_callback = GRADCamLogger(dataset_activation,layer_name,save_dir)
 #training_callbacks.append(cam_callback)
 
@@ -382,13 +382,13 @@ model.fit(
 run.upload_file(name=best_model_path, path_or_stream=best_model_path)
 
 # Save the weights.
-#logging.info('Saving and uploading weights...')
+#logger.info('Saving and uploading weights...')
 #path = "cnndepthmap_weights.h5"
 #model.save_weights(path)
 #run.upload_file(name="cnndepthmap_weights.h5", path_or_stream=path)
 
 # Save the model.
-#logging.info('Saving and uploading model...')
+#logger.info('Saving and uploading model...')
 #path = "cnndepthmap_model"
 #model.save(path)
 #run.upload_folder(name="cnndepthmap", path=path)
